@@ -4,11 +4,9 @@ openapi: "GET /v1/pricing"
 description: "获取模型的定价信息"
 ---
 
-## 概述
+返回当前可用模型的公开价格。
 
-使用此端点可以列出当前对外可见的活跃模型定价信息。
-
-如需查看某个模型的完整定价详情，包括结构化定价和溯源信息，请优先使用 [获取模型定价](/api-reference/models/get-model)。
+复杂计费项和模型完整信息见[获取模型](/zh/api-reference/models/get-model)。
 
 ## 查询参数
 
@@ -35,7 +33,7 @@ description: "获取模型的定价信息"
 </ResponseField>
 
 <ResponseField name="data" type="array">
-  定价条目数组。每一项包括 `model`、`provider`、`is_lock_price`、`capabilities`、`aliases`，以及上方交互式 schema 返回的公开标量或结构化定价摘要字段。
+  价格列表。每项包含模型、厂商、能力、别名和价格详情。
 </ResponseField>
 
 <RequestExample>
@@ -121,15 +119,10 @@ print_r($data);
       "model": "gpt-4o",
       "provider": "openai",
       "is_lock_price": false,
+      "input_per_1m_tokens": "2.50",
+      "output_per_1m_tokens": "10.00",
       "capabilities": ["chat"],
-      "aliases": ["gpt-4o-latest"],
-      "pricing": {
-        "input_per_1m": "2.50",
-        "output_per_1m": "10.00",
-        "per_request": null,
-        "is_lock_price": false,
-        "currency": "USD"
-      }
+      "aliases": ["gpt-4o-latest"]
     }
   ]
 }
@@ -137,5 +130,5 @@ print_r($data);
 </ResponseExample>
 
 <Note>
-使用上面的交互式 OpenAPI 面板获取确切的响应 schema。公开定价条目也可能暴露 `lock_price_per_request`、`has_complex_pricing`、`supported_operations`、`pricing_summary` 和 `pricing_provenance`。
+复杂计费模型还可能返回 `lock_price_per_request`、`has_complex_pricing`、`supported_operations` 和 `pricing_summary`。
 </Note>

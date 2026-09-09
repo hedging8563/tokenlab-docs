@@ -1,19 +1,10 @@
 ---
 title: "取消批处理"
 openapi: "POST /v1/batches/{batch_id}/cancel"
-description: "取消排队或正在运行的批处理作业。"
+description: "取消尚未完成的批处理任务。"
 ---
 
-## 概述
-
-此端点是 TokenLab 的 OpenAI 兼容批处理 API 的一部分。批处理作业使用上传的 JSONL 文件，异步运行，并可以稍后返回输出/错误文件。
-
-## 注意事项
-
-- 批处理输入文件必须使用 `purpose=batch`。
-- `completion_window` 当前为 `24h`。
-- 输出顺序不保证；始终通过 `custom_id` 匹配。
-- 批处理项内不支持流式传输。
+批处理仍在排队或运行时可以请求取消。响应状态变为 `cancelling` 后，通过 [获取批处理任务](/zh/api-reference/batches/retrieve-batch) 查询最终状态。
 
 ## 示例
 
@@ -23,16 +14,6 @@ curl -X POST "https://api.tokenlab.sh/v1/batches/batch_abc123/cancel" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 </RequestExample>
-
-## 请求 / 响应
-
-使用上面的交互式 OpenAPI 面板获取确切的模式。
-
-## 操作提示
-
-- 使用 `custom_id` 进行幂等的下游对账。
-- 仅在工作者完成批处理后，期待 `output_file_id` 和 `error_file_id`。
-- 批处理定价可能与同步定价不同，因为适用 `isBatchRequest=true` 的折扣规则。
 
 ## 响应示例
 
@@ -49,5 +30,5 @@ curl -X POST "https://api.tokenlab.sh/v1/batches/batch_abc123/cancel" \
 
 ## 重要字段
 
-<ResponseField name="id" type="string">用于后续调用和支持排障的标识符。</ResponseField>
-<ResponseField name="status" type="string">该资源当前的生命周期状态。</ResponseField>
+<ResponseField name="id" type="string">批处理任务 ID。</ResponseField>
+<ResponseField name="status" type="string">取消请求接受后为 `cancelling`。</ResponseField>

@@ -1,7 +1,7 @@
 ---
 title: "创建聊天补全"
 openapi: "POST /v1/chat/completions"
-description: "为聊天消息创建补全"
+description: "根据消息生成聊天回答"
 ---
 
 ## 请求体
@@ -23,7 +23,7 @@ description: "为聊天消息创建补全"
   - 视频: `{ "type": "video_url", "video_url": { "url": "https://..." } }`
   - 音频: `{ "type": "audio_url", "audio_url": { "url": "https://..." } }`
 
-  对于多模态生产流量，优先使用公开的 `https` URL。TokenLab 会将这些媒体块转换为所选模型所需的供应商特定请求形态。
+  图片、视频和音频可以从互联网访问时，建议使用 `https` URL。可用的媒体类型取决于所选模型。
 </ParamField>
 
 <ParamField body="temperature" type="number" default="1">
@@ -35,11 +35,11 @@ description: "为聊天消息创建补全"
 </ParamField>
 
 <ParamField body="stream" type="boolean" default="false">
-  如果为 true，则部分消息增量将作为 SSE events 发送。
+  设为 `true` 时，通过 SSE 返回消息增量。
 </ParamField>
 
 <ParamField body="stream_options" type="object">
-  流式传输选项。设置 `include_usage: true` 以在流分片中接收 token 使用情况。
+  流式响应设置。`include_usage: true` 会在流中返回 token 用量。
 </ParamField>
 
 <ParamField body="top_p" type="number" default="1">
@@ -99,7 +99,7 @@ description: "为聊天消息创建补全"
 </ParamField>
 
 <ParamField body="response_format" type="object">
-  响应格式规范。使用 `{"type": "json_object"}` 进入 JSON 模式。将 `{"type": "json_schema", "json_schema": {...}}` 视为一条基于所选模型和路由行为的尽力支持路径。
+  响应格式。`{"type": "json_object"}` 用于 JSON 模式。`json_schema` 是否可用取决于所选模型，请在模型明确支持时使用。
 </ParamField>
 
 <ParamField body="logit_bias" type="object">
@@ -107,7 +107,7 @@ description: "为聊天消息创建补全"
 </ParamField>
 
 <ParamField body="user" type="string">
-  表示您最终用户的唯一标识符，用于滥用监控。
+  终端用户标识，可用于安全与滥用防护。
 </ParamField>
 
 
@@ -152,7 +152,7 @@ curl -X POST "https://api.tokenlab.sh/v1/chat/completions" \
   -H "Authorization: Bearer sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-4o",
+    "model": "gpt-5.6-terra",
     "messages": [
       {"role": "system", "content": "You are a helpful assistant."},
       {"role": "user", "content": "Hello!"}
@@ -171,7 +171,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="gpt-4o",
+    model="gpt-5.6-terra",
     messages=[
         {"role": "system", "content": "You are a helpful assistant."},
         {"role": "user", "content": "Hello!"}
@@ -192,7 +192,7 @@ const client = new OpenAI({
 });
 
 const response = await client.chat.completions.create({
-  model: 'gpt-4o',
+  model: 'gpt-5.6-terra',
   messages: [
     { role: 'system', content: 'You are a helpful assistant.' },
     { role: 'user', content: 'Hello!' }
@@ -216,7 +216,7 @@ curl_setopt_array($ch, [
         'Authorization: Bearer sk-your-api-key'
     ],
     CURLOPT_POSTFIELDS => json_encode([
-        'model' => 'gpt-4o',
+        'model' => 'gpt-5.6-terra',
         'messages' => [
             ['role' => 'system', 'content' => 'You are a helpful assistant.'],
             ['role' => 'user', 'content' => 'Hello!']
@@ -258,7 +258,7 @@ echo $data['choices'][0]['message']['content'];
   "id": "chatcmpl-abc123",
   "object": "chat.completion",
   "created": 1706000000,
-  "model": "gpt-4o",
+  "model": "gpt-5.6-terra",
   "choices": [
     {
       "index": 0,

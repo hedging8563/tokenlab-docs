@@ -5,13 +5,6 @@ description: "将 Kilo Code 和 Kilo CLI 连接到 TokenLab"
 
 ## 概述
 
-<Note>
-**类型**：IDE 与 CLI 编码代理
-
-**主要路径**：OpenAI 兼容 Chat Completions
-
-**支持级别**：官方自定义提供商路径
-</Note>
 
 [Kilo Code](https://kilo.ai/docs/ai-providers/openai-compatible) 的 VS Code 扩展和 Kilo CLI 都支持自定义 OpenAI 兼容提供商。
 
@@ -34,14 +27,14 @@ kilo --version
 | Display name | `TokenLab` |
 | Provider API | **OpenAI Compatible** |
 | Base URL | `https://api.tokenlab.sh/v1` |
-| API key | 你的 TokenLab API Key |
+| API 密钥 | 你的 TokenLab API 密钥 |
 | Model | `kimi-k3` |
 
 Kilo 会从 TokenLab 的 `/v1/models` 自动发现模型。保存后选择 `tokenlab/kimi-k3`。
 
 ## 配置 CLI
 
-先设置环境变量，再把配置写入受信任的全局文件 `~/.config/kilo/kilo.jsonc`：
+把 API 密钥放在环境变量中，其他配置写入 `~/.config/kilo/kilo.jsonc`：
 
 ```bash
 export TOKENLAB_API_KEY="sk-your-tokenlab-key"
@@ -62,7 +55,14 @@ export TOKENLAB_API_KEY="sk-your-tokenlab-key"
           "name": "Kimi K3",
           "tool_call": true,
           "reasoning": true,
-          "limit": { "context": 1048576, "output": 131072 }
+          "modalities": {
+            "input": ["text", "image"],
+            "output": ["text"]
+          },
+          "limit": {
+            "context": 1048576,
+            "output": 131072
+          }
         }
       }
     }

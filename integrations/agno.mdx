@@ -5,15 +5,8 @@ description: "Use TokenLab models in Agno agents"
 
 ## Overview
 
-Agno can use TokenLab as an OpenAI-compatible model provider for agents and workflows.
+Agno agents can call TokenLab through its OpenAI-compatible model client.
 
-<Note>
-**Type**: Agent Framework
-
-**Primary Path**: OpenAI-compatible chat completions
-
-**Support Confidence**: Supported path
-</Note>
 
 ## Environment
 
@@ -29,7 +22,7 @@ If your Agno version includes the TokenLab model wrapper:
 from agno.agent import Agent
 from agno.models.tokenlab import TokenLab
 
-agent = Agent(model=TokenLab(id="gpt-5.4-mini"))
+agent = Agent(model=TokenLab(id="gpt-5.6-luna"))
 agent.print_response("Give me a concise project risk checklist.")
 ```
 
@@ -39,7 +32,7 @@ Some Agno builds also support model strings:
 agent = Agent(model="tokenlab:gpt-5.4-mini")
 ```
 
-## OpenAI-Compatible Fallback
+## OpenAI-Compatible Setup
 
 If your version does not include TokenLab yet, use Agno's OpenAI-compatible model path with:
 
@@ -47,6 +40,4 @@ If your version does not include TokenLab yet, use Agno's OpenAI-compatible mode
 - API key: `TOKENLAB_API_KEY`
 - Model: `gpt-5.4-mini`
 
-## Model Suggestions
-
-Use `gpt-5.4-mini` for default agents, `gpt-5.4` or `claude-sonnet-5` for deeper reasoning, and `deepseek-v4-flash` for faster loops.
+Model IDs change over time. Choose a current model on the [Models page](https://tokenlab.sh/en/models), then compare quality, speed, and cost on your own agent tasks.

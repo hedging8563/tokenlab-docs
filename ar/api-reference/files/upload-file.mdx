@@ -58,7 +58,7 @@ curl -X POST "https://api.tokenlab.sh/v1/files" \
 
 - أضف ترويسة `anthropic-beta: files-api-2025-04-14` للتبديل إلى وضع Anthropic.
 - في وضع Anthropic، ارفع الملف الأصلي مباشرة ولا ترسل `purpose=batch`.
-- سيتم ربط `file_id` المُعاد بالقناة/مساحة العمل الرسمية نفسها الخاصة بـ Anthropic ويجب إعادة استخدامه في طلبات `/v1/messages`.
+- سيتم ربط `file_id` المُعاد بمساحة العمل نفسها المتوافقة مع Anthropic ويجب إعادة استخدامه في طلبات `/v1/messages`.
 - إذا كنت تنوي الإشارة إلى هذا الملف داخل محتوى رسالة Anthropic، فاستمر في استخدام الترويسات الأصلية لـ Anthropic (`x-api-key` و`anthropic-version` وترويسة beta عند الحاجة).
 
 ## مثال الاستجابة

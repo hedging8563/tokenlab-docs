@@ -6,12 +6,12 @@ description: "根据输入文本生成音频"
 
 ## 请求体
 
-**同步请求超时：** 这个非聊天端点会等待路由到的模型完成处理。大输入、长音频或大批量请求可能超过常见的 30s 客户端默认超时，因此请将 HTTP 客户端超时设置为至少 `120s`。
+该接口会在音频生成完成后返回。内容较长时，请将 HTTP 客户端超时设为至少 `120s`。
 
-不同模型族支持的可选字段不同。TokenLab 会在路由前校验字段矩阵：OpenAI TTS 接受 `voice`、`instructions`、`response_format`、`stream_format`、`speed`；MiniMax 语音接受 `voice`、`voice_id`、`response_format`、`stream_format`、`speed`；Gemini TTS 接受 `prompt`、`language_code`、`voice`、`response_format`、`stream_format`、`speed`、`temperature`；更窄的 Vidu/Kling 类 TTS 路由可能只接受 `input` 和 `stream_format`。未知顶层字段（包括 `user`）会返回 `400 unsupported_parameter`，不会被静默忽略。
+可选字段取决于模型。OpenAI TTS 可使用 `voice`、`instructions`、`response_format`、`stream_format` 和 `speed`；MiniMax 语音还可使用 `voice_id`；Gemini TTS 可使用 `prompt`、`language_code` 和 `temperature`。不支持的字段会返回 `400 unsupported_parameter`。
 
 <ParamField body="model" type="string" default="tts-1">
-  TTS 模型。示例包括 `tts-1`、`gpt-4o-mini-tts`、`speech-02-hd` 和 `gemini-2.5-flash-tts`。请通过 `GET /v1/models?recommended_for=tts` 获取当前推荐列表。
+  TTS 模型 ID。通过 `GET /v1/models?recommended_for=tts` 获取当前可用模型。
 </ParamField>
 
 <ParamField body="input" type="string" required>
@@ -23,35 +23,35 @@ description: "根据输入文本生成音频"
 </ParamField>
 
 <ParamField body="voice_id" type="string">
-  MiniMax 兼容语音模型的上游原生语音选择器。
+  MiniMax 语音模型使用的语音 ID。
 </ParamField>
 
 <ParamField body="instructions" type="string">
-  支持该字段的 OpenAI 兼容 TTS 模型可使用的风格或朗读指令。
+  朗读风格或语气说明，适用于支持该字段的 OpenAI TTS 模型。
 </ParamField>
 
 <ParamField body="prompt" type="string">
-  Gemini TTS 的可选朗读风格 prompt。
+  Gemini TTS 的朗读风格说明。
 </ParamField>
 
 <ParamField body="language_code" type="string">
-  可选语言代码，例如 `en-US`，适用于 Gemini、xAI 和兼容 TTS 路由。
+  语言代码，例如 `en-US`。适用于 Gemini、xAI 和其他支持该字段的 TTS 模型。
 </ParamField>
 
 <ParamField body="response_format" type="string">
-  音频格式。常见值包括 `mp3`、`opus`、`aac`、`flac`、`wav`、`pcm`；具体支持值按模型族而定。
+  音频格式。常见值包括 `mp3`、`opus`、`aac`、`flac`、`wav` 和 `pcm`，以模型详情为准。
 </ParamField>
 
 <ParamField body="stream_format" type="string" default="audio">
-  TokenLab 交付格式：`audio` 或 `sse`。`tts-1` 和 `tts-1-hd` 不支持 `stream_format=sse`。
+  返回方式：`audio` 或 `sse`。`tts-1` 和 `tts-1-hd` 不支持 `sse`。
 </ParamField>
 
 <ParamField body="speed" type="number">
-  支持该字段的模型族可设置语速（0.25 到 4.0）。
+  语速，范围为 0.25–4.0。只在支持该字段的模型中生效。
 </ParamField>
 
 <ParamField body="temperature" type="number">
-  Gemini 兼容 TTS 路由的采样温度（0 到 2）。
+  Gemini TTS 的采样温度，范围为 0–2。
 </ParamField>
 
 ## 响应
@@ -132,22 +132,6 @@ file_put_contents('speech.mp3', $audio);
 ```
 </RequestExample>
 
-## 语音示例
-
-| Voice | 描述 |
-|-------|-------------|
-| `alloy` | 中性、平衡 |
-| `ash` | 平静、沉稳 |
-| `ballad` | 富有旋律感、表现力强 |
-| `coral` | 温暖、亲切 |
-| `echo` | 温暖、口语化 |
-| `fable` | 富有表现力、叙事感强 |
-| `nova` | 友好、清晰 |
-| `onyx` | 低沉、权威 |
-| `sage` | 睿智、深思熟虑 |
-| `shimmer` | 柔和、轻柔 |
-| `verse` | 富有动态感、适应性强 |
-
 ## 响应示例
 
 <ResponseExample>
@@ -158,5 +142,5 @@ file_put_contents('speech.mp3', $audio);
 
 ## 重要字段
 
-<ResponseField name="Content-Type" type="string">API 返回的事件或消息类型。</ResponseField>
-<ResponseField name="body" type="binary">原始响应体。应直接保存，不要按 JSON 解析。</ResponseField>
+<ResponseField name="Content-Type" type="string">返回音频的媒体类型；使用 `sse` 时为事件流类型。</ResponseField>
+<ResponseField name="body" type="binary">音频内容，直接保存为文件。</ResponseField>

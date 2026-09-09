@@ -1,19 +1,12 @@
 ---
 title: "OpenHands"
-description: "为 OpenHands CLI 和无头（headless）工作流配置 TokenLab 模型"
+description: "把 OpenHands 连接到 TokenLab"
 ---
 
 ## 概述
 
-OpenHands 可以通过其 LiteLLM/OpenAI 兼容的模型配置来使用 TokenLab，特别是在您需要自行提供模型、API 密钥和 Base URL 的 CLI 和无头工作流中。
+在 OpenHands 的 LiteLLM/OpenAI 兼容模型设置中填写模型、API 密钥和 Base URL，即可调用 TokenLab。
 
-<Note>
-**类型**: 编码智能体 (Coding Agent)
-
-**主要路径**: OpenAI 兼容模型配置
-
-**支持置信度**: 支持自定义端点路径
-</Note>
 
 ## 环境
 
@@ -35,7 +28,7 @@ Base URL: https://api.tokenlab.sh/v1
 
 ## 无头（Headless）设置
 
-如果您正在为 CLI 或无头使用准备本地默认配置，请运行 OpenHands 设置流程并输入：
+需要为 CLI 或 Headless 模式保存默认配置时，打开 OpenHands 设置并填写：
 
 ```bash
 make setup-config
@@ -43,6 +36,4 @@ make setup-config
 
 当系统提示输入模型详细信息时，请使用带有 `openai/` 前缀的 TokenLab 模型 ID 以及 TokenLab 的 `/v1` Base URL。
 
-## 模型建议
-
-使用 `claude-sonnet-5` 或 `gpt-5.4` 进行编码智能体规划，使用 `gpt-5.4-mini` 进行更快的常规循环，并在需要强大的替代推理模型时使用 `deepseek-v4-pro`。
+模型 ID 会更新。请从[模型页](https://tokenlab.sh/zh/models)选择当前编程模型，并用自己的仓库任务比较效果、速度和费用。

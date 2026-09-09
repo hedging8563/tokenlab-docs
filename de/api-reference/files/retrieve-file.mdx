@@ -39,6 +39,10 @@ Verwenden Sie das interaktive OpenAPI-Panel oben für das genaue Schema.
 - Erwarten Sie `output_file_id` und `error_file_id` erst, nachdem der Worker den Batch abgeschlossen hat.
 - Die Preise für Batches können von den Preisen für synchrone Anfragen abweichen, da die Rabattregeln für `isBatchRequest=true` gelten.
 
+## Bildreferenzdateien
+
+Dieser Endpunkt kann auch Metadaten für von TokenLab erstellte Bildreferenzdateien zurückgeben. Das Feld `status` ist optional und kann bei Dateifamilien fehlen, die keinen Status bereitstellen.
+
 ## Antwortbeispiel
 
 <ResponseExample>

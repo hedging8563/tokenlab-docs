@@ -1,32 +1,29 @@
 ---
-title: "Async Jobs & Polling"
-description: "Create asynchronous media jobs, poll public TokenLab task status, and reconcile final results without provider-specific IDs."
+title: "Async jobs and polling"
+description: "Create media tasks and wait for the finished result"
 ---
 
-Many media endpoints are asynchronous. A create request starts work and returns a public TokenLab task identity; your application polls until that task reaches a terminal status. Do not build customer workflows around upstream task URLs, routing IDs, or provider callback behavior.
+Many media endpoints return a task instead of a finished file. Save the returned task ID and use `poll_url` until the status is `completed` or `failed`.
 
-## Public Task Contract
+## Fields to save
 
 Create responses can include:
 
 | Field | Meaning | What to do |
 |-------|---------|------------|
-| `id` | Public TokenLab task ID | Store it with your own job record |
-| `task_id` | Compatibility alias for the same public task identity | Treat it as equivalent to `id` |
-| `status` | Current public task status | Start polling when it is not terminal |
+| `id` | TokenLab task ID | Store it with your own job record |
+| `task_id` | Another name for the same task ID | Treat it as equivalent to `id` |
+| `status` | Current task status | Keep checking until it finishes or fails |
 | `poll_url` | Preferred status URL | Use this first when present |
-| `model` | Model requested or resolved by the endpoint | Store it for support and billing reconciliation |
+| `model` | Model used for the task | Store it with the task record |
 
-`/v1/tasks/{id}` is the canonical fixed status endpoint for public async media jobs. Media-specific status routes may exist for compatibility, but new integrations should prefer `poll_url` or `/v1/tasks/{id}`.
+Use `poll_url` when it is returned. If your client needs a fixed URL, use `/v1/tasks/{id}`.
 
-## Recommended Flow
+## Save the task and check its status
 
-1. Validate the user request and send the create call with an explicit `model`.
-2. Persist `id` / `task_id`, `poll_url`, endpoint, model, user ID, and your own job ID before returning control to the UI.
-3. Poll every `5-10s` for long-running media tasks.
-4. Stop only when the task is `completed` or `failed`.
-5. On `completed`, read the media-specific result fields and store final URLs or metadata.
-6. On `failed`, store the public error and offer retry only as a new user-visible job.
+Save `id` or `task_id` as soon as the create request succeeds. Store `poll_url`, model, endpoint, and your own user or job ID with it. For long media jobs, checking every 5–10 seconds is usually enough.
+
+Stop when the status becomes `completed` or `failed`. A completed task contains the media result; a failed task contains the error you can show or log. Retrying a failed generation creates a new task and may create a new charge.
 
 ```json
 {
@@ -45,26 +42,26 @@ curl "https://api.tokenlab.sh/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" 
   -H "Authorization: Bearer sk-your-api-key"
 ```
 
-Expected public statuses are `pending`, `processing`, `completed`, and `failed`. Cancelled tasks are represented as `failed` with `cancelled: true` and `cancellation_status: "cancelled"` so older status handling keeps working.
+Statuses are `pending`, `processing`, `completed`, and `failed`. A cancelled task uses `failed` together with `cancelled: true` and `cancellation_status: "cancelled"`.
 
-## Client Retry Rules
+## Avoid duplicate tasks
 
-Network timeouts are the most common source of duplicate jobs. Use this rule:
+Most duplicate generations come from retrying a create request after a timeout.
 
 | Where timeout happens | Safer behavior |
 |-----------------------|----------------|
-| Before your server receives a create response | Check server logs for `request_id`; retry only if no task was created |
+| Before your server receives a create response | Check the `request_id`; retry only if no task was created |
 | After a create response was stored | Resume polling the stored `task_id` |
 | During polling | Retry the status request with backoff |
 | After terminal status | Do not poll again unless the user explicitly refreshes the record |
 
 Do not send a second create request just because the browser refreshed or a status poll failed.
 
-## Billing And Settlement
+## Billing records
 
-Async jobs can reserve an estimated amount when the create request is accepted. Final settlement happens after terminal status. When available, task status responses can expose `billing_transaction_id` and the `X-Billing-Transaction-ID` header.
+An async task may reserve its estimated cost when it is accepted. The final amount is recorded after the task finishes or fails. Status responses may include `billing_transaction_id` and the `X-Billing-Transaction-ID` header.
 
-For reconciliation, join these identifiers in your logs:
+Keep these identifiers together:
 
 - `request_id` from the create request.
 - `task_id` / `id` from the task.
@@ -73,9 +70,9 @@ For reconciliation, join these identifiers in your logs:
 
 ## Cancellation
 
-`DELETE /v1/tasks/{id}` is intentionally narrow. It currently supports queued Seedance video tasks such as `seedance-1.5-pro`, `seedance-2.0`, and `seedance-2.0-fast` when cancellation is available for the selected task.
+`DELETE /v1/tasks/{id}` can cancel supported Seedance video tasks while they are still queued, including `seedance-1.5-pro`, `seedance-2.0`, and `seedance-2.0-fast`.
 
-Unsupported tasks return `400 unsupported_task_cancel`. Tasks that are already running or terminal return `409 task_not_cancellable`. Build cancellation UI as "request cancellation" rather than a guaranteed stop button.
+Unsupported tasks return `400 unsupported_task_cancel`. A task that is already running or finished returns `409 task_not_cancellable`. Cancellation is a request, not a guarantee that work already in progress will stop.
 
 ## Troubleshooting
 
@@ -83,13 +80,13 @@ Unsupported tasks return `400 unsupported_task_cancel`. Tasks that are already r
 |---------|--------------|---------------|
 | `async_task_not_found` | Task is unknown, expired, inaccessible to this API key, or not a public async task | Confirm API key ownership and the stored public `task_id` |
 | Task never appears to finish | Client keeps polling the wrong URL or stopped before terminal status | Use `poll_url` or `/v1/tasks/{id}` and inspect the latest status |
-| Final media URL missing | Task is not completed, or the upstream job completed without usable output | Keep polling until terminal, then handle missing output as failed |
+| Final media URL missing | Task is not completed, or it finished without a usable file | Keep polling until it finishes, then treat a missing result as failed |
 | User sees duplicates | Retry path created a new task after timeout or refresh | Deduplicate by your own job ID and stored `task_id` |
-| Billing mismatch | Settlement is async or client is comparing provider IDs | Compare `request_id`, `task_id`, and `billing_transaction_id` |
+| Billing mismatch | Final billing is not recorded yet, or the wrong IDs are being compared | Compare `request_id`, `task_id`, and `billing_transaction_id` |
 
-## Support Packet
+## What to send support
 
-When contacting support, include `request_id`, `task_id`, `billing_transaction_id` when present, endpoint, model, timestamp, and a sanitized request shape. Do not include API keys, private media, signed URLs, or full prompts unless support asks for a redacted sample.
+Include `request_id`, `task_id`, `billing_transaction_id` when present, endpoint, model, time, and the names of fields you sent. Never send API keys, private media, signed URLs, or full prompts unless support specifically asks for a redacted example.
 
 ## API Reference
 

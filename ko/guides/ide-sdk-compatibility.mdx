@@ -248,7 +248,7 @@ TokenLab은 일반적인 코딩 도구, SDK 및 프레임워크가 최소한의 
 
 ```json
 {
-  "model": "claude-opus-4-6",
+  "model": "claude-opus-5",
   "thinking": {
     "type": "enabled",
     "budget_tokens": 10000
@@ -346,10 +346,10 @@ OpenAI 및 Anthropic 도구 형식을 모두 지원합니다:
 채팅 완료 및 Responses를 포함하여 `stream: true`를 노출하는 생성 엔드포인트는 서버 전송 이벤트(SSE)를 사용합니다:
 
 ```bash
-# Chat Completions
+# 채팅 완료
 curl https://api.tokenlab.sh/v1/chat/completions \
   -H "Authorization: Bearer sk-xxx" \
-  -d '{"model": "gpt-4o", "messages": [...], "stream": true}'
+  -d '{"model": "gpt-5.6-terra", "messages": [...], "stream": true}'
 
 # Chat Completions 사용량 추적
 -d '{"...", "stream_options": {"include_usage": true}}'
@@ -379,7 +379,7 @@ TokenLab은 OpenAI 호환 오류 응답을 반환합니다:
   </Accordion>
 
   <Accordion title="Chat Completions에만 stream_options.include_usage 사용">
-    Chat Completions 스트리밍의 경우, 정확한 토큰 수를 위해 `stream_options.include_usage`를 활성화하십시오. Responses는 자체 스트리밍 계약을 가지고 있으며 이 Chat 전용 옵션을 노출하지 않습니다.
+    Chat Completions 스트리밍의 경우, 정확한 토큰 수를 위해 `stream_options.include_usage`를 활성화하십시오. Responses는 자체 스트리밍 계약을 가지고 있으며 이 채팅 전용 옵션을 공개하지 않습니다.
   </Accordion>
 
   <Accordion title="적절한 tool_choice 형식 사용">

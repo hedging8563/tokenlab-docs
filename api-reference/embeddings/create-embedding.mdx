@@ -5,12 +5,12 @@ description: "Creates an embedding vector representing the input text"
 ---
 
 <Note>
-For coding agents, discover the current recommended embedding shortlist first with `GET /v1/models?recommended_for=embedding`, then send the selected `model` explicitly to this endpoint.
+Use `GET /v1/models?recommended_for=embedding` to get current embedding models.
 </Note>
 
 ## Request Body
 
-**Synchronous request timeout:** This non-chat endpoint waits for the routed model to finish. Large inputs, long audio, or large batches can exceed common 30s client defaults, so set your HTTP client timeout to at least `120s`.
+This endpoint returns after the vectors are ready. For large batches, set your HTTP client timeout to at least `120s`.
 
 <ParamField body="model" type="string" required>
   ID of the embedding model to use (e.g., `text-embedding-3-small`).
@@ -32,13 +32,9 @@ For coding agents, discover the current recommended embedding shortlist first wi
   A unique identifier representing your end-user for abuse monitoring.
 </ParamField>
 
-## Available Models
+## Choose a Model
 
-| Model | Dimensions | Description |
-|-------|------------|-------------|
-| `text-embedding-3-large` | 3072 | Best quality |
-| `text-embedding-3-small` | 1536 | Balanced |
-| `text-embedding-ada-002` | 1536 | Legacy |
+Use `GET /v1/models?recommended_for=embedding` for current models and dimensions.
 
 ## Response
 

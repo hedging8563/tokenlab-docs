@@ -1,7 +1,7 @@
 ---
 title: "Update API Key"
 openapi: "PATCH /v1/management/api-keys/{keyId}"
-description: "Updates an existing user API key for the current organization."
+description: "Update an API key in the current Workspace."
 ---
 
 ## Overview
@@ -16,7 +16,7 @@ At least one field must be provided.
 |-------|------|------------------|-------|
 | `status` | enum | - | `active`, `inactive`, `revoked` |
 | `name` | string | length `1-50` | Updated display name |
-| `limitAmount` | number \| null | min `0`, input max `1000000` | `null` = unlimited, `0` = zero quota. Positive values are normalized to a stored cap that cannot exceed `100000` USD equivalent. |
+| `limitAmount` | number \| null | min `0`, max `100000` | `null` means unlimited; `0` prevents spend |
 | `limitCurrency` | enum | default `USD` | USD only. Sending `CNY` returns `400 currency_retired`. |
 | `models` | string[] | - | Updated model allowlist |
 | `expiresAt` | string \| null | RFC3339 datetime | `null` clears the expiry |
@@ -25,8 +25,8 @@ At least one field must be provided.
 
 - Monetary fields are USD-only. `CNY` inputs are retired and return `400 currency_retired`.
 
-- Hard delete is intentionally not supported in Management API v1.
-- `revoked` is terminal for ordinary operational use; create a new key instead of expecting a future un-revoke flow.
+- The Management API does not provide deletion. Use `inactive` for a temporary pause and `revoked` to retire a key permanently.
+- Replace a revoked key with a new one.
 
 ## Example
 
@@ -60,7 +60,7 @@ Use the interactive OpenAPI panel above for the exact schema and response fields
   "used_amount": 148.25,
   "used_amount_decimal": "148.25",
   "models": [
-    "gpt-5-mini",
+    "gpt-5.6-luna",
     "claude-3-7-sonnet"
   ],
   "expires_at": "2026-12-31T23:59:59.000Z",

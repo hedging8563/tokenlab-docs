@@ -151,7 +151,7 @@ Semua respons mengikuti format yang konsisten:
   "id": "chatcmpl-abc123",
   "object": "chat.completion",
   "created": 1234567890,
-  "model": "gpt-4o",
+  "model": "gpt-5.6-terra",
   "choices": [...],
   "usage": {
     "prompt_tokens": 10,
@@ -163,30 +163,16 @@ Semua respons mengikuti format yang konsisten:
 
 ### Transparansi Routing
 
-Semua respons menyertakan field `_routing` dengan informasi channel:
+TokenLab tidak mengekspos detail provider, channel, policy, atau credential dalam body respons publik. Jangan bergantung pada `_routing` atau field routing internal lainnya sebagai bagian dari kontrak API publik.
 
-```json
-{
-  "id": "chatcmpl-abc123",
-  ...,
-  "_routing": {
-    "channel": {
-      "id": "ch_xxx",
-      "name": "channel-name",
-      "provider": "openai"
-    },
-    "cached": false,
-    "retryCount": 0
-  }
-}
-```
+Untuk debugging dan dukungan, gunakan header respons publik saat header tersebut tersedia:
 
-| Bidang | Deskripsi |
+| Header | Deskripsi |
 |-------|-------------|
-| `channel.id` | Identifier channel yang digunakan |
-| `channel.provider` | Provider upstream (openai, anthropic, dll.) |
-| `cached` | Apakah respons dilayani dari cache |
-| `retryCount` | Jumlah upaya percobaan ulang (jika ada) |
+| `X-Routing-Time-MS` | Waktu pemilihan rute, jika tersedia |
+| `X-Request-ID` | Identifier permintaan untuk dukungan dan debugging, jika tersedia |
+| `X-Task-ID` | Identifier tugas async publik untuk respons berbasis tugas, jika tersedia |
+| `X-Billing-Transaction-ID` | Identifier transaksi billing setelah billing final, jika tersedia |
 
 ### Respons Error
 

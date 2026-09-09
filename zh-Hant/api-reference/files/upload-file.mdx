@@ -58,7 +58,7 @@ curl -X POST "https://api.tokenlab.sh/v1/files" \
 
 - 加上 `anthropic-beta: files-api-2025-04-14` 請求標頭即可切換到 Anthropic 模式。
 - 在 Anthropic 模式下，直接上傳原始檔案，不要傳 `purpose=batch`。
-- 回傳的 `file_id` 會綁定到同一個官方 Anthropic 渠道/工作區，後續應在 `/v1/messages` 請求中重用。
+- 回傳的 `file_id` 會綁定到同一個 Anthropic 相容工作區，後續應在 `/v1/messages` 請求中重用。
 - 如果你要在 Anthropic 訊息內容中引用這個檔案，請持續使用 Anthropic 原生請求標頭（`x-api-key`、`anthropic-version`，以及需要時的 beta header）。
 
 ## 回應範例

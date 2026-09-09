@@ -7,15 +7,8 @@ description: "Configure OpenCode to use TokenLab API"
 
 
 
-<Note>
-**Type**: Coding Tool
 
-**Primary Path**: OpenAI-compatible
-
-**Support Confidence**: Supported path
-</Note>
-
-OpenCode is an open-source AI coding assistant that runs in your terminal. It supports multiple LLM providers and can be configured to use TokenLab's API for access to hundreds of models.
+OpenCode can use TokenLab through a custom OpenAI-compatible provider. Add the TokenLab API key, Base URL, and a current model ID.
 
 ## Installation
 
@@ -79,10 +72,10 @@ OpenCode's current docs recommend configuring providers through `opencode.json` 
         "apiKey": "{env:OPENAI_API_KEY}"
       },
       "models": {
-        "gpt-5.4": {
+        "gpt-5.6-terra": {
           "name": "GPT-5.4"
         },
-        "gpt-5-mini": {
+        "gpt-5.6-luna": {
           "name": "GPT-5 Mini"
         }
       }
@@ -116,16 +109,9 @@ opencode "Explain this codebase"
 opencode --model tokenlab/gpt-5.4 "Fix the bugs in main.py"
 ```
 
-## Available Models
+## Choose a Model
 
-| Model | Best For |
-|-------|----------|
-| `gpt-5.4` | Complex tasks, code architecture |
-| `gpt-5-mini` | Quick fixes, simple queries |
-| `claude-sonnet-4-6` | Code review, documentation |
-| `claude-opus-4-6` | Complex reasoning |
-| `gemini-3.5-flash` | Fast responses |
-| `deepseek-r1` | Algorithm design |
+Copy a current coding model ID from the [Models page](https://tokenlab.sh/en/models). Compare models on your own repository before setting a default.
 
 ## Common Commands
 
@@ -184,15 +170,15 @@ opencode "Fix the TypeScript errors in this project"
   </Accordion>
 </AccordionGroup>
 
-## Best Practices
+## Tips
 
 <AccordionGroup>
   <Accordion title="Use project context">
     Run OpenCode from your project root for better understanding of your codebase.
   </Accordion>
 
-  <Accordion title="Choose appropriate models">
-    Use faster models (`gpt-5-mini`) for simple tasks and stronger models (`gpt-5.4`, `claude-sonnet-4-6`) for complex ones.
+  <Accordion title="Choose a model with your own tasks">
+    Test the same edit or review task across a few current models and compare the result, time, and cost.
   </Accordion>
 
   <Accordion title="Review generated code">

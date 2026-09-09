@@ -1,27 +1,27 @@
 ---
 title: "Quickstart"
-description: "Get started with TokenLab API in 2 minutes"
+description: "Send your first TokenLab API request"
 ---
 
-## Step 1: Start with Trial Credits
+## Get an API key
 
 <Steps>
   <Step title="Create an account">
     Sign up at [tokenlab.sh](https://tokenlab.sh) using your email, Gmail, or GitHub account.
   </Step>
-  <Step title="Use the included trial credits">
-    Your account starts with trial credits for the first small test requests. You do not need to top up before Quickstart.
-  </Step>
   <Step title="Create or copy an API key">
-    Go to **Dashboard → API Keys** and create a new key, or copy an existing one. Copy it securely because full keys are only shown once.
+    Go to **Console → API Keys** and create a new key, or copy an existing one. Copy it now. The full key is shown only once.
+  </Step>
+  <Step title="Use the included trial balance">
+    New accounts include enough trial balance for a few small requests. You do not need to add funds for this Quickstart.
   </Step>
 </Steps>
 
 <Warning>
-Keep your API key secure. Never expose it in client-side code or public repositories.
+Keep the API key secret. Do not put it in client-side code or a public repository.
 </Warning>
 
-## Step 2: Install a Client
+## Install a client
 
 <CodeGroup>
 
@@ -43,7 +43,7 @@ composer require openai-php/client
 
 </CodeGroup>
 
-## Step 3: Make Your First Request
+## Send your first request
 
 For most new integrations, start with **Chat Completions** on `POST /v1/chat/completions`.
 
@@ -54,7 +54,7 @@ curl https://api.tokenlab.sh/v1/chat/completions \
   -H "Authorization: Bearer sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-5.4",
+    "model": "gpt-5.6-terra",
     "messages": [
       {"role": "user", "content": "What is the capital of France?"}
     ]
@@ -70,7 +70,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="gpt-5.4",
+    model="gpt-5.6-terra",
     messages=[{"role": "user", "content": "What is the capital of France?"}]
 )
 
@@ -86,7 +86,7 @@ const client = new OpenAI({
 });
 
 const response = await client.chat.completions.create({
-  model: 'gpt-5.4',
+  model: 'gpt-5.6-terra',
   messages: [{ role: 'user', content: 'What is the capital of France?' }],
 });
 
@@ -96,30 +96,30 @@ console.log(response.choices[0].message.content);
 </CodeGroup>
 
 <Note>
-Use `POST /v1/responses` only when you explicitly need Responses-specific behavior. Some Responses-only fields depend on the selected model and routed path.
+Use `POST /v1/responses` only when you need Responses-specific behavior. Support for Responses-only fields depends on the selected model.
 </Note>
 
-## Top Up for Production
+## Add balance when you need it
 
-The included trial credits are for the first small tests. Add credits in **Dashboard → Billing** only when you are ready for production usage or higher-volume testing.
+The trial balance covers a few small requests. Add funds in **Console → Billing** when you are ready to make more.
 
-## Try Different Models
+## Try another model
 
-TokenLab supports hundreds of models. Change only the `model` field:
+Change the `model` field to try a different model. The [Models page](https://tokenlab.sh/en/models) lists the IDs currently available.
 
 ```python
-response = client.chat.completions.create(model="gpt-5.4", messages=[{"role": "user", "content": "Hello"}])
-response = client.chat.completions.create(model="gpt-5-mini", messages=[{"role": "user", "content": "Hello"}])
-response = client.chat.completions.create(model="claude-sonnet-4-6", messages=[{"role": "user", "content": "Hello"}])
+response = client.chat.completions.create(model="gpt-5.6-terra", messages=[{"role": "user", "content": "Hello"}])
+response = client.chat.completions.create(model="gpt-5.6-luna", messages=[{"role": "user", "content": "Hello"}])
+response = client.chat.completions.create(model="claude-sonnet-5", messages=[{"role": "user", "content": "Hello"}])
 response = client.chat.completions.create(model="gemini-3.5-flash", messages=[{"role": "user", "content": "Hello"}])
-response = client.chat.completions.create(model="deepseek-r1", messages=[{"role": "user", "content": "Hello"}])
+response = client.chat.completions.create(model="deepseek-reasoner", messages=[{"role": "user", "content": "Hello"}])
 ```
 
-## Enable Streaming
+## Stream the response
 
 ```python
 stream = client.chat.completions.create(
-    model="gpt-5.4",
+    model="gpt-5.6-terra",
     messages=[{"role": "user", "content": "Tell me a short story."}],
     stream=True
 )
@@ -130,17 +130,17 @@ for chunk in stream:
         print(delta, end="")
 ```
 
-## What’s Next?
+## Keep building
 
 <CardGroup cols={2}>
   <Card title="Authentication" icon="key" href="/authentication">
-    Learn about API key management and security.
+    Store, limit, and rotate API keys.
   </Card>
   <Card title="OpenAI SDK" icon="code" href="/integrations/openai-sdk">
-    Use OpenAI-compatible `/v1` routes with existing OpenAI SDKs.
+    Use your existing OpenAI SDK with TokenLab.
   </Card>
   <Card title="API Reference" icon="book" href="/api-reference/introduction">
-    Explore the full endpoint reference.
+    Find request fields, response shapes, and examples.
   </Card>
   <Card title="Models" icon="robot" href="https://tokenlab.sh/en/models">
     Browse current model availability and pricing.

@@ -1,15 +1,13 @@
 ---
 title: "Streaming"
-description: "Implement real-time streaming responses"
+description: "Show model output as it arrives"
 ---
 
 ## Overview
 
-Streaming lets you receive partial output as it is generated, which improves perceived latency and user experience.
+Streaming delivers model output in small events instead of waiting for the full answer. Use Responses streaming for a model that lists `responses` in `accepted_request_formats`; keep Chat Completions streaming when that is what your SDK or application already expects.
 
-For new OpenAI-style integrations whose selected model exposes a native Responses endpoint, prefer **Responses streaming**. Responses availability requires the model details to advertise that request format and a same-protocol route to be currently available. If your framework or model uses Chat Completions streaming, TokenLab supports that compatibility path too.
-
-## Recommended: Responses Streaming
+## Responses streaming
 
 <CodeGroup>
 
@@ -18,7 +16,7 @@ curl https://api.tokenlab.sh/v1/responses \
   -H "Authorization: Bearer sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-5.4",
+    "model": "gpt-5.6-terra",
     "input": "Write a short poem.",
     "stream": true
   }'
@@ -33,7 +31,7 @@ client = OpenAI(
 )
 
 stream = client.responses.create(
-    model="gpt-5.4",
+    model="gpt-5.6-terra",
     input="Write a short poem.",
     stream=True
 )
@@ -52,7 +50,7 @@ const client = new OpenAI({
 });
 
 const stream = await client.responses.create({
-  model: 'gpt-5.4',
+  model: 'gpt-5.6-terra',
   input: 'Write a short poem.',
   stream: true
 });
@@ -66,13 +64,13 @@ for await (const event of stream) {
 
 </CodeGroup>
 
-TokenLab preserves native Responses SSE event names, order, and fields. It parses usage and terminal state out of band but does not rewrite the wire events. Once the first event has been delivered, the gateway does not retry the request on another channel or credential.
+Responses SSE keeps the documented event names, order, and fields. After the first event arrives, an interrupted stream is incomplete and is not restarted automatically.
 
 ## Responses WebSocket
 
-Connect to `wss://api.tokenlab.sh/v1/responses` and send official `response.create` events. The WebSocket surface does not expose `response.cancel`; `stream` is implicit and `background` is unsupported on this transport. A `response.create` with `generate: false` creates a warmup response with no model output or charge and returns an ID that can be continued.
+Connect to `wss://api.tokenlab.sh/v1/responses` and send `response.create` events. WebSocket responses are always streamed and do not support `background` or `response.cancel`. A `response.create` with `generate: false` returns an ID that can be continued without generating model output or creating a model charge.
 
-Each connection processes one active response at a time, does not multiplex responses, and has a 60-minute maximum lifetime. Gateway-created response events use a response-scoped monotonic `sequence_number`. Stream events named `error` use the flat event shape; connection and protocol errors retain their nested `error` object.
+Each connection handles one active response at a time and lasts up to 60 minutes. Events include a response-scoped `sequence_number`. Stream events named `error` use a flat event object; connection and protocol failures use a nested `error` object.
 
 ## Chat Completions Streaming
 
@@ -80,7 +78,7 @@ If your framework still expects SSE chunks from `/v1/chat/completions`, that als
 
 ```python
 stream = client.chat.completions.create(
-    model="gpt-4o",
+    model="gpt-5.6-terra",
     messages=[{"role": "user", "content": "Write a short poem"}],
     stream=True
 )
@@ -93,7 +91,7 @@ for chunk in stream:
 
 ## Gemini Streaming
 
-`POST /v1beta/models/{model}:streamGenerateContent?alt=sse` preserves Gemini-native chunks. Metadata-only events, intermediate chunks without `finishReason`, and natural EOF are valid. TokenLab does not append a Chat Completions `[DONE]` marker.
+`POST /v1beta/models/{model}:streamGenerateContent?alt=sse` returns Gemini chunks. An event can contain only metadata, intermediate events may omit `finishReason`, and the stream can end naturally without a Chat Completions `[DONE]` marker.
 
 ## Stream End Conditions
 
@@ -114,7 +112,7 @@ async function streamChat(message) {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      model: 'gpt-4o',
+      model: 'gpt-5.6-terra',
       messages: [{ role: 'user', content: message }],
       stream: true
     })
@@ -143,18 +141,18 @@ async function streamChat(message) {
 }
 ```
 
-## Best Practices
+## Handle streams well
 
 <AccordionGroup>
-  <Accordion title="Prefer Responses streaming for new builds">
-    Use `/v1/responses` if your SDK or app already supports it. Keep `/v1/chat/completions` streaming for compatibility-driven integrations.
+  <Accordion title="Match the API your app already understands">
+    Use Responses streaming when the selected model and your client support it. Existing Chat Completions streaming code can stay on `/v1/chat/completions`.
   </Accordion>
 
   <Accordion title="Flush output incrementally">
     Append delta chunks to the UI or terminal as they arrive rather than waiting for the full response.
   </Accordion>
 
-  <Accordion title="Handle disconnects and retries">
-    Treat network drops and upstream disconnects as normal failure modes and reconnect carefully for long-running sessions.
+  <Accordion title="Treat disconnects as incomplete responses">
+    Preserve the partial output if it is useful, but do not mark it as complete. Repeating a request may produce different output and another charge.
   </Accordion>
 </AccordionGroup>

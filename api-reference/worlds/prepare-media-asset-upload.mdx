@@ -6,7 +6,7 @@ description: "Creates a World Labs media asset upload target"
 
 Create a World Labs media asset record and receive an upload URL for an image or video. Upload the binary file to `upload_info.upload_url`, then reference the returned `media_asset.media_asset_id` from `world_prompt` with `source: "media_asset"`.
 
-TokenLab records the asset owner. Only the same organization can retrieve or use this media asset in world generation.
+The asset is available only in the Workspace that created it.
 
 ## Request Body
 
@@ -23,7 +23,7 @@ TokenLab records the asset owner. Only the same organization can retrieve or use
 </ParamField>
 
 <ParamField body="metadata" type="object">
-  Optional metadata object stored with the upstream media asset.
+  Custom metadata stored with the asset.
 </ParamField>
 
 ## Response
@@ -33,7 +33,7 @@ TokenLab records the asset owner. Only the same organization can retrieve or use
 </ResponseField>
 
 <ResponseField name="upload_info.upload_url" type="string">
-  Signed upstream URL where the binary file should be uploaded.
+  Signed URL for uploading the file.
 </ResponseField>
 
 <RequestExample>

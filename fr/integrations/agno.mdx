@@ -7,14 +7,6 @@ description: "Utilisez les modèles TokenLab dans les agents Agno"
 
 Agno peut utiliser TokenLab en tant que fournisseur de modèles compatible avec OpenAI pour les agents et les flux de travail.
 
-<Note>
-**Type** : Framework d'agent
-
-**Chemin principal** : Complétions de chat compatibles avec OpenAI
-
-**Niveau de support** : Chemin pris en charge
-</Note>
-
 ## Environnement
 
 ```bash
@@ -29,7 +21,7 @@ Si votre version d'Agno inclut le wrapper de modèle TokenLab :
 from agno.agent import Agent
 from agno.models.tokenlab import TokenLab
 
-agent = Agent(model=TokenLab(id="gpt-5.4-mini"))
+agent = Agent(model=TokenLab(id="gpt-5.6-luna"))
 agent.print_response("Give me a concise project risk checklist.")
 ```
 

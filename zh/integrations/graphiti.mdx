@@ -5,15 +5,8 @@ description: "将 TokenLab 用作兼容 OpenAI 的 Graphiti LLM 提供商"
 
 ## 概述
 
-Graphiti 通过 `OpenAIGenericClient` 支持兼容 OpenAI 的 `/v1` 端点。将该客户端指向 TokenLab 并选择一个 TokenLab 模型即可。
+在 Graphiti 的 `OpenAIGenericClient` 中填写 TokenLab `/v1` 地址、API 密钥和模型 ID 即可。
 
-<Note>
-**类型**: 知识图谱记忆框架
-
-**主要路径**: 兼容 OpenAI 的 Chat Completions
-
-**支持置信度**: 支持兼容 OpenAI 的路径
-</Note>
 
 ## 环境
 
@@ -32,14 +25,14 @@ from graphiti_core.llm_client.openai_generic_client import OpenAIGenericClient
 llm_config = LLMConfig(
     api_key=os.environ["TOKENLAB_API_KEY"],
     model="claude-sonnet-5",
-    small_model="gpt-5.4-mini",
+    small_model="gpt-5.6-luna",
     base_url="https://api.tokenlab.sh/v1",
 )
 
 llm_client = OpenAIGenericClient(config=llm_config)
 ```
 
-将 `llm_client` 与您的图数据库和嵌入器配置一起传入 `Graphiti(...)` 实例中。
+将 `llm_client` 与你的图数据库和嵌入器配置一起传入 `Graphiti(...)` 实例中。
 
 ## 端点说明
 

@@ -6,11 +6,11 @@ description: "Echtzeit-Sprach- und multimodale Sitzungen per WebSocket verbinden
 
 ## Überblick
 
-Dieser Endpunkt ist für Echtzeit-Sitzungen wie Spracherkennung, Sprachsynthese, Sprachübersetzung oder multimodale Realtime-Modelle gedacht. Normale `GET`-Anfragen liefern Metadaten; WebSocket-Upgrades werden an die geroutete Realtime-Upstream-Sitzung weitergeleitet.
+Verwenden Sie diesen Endpunkt für Echtzeitsitzungen wie Streaming-Spracherkennung, Sprachsynthese, Sprachübersetzung oder multimodale Echtzeitmodelle. Eine normale `GET`-Anfrage gibt Endpunkt-Metadaten zurück, während eine WebSocket-Upgrade-Anfrage eine Echtzeitsitzung für das ausgewählte Modell öffnet.
 
 ## Unterstützte Oberfläche
 
-Dieser Endpunkt ist TokenLabs Realtime-WebSocket-Proxy. Er unterstützt einen normalen `GET /v1/realtime`-Metadatencheck und WebSocket-Upgrades auf demselben Pfad. Er stellt keine OpenAI-Realtime-REST-Hilfsendpunkte bereit, etwa `POST /v1/realtime/client_secrets`, `POST /v1/realtime/translations/client_secrets`, Realtime Calls (`accept`, `hangup`, `refer`, `reject`) oder die Erstellung von legacy beta REST session / transcription-session.
+TokenLab stellt unter `GET /v1/realtime` einen Realtime-WebSocket-Endpunkt für Metadatenchecks und WebSocket-Upgrades bereit. Behandeln Sie ihn als WebSocket subset: Er leitet unterstützte Realtime-Modellereignisse weiter und unterstützt keine OpenAI-Realtime-REST-Hilfsflächen wie Sitzungserstellung, `client_secrets`, `Calls`-Call-Control-APIs oder legacy beta session APIs.
 
 Für Browser- oder Mobile-Apps sollten langfristige API-Keys auf Ihrem Server bleiben. Dieser Endpunkt stellt keine kurzlebigen Realtime client secrets aus.
 
@@ -54,13 +54,13 @@ curl "https://api.tokenlab.sh/v1/realtime" \
 
 ## Nachrichten
 
-TokenLab leitet WebSocket-Nachrichten zwischen Client und geroutetem Realtime-Anbieter weiter. Verwenden Sie die offiziellen Event-Formate des gewählten Modells und geben Sie `model` in der Query an.
+TokenLab leitet WebSocket-Nachrichten zwischen Ihrem Client und dem ausgewählten Echtzeitmodell weiter. Verwenden Sie das in der Dokumentation dieses Modells beschriebene Ereignisformat und geben Sie `model` im Query-String an, nicht in jedem einzelnen Ereignis.
 
 ## Abrechnung und Schließen
 
-Realtime-Sitzungen nutzen dasselbe API-Key-Guthaben. TokenLab zieht beim Öffnen eine kleine Schätzung vorab ab und rechnet beim Schließen ab oder erstattet.
+Sitzungen werden über das Guthaben Ihres API-Schlüssels abgerechnet: TokenLab reserviert zu Beginn einen geschätzten Betrag, rechnet am Ende den tatsächlichen Verbrauch ab und erstattet die Differenz.
 
-Schließen Sie den Client-Socket, wenn die Sitzung beendet ist. Schließt der Upstream zuerst, leitet TokenLab den Close-Code nach Möglichkeit weiter.
+Schließen Sie den Client-Socket, wenn die Sitzung abgeschlossen ist. Wenn der Dienst die Sitzung zuerst schließt, sendet TokenLab nach Möglichkeit ein sicheres Schließereignis bzw. einen sicheren Schließcode an Ihren Client.
 
 ## Antwortbeispiel
 
@@ -80,4 +80,4 @@ Schließen Sie den Client-Socket, wenn die Sitzung beendet ist. Schließt der Up
 ## Wichtige Felder
 
 <ResponseField name="type" type="string">Von der API zurückgegebener Event- oder Nachrichtentyp.</ResponseField>
-<ResponseField name="session.id" type="string">Kennung des Realtime-Anbieters; verwenden Sie sie in Support-Logs, nicht als REST session URL.</ResponseField>
+<ResponseField name="session.id" type="string">Undurchsichtige Kennung aus der Realtime-Verbindung. Verwenden Sie sie in Support-Logs zur Fehleranalyse; sie ist keine REST session URL.</ResponseField>

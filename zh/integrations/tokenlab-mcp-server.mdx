@@ -1,400 +1,237 @@
 ---
 title: "TokenLab MCP Server"
-description: "将 Claude Code、Cursor、VS Code、Codex 及其他 MCP 客户端连接到 TokenLab 的模型、定价、推理、媒体、文件和任务工具。"
+description: "让 Claude Code、Cursor、VS Code、Codex 等 MCP 客户端使用 TokenLab 模型和 API"
 ---
 
-[TokenLab MCP server](https://github.com/hedging8563/tokenlab-mcp-server) 根据 TokenLab 的公共 OpenAPI 契约生成 MCP 工具。支持 MCP 的智能体（Agent）可以发现模型和定价、调用兼容 OpenAI 及原生的 LLM 端点、创建多模态媒体、上传文件以及管理异步任务。
+[TokenLab MCP Server](https://github.com/hedging8563/tokenlab-mcp-server) 可以让 MCP 客户端查询当前模型和价格、调用模型、生成媒体、处理文件，并查看异步任务。
 
-当智能体需要当前的 TokenLab API 契约而非手动维护的工具列表时，请使用此服务器。默认的 `core` 配置文件公开了 29 个生成的端点工具以及两个复合发现工具。`full` 配置文件则公开了 78 个生成的端点工具以及相同的两个复合工具。
+只想查询模型和价格时使用 `catalog`，不需要 API 密钥。客户端需要发送付费请求时，再添加 `TOKENLAB_API_KEY`。
 
-本页用于在 Claude Code、Cursor、VS Code、Codex、Claude Desktop、Cline、Windsurf 或其他 MCP 客户端中添加 TokenLab 工具服务器。如果你要在应用代码中直接调用 TokenLab，请从 [API 快速开始](/zh/quickstart) 入手。
+<Warning>
+TokenLab API 密钥只能放在 MCP Server 环境变量中，不能粘贴到提示词或工具参数里。
+</Warning>
 
-<Note>
-公共目录和定价工具不需要 TokenLab API key。如需进行凭证验证的推理、媒体、音频、文件、任务、嵌入（embedding）、重排序（rerank）和翻译操作，请设置 `TOKENLAB_API_KEY`。切勿将 API key 放入工具参数中。
-</Note>
+## 运行要求
 
-## 它提供了什么
+需要 Node.js 18.17 或更高版本，并且本机可以使用 `npx`：
 
-- 从 `https://api.tokenlab.sh/v1/models` 进行实时模型发现。
-- 从 `/v1/models/{model}` 进行模型详情查询。
-- 从 `/v1/models/{model}/pricing` 进行定价查询。
-- 从 `https://api.tokenlab.sh/llms.txt` 获取智能体可读的 API 概览。
-- 兼容 OpenAI 的 Chat Completions 和 Responses、Anthropic Messages 以及 Gemini generateContent，且无需扁平化其原生请求格式。
-- 通过 JSON URL、TokenLab 文件 ID 或本地多部分（multipart）文件进行图像生成和编辑。
-- 视频、音乐、3D、语音、转录、音频翻译、嵌入、多模态嵌入、重排序和文本翻译。
-- 针对图像、视频、音乐、3D 和世界生成操作的标准化异步任务摘要。
-- 每日契约同步：获取公共 OpenAPI 文档、重新生成工具模式（schema）、运行端点和文件测试，仅在所有检查通过时更新 `main` 分支。
+```bash
+node --version
+npx --version
+```
 
-## 快速开始
+npm 包会在本地通过 stdio 运行，不需要全局安装，也不需要克隆源码。
 
-最快且安全的起步方式是先启用 6 个公共目录工具。它不需要 TokenLab API Key，之后可随时开启需要凭证的工具。
+## 选择开放范围
 
-<CardGroup cols={2}>
-  <Card title="一键安装到 Cursor" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab-model-catalog&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXIiXSwiZW52Ijp7IlRPS0VOTEFCX01DUF9UT09MX1BST0ZJTEUiOiJjYXRhbG9nIn19">
-    一键把公共 `catalog` 配置文件添加到 Cursor
-  </Card>
-  <Card title="一键安装到 VS Code" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab-model-catalog&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
-    把公共 `catalog` 配置文件添加到 VS Code 用户配置
-  </Card>
-</CardGroup>
+| Profile | API 密钥 | 包含 |
+| --- | --- | --- |
+| `catalog` | 不需要 | 模型列表、模型详情、价格、模型比较和 API 概览 |
+| `core` | 付费调用需要 | 常用聊天、媒体、音频、文件、任务、Embeddings、Rerank 和翻译工具 |
+| `full` | 付费调用需要 | `core` 以及更多开发者 API |
 
-<Steps>
-  <Step title="检查运行要求">
-    安装 Node.js 18.17 或更高版本，并确认可以使用 `npx`：
+只想让 Agent 更准确地选模型时使用 `catalog`。需要生成内容或调用模型时使用 `core`。只有客户端确实需要更多 API 时才使用 `full`。
+
+## 添加 MCP Server
+
+<Tabs>
+  <Tab title="Claude Code">
+    添加到当前用户：
 
     ```bash
-    node --version
-    npx --version
+    claude mcp add \
+      --env TOKENLAB_MCP_TOOL_PROFILE=catalog \
+      --scope user \
+      tokenlab-model-catalog -- \
+      npx -y @tokenlabai/mcp-server
     ```
 
-    无需全局安装 MCP 包，也无需克隆它的仓库。
-  </Step>
+    需要付费工具时，把 Profile 环境变量换成 `TOKENLAB_API_KEY`，并通过日常使用的密钥管理方式保存。只在当前项目使用时选择 `--scope local`。共享 `.mcp.json` 不能提交真实密钥。
+  </Tab>
 
-  <Step title="选择访问级别">
-    | 目标 | API Key | 配置文件 |
-    |---|---|---|
-    | 浏览模型、详情和定价 | 不需要 | `catalog`（6 个工具） |
-    | 使用常见推理、媒体、文件和任务操作 | 付费调用需要 | `core`（31 个工具，默认） |
-    | 公开所有列入允许清单的开发者操作 | 付费调用需要 | `full`（80 个工具） |
+  <Tab title="Codex">
+    ```bash
+    codex mcp add \
+      --env TOKENLAB_MCP_TOOL_PROFILE=catalog \
+      tokenlab-model-catalog -- \
+      npx -y @tokenlabai/mcp-server
+    ```
 
-    只有当你希望服务器发起需要凭证的 API 调用时，才需要在 [控制台 → API Keys](https://tokenlab.sh/dashboard/api) 创建 Key。请把 Key 保存在客户端的秘密环境中，切勿粘贴到提示词或 MCP 工具参数里。
-  </Step>
+    需要付费工具时，在 Server 环境中配置 `TOKENLAB_API_KEY`。
+  </Tab>
 
-  <Step title="配置客户端">
-    在下面选择你的客户端。公共示例会明确选择 `catalog`，因此所有公开出来的工具都能在没有 Key 的情况下工作。
+  <Tab title="Cursor">
+    所有项目共用时保存为 `~/.cursor/mcp.json`；只在当前项目使用时保存为 `.cursor/mcp.json`：
 
-    <Tabs>
-      <Tab title="Claude Code">
-        为当前用户添加 TokenLab，让它在所有项目中可用：
-
-        ```bash
-        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
-        ```
-
-        如需启用默认的 `core` 配置文件，请改为携带 API Key 添加服务器：
-
-        ```bash
-        claude mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key --scope user tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
-        ```
-
-        仅当前项目使用时选择 `--scope local`；需要创建团队共享的 `.mcp.json` 时选择 `--scope project`。不要把真实 Key 提交到项目配置中。
-      </Tab>
-
-      <Tab title="Cursor">
-        使用上方一键安装，或将下面的内容保存到 `~/.cursor/mcp.json`（所有项目）或 `.cursor/mcp.json`（单个项目）：
-
-        ```json
-        {
-          "mcpServers": {
-            "tokenlab-model-catalog": {
-              "command": "npx",
-              "args": ["-y", "@tokenlabai/mcp-server"],
-              "env": {
-                "TOKENLAB_MCP_TOOL_PROFILE": "catalog"
-              }
-            }
+    ```json
+    {
+      "mcpServers": {
+        "tokenlab-model-catalog": {
+          "command": "npx",
+          "args": ["-y", "@tokenlabai/mcp-server"],
+          "env": {
+            "TOKENLAB_MCP_TOOL_PROFILE": "catalog"
           }
         }
-        ```
-      </Tab>
+      }
+    }
+    ```
+  </Tab>
 
-      <Tab title="VS Code">
-        使用上方一键安装，在命令面板运行 **MCP: Add Server**，或将以下内容保存为 `.vscode/mcp.json`：
+  <Tab title="VS Code">
+    保存为 `.vscode/mcp.json`，也可以通过 **MCP: Add Server** 添加：
 
-        ```json
-        {
-          "servers": {
-            "tokenlab-model-catalog": {
-              "type": "stdio",
-              "command": "npx",
-              "args": ["-y", "@tokenlabai/mcp-server"],
-              "env": {
-                "TOKENLAB_MCP_TOOL_PROFILE": "catalog"
-              }
-            }
+    ```json
+    {
+      "servers": {
+        "tokenlab-model-catalog": {
+          "type": "stdio",
+          "command": "npx",
+          "args": ["-y", "@tokenlabai/mcp-server"],
+          "env": {
+            "TOKENLAB_MCP_TOOL_PROFILE": "catalog"
           }
         }
-        ```
+      }
+    }
+    ```
+  </Tab>
 
-        如需对所有项目生效，请运行 **MCP: Open User Configuration**，并在其中添加相同的服务器对象。
-      </Tab>
+  <Tab title="Claude Desktop">
+    添加到 `claude_desktop_config.json`：
 
-      <Tab title="Codex">
-        添加公共目录配置文件：
-
-        ```bash
-        codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
-        ```
-
-        如需启用默认的 `core` 配置文件，请改为携带 API Key 添加服务器：
-
-        ```bash
-        codex mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
-        ```
-      </Tab>
-
-      <Tab title="Claude Desktop">
-        将服务器添加到 `claude_desktop_config.json`：
-
-        ```json
-        {
-          "mcpServers": {
-            "tokenlab-model-catalog": {
-              "command": "npx",
-              "args": ["-y", "@tokenlabai/mcp-server"],
-              "env": {
-                "TOKENLAB_MCP_TOOL_PROFILE": "catalog"
-              }
-            }
+    ```json
+    {
+      "mcpServers": {
+        "tokenlab-model-catalog": {
+          "command": "npx",
+          "args": ["-y", "@tokenlabai/mcp-server"],
+          "env": {
+            "TOKENLAB_MCP_TOOL_PROFILE": "catalog"
           }
         }
-        ```
-      </Tab>
+      }
+    }
+    ```
+  </Tab>
 
-      <Tab title="其他客户端">
-        Cline CLI 可以直接安装已发布的 stdio 服务器：
+  <Tab title="其他客户端">
+    本地 stdio MCP 客户端使用下面的值：
 
-        ```bash
-        cline mcp add tokenlab --yes -- npx -y @tokenlabai/mcp-server
-        ```
+    | 字段 | 值 |
+    | --- | --- |
+    | Command | `npx` |
+    | Arguments | `-y`、`@tokenlabai/mcp-server` |
+    | Environment | `TOKENLAB_MCP_TOOL_PROFILE=catalog` |
 
-        Windsurf 请把标准 `mcpServers` 配置保存到 `~/.codeium/windsurf/mcp_config.json`。其他 stdio 客户端使用同一组值：命令为 `npx`，参数分别为 `-y` 和 `@tokenlabai/mcp-server`，工作目录留空。
-      </Tab>
-    </Tabs>
-  </Step>
-
-  <Step title="重启并验证">
-    重启或重新加载 MCP 客户端；出现提示时批准并信任本地服务器，然后确认 `tokenlab-model-catalog` 已连接。
+    Cline 可以直接添加：
 
     ```bash
-    # Claude Code：对已配置服务器执行健康检查
-    claude mcp list
-
-    # Codex：列出已配置服务器
-    codex mcp list
+    cline mcp add tokenlab --yes -- npx -y @tokenlabai/mcp-server
     ```
+  </Tab>
+</Tabs>
 
-    然后让智能体调用 `list_models`。返回非空模型列表，才证明客户端已启动服务器、完成 MCP 工具发现并访问了 TokenLab 公共目录。此检查不需要 API Key。
-  </Step>
-</Steps>
+## 开启付费工具
 
-## 配置参考
-
-任何支持本地 stdio MCP 服务器的客户端都使用以下值。每个参数应单独填写为一项。
-
-| 字段 | 填写内容 | 说明 |
-|---|---|---|
-| 服务器名称 | `tokenlab-model-catalog` | 可以使用任意未重复名称。 |
-| 传输类型 | `stdio` | TokenLab MCP 作为本地子进程运行。 |
-| 启动命令 | `npx` | 启动已发布的 npm 包。 |
-| 参数 | 先填 `-y`，再填 `@tokenlabai/mcp-server` | 如需固定当前已验证版本，请使用 `@tokenlabai/mcp-server@0.6.17`。 |
-| 工作目录 | 留空 | 此包通过 `npx` 启动，不要求项目工作目录。 |
-
-如需使用凭证工具，请在服务器环境中添加 Key 并选择工具配置文件：
+在 [Console → API 密钥](https://tokenlab.sh/dashboard/api) 创建密钥，并把两个变量放进 MCP Server 环境：
 
 ```json
 {
-  "mcpServers": {
-    "tokenlab-model-catalog": {
-      "command": "npx",
-      "args": ["-y", "@tokenlabai/mcp-server"],
-      "env": {
-        "TOKENLAB_API_KEY": "<TOKENLAB_API_KEY>",
-        "TOKENLAB_MCP_TOOL_PROFILE": "core"
-      }
-    }
+  "env": {
+    "TOKENLAB_API_KEY": "<TOKENLAB_API_KEY>",
+    "TOKENLAB_MCP_TOOL_PROFILE": "core"
   }
 }
 ```
 
-如果客户端要求填写单个服务器对象，而不是 `mcpServers` 外层，请只复制包含 `command`、`args` 和 `env` 的内部对象。VS Code 是主要例外：它的配置使用顶层 `servers` 对象。
+客户端支持秘密输入时请优先使用。真实密钥一旦出现在共享文件、截图、日志或 Shell 历史中，应立即撤销并重新创建。
 
-| 环境变量 | 默认值 | 用途 |
-|---|---|---|
-| `TOKENLAB_API_BASE` | `https://api.tokenlab.sh` | 覆盖 TokenLab API Base URL。末尾不要添加斜杠。 |
-| `TOKENLAB_API_KEY` | 未设置 | 需要凭证的推理、媒体、文件、任务、嵌入、重排序和翻译调用必须设置。 |
-| `TOKENLAB_MCP_TOOL_PROFILE` | `core` | 选择 `catalog`、`core` 或 `full`。 |
-| `TOKENLAB_MCP_SCHEMA_MODE` | 配置文件默认值 | 选择 `portable`、`exact` 或 `strict`。除非客户端要求其他 Schema 形状，否则保留 `portable`。 |
-| `TOKENLAB_REQUEST_TIMEOUT_MS` | `120000` | 设置 API 请求超时，单位为毫秒。 |
-| `TOKENLAB_MCP_MAX_FILE_BYTES` | `104857600` | 设置单个本地上传文件的最大字节数。 |
-| `TOKENLAB_MCP_INLINE_BYTES` | `2097152` | 设置以内联方式返回的二进制或 JSON 结果的最大字节数。 |
-| `TOKENLAB_ARTIFACT_DIR` | 操作系统临时目录 | 选择较大响应产物的写入位置。 |
+## 确认连接成功
 
-<Warning>
-不要发布包含真实 API Key 的截图、日志、Shell 历史或配置文件。优先使用客户端的秘密输入或环境变量功能；共享示例一律使用占位符；Key 暴露后应立即轮换。
-</Warning>
-
-## 从源码安装
-
-只有在审计或开发 MCP 服务器时才使用源码检出。普通客户端配置应使用上面已发布的 npm 包。
+重新加载 MCP 客户端，按提示批准本地 Server，并确认 `tokenlab-model-catalog` 已连接。
 
 ```bash
-git clone https://github.com/hedging8563/tokenlab-mcp-server.git
-cd tokenlab-mcp-server
-npm install
-npm test
-npm start
+# Claude Code
+claude mcp list
+
+# Codex
+codex mcp list
 ```
 
-`core` 和 `full` 配置文件默认发布有体积与深度边界的 `portable` 工具 Schema，服务端仍会按完整 OpenAPI 契约验证每次调用。如需完整嵌套 Schema，请设置 `TOKENLAB_MCP_SCHEMA_MODE=exact`；如果 provider 要求对象闭合且所有属性都列入 `required`，请使用 `TOKENLAB_MCP_SCHEMA_MODE=strict`，其中复杂顶层值以 JSON 编码字符串表示。
+让客户端调用 `list_models`。能够返回模型列表，说明 npm 包已经启动并连接到 TokenLab。`catalog` 不需要 API 密钥。
 
-## 生成的工具配置文件
+## 可以完成什么
 
-| 配置文件 | 公开工具数 | 覆盖范围 |
-|---|---:|---|
-| `catalog` | 6 | 4 个生成的公共目录与定价工具，加上 `compare_models` 和 `get_api_overview`。不需要 API Key。 |
-| `core` (默认) | 31 | 29 个生成的端点工具加上 `compare_models` 和 `get_api_overview`。涵盖目录、定价、原生 LLM 端点、图像、视频、音乐、3D、音频、任务、文件、嵌入、重排序和翻译。 |
-| `full` | 80 | 78 个生成的端点工具加上两个复合发现工具。增加了响应生命周期、批处理、世界生成、原生模型发现以及其他已列入白名单的开发者操作。 |
+具体工具取决于所选 Profile。常见用途包括：
 
-工具名称、描述、输入模式、HTTP 方法、路径、内容类型、身份验证要求和任务行为均从已检入的 OpenAPI 快照中生成。仅限 MCP 的覆盖层提供了稳定的工具别名、配置文件成员资格、异步任务语义、多部分变体、密钥省略和非流式传输限制。
+- 查询模型和模型能力
+- 查询 TokenLab 当前价格，或比较多个模型
+- 发送 Chat Completions、Responses、Anthropic Messages 或 Gemini 请求
+- 生成或编辑图片
+- 生成视频、音乐、3D、语音，或转写和翻译音频
+- 上传和读取文件
+- 创建 Embeddings 或进行 Rerank
+- 查询和取消支持取消的异步任务
 
-0.6.0 版还会通过 MCP `structuredContent` 返回 JSON，发布 3 个契约资源，并提供 2 个用于模型选择和原生请求构建的提示模板。生成工具和复合工具都带有标准风险注解，便于兼容客户端应用更安全的审批策略。
+模型或价格尚未确认时，客户端应在付费调用前征得用户同意。
 
-常见的 `core` 工具包括：
+## 异步媒体任务
 
-| 系列 | 代表性工具 |
-|---|---|
-| 目录和定价 | `list_models`, `get_model`, `get_model_pricing`, `get_pricing`, `compare_models` |
-| 原生 LLM 端点 | `create_chat_completion`, `create_response`, `create_anthropic_message`, `create_gemini_content` |
-| 图像 | `create_image`, `create_image_file`, `edit_image`, `edit_image_file` |
-| 视频、音乐和 3D | `create_video`, `create_music`, `create_3d_model` |
-| 音频 | `create_speech`, `transcribe_audio`, `translate_audio` |
-| 嵌入和文本 | `create_embedding`, `create_multimodal_embedding`, `rerank_documents`, `translate_text` |
-| 文件和任务 | `upload_file`, `list_files`, `retrieve_file`, `retrieve_file_content`, `delete_file`, `get_task_status`, `cancel_task` |
+视频、音乐和 3D 工具会返回任务，而不是立即返回文件。图片工具根据模型不同，可能直接返回结果，也可能返回任务。
 
-MCP 工具调用返回一个最终结果。排除了仅流式传输和实时操作；服务端会在内部将支持的 `stream` 参数固定为 `false`，不会向 provider 适配器暴露布尔常量。小型图像和音频响应返回原生 MCP 内容；较大的二进制响应会被写入 `TOKENLAB_ARTIFACT_DIR` 并返回其本地路径、MIME 类型和字节数。
+结果中出现异步 `delivery` 时，用其中的任务 ID 调用 `get_task_status`，直到成功或失败。一次状态查询超时不能成为重新创建任务的理由。
 
-## 异步媒体结果
+## 可选设置
 
-视频、音乐和 3D 创建操作返回异步任务摘要。图像生成和编辑操作根据所选模型和请求，可能返回已完成的结果，也可能返回异步任务。
+| 变量 | 默认值 | 用途 |
+| --- | --- | --- |
+| `TOKENLAB_API_BASE` | `https://api.tokenlab.sh` | 自定义 TokenLab API 地址，末尾不要加 `/` |
+| `TOKENLAB_MCP_TOOL_PROFILE` | `core` | `catalog`、`core` 或 `full` |
+| `TOKENLAB_REQUEST_TIMEOUT_MS` | `120000` | 请求超时，单位为毫秒 |
+| `TOKENLAB_MCP_MAX_FILE_BYTES` | `104857600` | 单个本地上传文件大小上限 |
+| `TOKENLAB_ARTIFACT_DIR` | 系统临时目录 | 大文件下载后的保存位置 |
 
-当 `delivery.mode` 为 `async` 时，请调用 `get_task_status` 并传入 `{ "id": delivery.task_id }`，直到 `delivery.terminal` 为 `true`。通过 `status` 判断完成情况；`progress` 是可选的，不得用作终止条件。
+没有明确需要时，保留默认值即可。
 
-## 推荐的智能体工作流
+## 常见问题
 
-1. 当用户未指定模型时，调用 `list_models`。
-2. 对于非聊天任务（如图像、视频、音乐、3D、TTS、STT、嵌入、重排序或翻译），使用 `recommended_for`。
-3. 在构建非聊天请求、重试失败请求或切换端点系列之前，调用 `get_model`。
-4. 当模型成本影响用户选择时，调用 `get_model_pricing`。
-5. 当选择取决于多个候选模型时，使用 `compare_models`。
-6. 调用与所需 API 契约匹配的生成工具，或使用 `get_api_overview` 获取 TokenLab API 系列的紧凑映射。
+<AccordionGroup>
+  <Accordion title="客户端无法启动 Server">
+    在终端运行 `node --version`、`npx --version` 和 `npx -y @tokenlabai/mcp-server`。stdio Server 启动成功后会安静等待 MCP 消息；确认能够启动后按 **Ctrl+C** 退出。
+  </Accordion>
 
-## 原生端点指南
+  <Accordion title="已经连接，但没有出现工具">
+    重启客户端并批准本地 Server。到客户端的 MCP 设置中确认 Server 和工具都已启用。
+  </Accordion>
 
-TokenLab 支持兼容 OpenAI 的路由和原生端点系列。MCP 服务器可帮助智能体在编写代码前选择正确的路由：
+  <Accordion title="模型列表为空">
+    确认本机可以访问 `https://api.tokenlab.sh/v1/models`。设置了 `TOKENLAB_API_BASE` 时，删除末尾的 `/`。
+  </Accordion>
 
-| 系列 | 常用路由 |
-|---|---|
-| 兼容 OpenAI 的聊天 | `/v1/chat/completions` |
-| Responses | `/v1/responses` |
-| Anthropic Messages | `/v1/messages` |
-| Gemini 原生 | `/v1beta/models/{model}:generateContent` |
-| 图像 | `/v1/images/generations`, `/v1/images/edits` |
-| 视频 | `/v1/videos/generations` |
-| 音乐 | `/v1/music/generations` |
-| 3D | `/v1/3d/generations` |
-| 音频 | `/v1/audio/speech`, `/v1/audio/transcriptions`, `/v1/audio/translations` |
-| 嵌入和重排序 | `/v1/embeddings`, `/v1/rerank` |
-| 文本翻译 | `/v1/translations` |
+  <Accordion title="付费工具返回鉴权错误">
+    确认 `TOKENLAB_API_KEY` 位于 MCP Server 环境，而不是提示词或工具参数里。修改后重启客户端。
+  </Accordion>
 
-## 托管模型浏览器
+  <Accordion title="客户端加载的工具太多">
+    只查询模型和价格时使用 `catalog`，常用 TokenLab 调用使用 `core`。确实需要额外 API 时才选择 `full`。
+  </Accordion>
+</AccordionGroup>
 
-支持 Streamable HTTP 的客户端可以连接到：
+## 在线模型浏览器
+
+支持 Streamable HTTP 的客户端可以连接公开模型浏览器：
 
 ```text
 https://tokenlab-model-explorer.vercel.app/mcp
 ```
 
-托管的浏览器是公开的，并公开了 `open_tokenlab_model_explorer`、`compare_tokenlab_models` 和 `generate_tokenlab_endpoint_example`。当你需要生成的 core/full 配置文件、本地文件上传或凭证验证的 API 操作时，请使用上述本地 npm 服务器。
+付费 API、本地文件上传，以及 `core` / `full` Profile 请使用本地 npm Server。
 
-## 与 TokenLab Skills 配合使用
+## 相关链接
 
-MCP 服务器在运行时非常有用，而 [TokenLab skills repository](https://github.com/hedging8563/tokenlab-skills) 则教导编码智能体如何生成和修复集成代码。
-
-在可用时同时使用它们：
-
-- MCP 服务器：发现当前模型、定价和端点详情。
-- `tokenlab-api-integration` 技能：生成可运行的 API 示例并处理结构化的 TokenLab 错误。
-- `tokenlab-model-picker` 技能：为用户的任务选择强大的模型。
-- `tokenlab-native-endpoints` 技能：决定何时使用 Responses、Anthropic Messages、Gemini、媒体、音频、嵌入、重排序或翻译路由。
-
-## 故障排除
-
-<AccordionGroup>
-  <Accordion title="客户端无法启动服务器">
-    确认 Node.js 版本至少为 18.17，且客户端能够找到 `npx`。然后在终端中运行一次 `npx -y @tokenlabai/mcp-server`，以显示 npm 或网络错误。stdio 启动成功后会静默等待 MCP 消息；确认能够启动后按 **Ctrl+C** 退出。
-  </Accordion>
-
-  <Accordion title="服务器已配置，但没有显示工具">
-    重启客户端，并在提示时批准或信任本地服务器。Claude Code 中运行 `claude mcp list` 或打开 `/mcp`；VS Code 中运行 **MCP: List Servers**，选择 TokenLab 后点击 **Show Output**；Cursor 中打开 **Settings → Tools & MCP**，确认服务器及其工具已启用。
-  </Accordion>
-
-  <Accordion title="Claude Code 显示 Pending approval">
-    项目级 `.mcp.json` 服务器需要工作区信任和明确批准。请在项目中以交互方式启动 Claude Code，接受工作区信任提示，打开 `/mcp`，并批准 `tokenlab-model-catalog`。如果服务器只需对你的账号私有、但要跨项目可用，请改用 `--scope user`。
-  </Accordion>
-
-  <Accordion title="模型列表为空">
-    验证机器是否可以访问 `https://api.tokenlab.sh/v1/models`。如果你覆盖了 `TOKENLAB_API_BASE`，请确保它不包含末尾的斜杠。
-  </Accordion>
-
-  <Accordion title="智能体仍然选择过时的模型 ID">
-    要求智能体在硬编码模型名称之前调用 `list_models` 或 `get_model`。将 MCP 服务器与 `tokenlab-model-picker` 配合使用可获得更好的结果。
-  </Accordion>
-
-  <Accordion title="此服务器可以调用付费的 TokenLab 推理 API 吗？">
-    可以。设置 `TOKENLAB_API_KEY`，然后使用生成的 LLM、媒体、音频、任务、文件、嵌入、重排序或翻译工具。目录和定价工具无需密钥即可使用。
-  </Accordion>
-
-  <Accordion title="需要凭证的工具返回身份验证错误">
-    确认 `TOKENLAB_API_KEY` 设置在 MCP 服务器环境中，而不是粘贴在工具参数或提示词里。修改配置后重启客户端。如果 Key 已出现在共享文件、截图、日志或 Shell 历史中，请先轮换再重试。
-  </Accordion>
-
-  <Accordion title="客户端拒绝工具 Schema，或加载的工具太多">
-    先使用 `TOKENLAB_MCP_TOOL_PROFILE=catalog` 加载 6 个发现工具，或保留默认 `core` 的 31 个工具。默认 `portable` Schema 模式兼容范围最广；只有需要完整嵌套 Schema 时才使用 `exact`，而模型提供方要求对象闭合且所有属性都列入 `required` 时使用 `strict`。
-  </Accordion>
-
-  <Accordion title="如何固定或更新包版本？">
-    将包参数改为 `@tokenlabai/mcp-server@0.6.17`，即可按当前已验证版本获得可重复的配置。切换版本时，更新客户端配置中的该参数并重启服务器；采用更新版本前请先查看公共仓库。
-  </Accordion>
-</AccordionGroup>
-
-## 资源
-
-<CardGroup cols={2}>
-  <Card title="TokenLab MCP" icon="plug" href="https://tokenlab.sh/mcp">
-    产品概览，以及 Core 31 与 Full 80 工具集的连接方式
-  </Card>
-  <Card title="GitHub 仓库" icon="github" href="https://github.com/hedging8563/tokenlab-mcp-server">
-    源代码和本地设置说明
-  </Card>
-  <Card title="TokenLab Skills" icon="sparkles" href="https://github.com/hedging8563/tokenlab-skills">
-    维护良好的 TokenLab 集成智能体技能
-  </Card>
-  <Card title="模型目录 API" icon="list" href="https://api.tokenlab.sh/v1/models">
-    公共模型发现端点
-  </Card>
-  <Card title="llms.txt" icon="file-lines" href="https://api.tokenlab.sh/llms.txt">
-    智能体可读的 TokenLab API 概览
-  </Card>
-  <Card title="Glama MCP 服务器" icon="globe" href="https://glama.ai/mcp/servers/hedging8563/tokenlab-mcp-server">
-    查看已验证的 TokenLab MCP 服务器列表
-  </Card>
-  <Card title="Glama 模型浏览器" icon="search" href="https://glama.ai/mcp/servers/hedging8563/tokenlab-openai-apps-model-explorer">
-    探索模型、定价和原生端点示例
-  </Card>
-  <Card title="MCP.so 列表" icon="compass" href="https://mcp.so/servers/tokenlab-mcp-server">
-    在 AI & Agents 目录中发现 TokenLab
-  </Card>
-  <Card title="托管模型浏览器" icon="rocket" href="https://tokenlab-model-explorer.vercel.app/widget">
-    打开公共模型浏览器和远程 MCP 端点
-  </Card>
-  <Card title="Claude Code MCP 指南" icon="terminal" href="https://code.claude.com/docs/en/mcp">
-    查看 Claude Code 的作用域、审批、状态检查和 MCP 配置
-  </Card>
-  <Card title="Cursor MCP 指南" icon="arrow-pointer" href="https://docs.cursor.com/context/model-context-protocol">
-    查看 Cursor 的配置位置、工具控制和安全建议
-  </Card>
-  <Card title="VS Code MCP 指南" icon="code" href="https://code.visualstudio.com/docs/agent-customization/mcp-servers">
-    查看 VS Code 的用户与工作区配置、信任、日志和服务器管理
-  </Card>
-</CardGroup>
+- [TokenLab MCP 页面](https://tokenlab.sh/mcp)
+- [GitHub 仓库](https://github.com/hedging8563/tokenlab-mcp-server)
+- [TokenLab API Skill](/zh/integrations/coding-agent-skill)
+- [模型页](https://tokenlab.sh/zh/models)
+- [API 快速开始](/zh/quickstart)

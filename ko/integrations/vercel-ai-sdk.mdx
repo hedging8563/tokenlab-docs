@@ -5,14 +5,6 @@ description: "OpenAI 호환 또는 Responses-native 제공자를 사용하여 To
 
 ## 개요
 
-<Note>
-**유형**: 프레임워크 또는 플랫폼
-
-**기본 경로**: OpenAI 호환 기본값
-
-**지원 신뢰도**: 권장 통합 패턴
-</Note>
-
 TokenLab의 경우, Vercel AI SDK에서 가장 안정적인 기본값은 **OpenAI 호환 제공자(OpenAI-compatible provider)**입니다.
 
 만약 **Responses-native** 동작이 특별히 필요한 경우, OpenAI 제공자로 전환하고 동일한 TokenLab 기본 URL을 유지할 수 있습니다.
@@ -32,7 +24,7 @@ import { generateText } from 'ai';
 import { tokenlab } from '@tokenlabai/ai-sdk-provider';
 
 const { text } = await generateText({
-  model: tokenlab.chatModel('gpt-5.4'),
+  model: tokenlab.chatModel('gpt-5.6-terra'),
   prompt: 'Explain TokenLab in one sentence.',
 });
 
@@ -62,7 +54,7 @@ import { generateText } from 'ai';
 import { tokenlab } from './tokenlab';
 
 const { text } = await generateText({
-  model: tokenlab.chatModel('gpt-5.4'),
+  model: tokenlab.chatModel('gpt-5.6-terra'),
   prompt: 'Explain TokenLab in one sentence.',
 });
 
@@ -76,7 +68,7 @@ import { streamText } from 'ai';
 import { tokenlab } from './tokenlab';
 
 const result = await streamText({
-  model: tokenlab.chatModel('gpt-5.4'),
+  model: tokenlab.chatModel('gpt-5.6-terra'),
   prompt: 'Write a short poem about coding.',
 });
 
@@ -93,7 +85,7 @@ import { z } from 'zod';
 import { tokenlab } from './tokenlab';
 
 const result = await generateText({
-  model: tokenlab.chatModel('gpt-5.4'),
+  model: tokenlab.chatModel('gpt-5.6-terra'),
   prompt: 'What is the weather in San Francisco?',
   tools: {
     weather: tool({
@@ -121,7 +113,7 @@ import { z } from 'zod';
 import { tokenlab } from './tokenlab';
 
 const { object } = await generateObject({
-  model: tokenlab.chatModel('gpt-5.4'),
+  model: tokenlab.chatModel('gpt-5.6-terra'),
   schema: z.object({
     name: z.string(),
     role: z.string(),
@@ -152,7 +144,7 @@ import { generateText } from 'ai';
 import { tokenlabResponses } from './tokenlab-responses';
 
 const { text } = await generateText({
-  model: tokenlabResponses('gpt-5.4'),
+  model: tokenlabResponses('gpt-5.6-terra'),
   prompt: 'Explain TokenLab in one sentence.',
 });
 ```

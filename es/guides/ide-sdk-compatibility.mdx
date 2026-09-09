@@ -248,7 +248,7 @@ Esta página es intencionalmente más específica que una matriz de marketing:
 
 ```json
 {
-  "model": "claude-opus-4-6",
+  "model": "claude-opus-5",
   "thinking": {
     "type": "enabled",
     "budget_tokens": 10000
@@ -349,7 +349,7 @@ Los endpoints de generación que exponen `stream: true`, incluyendo Chat Complet
 # Chat Completions
 curl https://api.tokenlab.sh/v1/chat/completions \
   -H "Authorization: Bearer sk-xxx" \
-  -d '{"model": "gpt-4o", "messages": [...], "stream": true}'
+  -d '{"model": "gpt-5.6-terra", "messages": [...], "stream": true}'
 
 # Chat Completions seguimiento de uso
 -d '{"...", "stream_options": {"include_usage": true}}'

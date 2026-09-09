@@ -1,34 +1,32 @@
 ---
-title: "✨ Agent-First API"
-description: "为 AI Agent 提供结构化错误提示，帮助它在第一次重试时自我修正"
+title: "让 Agent 读懂 API 错误"
+description: "直接读取错误码、等待时间和可选模型，不必猜测报错文案"
 ---
 
-## 概览
+TokenLab 的 OpenAI 兼容错误可能带有结构化提示，Agent 和应用都可以直接读取。判断处理方式时请以 HTTP 状态和 `code` 为准，不要从 `message` 文案里猜原因。
 
-TokenLab 的 Agent-First API 会在错误响应中加入结构化提示，AI Agent 可以立即解析并采取行动 —— 无需网络搜索、无需查阅文档、无需猜测。
+Anthropic Messages 与 Gemini API 保留各自的错误格式。本页字段只适用于 OpenAI 兼容的 Chat Completions 和 Responses 错误。
 
-OpenAI 兼容的 Chat Completions 和 Responses gateway 错误可以在 `error` 对象中包含 `did_you_mean`、`suggestions`、`hint`、`retryable` 和 `retry_after` 等可选字段。Anthropic Messages 与 Gemini 保持各自原生错误形状，不承诺这些扩展字段。
+## 可选字段
 
-## 错误提示字段
+以下字段都位于 `error` 对象中，并非每次都会返回。
 
-对 OpenAI 兼容 gateway 错误而言，所有提示字段都是 `error` 对象内的可选扩展：
-
-| 字段 | 类型 | 描述 |
-|-------|------|-------------|
-| `did_you_mean` | `string` | 最接近的匹配模型名称 |
-| `suggestions` | `array` | 带元数据的推荐模型 |
+| 字段 | 类型 | 用途 |
+| --- | --- | --- |
+| `did_you_mean` | `string` | 最接近的可用模型 ID |
+| `suggestions` | `array` | 可能适合这次请求的模型 |
 | `alternatives` | `array` | 当前可用的替代模型 |
-| `hint` | `string` | 供人类或 Agent 阅读的下一步指导 |
-| `retryable` | `boolean` | 是否重试相同请求可能成功 |
-| `retry_after` | `number` | 重试前等待的秒数 |
-| `balance_usd` | `number` | 当前账户余额（美元） |
-| `estimated_cost_usd` | `number` | 失败请求的预计费用（美元） |
+| `hint` | `string` | 简短原因或处理建议 |
+| `retryable` | `boolean` | 稍后重试同一请求是否可能成功 |
+| `retry_after` | `number` | 再次请求前需要等待的秒数 |
+| `balance_usd` | `number` | 当前美元余额 |
+| `estimated_cost_usd` | `number` | 这次请求的预估费用 |
 
-## 错误代码示例
+客户端必须能处理这些字段不存在的情况。它们用于补充信息，不能代替状态码和错误码。
 
-### model_not_found (400)
+## 模型名不正确
 
-当模型名称不匹配任何活动模型时：
+模型名拼错或不可用时会返回 `400 model_not_found`。如果响应带有 `did_you_mean`，可以把建议显示给用户；只有产品本来就允许自动换模型时，才直接重试。
 
 ```json
 {
@@ -37,27 +35,19 @@ OpenAI 兼容的 Chat Completions 和 Responses gateway 错误可以在 `error` 
     "type": "invalid_request_error",
     "param": "model",
     "code": "model_not_found",
-    "did_you_mean": "gpt-5.4",
+    "did_you_mean": "gpt-5.6-terra",
     "suggestions": [
-      {"id": "gpt-5.4"},
-      {"id": "gpt-5-mini"},
-      {"id": "claude-sonnet-4-6"}
+      {"id": "gpt-5.6-terra"},
+      {"id": "gpt-5.6-luna"}
     ],
-    "hint": "Did you mean 'gpt-5.4'? Use GET https://api.tokenlab.sh/v1/models to list all available models."
+    "hint": "Did you mean 'gpt-5.6-terra'? Use GET https://api.tokenlab.sh/v1/models to list all available models."
   }
 }
 ```
 
-`did_you_mean` 的解析使用：
-1. 静态别名映射（来自生产错误数据）
-2. 规范化字符串匹配（去除连字符，大小写不敏感）
-3. 编辑距离匹配（阈值 ≤ 3）
+## 余额不足
 
-公共路由不会为隐藏的、延后可用的或非公开的模型暴露单独的错误代码。将不可用的公共模型视为一次匹配失败：检查 `did_you_mean`、`suggestions` 和 `hint`，然后使用受支持的公共模型重试。
-
-### insufficient_balance (402)
-
-当账户余额不足以覆盖预计费用时：
+`402 insufficient_balance` 可能包含当前余额和所需金额。应用可以提供充值入口、价格更低的模型，或让用户缩小请求。
 
 ```json
 {
@@ -68,19 +58,17 @@ OpenAI 兼容的 Chat Completions 和 Responses gateway 错误可以在 `error` 
     "balance_usd": 0.12,
     "estimated_cost_usd": 0.35,
     "suggestions": [
-      {"id": "gpt-5-mini"},
+      {"id": "gpt-5.6-luna"},
       {"id": "deepseek-v3-2"}
     ],
-    "hint": "Insufficient balance: need ~$0.3500 for claude-sonnet-4-6, but balance is $0.1200. Try a cheaper model, or top up at https://tokenlab.sh/dashboard/billing."
+    "hint": "Try a cheaper model, or top up at https://tokenlab.sh/dashboard/billing."
   }
 }
 ```
 
-`suggestions` 包含比预计费用更低、Agent 可以切换到的模型。
+## 模型暂时不可用
 
-### all_channels_failed (503)
-
-当某个模型的所有通道都暂时不可用时：
+`503 all_channels_failed` 表示当前无法使用这个模型。`retryable` 为 `true` 时，请等待 `retry_after` 指定的秒数；也可以让用户从 `alternatives` 中选择其他模型。
 
 ```json
 {
@@ -90,19 +78,17 @@ OpenAI 兼容的 Chat Completions 和 Responses gateway 错误可以在 `error` 
     "retryable": true,
     "retry_after": 30,
     "alternatives": [
-      {"id": "claude-sonnet-4-6", "status": "available", "tags": []},
-      {"id": "gpt-5-mini", "status": "available", "tags": []}
+      {"id": "claude-sonnet-5", "status": "available", "tags": []},
+      {"id": "gpt-5.6-luna", "status": "available", "tags": []}
     ],
-    "hint": "All channels for 'claude-opus-4-6' are temporarily unavailable. Retry in 30s or try an alternative model."
+    "hint": "Retry in 30s or try an alternative model."
   }
 }
 ```
 
-<Note>
-当原因是 `no_channels`（该模型未配置任何通道）时，`retryable` 为 `false`。只有在诸如熔断器触发或配额耗尽等短暂故障情况下，`retryable` 才为 `true`。
-</Note>
+## 请求过于频繁
 
-### rate_limit_exceeded (429)
+收到 `429 rate_limit_exceeded` 后，等待 `retry_after` 指定的秒数，或读取标准 `Retry-After` 响应头。
 
 ```json
 {
@@ -112,20 +98,14 @@ OpenAI 兼容的 Chat Completions 和 Responses gateway 错误可以在 `error` 
     "code": "rate_limit_exceeded",
     "retryable": true,
     "retry_after": 8,
-    "hint": "Rate limited. Retry after 8s. Current limit: 1000/min for user role."
+    "hint": "Retry after 8s."
   }
 }
 ```
 
-`retry_after` 的值根据实际速率限制窗口重置时间计算。
+## 输入超过上下文长度
 
-<Note>
-与 OpenAI 兼容的端点使用 TokenLab 的稳定公共错误类型，例如 `rate_limit_exceeded`、`upstream_error` 和 `all_channels_failed`。与 Anthropic 兼容和与 Gemini 兼容的端点使用它们各自的原生响应格式。
-</Note>
-
-### context_length_exceeded (400)
-
-当输入超过模型的上下文窗口（上游错误，附带提示）时：
+`400 context_length_exceeded` 不能靠原样重试解决。请缩短输入，或让用户改用上下文更长的模型。
 
 ```json
 {
@@ -136,127 +116,50 @@ OpenAI 兼容的 Chat Completions 和 Responses gateway 错误可以在 `error` 
     "retryable": false,
     "suggestions": [
       {"id": "gemini-2.5-pro"},
-      {"id": "claude-sonnet-4-6"}
+      {"id": "claude-sonnet-5"}
     ],
     "hint": "Reduce your input or switch to a model with a larger context window."
   }
 }
 ```
 
-## 原生端点发现
+## 确认可用的 API 格式
 
-不要根据模型名、提供方名称或 Chat 响应头推断原生协议是否可用。选择原生端点前，先读取 `GET /v1/models/{model}`，只使用模型详情明确广告且存在同协议路由的请求格式。
+使用模型专属 API 前，从 `GET /v1/models/{model}` 读取 `tokenlab.accepted_request_formats`。
 
-应读取的字段是 `tokenlab.accepted_request_formats`。
+| 值 | API |
+| --- | --- |
+| `chat_completions` | `/v1/chat/completions` |
+| `responses` | `/v1/responses` |
+| `messages` | `/v1/messages` |
+| `gemini` | `/v1beta/models/{model}:generateContent` |
 
-| 请求格式 | 端点 |
-|----------|------|
-| Chat Completions | `/v1/chat/completions` |
-| Responses | `/v1/responses` |
-| Messages | `/v1/messages` |
-| Gemini | `/v1beta/models/{model}:generateContent` |
+这里确认的是 API 格式。具体工具和字段仍可能因模型而异，请以模型页面为准。
 
-广告的请求格式只决定端点是否可用；具体字段和工具是否受支持仍由上游决定。
+## 按任务查找模型
 
-## /v1/models 增强
-
-`/v1/models` 现在携带非聊天场景的推荐元数据，Agent 在调用图像、视频、音乐、3D、TTS、STT、embedding、rerank 或翻译端点之前可以使用这些元数据。
-
-```json
-{
-  "id": "gemini-2.5-flash-image",
-  "tokenlab": {
-    "category": "image",
-    "pricing_unit": "per_request",
-    "agent_preferences": {
-      "image": {
-        "preferred_rank": 1,
-        "success_rate_24h": 0.98,
-        "sample_count_24h": 423,
-        "status": "ready",
-        "updated_at": "2026-03-28T12:00:00.000Z",
-        "basis": {
-          "source": "recent_activity_24h"
-        }
-      }
-    }
-  }
-}
-```
-
-| 字段 | 值 | 描述 |
-|-------|--------|-------------|
-| `category` | `chat`, `image`, `video`, `audio`, `tts`, `stt`, `3d`, `embedding`, `rerank` | 模型类型 |
-| `pricing_unit` | `per_token`, `per_image`, `per_second`, `per_request` | 模型的计费方式 |
-| `cache_pricing` | `object` 或 `null` | 仅在模型存在 prompt cache 价格时返回。 |
-| `agent_preferences.<scene>` | object | 仅在 `GET /v1/models?recommended_for=<scene>` 时返回该场景的非聊天推荐快照 |
-
-当 `recommended_for` 存在时，`agent_preferences` 来源于缓存的 24 小时成功率快照：
-
-- 窗口：24 小时
-- 快照缓存：stale-while-revalidate
-- `status = "ready"` 表示该模型有足够的最近样本参与排序
-- `status = "insufficient_samples"` 表示该模型仍可见，但不会排在有评分模型之前
-
-### 分类过滤
+Models API 可以返回图片、视频等任务的当前候选模型：
 
 ```bash
-GET https://api.tokenlab.sh/v1/models?category=chat          # 仅聊天模型
-GET https://api.tokenlab.sh/v1/models?category=image         # 图片生成模型
-GET https://api.tokenlab.sh/v1/models?tag=coding&category=chat  # 面向 coding 的聊天模型
+curl "https://api.tokenlab.sh/v1/models?recommended_for=image" \
+  -H "Authorization: Bearer sk-your-api-key"
 ```
 
-### 推荐发现
+`recommended_for` 支持 `image`、`video`、`music`、`3d`、`tts`、`stt`、`embedding`、`rerank` 和 `translation`。创建任务时仍要明确传入模型 ID；TokenLab 不会在未告知的情况下替换模型。
 
-对于非聊天工作流，Agent 应首先获取当前的推荐候选名单：
+## 给 Agent 读取的 API 概览
 
-```bash
-GET https://api.tokenlab.sh/v1/models?recommended_for=image
-GET https://api.tokenlab.sh/v1/models?recommended_for=translation
-GET https://api.tokenlab.sh/v1/models?category=tts&recommended_for=tts
-```
+下面的地址提供精简版 API 说明：
 
-有效的 `recommended_for` 值为：
-
-- `image`
-- `video`
-- `music`
-- `3d`
-- `tts`
-- `stt`
-- `embedding`
-- `rerank`
-- `translation`
-
-如果同时存在 `category` 和 `recommended_for`，则二者必须完全匹配。
-
-推荐的 Agent 流程：
-
-1. `GET /v1/models?recommended_for=<scene>`
-2. 选择第一个 `agent_preferences.<scene>.status == "ready"` 的模型
-3. 使用 `model=<selected>` 明确调用端点
-4. 仅在短暂错误情况下，使用下一个 `ready` 模型重试
-
-## llms.txt
-
-机器可读的 API 概览可通过以下方式获取：
-
-```
+```text
 GET https://api.tokenlab.sh/llms.txt
 ```
 
-其中包含：
-- 带工作示例的首次调用模板
-- 常见模型名称（基于使用数据动态生成）
-- 所有 12 个 API 端点
-- 模型发现的过滤参数
-- 错误处理指南
+内容包括第一条请求、常用接口、模型筛选方式和错误处理。
 
-在首次 API 调用之前读取 `llms.txt` 的 AI Agent 通常可以在第一次尝试时成功。
+## 安全重试示例
 
-## 在 Agent 代码中的使用
-
-### Python (OpenAI SDK)
+下面的代码只在 API 返回 `did_you_mean` 时修正模型名。如果更换模型会影响质量、价格或数据处理方式，你的产品应当先征得用户同意。
 
 ```python
 from openai import OpenAI, BadRequestError
@@ -266,59 +169,16 @@ client = OpenAI(
     base_url="https://api.tokenlab.sh/v1"
 )
 
-def smart_chat(messages, model="gpt-4o"):
+def chat(messages, model):
     try:
-        return client.chat.completions.create(
-            model=model, messages=messages
-        )
-    except BadRequestError as e:
-        error = e.body.get("error", {}) if isinstance(e.body, dict) else {}
-        # 使用 did_you_mean 自动修正
-        if error.get("code") == "model_not_found" and error.get("did_you_mean"):
+        return client.chat.completions.create(model=model, messages=messages)
+    except BadRequestError as exc:
+        error = exc.body.get("error", {}) if isinstance(exc.body, dict) else {}
+        suggested = error.get("did_you_mean")
+        if error.get("code") == "model_not_found" and suggested:
             return client.chat.completions.create(
-                model=error["did_you_mean"], messages=messages
+                model=suggested,
+                messages=messages,
             )
         raise
 ```
-
-### JavaScript (OpenAI SDK)
-
-```javascript
-import OpenAI from 'openai';
-
-const client = new OpenAI({
-  apiKey: 'sk-your-key',
-  baseURL: 'https://api.tokenlab.sh/v1'
-});
-
-async function smartChat(messages, model = 'gpt-4o') {
-  try {
-    return await client.chat.completions.create({ model, messages });
-  } catch (error) {
-    const err = error?.error;
-    if (err?.code === 'model_not_found' && err?.did_you_mean) {
-      return client.chat.completions.create({
-        model: err.did_you_mean, messages
-      });
-    }
-    throw error;
-  }
-}
-```
-
-## 设计原则
-
-<CardGroup cols={2}>
-  <Card title="快速失败，提供明确信息" icon="bolt">
-    错误会立即返回，并提供 Agent 自我修正所需的所有数据。
-  </Card>
-  <Card title="不自动路由" icon="route">
-    API 不会在未通知的情况下替换其他模型。由 Agent 来决定。
-  </Card>
-  <Card title="数据驱动的建议" icon="database">
-    所有推荐均来自生产数据，而非硬编码列表。
-  </Card>
-  <Card title="向后兼容" icon="plug">
-    所有提示字段都是可选的。现有客户端不会受到影响。
-  </Card>
-</CardGroup>

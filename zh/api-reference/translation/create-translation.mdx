@@ -4,31 +4,24 @@ openapi: "POST /v1/translations"
 description: "将文本翻译为目标语言"
 ---
 
-## 概览
-
-使用 `/v1/translations` 进行**文本到文本翻译**。
+该接口把文本翻译成指定语言。
 
 <Note>
-这个 endpoint 与 [音频翻译](/zh/api-reference/audio/create-translation) 不同，后者接收音频文件，并且始终输出英文文本。
+需要翻译音频时，请使用[音频翻译](/zh/api-reference/audio/create-translation)；音频翻译始终输出英文。
 </Note>
 
-对于 agent 工作流，建议先查找当前推荐的翻译 model：
+通过 Models API 获取当前可用的文本翻译模型：
 
 ```bash
 curl "https://api.tokenlab.sh/v1/models?recommended_for=translation" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 
-然后将选定的 model 明确传给 `/v1/translations`。
-
-<Note>
-`recommended_for=translation` 只适用于**文本翻译**（`POST /v1/translations`），不适用于 [音频翻译](/zh/api-reference/audio/create-translation)。
-</Note>
 
 ## 请求体
 
 <ParamField body="model" type="string" required>
-  由 `/v1/models?recommended_for=translation` 返回的翻译 model ID。
+  翻译模型 ID。
 </ParamField>
 
 <ParamField body="text" type="string" required>
@@ -36,7 +29,7 @@ curl "https://api.tokenlab.sh/v1/models?recommended_for=translation" \
 </ParamField>
 
 <ParamField body="target_language" type="string" required>
-  目标语言代码或语言名称，具体取决于 model 支持情况。
+  目标语言代码或名称，以模型支持范围为准。
 </ParamField>
 
 <ParamField body="source_language" type="string">
@@ -58,11 +51,11 @@ curl "https://api.tokenlab.sh/v1/models?recommended_for=translation" \
 </ResponseField>
 
 <ResponseField name="model" type="string">
-  生成翻译结果的 model。
+  使用的模型。
 </ResponseField>
 
 <ResponseField name="source_language" type="string | null">
-  model 检测到或接受的源语言。
+  识别到或指定的源语言。
 </ResponseField>
 
 <ResponseField name="target_language" type="string">

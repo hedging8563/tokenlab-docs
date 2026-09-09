@@ -1,10 +1,10 @@
 ---
 title: "获取 World 状态"
 openapi: "GET /v1/worlds/generations/{id}"
-description: "获取 World Labs Marble 世界生成任务的状态和结果"
+description: "获取 Marble World 生成任务的状态和结果"
 ---
 
-轮询此端点以检查 World Labs Marble 生成任务的状态。如果创建响应中包含 `poll_url`，请优先调用该完整 URL。
+创建响应中包含 `poll_url` 时，直接使用该地址查询进度和结果。
 
 ## 路径参数
 
@@ -15,15 +15,15 @@ description: "获取 World Labs Marble 世界生成任务的状态和结果"
 ## 响应
 
 <ResponseField name="id" type="string">
-  公开任务 ID。
+  TokenLab 任务 ID。
 </ResponseField>
 
 <ResponseField name="task_id" type="string">
-  异步任务标识别名。
+  与 `id` 相同的任务 ID。
 </ResponseField>
 
 <ResponseField name="operation_id" type="string">
-  上游 World Labs 操作 ID。
+  World Labs operation ID。
 </ResponseField>
 
 <ResponseField name="status" type="string">
@@ -31,7 +31,7 @@ description: "获取 World Labs Marble 世界生成任务的状态和结果"
 </ResponseField>
 
 <ResponseField name="world_id" type="string">
-  生成完成后的上游 World Labs 世界 ID。
+  生成完成后的 World Labs 世界 ID。
 </ResponseField>
 
 <ResponseField name="world_marble_url" type="string">
@@ -55,11 +55,11 @@ description: "获取 World Labs Marble 世界生成任务的状态和结果"
 </ResponseField>
 
 <ResponseField name="caption" type="string">
-  上游为生成世界返回的 caption。
+  生成结果附带的 caption。
 </ResponseField>
 
 <ResponseField name="cost" type="object">
-  可用时返回的上游 operation 费用详情，包括 `total_credits`。
+  生成费用详情，可能包含 `total_credits`。
 </ResponseField>
 
 <ResponseField name="error" type="string">

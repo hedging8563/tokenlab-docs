@@ -7,14 +7,6 @@ description: "Portkey GatewayでTokenLabをアップストリームプロバイ�
 
 Portkey Gatewayは、アップストリームプロバイダーとしてTokenLabにリクエストをルーティングできます。最も安全なデフォルト設定はOpenAI互換のチャット補完（chat completions）です。お使いのPortkeyのバージョンでTokenLab向けのパスが公開されている場合は、Responsesを使用してください。
 
-<Note>
-**タイプ**: AI Gateway
-
-**主要パス**: OpenAI互換のチャット補完およびResponses
-
-**サポート状況**: サポート済みパス
-</Note>
-
 ## プロバイダー値
 
 | フィールド | 値 |
@@ -34,7 +26,7 @@ curl https://your-portkey-gateway.example/v1/chat/completions \
   -H "x-portkey-provider: tokenlab" \
   -H "Authorization: Bearer sk-your-tokenlab-key" \
   -d '{
-    "model": "gpt-5.4-mini",
+    "model": "gpt-5.6-luna",
     "messages": [{"role": "user", "content": "Say hello from TokenLab."}]
   }'
 ```

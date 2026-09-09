@@ -1,400 +1,237 @@
 ---
 title: "TokenLab MCP Server"
-description: "Connect Claude Code, Cursor, VS Code, Codex, and other MCP clients to TokenLab's model, pricing, inference, media, file, and task tools."
+description: "Give Claude Code, Cursor, VS Code, Codex, and other MCP clients access to TokenLab models and APIs"
 ---
 
-The [TokenLab MCP server](https://github.com/hedging8563/tokenlab-mcp-server) generates MCP tools from TokenLab's public OpenAPI contract. MCP-compatible agents can discover models and pricing, call OpenAI-compatible and native LLM endpoints, create multimodal media, upload files, and manage asynchronous tasks.
+The [TokenLab MCP Server](https://github.com/hedging8563/tokenlab-mcp-server) lets an MCP client browse current models and prices, send model requests, create media, work with files, and check async tasks.
 
-Use it when an agent needs the current TokenLab API contract instead of a manually maintained tool list. The default `core` profile exposes 29 generated endpoint tools plus two composite discovery tools. The `full` profile exposes 78 generated endpoint tools plus the same two composite tools.
+Use the `catalog` profile to browse models and prices without an API key. Add `TOKENLAB_API_KEY` when the client should make paid model or media requests.
 
-This page is for adding TokenLab as a tool server inside Claude Code, Cursor, VS Code, Codex, Claude Desktop, Cline, Windsurf, or another MCP client. To call TokenLab directly from application code, start with the [API quickstart](/quickstart).
+<Warning>
+Keep your TokenLab API key in the MCP server environment. Never paste it into a prompt or tool argument.
+</Warning>
 
-<Note>
-Public catalog and pricing tools do not require a TokenLab API key. Set `TOKENLAB_API_KEY` for credentialed inference, media, audio, file, task, embedding, rerank, and translation operations. Never place an API key in tool arguments.
-</Note>
+## Requirements
 
-## What It Provides
+Install Node.js 18.17 or newer and make sure `npx` is available:
 
-- Live model discovery from `https://api.tokenlab.sh/v1/models`.
-- Model detail lookup from `/v1/models/{model}`.
-- Pricing lookup from `/v1/models/{model}/pricing`.
-- Agent-readable API overview from `https://api.tokenlab.sh/llms.txt`.
-- OpenAI-compatible Chat Completions and Responses, Anthropic Messages, and Gemini generateContent without flattening their native request shapes.
-- Image generation and editing through JSON URLs, TokenLab file IDs, or local multipart files.
-- Video, music, 3D, speech, transcription, audio translation, embeddings, multimodal embeddings, rerank, and text translation.
-- Normalized async task summaries for image, video, music, 3D, and world-generation operations.
-- A daily contract sync that fetches the public OpenAPI document, regenerates tool schemas, runs endpoint and file tests, and updates `main` only when every check passes.
+```bash
+node --version
+npx --version
+```
 
-## Quickstart
+The npm package runs locally over stdio. You do not need a global installation or a source checkout.
 
-The fastest safe setup starts with the six public catalog tools. It does not require a TokenLab API key, and you can enable credentialed tools later.
+## Choose what the client can use
 
-<CardGroup cols={2}>
-  <Card title="Install in Cursor" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab-model-catalog&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXIiXSwiZW52Ijp7IlRPS0VOTEFCX01DUF9UT09MX1BST0ZJTEUiOiJjYXRhbG9nIn19">
-    Add the public `catalog` profile to Cursor in one click
-  </Card>
-  <Card title="Install in VS Code" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab-model-catalog&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
-    Add the public `catalog` profile to your VS Code user configuration
-  </Card>
-</CardGroup>
+| Profile | API key | Includes |
+| --- | --- | --- |
+| `catalog` | Not required | Model list, model details, prices, comparisons, and API overview |
+| `core` | Required for paid calls | Common chat, media, audio, file, task, embedding, rerank, and translation tools |
+| `full` | Required for paid calls | `core` plus additional developer APIs |
 
-<Steps>
-  <Step title="Check the requirements">
-    Install Node.js 18.17 or newer and confirm that `npx` is available:
+Start with `catalog` if you only want better model selection. Use `core` when the client should create content or call a model. `full` is for clients that genuinely need the larger tool set.
+
+## Add the server
+
+<Tabs>
+  <Tab title="Claude Code">
+    Add the public catalog for your user account:
 
     ```bash
-    node --version
-    npx --version
+    claude mcp add \
+      --env TOKENLAB_MCP_TOOL_PROFILE=catalog \
+      --scope user \
+      tokenlab-model-catalog -- \
+      npx -y @tokenlabai/mcp-server
     ```
 
-    You do not need to install the MCP package globally or clone its repository.
-  </Step>
+    To use paid tools, replace the profile environment variable with `TOKENLAB_API_KEY` and store the key through your normal secret-management method. Use `--scope local` for one project. Never commit a real key in a shared `.mcp.json`.
+  </Tab>
 
-  <Step title="Choose an access level">
-    | Goal | API key | Profile |
-    |---|---|---|
-    | Browse models, details, and pricing | Not required | `catalog` (6 tools) |
-    | Use common inference, media, file, and task operations | Required for paid calls | `core` (31 tools, default) |
-    | Expose every allowlisted developer operation | Required for paid calls | `full` (80 tools) |
+  <Tab title="Codex">
+    ```bash
+    codex mcp add \
+      --env TOKENLAB_MCP_TOOL_PROFILE=catalog \
+      tokenlab-model-catalog -- \
+      npx -y @tokenlabai/mcp-server
+    ```
 
-    Create a key in [Dashboard → API Keys](https://tokenlab.sh/dashboard/api) only if you want the server to make credentialed API calls. Keep the key in the client's secret environment; never paste it into a prompt or MCP tool argument.
-  </Step>
+    For paid tools, configure `TOKENLAB_API_KEY` in the server environment.
+  </Tab>
 
-  <Step title="Configure your client">
-    Choose your client below. The public examples explicitly select the `catalog` profile so every exposed tool works without a key.
+  <Tab title="Cursor">
+    Save this as `~/.cursor/mcp.json` for all projects or `.cursor/mcp.json` for one project:
 
-    <Tabs>
-      <Tab title="Claude Code">
-        Add TokenLab for your user account so it is available across projects:
-
-        ```bash
-        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
-        ```
-
-        To enable the default `core` profile, add the server with your API key instead:
-
-        ```bash
-        claude mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key --scope user tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
-        ```
-
-        Use `--scope local` for only the current project, or `--scope project` to create a team-shared `.mcp.json`. Do not commit a real key to a project configuration.
-      </Tab>
-
-      <Tab title="Cursor">
-        Use the one-click installer above, or save this as `~/.cursor/mcp.json` for all projects or `.cursor/mcp.json` for one project:
-
-        ```json
-        {
-          "mcpServers": {
-            "tokenlab-model-catalog": {
-              "command": "npx",
-              "args": ["-y", "@tokenlabai/mcp-server"],
-              "env": {
-                "TOKENLAB_MCP_TOOL_PROFILE": "catalog"
-              }
-            }
+    ```json
+    {
+      "mcpServers": {
+        "tokenlab-model-catalog": {
+          "command": "npx",
+          "args": ["-y", "@tokenlabai/mcp-server"],
+          "env": {
+            "TOKENLAB_MCP_TOOL_PROFILE": "catalog"
           }
         }
-        ```
-      </Tab>
+      }
+    }
+    ```
+  </Tab>
 
-      <Tab title="VS Code">
-        Use the one-click installer above, run **MCP: Add Server** from the Command Palette, or save this as `.vscode/mcp.json`:
+  <Tab title="VS Code">
+    Save this as `.vscode/mcp.json`, or add the same server through **MCP: Add Server**:
 
-        ```json
-        {
-          "servers": {
-            "tokenlab-model-catalog": {
-              "type": "stdio",
-              "command": "npx",
-              "args": ["-y", "@tokenlabai/mcp-server"],
-              "env": {
-                "TOKENLAB_MCP_TOOL_PROFILE": "catalog"
-              }
-            }
+    ```json
+    {
+      "servers": {
+        "tokenlab-model-catalog": {
+          "type": "stdio",
+          "command": "npx",
+          "args": ["-y", "@tokenlabai/mcp-server"],
+          "env": {
+            "TOKENLAB_MCP_TOOL_PROFILE": "catalog"
           }
         }
-        ```
+      }
+    }
+    ```
+  </Tab>
 
-        For a user-wide setup, run **MCP: Open User Configuration** and add the same server object there.
-      </Tab>
+  <Tab title="Claude Desktop">
+    Add this to `claude_desktop_config.json`:
 
-      <Tab title="Codex">
-        Add the public catalog profile:
-
-        ```bash
-        codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
-        ```
-
-        To enable the default `core` profile, add the server with your API key instead:
-
-        ```bash
-        codex mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
-        ```
-      </Tab>
-
-      <Tab title="Claude Desktop">
-        Add the server to `claude_desktop_config.json`:
-
-        ```json
-        {
-          "mcpServers": {
-            "tokenlab-model-catalog": {
-              "command": "npx",
-              "args": ["-y", "@tokenlabai/mcp-server"],
-              "env": {
-                "TOKENLAB_MCP_TOOL_PROFILE": "catalog"
-              }
-            }
+    ```json
+    {
+      "mcpServers": {
+        "tokenlab-model-catalog": {
+          "command": "npx",
+          "args": ["-y", "@tokenlabai/mcp-server"],
+          "env": {
+            "TOKENLAB_MCP_TOOL_PROFILE": "catalog"
           }
         }
-        ```
-      </Tab>
+      }
+    }
+    ```
+  </Tab>
 
-      <Tab title="Other clients">
-        Cline CLI can install the published stdio server directly:
+  <Tab title="Other clients">
+    Any local stdio MCP client can use these values:
 
-        ```bash
-        cline mcp add tokenlab --yes -- npx -y @tokenlabai/mcp-server
-        ```
+    | Field | Value |
+    | --- | --- |
+    | Command | `npx` |
+    | Arguments | `-y`, `@tokenlabai/mcp-server` |
+    | Environment | `TOKENLAB_MCP_TOOL_PROFILE=catalog` |
 
-        For Windsurf, save the standard `mcpServers` configuration at `~/.codeium/windsurf/mcp_config.json`. Other stdio clients use the same server values: command `npx`, arguments `-y` and `@tokenlabai/mcp-server`, and no working directory.
-      </Tab>
-    </Tabs>
-  </Step>
-
-  <Step title="Restart and verify">
-    Restart or reload the MCP client, approve the local server when prompted, and confirm that `tokenlab-model-catalog` is connected.
+    Cline can add the package with:
 
     ```bash
-    # Claude Code: health-check configured servers
-    claude mcp list
-
-    # Codex: list configured servers
-    codex mcp list
+    cline mcp add tokenlab --yes -- npx -y @tokenlabai/mcp-server
     ```
+  </Tab>
+</Tabs>
 
-    Then ask the agent to call `list_models`. A non-empty model list proves that the client started the server, completed MCP discovery, and reached TokenLab's public catalog. No API key is needed for this check.
-  </Step>
-</Steps>
+## Enable paid tools
 
-## Configuration Reference
-
-Use these values in any client that supports local stdio MCP servers. Add each argument as a separate item.
-
-| Field | Value | Notes |
-|---|---|---|
-| Server name | `tokenlab-model-catalog` | Any unique name works. |
-| Transport | `stdio` | TokenLab MCP runs as a local child process. |
-| Startup command | `npx` | Starts the published npm package. |
-| Arguments | `-y`, then `@tokenlabai/mcp-server` | Use `@tokenlabai/mcp-server@0.6.17` to pin the currently verified release. |
-| Working directory | Leave blank | `npx` does not require a project directory for this package. |
-
-For credentialed tools, add the key and select the tool profile in the server's environment:
+Create an API key in [Console → API keys](https://tokenlab.sh/dashboard/api), then set both variables in the MCP server environment:
 
 ```json
 {
-  "mcpServers": {
-    "tokenlab-model-catalog": {
-      "command": "npx",
-      "args": ["-y", "@tokenlabai/mcp-server"],
-      "env": {
-        "TOKENLAB_API_KEY": "<TOKENLAB_API_KEY>",
-        "TOKENLAB_MCP_TOOL_PROFILE": "core"
-      }
-    }
+  "env": {
+    "TOKENLAB_API_KEY": "<TOKENLAB_API_KEY>",
+    "TOKENLAB_MCP_TOOL_PROFILE": "core"
   }
 }
 ```
 
-If a client expects one server object instead of the `mcpServers` wrapper, copy only the inner object containing `command`, `args`, and `env`. VS Code is the main exception: its configuration uses a top-level `servers` object.
+Use your client's secret input when it has one. If a real key appears in a shared file, screenshot, log, or shell history, revoke it and create a new key.
 
-| Environment variable | Default | Purpose |
-|---|---|---|
-| `TOKENLAB_API_BASE` | `https://api.tokenlab.sh` | Override the TokenLab API base URL. Do not add a trailing slash. |
-| `TOKENLAB_API_KEY` | Not set | Required for credentialed inference, media, file, task, embedding, rerank, and translation calls. |
-| `TOKENLAB_MCP_TOOL_PROFILE` | `core` | Select `catalog`, `core`, or `full`. |
-| `TOKENLAB_MCP_SCHEMA_MODE` | Profile default | Select `portable`, `exact`, or `strict`. Keep `portable` unless the client requires another schema shape. |
-| `TOKENLAB_REQUEST_TIMEOUT_MS` | `120000` | Set the API request timeout in milliseconds. |
-| `TOKENLAB_MCP_MAX_FILE_BYTES` | `104857600` | Set the maximum local upload size per file in bytes. |
-| `TOKENLAB_MCP_INLINE_BYTES` | `2097152` | Set the largest binary or JSON result returned inline in bytes. |
-| `TOKENLAB_ARTIFACT_DIR` | OS temporary directory | Choose where larger response artifacts are written. |
+## Check the connection
 
-<Warning>
-Never publish screenshots, logs, shell history, or configuration files containing a real API key. Prefer your client's secret input or environment-variable support, use placeholders in shared examples, and rotate any exposed key.
-</Warning>
-
-## Install From Source
-
-Use a source checkout only when you want to audit or develop the MCP server. Normal client setup should use the published npm package shown above.
+Restart or reload the MCP client, approve the local server if prompted, and confirm that `tokenlab-model-catalog` is connected.
 
 ```bash
-git clone https://github.com/hedging8563/tokenlab-mcp-server.git
-cd tokenlab-mcp-server
-npm install
-npm test
-npm start
+# Claude Code
+claude mcp list
+
+# Codex
+codex mcp list
 ```
 
-The `core` and `full` profiles publish bounded `portable` tool schemas by default while the server validates every call against the complete OpenAPI contract. Set `TOKENLAB_MCP_SCHEMA_MODE=exact` for complete nested schemas, or `TOKENLAB_MCP_SCHEMA_MODE=strict` for providers that require closed objects and every property in `required`; strict mode represents complex top-level values as JSON-encoded strings.
+Ask the client to call `list_models`. A non-empty list confirms the package started and reached TokenLab. The `catalog` profile does not need an API key.
 
-## Generated Tool Profiles
+## Useful tools
 
-| Profile | Tools exposed | Coverage |
-|---|---:|---|
-| `catalog` | 6 | Four generated public catalog and pricing tools plus `compare_models` and `get_api_overview`. No API key required. |
-| `core` (default) | 31 | 29 generated endpoint tools plus `compare_models` and `get_api_overview`. Covers catalog, pricing, native LLM endpoints, images, video, music, 3D, audio, tasks, files, embeddings, rerank, and translation. |
-| `full` | 80 | 78 generated endpoint tools plus the two composite discovery tools. Adds response lifecycle, batches, worlds, native model discovery, and other allowlisted developer operations. |
+Tool availability depends on the selected profile. Common tasks include:
 
-Tool names, descriptions, input schemas, HTTP methods, paths, content types, auth requirements, and task behavior are generated from the checked-in OpenAPI snapshot. An MCP-only overlay supplies stable tool aliases, profile membership, async task semantics, multipart variants, secret omission, and non-streaming constraints.
+- list models and read one model's capabilities
+- read current TokenLab prices or compare several models
+- send Chat Completions, Responses, Anthropic Messages, or Gemini requests
+- create or edit images
+- create video, music, 3D, speech, transcription, or translation
+- upload and retrieve files
+- create embeddings or rerank documents
+- check and cancel supported async tasks
 
-Version 0.6.0 also returns JSON through MCP `structuredContent`, publishes three contract resources, and provides two prompt templates for model selection and native request construction. Generated and composite tools include standard risk annotations so compatible clients can apply safer approval policies.
+The client should ask for approval before a paid call when price or model choice has not already been confirmed.
 
-Common `core` tools include:
+## Async media
 
-| Family | Representative tools |
-|---|---|
-| Catalog and pricing | `list_models`, `get_model`, `get_model_pricing`, `get_pricing`, `compare_models` |
-| Native LLM endpoints | `create_chat_completion`, `create_response`, `create_anthropic_message`, `create_gemini_content` |
-| Images | `create_image`, `create_image_file`, `edit_image`, `edit_image_file` |
-| Video, music, and 3D | `create_video`, `create_music`, `create_3d_model` |
-| Audio | `create_speech`, `transcribe_audio`, `translate_audio` |
-| Embeddings and text | `create_embedding`, `create_multimodal_embedding`, `rerank_documents`, `translate_text` |
-| Files and tasks | `upload_file`, `list_files`, `retrieve_file`, `retrieve_file_content`, `delete_file`, `get_task_status`, `cancel_task` |
+Video, music, and 3D tools return a task instead of a finished file. Image tools can return either a completed result or a task, depending on the model.
 
-MCP tool calls return one final result. Streaming-only and realtime operations are excluded, and the server fixes supported `stream` arguments to `false` internally without exposing a boolean constant to provider adapters. Small image and audio responses return native MCP content; larger binary responses are written to `TOKENLAB_ARTIFACT_DIR` and returned with their local path, MIME type, and byte count.
+When a result includes an async `delivery`, call `get_task_status` with its task ID until the status is complete or failed. Do not create a second task because one status check timed out.
 
-## Async Media Results
+## Optional settings
 
-Video, music, and 3D creation return async task summaries. Image generation and editing can return either a completed result or an async task, depending on the selected model and request.
+| Variable | Default | Use |
+| --- | --- | --- |
+| `TOKENLAB_API_BASE` | `https://api.tokenlab.sh` | Custom TokenLab API host; omit the trailing slash |
+| `TOKENLAB_MCP_TOOL_PROFILE` | `core` | `catalog`, `core`, or `full` |
+| `TOKENLAB_REQUEST_TIMEOUT_MS` | `120000` | Request timeout in milliseconds |
+| `TOKENLAB_MCP_MAX_FILE_BYTES` | `104857600` | Maximum local upload size per file |
+| `TOKENLAB_ARTIFACT_DIR` | OS temporary directory | Where large downloaded files are saved |
 
-When `delivery.mode` is `async`, call `get_task_status` with `{ "id": delivery.task_id }` until `delivery.terminal` is `true`. Determine completion from `status`; `progress` is optional and must not be used as the terminal condition.
-
-## Recommended Agent Workflow
-
-1. Call `list_models` when the user has not named a model.
-2. Use `recommended_for` for non-chat tasks, such as image, video, music, 3D, TTS, STT, embeddings, rerank, or translation.
-3. Call `get_model` before building a non-chat request, retrying a failed request, or switching endpoint families.
-4. Call `get_model_pricing` when model cost affects the user's choice.
-5. Use `compare_models` when the choice depends on several candidates.
-6. Call the generated tool that matches the required API contract, or use `get_api_overview` for a compact map of TokenLab API families.
-
-## Native Endpoint Guidance
-
-TokenLab supports OpenAI-compatible routes and native endpoint families. The MCP server helps an agent choose the right route before it writes code:
-
-| Family | Common route |
-|---|---|
-| OpenAI-compatible chat | `/v1/chat/completions` |
-| Responses | `/v1/responses` |
-| Anthropic Messages | `/v1/messages` |
-| Gemini native | `/v1beta/models/{model}:generateContent` |
-| Images | `/v1/images/generations`, `/v1/images/edits` |
-| Video | `/v1/videos/generations` |
-| Music | `/v1/music/generations` |
-| 3D | `/v1/3d/generations` |
-| Audio | `/v1/audio/speech`, `/v1/audio/transcriptions`, `/v1/audio/translations` |
-| Embeddings and rerank | `/v1/embeddings`, `/v1/rerank` |
-| Text translation | `/v1/translations` |
-
-## Hosted Model Explorer
-
-Clients that support Streamable HTTP can connect to:
-
-```text
-https://tokenlab-model-explorer.vercel.app/mcp
-```
-
-The hosted explorer is public and exposes `open_tokenlab_model_explorer`, `compare_tokenlab_models`, and `generate_tokenlab_endpoint_example`. Use the local npm server above when you need the generated core/full profiles, local file uploads, or credentialed API operations.
-
-## Use It With TokenLab Skills
-
-The MCP server is useful at runtime, while the [TokenLab skills repository](https://github.com/hedging8563/tokenlab-skills) teaches coding agents how to generate and repair integration code.
-
-Use both when available:
-
-- MCP server: discover current models, pricing, and endpoint details.
-- `tokenlab-api-integration` skill: generate runnable API examples and handle structured TokenLab errors.
-- `tokenlab-model-picker` skill: choose strong models for the user's task.
-- `tokenlab-native-endpoints` skill: decide when to use Responses, Anthropic Messages, Gemini, media, audio, embedding, rerank, or translation routes.
+Use the defaults unless your client or deployment has a specific requirement.
 
 ## Troubleshooting
 
 <AccordionGroup>
   <Accordion title="The client cannot start the server">
-    Confirm Node.js is at least 18.17 and that the client can find `npx`. Then run `npx -y @tokenlabai/mcp-server` once in a terminal to surface npm or network errors. A successful stdio launch waits silently for MCP messages; press **Ctrl+C** after confirming that it starts.
+    Run `node --version`, `npx --version`, and `npx -y @tokenlabai/mcp-server` in a terminal. A successful stdio server waits silently for MCP messages; press **Ctrl+C** after confirming it starts.
   </Accordion>
 
-  <Accordion title="The server is configured but no tools appear">
-    Restart the client and approve or trust the local server when prompted. In Claude Code, run `claude mcp list` or open `/mcp`. In VS Code, run **MCP: List Servers**, select TokenLab, and choose **Show Output**. In Cursor, open **Settings → Tools & MCP** and confirm that the server and its tools are enabled.
-  </Accordion>
-
-  <Accordion title="Claude Code shows Pending approval">
-    Project-scoped `.mcp.json` servers require workspace trust and explicit approval. Start Claude Code interactively in the project, accept the workspace trust prompt, open `/mcp`, and approve `tokenlab-model-catalog`. Use `--scope user` instead when the server should be private to your account and available across projects.
+  <Accordion title="The server is connected but no tools appear">
+    Restart the client and approve the local server. Confirm that the server and its tools are enabled in the client's MCP settings.
   </Accordion>
 
   <Accordion title="The model list is empty">
-    Verify that the machine can reach `https://api.tokenlab.sh/v1/models`. If you override `TOKENLAB_API_BASE`, make sure it does not include a trailing slash.
+    Confirm that the machine can open `https://api.tokenlab.sh/v1/models`. If `TOKENLAB_API_BASE` is set, remove any trailing slash.
   </Accordion>
 
-  <Accordion title="The agent still chooses stale model IDs">
-    Ask the agent to call `list_models` or `get_model` before hardcoding a model name. Pairing the MCP server with `tokenlab-model-picker` gives better results.
+  <Accordion title="A paid tool returns an authentication error">
+    Make sure `TOKENLAB_API_KEY` is in the MCP server environment, not in the prompt or tool arguments. Restart the client after changing it.
   </Accordion>
 
-  <Accordion title="Can this server call paid TokenLab inference APIs?">
-    Yes. Set `TOKENLAB_API_KEY`, then use the generated LLM, media, audio, task, file, embedding, rerank, or translation tools. Catalog and pricing tools remain available without a key.
-  </Accordion>
-
-  <Accordion title="A credentialed tool returns an authentication error">
-    Confirm that `TOKENLAB_API_KEY` is set in the MCP server's environment, not pasted into the tool arguments or prompt. Restart the client after changing the configuration. If the key was exposed in a shared file, screenshot, log, or shell history, rotate it before retrying.
-  </Accordion>
-
-  <Accordion title="The client rejects tool schemas or loads too many tools">
-    Start with `TOKENLAB_MCP_TOOL_PROFILE=catalog` for six discovery tools or keep the default `core` profile for 31 tools. The default `portable` schema mode works with the widest range of clients. Use `exact` only when complete nested schemas are required, or `strict` when the model provider requires closed objects and every property in `required`.
-  </Accordion>
-
-  <Accordion title="How do I pin or update the package version?">
-    Replace the package argument with `@tokenlabai/mcp-server@0.6.17` for a repeatable setup using the currently verified release. To change versions, update that argument in the client configuration and restart the server. Review the public repository before adopting a newer release.
+  <Accordion title="The client loads too many tools">
+    Use `catalog` for model and price lookup, or `core` for common TokenLab calls. Choose `full` only when you need its additional APIs.
   </Accordion>
 </AccordionGroup>
 
-## Resources
+## Hosted model explorer
 
-<CardGroup cols={2}>
-  <Card title="TokenLab MCP" icon="plug" href="https://tokenlab.sh/mcp">
-    Product overview and connection options for the Core 31 and Full 80 toolsets
-  </Card>
-  <Card title="GitHub Repository" icon="github" href="https://github.com/hedging8563/tokenlab-mcp-server">
-    Source code and local setup instructions
-  </Card>
-  <Card title="TokenLab Skills" icon="sparkles" href="https://github.com/hedging8563/tokenlab-skills">
-    Maintained agent skills for TokenLab integrations
-  </Card>
-  <Card title="Model Catalog API" icon="list" href="https://api.tokenlab.sh/v1/models">
-    Public model discovery endpoint
-  </Card>
-  <Card title="llms.txt" icon="file-lines" href="https://api.tokenlab.sh/llms.txt">
-    Agent-readable TokenLab API overview
-  </Card>
-  <Card title="Glama MCP Server" icon="globe" href="https://glama.ai/mcp/servers/hedging8563/tokenlab-mcp-server">
-    View the verified TokenLab MCP Server listing
-  </Card>
-  <Card title="Glama Model Explorer" icon="search" href="https://glama.ai/mcp/servers/hedging8563/tokenlab-openai-apps-model-explorer">
-    Explore models, pricing, and native endpoint examples
-  </Card>
-  <Card title="MCP.so Listing" icon="compass" href="https://mcp.so/servers/tokenlab-mcp-server">
-    Discover TokenLab in the AI & Agents directory
-  </Card>
-  <Card title="Hosted Model Explorer" icon="rocket" href="https://tokenlab-model-explorer.vercel.app/widget">
-    Open the public model explorer and remote MCP endpoint
-  </Card>
-  <Card title="Claude Code MCP Guide" icon="terminal" href="https://code.claude.com/docs/en/mcp">
-    Review Claude Code scopes, approvals, status checks, and MCP configuration
-  </Card>
-  <Card title="Cursor MCP Guide" icon="arrow-pointer" href="https://docs.cursor.com/context/model-context-protocol">
-    Review Cursor configuration locations, tool controls, and security guidance
-  </Card>
-  <Card title="VS Code MCP Guide" icon="code" href="https://code.visualstudio.com/docs/agent-customization/mcp-servers">
-    Review VS Code user and workspace configuration, trust, logs, and server management
-  </Card>
-</CardGroup>
+Clients that support Streamable HTTP can use the public model explorer at:
+
+```text
+https://tokenlab-model-explorer.vercel.app/mcp
+```
+
+Use the local npm server for paid API calls, local file uploads, or the `core` and `full` profiles.
+
+## Links
+
+- [TokenLab MCP page](https://tokenlab.sh/mcp)
+- [GitHub repository](https://github.com/hedging8563/tokenlab-mcp-server)
+- [TokenLab API skill](/integrations/coding-agent-skill)
+- [Model catalog](https://tokenlab.sh/en/models)
+- [API quickstart](/quickstart)

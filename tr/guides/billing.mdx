@@ -93,7 +93,7 @@ def estimate_tokens(text):
 
 # Gerçek sayı (OpenAI modelleri için)
 import tiktoken
-encoder = tiktoken.encoding_for_model("gpt-4o")
+encoder = tiktoken.encoding_for_model("gpt-5.6-terra")
 tokens = encoder.encode("Metniniz buraya")
 print(f"Token sayısı: {len(tokens)}")
 ```

@@ -39,6 +39,10 @@ Use o painel OpenAPI interativo acima para ver o esquema exato.
 - Espere `output_file_id` e `error_file_id` apenas depois que o worker finalizar o lote.
 - A precificação do lote pode ser diferente da precificação síncrona porque as regras de desconto `isBatchRequest=true` se aplicam.
 
+## Tipos de conteúdo
+
+O conteúdo de arquivos em lote é retornado como JSONL ou texto simples. O conteúdo de referências de imagem criadas pelo TokenLab pode ser encaminhado como conteúdo binário quando o provedor de arquivos subjacente suporta a recuperação de conteúdo.
+
 ## Exemplo de resposta
 
 <ResponseExample>

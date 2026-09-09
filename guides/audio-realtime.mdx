@@ -1,22 +1,22 @@
 ---
-title: "Audio & Realtime"
-description: "Choose speech, transcription, translation, or realtime WebSocket flows for audio applications."
+title: "Audio and realtime"
+description: "Create speech, transcribe audio, translate speech, or open a realtime session"
 ---
 
-Audio workloads split into two shapes. Use the audio endpoints for file-like requests such as text-to-speech, transcription, and audio translation. Use the realtime WebSocket endpoint when the user experience needs low-latency, interactive audio or multimodal events.
+Use the audio endpoints when the result is a file or text. Use the realtime WebSocket endpoint for a live, two-way audio experience.
 
-## Choose The Workflow
+## Choose an endpoint
 
-| Workflow | Endpoint | Use it when |
+| Need | Endpoint | Use it when |
 |----------|----------|-------------|
 | Text to speech | `POST /v1/audio/speech` | You need an audio file from text. |
 | Transcription | `POST /v1/audio/transcriptions` | You need text from an audio file. |
 | Audio translation | `POST /v1/audio/translations` | You need translated text from an audio file. |
 | Realtime WebSocket | `WS /v1/realtime?model={model}` | You need bidirectional streaming audio or realtime multimodal events over WebSocket. Plain `GET /v1/realtime` only returns metadata. |
 
-## Discover Models
+## Choose a model
 
-Query the model catalog before hard-coding a model. Use recommended shortlists for speech and transcription, and use model details to confirm realtime support before opening a socket.
+Read the current model list instead of hard-coding it. Check the selected model's details for realtime support before opening a socket.
 
 ```bash
 curl "https://api.tokenlab.sh/v1/models?recommended_for=tts" \
@@ -26,9 +26,9 @@ curl "https://api.tokenlab.sh/v1/models?recommended_for=stt" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 
-## Synchronous Audio Requests
+## Audio requests
 
-Speech, transcription, and translation requests return directly from the HTTP request. Large inputs can take longer than common client defaults, so set a generous timeout and store request IDs for support.
+Speech, transcription, and translation return in the HTTP response. Large files can take longer than a client's default timeout, so allow enough time and keep the Request ID.
 
 ```bash
 curl -X POST "https://api.tokenlab.sh/v1/audio/speech" \
@@ -46,7 +46,7 @@ curl -X POST "https://api.tokenlab.sh/v1/audio/speech" \
 
 Open a WebSocket with the model in the query string and the API key in the Authorization header. Keep the event format documented for the selected realtime model, and close the socket when the session is complete.
 
-This guide covers the WebSocket proxy only. TokenLab does not currently provide OpenAI Realtime REST client secret, translation client secret, Calls, or legacy beta session management endpoints.
+This guide covers the WebSocket subset only. TokenLab does not currently provide OpenAI Realtime REST client secret, translation client secret, Calls, or legacy beta session management endpoints.
 
 ```javascript
 import WebSocket from 'ws';
@@ -58,7 +58,7 @@ const socket = new WebSocket('wss://api.tokenlab.sh/v1/realtime?model=gpt-realti
 socket.on('message', (event) => console.log(event.toString()));
 ```
 
-## State Handling
+## Show progress safely
 
 - Save generated audio files instead of replaying the same request on refresh.
 - For transcription and translation, show upload and processing states even when the API call is synchronous.

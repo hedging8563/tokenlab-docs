@@ -1,50 +1,38 @@
 ---
 title: "AI 聊天应用"
-description: "配置主流 AI 聊天应用以使用 TokenLab 的 OpenAI 兼容 API"
+description: "把常用 AI 聊天应用连接到 TokenLab"
 ---
 
 ## 概述
 
-大多数通用 AI 聊天应用通过标准的 OpenAI 兼容聊天路径连接到 TokenLab。
-
-在实践中，这意味着：
-- 使用 `https://api.tokenlab.sh/v1` 作为基础 URL（除非应用明确要求输入完整的端点 URL）
-- 使用您的 TokenLab API key 作为 OpenAI 风格的 API key
-- 选择应用可以在标准聊天工作流中使用的模型
+大多数聊天应用都能通过 OpenAI 兼容设置连接 TokenLab。Base URL 填写 `https://api.tokenlab.sh/v1`，粘贴 TokenLab API 密钥，并选择当前聊天模型 ID。
 
 <Note>
-通用聊天应用通常是**面向聊天补全（chat-completions）的**，而不是 Codex Responses WebSocket 客户端。对于需要特定 Responses 行为的 Codex CLI/App、Cursor 或其他编程工具，请使用专门的集成指南。
+这里配置的是 Chat Completions。需要 Responses 或其他 API 格式的编程工具，请查看对应集成页面。
 </Note>
 
-<Note>
-**类型**: 聊天应用
-
-**主要路径**: OpenAI 兼容的聊天补全（chat-completions）
-
-**支持置信度**: 支持的路径
-</Note>
 
 ## 支持的应用
 
 | 应用 | 平台 | 备注 |
 |-------------|----------|-------|
-| Open WebUI | Web, 自托管 | 流行的自托管选择，支持 OpenAI 兼容连接 |
-| LibreChat | Web, 自托管 | 具有自定义 OpenAI 端点的多提供商聊天工作区 |
-| LobeChat | Web, 桌面端, 自托管 | 强大的自定义提供商支持 |
-| Cherry Studio | Windows, macOS, Linux | 良好的 OpenAI 兼容提供商流程 |
-| Chatbox | Windows, macOS, Linux | 简单的 OpenAI 兼容设置 |
-| DeepChat | Windows, macOS, Linux | 带有 OpenAI 兼容提供商设置的桌面客户端 |
-| Jan | 桌面端, 自托管 | 优先本地运行，支持远程 OpenAI 兼容提供商 |
-| TypingMind | Web, 桌面端 | 使用自定义端点样式 |
-| NextChat | Web, 自托管 | 轻量级 ChatGPT 风格客户端，支持基础 URL 覆盖 |
-| ChatWise | Windows, macOS | 标准自定义提供商模式 |
+| Open WebUI | Web, 自托管 | 支持 OpenAI 兼容连接 |
+| LibreChat | Web, 自托管 | 支持自定义 OpenAI 地址 |
+| LobeChat | Web, 桌面端, 自托管 | 支持自定义模型服务 |
+| Cherry Studio | Windows, macOS, Linux | 支持自定义 OpenAI 兼容服务 |
+| Chatbox | Windows, macOS, Linux | 支持 OpenAI 兼容设置 |
+| DeepChat | Windows, macOS, Linux | 支持自定义模型服务 |
+| Jan | 桌面端, 自托管 | 支持远程 OpenAI 兼容服务 |
+| TypingMind | Web, 桌面端 | 支持自定义 API 地址 |
+| NextChat | Web, 自托管 | 支持自定义 Base URL |
+| ChatWise | Windows, macOS | 支持自定义模型服务 |
 
 ## 默认连接值
 
 | 字段 | 值 |
 |-------|-------|
 | Base URL | `https://api.tokenlab.sh/v1` |
-| API Key | `sk-your-tokenlab-key` |
+| API 密钥 | `sk-your-tokenlab-key` |
 | API 类型 | OpenAI 兼容 |
 
 如果应用要求输入**完整端点 URL** 而不是基础 URL，请使用：
@@ -64,7 +52,7 @@ description: "配置主流 AI 聊天应用以使用 TokenLab 的 OpenAI 兼容 A
     **LobeChat Cloud**
     1. 打开 **Settings**（设置） → **AI Service Provider**（AI 服务提供商）
     2. 选择 **OpenAI**
-    3. 输入您的 TokenLab API key
+    3. 输入你的 TokenLab API 密钥
     4. 将自定义端点设置为 `https://api.tokenlab.sh/v1`
   </Tab>
 
@@ -74,8 +62,8 @@ description: "配置主流 AI 聊天应用以使用 TokenLab 的 OpenAI 兼容 A
     3. 输入：
        - **Name**: TokenLab
        - **API Base URL**: `https://api.tokenlab.sh/v1`
-       - **API Key**: `sk-your-tokenlab-key`
-    4. 添加您想要使用的模型
+       - **API 密钥**: `sk-your-tokenlab-key`
+    4. 添加你想要使用的模型
   </Tab>
 
   <Tab title="Chatbox">
@@ -83,7 +71,7 @@ description: "配置主流 AI 聊天应用以使用 TokenLab 的 OpenAI 兼容 A
     2. 选择 **OpenAI API Compatible**
     3. 输入：
        - **API Host**: `https://api.tokenlab.sh/v1`
-       - **API Key**: `sk-your-tokenlab-key`
+       - **API 密钥**: `sk-your-tokenlab-key`
        - **Model**: `gpt-5.4-mini` 或 `claude-sonnet-5`
   </Tab>
 
@@ -92,8 +80,8 @@ description: "配置主流 AI 聊天应用以使用 TokenLab 的 OpenAI 兼容 A
     2. 选择 **Custom Endpoint**（自定义端点）
     3. 输入：
        - **Endpoint URL**: `https://api.tokenlab.sh/v1/chat/completions`
-       - **API Key**: `sk-your-tokenlab-key`
-    4. 配置您想要启用的模型
+       - **API 密钥**: `sk-your-tokenlab-key`
+    4. 配置你想要启用的模型
   </Tab>
 
   <Tab title="Open WebUI">
@@ -101,8 +89,8 @@ description: "配置主流 AI 聊天应用以使用 TokenLab 的 OpenAI 兼容 A
     2. 添加一个 **OpenAI-compatible** 连接
     3. 输入：
        - **Base URL**: `https://api.tokenlab.sh/v1`
-       - **API Key**: `sk-your-tokenlab-key`
-    4. 保存并选择您想要启用的模型
+       - **API 密钥**: `sk-your-tokenlab-key`
+    4. 保存并选择你想要启用的模型
   </Tab>
 
   <Tab title="DeepChat">
@@ -110,7 +98,7 @@ description: "配置主流 AI 聊天应用以使用 TokenLab 的 OpenAI 兼容 A
     2. 添加一个 OpenAI 兼容提供商
     3. 输入：
        - **Base URL**: `https://api.tokenlab.sh/v1`
-       - **API Key**: `sk-your-tokenlab-key`
+       - **API 密钥**: `sk-your-tokenlab-key`
        - **Model**: `gpt-5.4-mini`
     4. 保存并进行测试聊天
   </Tab>
@@ -121,12 +109,12 @@ description: "配置主流 AI 聊天应用以使用 TokenLab 的 OpenAI 兼容 A
     3. 输入：
        - **Provider name**: TokenLab
        - **Base URL**: `https://api.tokenlab.sh/v1`
-       - **API Key**: `sk-your-tokenlab-key`
+       - **API 密钥**: `sk-your-tokenlab-key`
     4. 选择 `gpt-5.4-mini` 或其他 TokenLab 模型
   </Tab>
 
   <Tab title="LibreChat">
-    在您的 LibreChat 提供商配置中添加一个 OpenAI 兼容端点，并将其指向：
+    在你的 LibreChat 提供商配置中添加一个 OpenAI 兼容端点，并将其指向：
 
     ```yaml
     customEndpoints:
@@ -134,7 +122,7 @@ description: "配置主流 AI 聊天应用以使用 TokenLab 的 OpenAI 兼容 A
         apiKey: '${OPENAI_API_KEY}'
         baseURL: 'https://api.tokenlab.sh/v1'
         models:
-          default: ['gpt-5.4-mini', 'gpt-5.4', 'claude-sonnet-5']
+          default: ['gpt-5.6-luna', 'gpt-5.6-terra', 'claude-sonnet-5']
           fetch: false
     ```
   </Tab>
@@ -153,7 +141,7 @@ description: "配置主流 AI 聊天应用以使用 TokenLab 的 OpenAI 兼容 A
 
 <AccordionGroup>
   <Accordion title="在应用支持时优先使用基础 URL">
-    当您提供 `https://api.tokenlab.sh/v1` 作为基础 URL 而不是完整端点 URL 时，大多数应用更容易配置且更稳定。
+    当你提供 `https://api.tokenlab.sh/v1` 作为基础 URL 而不是完整端点 URL 时，大多数应用更容易配置且更稳定。
   </Accordion>
 
   <Accordion title="优先使用较小的模型">
@@ -175,7 +163,7 @@ description: "配置主流 AI 聊天应用以使用 TokenLab 的 OpenAI 兼容 A
   </Accordion>
 
   <Accordion title="401 Unauthorized（未授权）">
-    - 仔细检查您的 API key
+    - 仔细检查你的 API 密钥
     - 确认该 key 在 TokenLab 控制面板中处于激活状态
     - 确保没有多余的空格或换行符
   </Accordion>

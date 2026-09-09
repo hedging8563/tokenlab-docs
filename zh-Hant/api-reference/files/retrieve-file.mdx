@@ -39,6 +39,10 @@ curl -X GET "https://api.tokenlab.sh/v1/files/file_abc123" \
 - 只有在工作者完成批次後，才會期望 `output_file_id` 和 `error_file_id`。
 - 批次定價可能與同步定價不同，因為適用 `isBatchRequest=true` 的折扣規則。
 
+## 圖像參考檔案
+
+此端點也可以返回 TokenLab 建立的圖像參考檔案中繼資料。`status` 欄位是可選的；某些檔案類型可能不會提供該欄位。
+
 ## 回應範例
 
 <ResponseExample>

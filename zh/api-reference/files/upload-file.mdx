@@ -1,28 +1,14 @@
 ---
 title: "上传文件"
 openapi: "POST /v1/files"
-description: "上传一个 JSONL 批量输入文件以便后续批量创建。"
+description: "上传批处理文件、图片参考文件或 Anthropic 格式文件。"
 ---
 
-## 概述
-
-此端点是 TokenLab 的 OpenAI 兼容批量 API 的一部分。批量作业使用上传的 JSONL 文件，异步运行，并可以在稍后返回输出/错误文件。
-
-
-## 支持的文件模式
-
-TokenLab 将 `/v1/files` 明确分成三种模式：
+## 文件用途
 
 - 批量文件：使用 `purpose=batch`，供 `/v1/batches` 使用。
 - 图像/参考文件：使用 `purpose=user_data` 或 `purpose=vision`，供基于文件的图像请求使用。
-- Anthropic Files API 模式：添加 `anthropic-beta: files-api-2025-04-14`，使用 Anthropic 原生文件存储。
-
-## 注意事项
-
-- 批量输入文件必须使用 `purpose=batch`。
-- `completion_window` 当前为 `24h`。
-- 输出顺序不保证；始终通过 `custom_id` 匹配。
-- 批量项内不支持流式传输。
+- Anthropic Files：添加 `anthropic-beta: files-api-2025-04-14` 请求头。
 
 ## 示例
 
@@ -35,15 +21,6 @@ curl -X POST "https://api.tokenlab.sh/v1/files" \
 ```
 </RequestExample>
 
-## 请求 / 响应
-
-使用上面的交互式 OpenAPI 面板获取确切的架构。
-
-## 操作提示
-
-- 使用 `custom_id` 进行幂等的下游对账。
-- 仅在工作者完成批处理后，期待 `output_file_id` 和 `error_file_id`。
-- 批量定价可能与同步定价不同，因为适用 `isBatchRequest=true` 的折扣规则。
 ## 图像文件输入
 
 同一个 `/v1/files` 路由也可以为 `/v1/images/edits` 上传图像参考文件。
@@ -54,11 +31,9 @@ curl -X POST "https://api.tokenlab.sh/v1/files" \
 
 ## Anthropic Files API 模式
 
-这个 `/v1/files` 路由也支持 Anthropic Files API 路径。
-
 - 添加 `anthropic-beta: files-api-2025-04-14` 请求头以切换到 Anthropic 模式。
 - 在 Anthropic 模式下，直接上传原始文件，不要传 `purpose=batch`。
-- 返回的 `file_id` 会绑定到同一个官方 Anthropic 渠道/工作区，后续应在 `/v1/messages` 请求中复用。
+- 返回的 `file_id` 只在当前工作区可用，可在后续 `/v1/messages` 请求中复用。
 - 如果你要在 Anthropic 消息内容中引用该文件，请继续使用 Anthropic 原生请求头（`x-api-key`、`anthropic-version`，以及需要时的 beta header）。
 
 ## 响应示例
@@ -78,6 +53,6 @@ curl -X POST "https://api.tokenlab.sh/v1/files" \
 
 ## 重要字段
 
-<ResponseField name="id" type="string">供相关 API 使用的文件标识符。</ResponseField>
+<ResponseField name="id" type="string">文件 ID。</ResponseField>
 <ResponseField name="purpose" type="string">分配给文件的用途。上传目前接受 `batch`、`user_data` 或 `vision`。</ResponseField>
 <ResponseField name="bytes" type="integer">文件大小，单位为字节。</ResponseField>

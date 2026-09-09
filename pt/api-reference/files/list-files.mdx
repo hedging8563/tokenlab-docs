@@ -39,6 +39,12 @@ Use o painel OpenAPI interativo acima para ver o esquema exato.
 - Espere `output_file_id` e `error_file_id` apenas depois que o worker finalizar o lote.
 - A precificação do lote pode ser diferente da precificação síncrona porque as regras de desconto `isBatchRequest=true` se aplicam.
 
+## Filtros
+
+- `limit` aceita valores de 1 a 10000 e o padrão é 10000.
+- `purpose` pode ser `batch`, `batch_output`, `user_data` ou `vision`.
+- `user_data` e `vision` retornam arquivos de referência de imagem criados pelo TokenLab quando disponíveis.
+
 ## Exemplo de resposta
 
 <ResponseExample>

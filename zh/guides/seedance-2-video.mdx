@@ -1,31 +1,31 @@
 ---
 title: "Seedance 2.0 视频模型"
-description: "选择 Seedance 2.0 模型以及正确的 TokenLab 接入路径。"
+description: "选择 Seedance 2.0 模型，开始生成视频"
 ---
 
-如果你要在应用中接入 Seedance 2.0，请从这里开始。本页只负责模型和工作流选择；火山迁移、可复用素材和真人验证分别放在独立指南中。
+本页帮你选定 Seedance 2.0 模型和 API。火山迁移、可复用素材和真人验证另有完整指南。
 
-## 选择接入路径
+## 选择 API
 
-| 目标 | 使用方式 | 下一步 |
+| 你要做什么 | 使用方式 | 指南 |
 | --- | --- | --- |
 | 新建 TokenLab 视频接入 | 统一 `POST /v1/videos/generations` API | [视频生成指南](/zh/guides/video-generation) |
 | 迁移现有火山 Seedance 客户端 | 火山兼容 REST 或 Action 接口 | [从火山迁移 Seedance](/zh/guides/seedance-volcengine-migration) |
 | 复用虚拟人、商品、风格或真人引用 | TokenLab 素材库 | [Seedance 素材与真人验证](/zh/guides/seedance-materials) |
 
-三条路径都使用 `Authorization: Bearer <TOKENLAB_API_KEY>`。火山兼容路径保留火山请求形状，但不接受 AK/SK 签名。
+三种方式都使用 `Authorization: Bearer <TOKENLAB_API_KEY>`。火山兼容请求保留原有字段，但鉴权要换成 TokenLab API 密钥。
 
 ## 模型选择
 
-| 模型 | 适用场景 | 支持的分辨率 |
-|-------|----------|-----------------------|
-| `seedance-2.0` | 最高质量和 4K 输出 | `480p`, `720p`, `1080p`, `4k` |
-| `seedance-2.0-fast` | 更快、成本更低的输出 | `480p`, `720p` |
-| `seedance-2.0-mini` | 最低成本输出 | `480p`, `720p` |
+| 模型 | 可用分辨率 |
+| --- | --- |
+| `seedance-2.0` | `480p`, `720p`, `1080p`, `4k` |
+| `seedance-2.0-fast` | `480p`, `720p` |
+| `seedance-2.0-mini` | `480p`, `720p` |
 
-`seedance-2.0-fast` 和 `seedance-2.0-mini` 不支持 `1080p` 和 `4k` 请求。音频仅可在支持的参考工作流中使用；不支持纯音频或仅文本加音频的 Seedance 请求。
+`seedance-2.0-fast` 和 `seedance-2.0-mini` 不支持 `1080p` 和 `4k`。音频只能与支持的参考素材一起使用，不能只传音频，也不能只传文字和音频。
 
-## 支持的操作
+## 生成类型
 
 | 操作 | 典型输入 |
 |-----------|----------------|
@@ -36,11 +36,13 @@ description: "选择 Seedance 2.0 模型以及正确的 TokenLab 接入路径。
 | `video-to-video` | `prompt`, `video_url` 或兼容的视频输入 |
 | `video-extension` | `task_id` 或模型特定的续写输入 |
 
-## 定价与异步结果
+请明确填写 `operation`，以便 API 按对应的生成类型校验参数。`seedance-2.0` 和 `seedance-2.0-fast` 在支持参考生成时，最多接受 9 张参考图、3 段参考视频和 3 段参考音频。纯音频，或只有文字和音频的请求暂不支持。
 
-Seedance 2.0 的定价取决于输出分辨率、输入类型和模型。在硬编码产品 UI 之前，请使用 [Pricing API](/zh/api-reference/pricing/get-pricing) 或 [Models API](/zh/api-reference/models/list-models)。
+## 价格与生成结果
 
-视频生成是异步的。请遵循创建请求返回的 `poll_url`，或使用返回的任务 ID 调用 [获取任务状态](/zh/api-reference/tasks/get-task-status)。
+Seedance 2.0 的价格取决于模型、输入类型和输出分辨率。产品中需要展示价格时，请从 [Pricing API](/zh/api-reference/pricing/get-pricing) 或 [Models API](/zh/api-reference/models/list-models) 读取。
+
+视频生成完成前，使用创建请求返回的 `poll_url` 查询状态；也可以用任务 ID 调用[获取任务状态](/zh/api-reference/tasks/get-task-status)。
 
 ## 相关接口
 

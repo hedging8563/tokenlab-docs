@@ -151,7 +151,7 @@ Authorization: Bearer sk-your-api-key
   "id": "chatcmpl-abc123",
   "object": "chat.completion",
   "created": 1234567890,
-  "model": "gpt-4o",
+  "model": "gpt-5.6-terra",
   "choices": [...],
   "usage": {
     "prompt_tokens": 10,
@@ -163,30 +163,16 @@ Authorization: Bearer sk-your-api-key
 
 ### شفافية التوجيه (Routing Transparency)
 
-تتضمن جميع الاستجابات حقل `_routing` مع معلومات القناة:
+لا يكشف TokenLab تفاصيل المزوّد أو القناة أو السياسة أو بيانات الاعتماد في أجسام الاستجابات العامة. لا تعتمد على `_routing` أو أي حقول توجيه داخلية أخرى كجزء من عقد واجهة API العامة.
 
-```json
-{
-  "id": "chatcmpl-abc123",
-  ...,
-  "_routing": {
-    "channel": {
-      "id": "ch_xxx",
-      "name": "channel-name",
-      "provider": "openai"
-    },
-    "cached": false,
-    "retryCount": 0
-  }
-}
-```
+لأغراض التصحيح والدعم، استخدم ترويسات الاستجابة العامة عندما تكون موجودة:
 
-| الحقل | الوصف |
+| الترويسة | الوصف |
 |-------|-------------|
-| `channel.id` | معرف القناة المستخدم |
-| `channel.provider` | المزود الأساسي (openai، anthropic، إلخ.) |
-| `cached` | ما إذا كانت الاستجابة قد تمت خدمتها من ذاكرة التخزين المؤقت (cache) |
-| `retryCount` | عدد محاولات إعادة المحاولة (إن وجدت) |
+| `X-Routing-Time-MS` | وقت اختيار المسار، عند توفره |
+| `X-Request-ID` | معرّف الطلب للدعم والتصحيح، عند توفره |
+| `X-Task-ID` | معرّف المهمة غير المتزامنة العام للاستجابات المعتمدة على المهام، عند توفره |
+| `X-Billing-Transaction-ID` | معرّف معاملة الفوترة بعد الفوترة النهائية، عند توفره |
 
 ### استجابة الخطأ
 

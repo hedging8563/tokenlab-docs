@@ -1,18 +1,19 @@
 ---
 title: "SDKs & Libraries"
-description: "Recommended SDKs and libraries for TokenLab integrations"
+description: "Use TokenLab with the SDK already in your application"
 ---
 
 ## Overview
 
-TokenLab is easiest to integrate by matching the SDK to the behavior you need:
-- official **Anthropic SDKs** for Claude-native `/v1/messages` behavior
-- official **Gemini / Google AI** tooling for Gemini-native request shapes
-- official **OpenAI SDKs** for OpenAI-compatible `/v1` routes and Responses-style usage
+You do not need a TokenLab-specific SDK. Keep the client your application already uses and change its API key and base URL:
 
-Use the integration pages for support boundaries. In this docs set, "recommended" or "supported" means a documented setup path exists; it does not automatically cover every framework helper or provider-specific feature.
+- **OpenAI SDKs** work with Chat Completions and Responses.
+- **Anthropic SDKs** work with Claude Messages.
+- **Gemini / Google AI SDKs** work with Gemini requests.
 
-## Recommended SDKs
+Open the matching integration page for a working configuration and any model-specific limits.
+
+## Choose an SDK
 
 <CardGroup cols={2}>
   <Card title="OpenAI Python" icon="python" href="https://github.com/openai/openai-python">
@@ -31,7 +32,7 @@ Use the integration pages for support boundaries. In this docs set, "recommended
 
 ## OpenAI SDK Example
 
-Use this when you are migrating an existing OpenAI-compatible client or want the `/v1` compatibility path. For Claude-native or Gemini-native features, use the matching native SDK instead.
+Use this for Chat Completions or Responses. The selected model must support the API method you call.
 
 ```python
 from openai import OpenAI
@@ -42,7 +43,7 @@ client = OpenAI(
 )
 
 response = client.responses.create(
-    model="gpt-5.4",
+    model="gpt-5.6-terra",
     input="Explain TokenLab in one sentence."
 )
 
@@ -80,32 +81,31 @@ client = Anthropic(
 )
 
 message = client.messages.create(
-    model="claude-sonnet-4-6",
+    model="claude-sonnet-5",
     max_tokens=1024,
     messages=[{"role": "user", "content": "Hello!"}]
 )
 ```
 
-## Which SDK Should You Use?
+## Which SDK should you use?
 
-| Goal | Recommended path |
+| Need | SDK |
 |------|------------------|
-| Provider-native behavior | Native provider SDK or route |
 | Existing OpenAI-compatible client | OpenAI SDK on TokenLab `/v1` |
-| Portable chat / embeddings | OpenAI-compatible `/v1` routes |
-| Claude-native features | Anthropic SDK |
-| Gemini-native request shapes | Gemini-native API / SDK |
+| Chat Completions, Responses, or embeddings | OpenAI SDK |
+| Claude Messages fields | Anthropic SDK |
+| Gemini contents, files, cache, or tools | Gemini / Google AI SDK |
 | LangChain / LlamaIndex / Vercel AI SDK | Use the dedicated integration pages |
 
-## Best Practices
+## Configuration notes
 
 <AccordionGroup>
-  <Accordion title="Choose native routes when behavior matters">
-    Use Anthropic or Gemini native routes for provider-specific fields, tools, streaming details, and other behavior that should not be translated through another format.
+  <Accordion title="Keep model-specific fields in their API format">
+    Claude Messages and Gemini represent tools, streaming, and content differently. Use the matching SDK when your application depends on those fields.
   </Accordion>
 
-  <Accordion title="Use OpenAI-compatible `/v1` for migration">
-    OpenAI-compatible SDKs are the best path for existing OpenAI-style clients, portable chat, and embeddings. Treat them as a compatibility route, not as the only TokenLab API surface.
+  <Accordion title="Keep existing OpenAI clients">
+    Existing OpenAI-compatible chat and embedding clients can usually connect by changing the API key and base URL.
   </Accordion>
 
   <Accordion title="Keep base URLs explicit">

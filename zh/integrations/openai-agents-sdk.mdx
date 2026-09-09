@@ -5,22 +5,15 @@ description: "使用 TokenLab 模型与 OpenAI Agents SDK"
 
 ## 概述
 
-OpenAI Agents SDK 可以通过兼容 OpenAI 的客户端和 `OpenAIChatCompletionsModel` 来使用 TokenLab。
+创建一个指向 TokenLab 的 OpenAI 兼容客户端，再交给 `OpenAIChatCompletionsModel`。
 
-<Note>
-**类型**: Python Agent SDK
-
-**主要路径**: 兼容 OpenAI 的聊天补全 (chat-completions)
-
-**支持置信度**: 支持的聊天补全路径
-</Note>
 
 ## 环境
 
 ```bash
 export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 export TOKENLAB_BASE_URL="https://api.tokenlab.sh/v1"
-export TOKENLAB_MODEL="gpt-5.4-mini"
+export TOKENLAB_MODEL="gpt-5.6-luna"
 ```
 
 ## 示例
@@ -46,7 +39,7 @@ async def main():
         name="Assistant",
         instructions="You are concise and practical.",
         model=OpenAIChatCompletionsModel(
-            model=os.getenv("TOKENLAB_MODEL", "gpt-5.4-mini"),
+            model=os.getenv("TOKENLAB_MODEL", "gpt-5.6-luna"),
             openai_client=client,
         ),
     )
@@ -60,4 +53,4 @@ asyncio.run(main())
 
 ## 范围
 
-此路径使用 Chat Completions 兼容性。TokenLab 的原生 Responses 端点位于 `https://api.tokenlab.sh/v1/responses`，但在生产环境使用前，应针对具体模型和工作流验证依赖于 OpenAI 特定 Responses 语义的 SDK 功能。
+这里使用 Chat Completions。应用需要 Responses 时，请确认所选模型的 `accepted_request_formats` 包含 `responses`，并用真实请求验证所需 SDK 功能。

@@ -46,7 +46,7 @@ curl -X POST "https://api.tokenlab.sh/v1/audio/speech" \
 
 開啟 WebSocket 時在查詢參數中傳 model，並在 Authorization header 中傳 API key。事件格式按所選即時模型文件發送；會話結束時主動關閉 socket。
 
-本指南只涵蓋 WebSocket 代理。TokenLab 目前不提供 OpenAI Realtime REST client secret、translation client secret、Calls 或 legacy beta session 管理端點。
+本指南只涵蓋 WebSocket 子集。TokenLab 目前不提供 OpenAI Realtime REST client secret、translation client secret、Calls 或 legacy beta session 管理端點。
 
 ```javascript
 import WebSocket from 'ws';

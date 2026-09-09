@@ -4,9 +4,7 @@ openapi: "DELETE /v1/worlds/{id}"
 description: "删除 World Labs Marble 世界"
 ---
 
-删除通过 TokenLab 创建的 Marble 世界。TokenLab 会将删除请求转发给 World Labs，并把本地 world 记录标记为已删除。
-
-删除是永久操作。
+永久删除通过 TokenLab 创建的 Marble World。删除后无法恢复，也不能再通过 TokenLab 访问。
 
 ## 路径参数
 
@@ -17,7 +15,7 @@ description: "删除 World Labs Marble 世界"
 ## 响应
 
 <ResponseField name="deleted" type="boolean">
-  删除是否已被接受。
+  是否已接受删除请求。
 </ResponseField>
 
 <ResponseField name="world_id" type="string">

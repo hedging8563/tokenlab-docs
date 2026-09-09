@@ -5,14 +5,6 @@ description: "OpenAI 호환 통합을 사용하여 TokenLab과 LlamaIndex를 통
 
 ## 개요
 
-<Note>
-**유형**: 프레임워크 또는 플랫폼
-
-**기본 경로**: OpenAILike를 통한 OpenAI 호환
-
-**지원 신뢰도**: OpenAILike를 통해 지원됨
-</Note>
-
 TokenLab의 경우, 내장된 OpenAI 클래스 대신 **OpenAI 호환 통합**을 사용하는 것이 더 안정적인 LlamaIndex 설정 방법입니다.
 
 현재 LlamaIndex 문서에서는 내장 OpenAI 클래스가 공식 모델 이름에서 메타데이터를 추론하기 때문에, 타사 OpenAI 호환 엔드포인트에 대해 `OpenAILike`를 명시적으로 권장하고 있습니다.
@@ -36,7 +28,7 @@ from llama_index.llms.openai_like import OpenAILike
 from llama_index.embeddings.openai_like import OpenAILikeEmbedding
 
 llm = OpenAILike(
-    model="gpt-5.4",
+    model="gpt-5.6-terra",
     api_base="https://api.tokenlab.sh/v1",
     api_key="sk-your-tokenlab-key",
     is_chat_model=True,

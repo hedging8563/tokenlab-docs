@@ -1,17 +1,17 @@
 ---
 title: "Worlds"
-description: "Generate explorable worlds, upload media prompts, poll tasks, and manage completed worlds."
+description: "Create explorable Marble worlds from text, images, or video"
 ---
 
-World generation creates explorable Marble worlds asynchronously. Use Worlds when the output is an environment users can open or revisit; use 3D generation when you need a standalone model asset.
+Worlds creates a Marble environment that people can open and explore. If you need a downloadable object instead of an environment, use 3D generation.
 
 ## Inputs And Media Assets
 
-World tasks can start from text, images, multiple images, or video depending on the selected model and request shape. For reusable media prompts, prepare a media asset first, then reference it in the world request. Media assets and completed worlds are available only to your account.
+A world can start from text, one or more images, or video, depending on the model. Reusable media can be uploaded once and referenced by its asset ID. Your media and finished worlds stay private to your account.
 
 ## Create And Poll
 
-Create responses include a public task ID and usually a poll_url. Store that ID before showing task state, then follow poll_url or GET /v1/tasks/{id} until the task reaches completed or failed.
+The create response contains a task ID and usually a `poll_url`. Keep the ID, then query `poll_url` or `GET /v1/tasks/{id}` until the status is `completed` or `failed`.
 
 ```bash
 curl -X POST "https://api.tokenlab.sh/v1/worlds/generations" \

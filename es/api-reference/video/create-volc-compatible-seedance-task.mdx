@@ -1,39 +1,77 @@
 ---
-title: "Crear tarea (compatible con Volc)"
+title: "Crear tarea (Compatible con Volc)"
 openapi: "POST /api/v3/contents/generations/tasks"
-description: "Crea una tarea Seedance 2.0 con un cuerpo REST estilo Volc o una solicitud Action."
+description: "Cree una tarea de Seedance 2.0 con la API compatible con Volc."
 ---
 
-## Resumen
+## Descripción general
 
-Estos endpoints son para equipos que ya usan la forma de tarea Seedance estilo Volc. La autenticación usa tu API key Bearer de TokenLab. El ID devuelto empieza con `cgt-`; consulta el estado hasta que `status` sea `succeeded`, `failed`, `cancelled` o `expired`.
+Los clientes existentes de Seedance estilo Volc pueden usar TokenLab cambiando la dirección de la API y la clave.
 
-El contrato oficial de tareas usa las rutas REST bajo `/api/v3/contents/generations/tasks`. Los alias Action anteriores se conservan solo para integraciones antiguas de TokenLab y no forman parte del contrato oficial compatible a nivel de protocolo.
+Consulte también [Modelos de video Seedance 2.0](/guides/seedance-2-video) y [Generación de video](/guides/video-generation).
 
-`callback_url` acepta una dirección HTTP(S) pública. TokenLab envía exactamente el objeto de consulta en cada cambio a `queued`, `running`, `succeeded`, `failed` o `expired`, sin headers privados de TokenLab. `succeeded` y `failed` se reintentan hasta tres veces tras cinco segundos.
+## Autenticación y endpoints
 
-<Note>
-Para recuperarte de forma segura tras una desconexión, envía un `Idempotency-Key` único en la creación REST. Repetir el mismo body con la misma clave devuelve el mismo ID `cgt-...`; usar esa clave con otro body devuelve `409`. No se aplica a la ruta Action antigua.
-</Note>
-
-Ver también [Modelos de video Seedance 2.0](/es/guides/seedance-2-video) y [Generación de video](/es/guides/video-generation).
+- Use `Authorization: Bearer <TOKENLAB_API_KEY>`.
+- No se acepta la firma AK/SK de Volc. Las solicitudes deben incluir una clave Bearer de TokenLab.
+- Use la ruta oficial de la tarea: `POST /api/v3/contents/generations/tasks`.
 
 ## Reglas de contenido
 
-- Usa `type=text` para el texto del prompt.
-- `type=image_url` sin `role` se trata como el primer frame; también puedes indicar `role=first_frame`.
-- Usa `role=last_frame` solo junto con un primer frame.
-- Usa `role=reference_image`, `reference_video` o `reference_audio` para medios de referencia.
-- No mezcles entradas de primer/último frame con medios de referencia en una misma solicitud.
+- `type: "text"` es el texto del prompt.
+- `type: "image_url"` sin `role`, o con `role: "first_frame"`, se trata como el primer fotograma.
+- `role: "last_frame"` debe estar emparejado con un primer fotograma.
+- `role: "reference_image"`, `reference_video` y `reference_audio` se utilizan como referencias.
+- `image_url.url` acepta una URL de imagen pública o un URI de material como `asset://asset-YYYYMMDDHHMMSS-xxxxx`. El `role` determina si ese material es un primer fotograma, un último fotograma o una imagen de referencia.
+- No mezcle entradas de primer/último fotograma con medios de referencia en una misma solicitud.
+- El cuerpo de la solicitud solo acepta campos compatibles con este formato. Los campos de nivel superior `material_asset_id`, `material_asset_ids` y `priority` serán rechazados. En su lugar, coloque un URI de material de TokenLab dentro de `image_url.url`.
 
-## Notas de parámetros
+## Notas sobre los parámetros
 
 - `ratio` acepta `16:9`, `4:3`, `1:1`, `3:4`, `9:16`, `21:9` o `adaptive`.
-- El valor predeterminado oficial de `generate_audio` es `false`; usa `true` cuando necesites audio sincronizado.
-- `service_tier=default` se acepta. Las tareas compatibles con Seedance 2.0 rechazan `service_tier=flex`, `frames` y `camera_fixed=true`.
-- Cuando el modelo seleccionado lo admita, `tools` puede incluir objetos como `{ "type": "web_search" }`. Las entradas tool mal formadas se rechazan en vez de ignorarse.
+- `duration` es la duración del video en segundos, incluyendo los valores de duración automática admitidos por el modelo.
+- `resolution` acepta `480p`, `720p` o `1080p`.
+- `generate_audio` tiene como valor predeterminado `false`; establézcalo en `true` cuando se requiera audio sincronizado.
+- `watermark`, `return_last_frame`, `seed`, `execution_expires_after` y `safety_identifier` se aceptan cuando son válidos para el modelo seleccionado.
+- `callback_url` puede apuntar a un endpoint HTTP(S) público.
+
+## Entrega de callback
+
+Cuando `callback_url` está presente, TokenLab envía un `POST` HTTP cuando cambia el estado de la tarea. Los estados de callback son `queued`, `running`, `succeeded`, `failed` y `expired`. El cuerpo JSON coincide con la respuesta de get-task.
+
+Una respuesta `2xx` confirma la entrega. Para `succeeded` y `failed`, una entrega que no se realice correctamente en un plazo de cinco segundos se reintentará hasta tres veces, coincidiendo con el comportamiento oficial. El callback solo tiene el encabezado de contenido JSON estándar y no tiene encabezados de entrega específicos de TokenLab. No se siguen redirecciones y se rechazan los destinos de red privados o reservados.
+
+Guarde el ID de la tarea. Si no se entrega un callback, aún puede recuperar el resultado con el endpoint get-task.
+
+## Preparación de imágenes
+
+Cuando `content[]` contiene URLs de imágenes, TokenLab las prepara como materiales reutilizables cuando lo requiere el modelo de Seedance seleccionado. Si la preparación no se completa en 60 segundos, la solicitud de creación devuelve un error de "preparación de material" que se puede reintentar en lugar de enviar una tarea de video incompleta.
+
+Para materiales existentes, utilice el ID público `asset-YYYYMMDDHHMMSS-xxxxx` en lugar de un ID de activo original devuelto por otro sistema. TokenLab verifica la propiedad del material antes de la generación.
+
+## Respuesta de creación
+
+```json
+{
+  "id": "cgt-20260102030405-a1b2c"
+}
+```
+
+La respuesta de creación contiene solo el ID de la tarea. Guárdelo para poder recuperar el estado y los resultados en cualquier momento.
+
+## Evitar tareas duplicadas
+
+Envíe una `Idempotency-Key` única con las solicitudes de creación. Si la conexión se cierra antes de que llegue la respuesta, vuelva a intentarlo con la misma clave API, clave de idempotencia y cuerpo de solicitud:
+
+- Si la tarea original se creó, TokenLab devuelve el mismo ID `cgt-...` y añade `Idempotency-Replayed: true`.
+- Si la solicitud original aún se está registrando, TokenLab devuelve `409 IdempotencyRequestInProgress` con `Retry-After`; vuelva a intentar con la misma clave y cuerpo después de ese retraso.
+- Reutilizar la clave con un cuerpo diferente devuelve `409 IdempotencyConflict` y nunca crea una segunda tarea.
+
+La idempotencia se aplica a la ruta de creación REST v3 oficial. No cambia la forma de la respuesta JSON y no se infiere de `X-Request-ID` ni de cuerpos de solicitud idénticos sin una clave.
 
 ## Ejemplo
+
+### Creación REST
 
 ```bash
 curl https://api.tokenlab.sh/api/v3/contents/generations/tasks \
@@ -41,7 +79,7 @@ curl https://api.tokenlab.sh/api/v3/contents/generations/tasks \
   -H "Idempotency-Key: $CLIENT_JOB_ID" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "doubao-seedance-2-0-260128",
+    "model": "doubao-seedance-2.0",
     "content": [
       {"type": "text", "text": "A cinematic forest at sunset"},
       {"type": "image_url", "role": "reference_image", "image_url": {"url": "https://example.com/ref.png"}}
@@ -49,6 +87,28 @@ curl https://api.tokenlab.sh/api/v3/contents/generations/tasks \
     "ratio": "16:9",
     "duration": 5,
     "resolution": "720p",
-    "generate_audio": false
+    "generate_audio": false,
+    "callback_url": "https://example.com/webhooks/seedance"
   }'
 ```
+
+Para materiales existentes, coloque cada URI en el elemento oficial `content[]` y declare su rol:
+
+```json
+[
+  {
+    "type": "image_url",
+    "role": "first_frame",
+    "image_url": {"url": "asset://asset-20260720123458-start"}
+  },
+  {
+    "type": "image_url",
+    "role": "last_frame",
+    "image_url": {"url": "asset://asset-20260720123459-end01"}
+  }
+]
+```
+
+## Siguiente paso
+
+Utilice el ID `cgt-...` devuelto con [Obtener tarea (Compatible con Volc)](/api-reference/video/get-volc-compatible-seedance-task) hasta que la tarea alcance un estado terminal.

@@ -1,12 +1,12 @@
 ---
-title: "删除素材资源组"
+title: "删除素材组"
 openapi: "DELETE /v1/videos/assets/groups/{groupId}"
-description: "删除当前组织拥有的 Seedance 素材组。"
+description: "删除当前工作区的 Seedance 素材组。"
 ---
 
-删除一个素材组及其内部的 TokenLab 素材资源。此操作不可撤销。
+删除素材组及其中的全部素材。此操作不可撤销。
 
-如果 TokenLab 素材库因当前授权状态限制而无法完成删除，TokenLab 将返回一个中性的素材库错误。删除后，该组及其资源将无法再用于视频生成。
+删除后，该素材组和其中的素材不能再用于视频生成。无法删除时，响应会返回具体错误。
 
 ## 请求示例
 

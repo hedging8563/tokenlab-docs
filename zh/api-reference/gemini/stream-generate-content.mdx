@@ -1,10 +1,10 @@
 ---
 title: "流式生成内容"
 openapi: "POST /v1beta/models/{model}:streamGenerateContent"
-description: "使用 Google Gemini API 格式流式传输内容生成"
+description: "使用 Google Gemini API 格式流式生成内容"
 ---
 
-Gemini `generateContent` 的原生 SSE 流式版本。TokenLab 会保留 upstream 事件、顺序和字段；只有 metadata 的事件、没有 `finishReason` 的中间 chunk，以及自然 EOF 都是合法情况。不会添加 Chat Completions 的 `[DONE]`，也不会回落 Chat。
+这是 `generateContent` 的 SSE 版本。中间事件可能只有 metadata，也可能暂时没有 `finishReason`；流会在自然 EOF 时结束，不会附加 Chat Completions 的 `[DONE]`。
 ## 路径参数
 
 <ParamField path="model" type="string" required>
@@ -14,14 +14,14 @@ Gemini `generateContent` 的原生 SSE 流式版本。TokenLab 会保留 upstrea
 ## 查询参数
 
 <ParamField query="key" type="string">
-  API 密钥（标头身份验证的替代方案）。
+  API 密钥，也可以改用请求头认证。
 </ParamField>
 
 ## 请求正文
 
 与 [生成内容](/api-reference/gemini/generate-content) 相同。
 
-`generationConfig.candidateCount`、工具组合和未来字段都会原样交给 upstream；TokenLab 不设置自己的流式限制。
+`generationConfig.candidateCount`、工具组合和其他可选字段是否可用，以所选模型为准。
 
 ## 响应
 

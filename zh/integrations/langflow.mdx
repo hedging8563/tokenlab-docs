@@ -5,38 +5,28 @@ description: "使用 Langflow 的 OpenAI 组件调用 TokenLab 模型"
 
 ## 概述
 
-Langflow 的 **OpenAI** 组件包含一个 **OpenAI API Base** 字段。将该字段指向 TokenLab 兼容 OpenAI 的 `/v1` 端点，并使用 TokenLab 模型 ID 即可。
+在 Langflow **OpenAI** 组件的 **OpenAI API Base** 中填写 TokenLab `/v1` 地址，再选择 TokenLab 模型 ID。
 
-<Note>
-**类型**: 低代码 AI 工作流构建器
-
-**主要路径**: 兼容 OpenAI 的聊天补全 (chat completions)
-
-**支持置信度**: 在限定范围内支持
-</Note>
 
 ## OpenAI 组件
 
 1. 添加一个 **OpenAI** 语言模型组件。
-2. 将 **OpenAI API Key** 设置为您的 TokenLab 密钥。
+2. 将 **OpenAI API 密钥** 设置为你的 TokenLab 密钥。
 3. 展开高级设置。
 4. 将 **OpenAI API Base** 设置为 `https://api.tokenlab.sh/v1`。
 5. 将 **Model Name** 设置为 TokenLab 模型 ID。
-6. 将模型输出连接到您的 Agent、Chain 或工作流。
+6. 把模型输出连接到需要使用它的 Agent 或 Chain。
 
-## 数值
+## 配置值
 
 | 字段 | 数值 |
 |-------|-------|
 | OpenAI API Base | `https://api.tokenlab.sh/v1` |
-| OpenAI API Key | `sk-your-tokenlab-key` |
+| OpenAI API 密钥 | `sk-your-tokenlab-key` |
 | Model Name | `gpt-5.4-mini` |
 
-## 推荐模型
+## 选择模型
 
-- `gpt-5.4-mini`：适用于大多数工作流测试
-- `claude-sonnet-5`：适用于更强的写作和推理任务
-- `gemini-3.5-flash`：适用于快速的多模态友好型工作流
-- `deepseek-v4-flash`：适用于快速编码和推理迭代
+请从[模型页](https://tokenlab.sh/zh/models)复制当前聊天模型 ID，并确保组件使用模型支持的 API 格式。
 
-如果您的部署已经通过 LiteLLM 代理集中了提供商路由，请使用 Langflow 的 LiteLLM Proxy 组件。
+如果你的部署已经通过 LiteLLM 集中管理模型地址，请使用 Langflow 的 LiteLLM Proxy 组件。

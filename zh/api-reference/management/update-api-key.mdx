@@ -1,12 +1,10 @@
 ---
-title: "更新 API Key"
+title: "更新 API 密钥"
 openapi: "PATCH /v1/management/api-keys/{keyId}"
-description: "更新当前组织下已有的用户 API Key。"
+description: "更新当前工作区的 API 密钥。"
 ---
 
-## 概览
-
-该接口用于更新已有用户 API Key 的名称、额度、模型白名单、过期时间或状态。
+修改 API 密钥的名称、额度、模型白名单、过期时间或状态。
 
 ## 请求体
 
@@ -16,7 +14,7 @@ PATCH 请求至少需要提供一个字段。
 |------|------|---------------|------|
 | `status` | enum | - | `active`, `inactive`, `revoked` |
 | `name` | string | 长度 `1-50` | 更新后的展示名称 |
-| `limitAmount` | number \| null | 最小 `0`，输入上限 `1000000` | `null` = 不限额，`0` = 零额度，正数会被规范化为一个存储上限，且不能超过 `100000` USD 等值 |
+| `limitAmount` | number \| null | 最小 `0`，最高 `100000` | `null` 表示不限额，`0` 表示不能产生费用 |
 | `limitCurrency` | enum | 默认 `USD` | 仅支持 USD。发送 `CNY` 会返回 `400 currency_retired`。 |
 | `models` | string[] | - | 更新后的模型白名单 |
 | `expiresAt` | string \| null | RFC3339 datetime | `null` 表示清除过期时间 |
@@ -25,8 +23,8 @@ PATCH 请求至少需要提供一个字段。
 
 - 金额字段仅支持 USD。`CNY` 输入已停用，并会返回 `400 currency_retired`。
 
-- Management API v1 故意不支持硬删除。
-- `revoked` 更适合作为终态使用；如需恢复，通常建议新建一个 Key，而不是依赖后续“解封”流程。
+- 管理 API 不提供删除接口。临时停用使用 `inactive`，永久停用使用 `revoked`。
+- 已撤销的密钥需要由新密钥替代。
 
 ## 示例
 
@@ -42,10 +40,6 @@ curl -X PATCH "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456" 
 ```
 </RequestExample>
 
-## 请求 / 响应
-
-精确 schema 和响应字段请使用上方的交互式 OpenAPI 面板。
-
 ## 响应示例
 
 <ResponseExample>
@@ -60,7 +54,7 @@ curl -X PATCH "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456" 
   "used_amount": 148.25,
   "used_amount_decimal": "148.25",
   "models": [
-    "gpt-5-mini",
+    "gpt-5.6-luna",
     "claude-3-7-sonnet"
   ],
   "expires_at": "2026-12-31T23:59:59.000Z",
@@ -72,15 +66,15 @@ curl -X PATCH "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456" 
 
 ## 重要字段
 
-<ResponseField name="id" type="string">用于后续管理 API 调用的 API Key 标识符。</ResponseField>
-<ResponseField name="name" type="string">API Key 的显示名称。</ResponseField>
-<ResponseField name="key_prefix" type="string">用于展示和支持排查的非敏感 Key 前缀。</ResponseField>
+<ResponseField name="id" type="string">密钥 ID。</ResponseField>
+<ResponseField name="name" type="string">API 密钥的显示名称。</ResponseField>
+<ResponseField name="key_prefix" type="string">可以安全显示的密钥前缀。</ResponseField>
 <ResponseField name="status" type="string">取值为 `active`、`inactive` 或 `revoked`。</ResponseField>
 <ResponseField name="limit_amount" type="number | null">以 JSON 数字返回的 USD 消费上限，用于展示。`null` 表示不限额。</ResponseField>
 <ResponseField name="limit_amount_decimal" type="string | null">以十进制字符串返回的 USD 精确消费上限。`null` 表示不限额。</ResponseField>
 <ResponseField name="used_amount" type="number">以 JSON 数字返回的 USD 累计用量消费，用于展示。</ResponseField>
 <ResponseField name="used_amount_decimal" type="string">以十进制字符串返回的 USD 精确累计用量消费。</ResponseField>
-<ResponseField name="models" type="string[]">单个 Key 的模型白名单。空数组表示没有额外的 Key 级模型限制。</ResponseField>
-<ResponseField name="expires_at" type="string | null">Key 到期时间的 ISO 时间戳；`null` 表示永不过期。</ResponseField>
+<ResponseField name="models" type="string[]">模型白名单。空数组表示没有额外的密钥级模型限制。</ResponseField>
+<ResponseField name="expires_at" type="string | null">密钥到期时间；`null` 表示永不过期。</ResponseField>
 <ResponseField name="last_used_at" type="string | null">最近一次使用的 ISO 时间戳；从未使用时为 `null`。</ResponseField>
 <ResponseField name="created_at" type="string">创建时间的 ISO 时间戳。</ResponseField>

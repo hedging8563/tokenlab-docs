@@ -1,24 +1,12 @@
 ---
 title: "列出文件"
 openapi: "GET /v1/files"
-description: "列出上传的文件以及受支持的文件后备兼容模式。"
+description: "列出当前工作区已上传的文件。"
 ---
 
-## 概述
+列出批处理文件和图片参考文件。可用 `purpose=batch`、`purpose=batch_output`、`purpose=user_data` 或 `purpose=vision` 筛选。
 
-此端点主要服务于 TokenLab 的 OpenAI 兼容 Batch API，包括上传的批量输入文件以及生成的输出或错误文件。
-
-当请求选择 Anthropic Files 兼容模式时，同一路由也可以列出绑定工作区中可用的 Anthropic 风格文件。
-
-
-不带 Anthropic 请求头时，列表可能同时包含批量文件和 TokenLab 图像/参考文件。可用 `purpose=batch`、`purpose=batch_output`、`purpose=user_data` 或 `purpose=vision` 缩小范围。
-## 注意事项
-
-- 批量输入文件必须使用 `purpose=batch`。
-- 使用 `purpose=batch_output` 以聚焦生成的输出文件。
-- `completion_window` 当前为 `24h`。
-- 输出顺序不保证；始终通过 `custom_id` 匹配。
-- 批量项目内不支持流式传输。
+携带 Anthropic Files 请求头时，返回当前工作区的 Anthropic 格式文件。
 
 ## 示例
 
@@ -29,15 +17,11 @@ curl -X GET "https://api.tokenlab.sh/v1/files?purpose=batch&limit=20" \
 ```
 </RequestExample>
 
-## 请求 / 响应
+## 筛选条件
 
-使用上面的交互式 OpenAPI 面板获取确切的模式。
-
-## 操作提示
-
-- 使用 `custom_id` 进行幂等的下游对账。
-- 仅在工作者完成批处理后，期待 `output_file_id` 和 `error_file_id`。
-- 批量定价可能与同步定价不同，因为适用 `isBatchRequest=true` 的折扣规则。
+- `limit` 接受 1 到 10000，默认值为 10000。
+- `purpose` 可以是 `batch`、`batch_output`、`user_data` 或 `vision`。
+- 当存在 TokenLab 创建的图像参考文件时，`user_data` 和 `vision` 会返回这些文件。
 
 ## 响应示例
 
@@ -52,5 +36,5 @@ curl -X GET "https://api.tokenlab.sh/v1/files?purpose=batch&limit=20" \
 
 ## 重要字段
 
-<ResponseField name="object" type="string">响应对象类型。</ResponseField>
-<ResponseField name="data" type="array">本次响应返回的列表或载荷。</ResponseField>
+<ResponseField name="object" type="string">固定为 `list`。</ResponseField>
+<ResponseField name="data" type="array">文件列表。</ResponseField>

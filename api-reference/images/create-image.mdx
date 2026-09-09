@@ -6,7 +6,7 @@ description: "Creates an image given a prompt"
 
 ## Overview
 
-For coding agents, discover the current recommended image shortlist first with `GET /v1/models?recommended_for=image`, then send the selected `model` explicitly to this endpoint.
+Use `GET /v1/models?recommended_for=image` to get current image models, then send the selected `model` explicitly.
 
 `gpt-image-2` is a token-priced GPT Image model. TokenLab follows OpenAI's official usage breakdown for text input, image input, reported cached input, and image output tokens; it is not billed as a fixed per-image model.
 
@@ -50,7 +50,7 @@ xAI Grok Imagine image models (`grok-imagine-image`, `grok-imagine-image-quality
 </ParamField>
 
 <ParamField body="reference_image_urls" type="string[]">
-  Additional model-specific reference image URLs for providers that distinguish primary input images from references.
+  Additional reference image URLs for models that distinguish primary inputs from references.
 </ParamField>
 
 <ParamField body="image" type="file">
@@ -82,13 +82,13 @@ xAI Grok Imagine image models (`grok-imagine-image`, `grok-imagine-image-quality
 </ParamField>
 
 <ParamField body="quality" type="string" default="standard">
-  Image quality. GPT Image models such as `gpt-image-2` use `auto`, `low`, `medium`, or `high`. Other image families may use provider-specific values; check the selected model metadata before sending non-default values.
+  Image quality. GPT Image models such as `gpt-image-2` use `auto`, `low`, `medium`, or `high`. Other models may use different values; check the model details before sending a non-default value.
 </ParamField>
 
 <ParamField body="response_format" type="string" default="url">
   Response format: `url` or `b64_json`. The default is `url`.
 
-  For Azure Official or Azure-compatible `gpt-image-2` requests, TokenLab receives image data as `b64_json`. For `url` requests, TokenLab uploads every image to the CDN and returns `data[].url`. If CDN storage is unavailable or upload fails, the request fails instead of being converted to a Base64 response. For `b64_json`, the raw Base64 is returned.
+  `url` returns each image in `data[].url`. `b64_json` returns Base64 image data.
 </ParamField>
 
 <ParamField body="async" type="boolean" default="false">
@@ -293,18 +293,9 @@ curl -X POST "https://api.tokenlab.sh/v1/images/generations" \
 ```
 </ResponseExample>
 
-## Available Models
+## Choose a Model
 
-These are current example models, not a fixed catalog. Query `GET /v1/models?recommended_for=image` or the Models page for the latest availability and pricing.
-
-| Model | Type | Features |
-|-------|------|----------|
-| `gpt-image-2` | Inline or task-based | Token-priced GPT Image model, flexible sizes |
-| `flux-pro` | Often task-based | Photorealistic, high quality |
-| `qwen-image-plus` | Often task-based | Strong text rendering and prompt following |
-| `nano-banana-pro` | Often task-based | Reference-image workflows and high-resolution output |
-| `grok-imagine-image` | Often task-based | xAI image generation with aspect ratio and resolution selection |
-| `ideogram-v3` | Often task-based | Strong text rendering |
+Query `GET /v1/models?recommended_for=image` or use the [Models page](https://tokenlab.sh/en/models) for current availability, capabilities, and prices.
 
 Do not hard-code a model as always synchronous or always asynchronous. If the create response returns `status: "pending"`, follow `poll_url` and poll until completion.
 

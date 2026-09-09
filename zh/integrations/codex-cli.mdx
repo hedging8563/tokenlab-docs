@@ -7,19 +7,10 @@ description: "配置 OpenAI Codex CLI 以使用 TokenLab API"
 
 
 
-<Note>
-**类型**：编码工具
 
-**主要路径**：OpenAI Responses（高级可选路径）
+Codex CLI 可以通过 `/v1/responses` 连接 TokenLab。所选模型的 `accepted_request_formats` 必须包含 `responses`，具体功能仍可能因模型而异。
 
-**支持情况**：在模型/路径限制下受支持
-</Note>
-
-OpenAI Codex 是一个开源的命令行工具 (CLI)，作为轻量级的编码代理，能够在终端中读取、修改和运行代码。它基于 GPT 模型构建，并针对代码生成进行了优化。
-
-对于 TokenLab，Codex CLI 可以使用 `/v1/responses`，但您应将其视为一个高级兼容路径。某些仅适用于 Responses 的功能并不保证在每个模型和路由路径上可用。
-
-Codex CLI 远程压缩支持 `POST /v1/responses/compact`。Codex 在 `/compact` 和自动压缩时会把当前会话的 `model` 放在 `body.model` 中，因此请确保要用于压缩的模型在 Responses 路径上可用；不要配置 `/v1/compact`。
+远程压缩使用 `POST /v1/responses/compact`。Codex 会把当前会话模型放在 `body.model` 中，因此这个模型也必须支持 Responses。不要配置 `/v1/compact`。
 
 ## 系统要求
 
@@ -99,11 +90,11 @@ fast_mode = true
 </Note>
 
 <Warning>
-Codex 正在弃用对自定义提供者的 `chat/completions` 支持。对于 TokenLab，请保持 `wire_api = "responses"`，除非您有意使用较旧的兼容路径。
+Codex 正在弃用对自定义提供者的 `chat/completions` 支持。对于 TokenLab，请保持 `wire_api = "responses"`，除非你有意使用较旧的兼容路径。
 </Warning>
 
 <Note>
-TokenLab 会 best-effort 透传未知 Responses 字段，不会将请求静默降级为 Chat Completions；字段或组合是否支持由选中的 upstream 决定。
+未知的 Responses 字段可能会继续发送给模型服务，但不保证受支持。TokenLab 不会把 Responses 请求自动改成 Chat Completions。
 </Note>
 
 ## 基本用法
@@ -126,14 +117,9 @@ codex "Fix the bug in main.py line 42"
 codex -m gpt-5.6-sol "Build a REST API server"
 ```
 
-## 推荐模型
+## 选择模型
 
-| 模型 | 适用场景 |
-|-------|----------|
-| `gpt-5.6-sol` | 作为编码和推理的默认最佳选择 |
-| `gpt-5-mini` | 用于编码工作流的更快、更便宜的后备选项 |
-| `claude-sonnet-4-6` | 代码审查、文档编写 |
-| `deepseek-r1` | 算法设计、推理 |
+所选模型的 `accepted_request_formats` 必须包含 `responses`。请用自己的编程任务比较候选模型，当前价格以[模型页](https://tokenlab.sh/zh/models)为准。
 
 ## 交互命令
 
@@ -198,7 +184,7 @@ cat main.py | codex "Explain what this code does"
     - 验证 `env_key = "OPENAI_API_KEY"` 是否存在于 `~/.codex/config.toml`
     - 验证已设置 `OPENAI_API_KEY` 环境变量
     - 检查密钥是否以 `sk-` 开头
-    - 确保密钥在 TokenLab 仪表板中处于激活状态
+    - 确保密钥在 TokenLab Console中处于激活状态
   </Accordion>
 
   <Accordion title="模型未找到">
@@ -207,8 +193,8 @@ cat main.py | codex "Explain what this code does"
   </Accordion>
 
   <Accordion title="Responses 原生字段被拒绝">
-    - 某些字段仅在 TokenLab 能为所选模型和路由保证该行为时在 `/v1/responses` 可用
-    - 如果看到 `unsupported_request_field`，请删除该字段或切换到不依赖该字段的工作流
+    - `/v1/responses` 的可选字段是否可用，取决于所选模型
+    - 如果看到 `unsupported_request_field`，请删除该字段，或改用不需要它的功能
   </Accordion>
 
   <Accordion title="/compact 或自动压缩失败">

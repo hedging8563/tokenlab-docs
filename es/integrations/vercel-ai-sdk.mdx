@@ -5,14 +5,6 @@ description: "Integra TokenLab con Vercel AI SDK utilizando proveedores compatib
 
 ## Descripción general
 
-<Note>
-**Tipo**: Framework o plataforma
-
-**Ruta principal**: Predeterminada compatible con OpenAI
-
-**Nivel de confianza del soporte**: Patrón de integración recomendado
-</Note>
-
 Para TokenLab, la opción predeterminada más estable en Vercel AI SDK es el **proveedor compatible con OpenAI**.
 
 Si necesitas específicamente un comportamiento **nativo de Responses**, puedes cambiar al proveedor de OpenAI y mantener la misma URL base de TokenLab.
@@ -32,7 +24,7 @@ import { generateText } from 'ai';
 import { tokenlab } from '@tokenlabai/ai-sdk-provider';
 
 const { text } = await generateText({
-  model: tokenlab.chatModel('gpt-5.4'),
+  model: tokenlab.chatModel('gpt-5.6-terra'),
   prompt: 'Explain TokenLab in one sentence.',
 });
 
@@ -62,7 +54,7 @@ import { generateText } from 'ai';
 import { tokenlab } from './tokenlab';
 
 const { text } = await generateText({
-  model: tokenlab.chatModel('gpt-5.4'),
+  model: tokenlab.chatModel('gpt-5.6-terra'),
   prompt: 'Explain TokenLab in one sentence.',
 });
 
@@ -76,7 +68,7 @@ import { streamText } from 'ai';
 import { tokenlab } from './tokenlab';
 
 const result = await streamText({
-  model: tokenlab.chatModel('gpt-5.4'),
+  model: tokenlab.chatModel('gpt-5.6-terra'),
   prompt: 'Write a short poem about coding.',
 });
 
@@ -93,7 +85,7 @@ import { z } from 'zod';
 import { tokenlab } from './tokenlab';
 
 const result = await generateText({
-  model: tokenlab.chatModel('gpt-5.4'),
+  model: tokenlab.chatModel('gpt-5.6-terra'),
   prompt: 'What is the weather in San Francisco?',
   tools: {
     weather: tool({
@@ -121,7 +113,7 @@ import { z } from 'zod';
 import { tokenlab } from './tokenlab';
 
 const { object } = await generateObject({
-  model: tokenlab.chatModel('gpt-5.4'),
+  model: tokenlab.chatModel('gpt-5.6-terra'),
   schema: z.object({
     name: z.string(),
     role: z.string(),
@@ -152,7 +144,7 @@ import { generateText } from 'ai';
 import { tokenlabResponses } from './tokenlab-responses';
 
 const { text } = await generateText({
-  model: tokenlabResponses('gpt-5.4'),
+  model: tokenlabResponses('gpt-5.6-terra'),
   prompt: 'Explain TokenLab in one sentence.',
 });
 ```

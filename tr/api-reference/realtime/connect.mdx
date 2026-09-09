@@ -6,11 +6,11 @@ description: "WebSocket ile gerçek zamanlı ses ve çok modlu oturumlara bağla
 
 ## Genel bakış
 
-Bu endpoint gerçek zamanlı konuşma tanıma, konuşma sentezi, konuşma çevirisi veya çok modlu realtime modeller için kullanılır. Normal `GET` istekleri metadata döndürür; WebSocket upgrade istekleri yönlendirilen upstream oturumuna proxy edilir.
+Bu uç noktayı; akışlı konuşma tanıma, konuşma sentezi, konuşma çevirisi veya gerçek zamanlı çok modlu modeller gibi gerçek zamanlı oturumlar için kullanın. Normal bir `GET` isteği uç nokta meta verilerini döndürür, WebSocket yükseltme isteği ise seçilen model için gerçek zamanlı bir oturum açar.
 
 ## Desteklenen yüzey
 
-Bu endpoint TokenLab'in gerçek zamanlı WebSocket proxy'sidir. Aynı path üzerinde normal `GET /v1/realtime` metadata kontrolünü ve WebSocket upgrade isteklerini destekler. `POST /v1/realtime/client_secrets`, `POST /v1/realtime/translations/client_secrets`, Realtime Calls (`accept`, `hangup`, `refer`, `reject`) veya legacy beta REST session / transcription-session oluşturma gibi OpenAI Realtime REST yardımcı endpoint'lerini sunmaz.
+TokenLab, metadata kontrolleri ve WebSocket upgrade istekleri için `GET /v1/realtime` üzerinde gerçek zamanlı bir WebSocket endpoint'i sunar. Bunu bir WebSocket subset olarak düşünün: desteklenen realtime model olaylarını iletir ve oturum oluşturma, `client_secrets`, `Calls` çağrı kontrol API'leri veya legacy beta session APIs gibi OpenAI Realtime REST yardımcı yüzeylerini desteklemez.
 
 Tarayıcı veya mobil uygulamalarda uzun ömürlü API anahtarlarını sunucunuzda tutun. Bu endpoint kısa ömürlü Realtime client secret üretmez.
 
@@ -54,13 +54,13 @@ curl "https://api.tokenlab.sh/v1/realtime" \
 
 ## Mesajlar
 
-TokenLab, istemciniz ile yönlendirilen realtime sağlayıcı arasında WebSocket mesajlarını aktarır. Seçilen modelin resmi event biçimlerini koruyun ve `model` değerini query string içinde gönderin.
+TokenLab, WebSocket mesajlarını istemciniz ile seçilen gerçek zamanlı model arasında aktarır. O modelin belgelerinde tanımlanan olay biçimini kullanın ve `model` değerini her olaya değil, sorgu dizesine ekleyin.
 
 ## Ücretlendirme ve kapatma
 
-Realtime oturumlar aynı API key bakiyesini kullanır. TokenLab socket açıldığında küçük bir tahmini tutarı önceden düşer, oturum kapanınca kesinleştirir veya iade eder.
+Oturumlar API anahtarınızın bakiyesinden ücretlendirilir: TokenLab başlangıçta bir tahmini tutar ayırır, ardından bitişte gerçek kullanımı hesaplar ve farkı iade eder.
 
-Oturum tamamlandığında client socket’i kapatın. Upstream önce kapatırsa TokenLab mümkün olduğunda close code’u iletir.
+Oturum tamamlandığında istemci soketini kapatın. Hizmet oturumu önce kapatırsa, TokenLab mümkün olduğunda istemcinize güvenli bir kapatma olayı/kodu gönderir.
 
 ## Yanıt örneği
 
@@ -80,4 +80,4 @@ Oturum tamamlandığında client socket’i kapatın. Upstream önce kapatırsa 
 ## Önemli alanlar
 
 <ResponseField name="type" type="string">API tarafından dönen event veya message type.</ResponseField>
-<ResponseField name="session.id" type="string">Gerçek zamanlı sağlayıcının döndürdüğü kimliktir; destek loglarında kullanın, REST session URL olarak değil.</ResponseField>
+<ResponseField name="session.id" type="string">Realtime bağlantısı üzerinden alınan opak kimliktir. Hata ayıklama için destek loglarına ekleyin; REST session URL değildir.</ResponseField>

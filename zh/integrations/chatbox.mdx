@@ -1,19 +1,12 @@
 ---
 title: "Chatbox"
-description: "通过 OpenAI 兼容提供商流程在 Chatbox 中使用 TokenLab"
+description: "把 Chatbox 连接到 TokenLab"
 ---
 
 ## 概述
 
-Chatbox 可以通过其 OpenAI 兼容的 API 设置使用 TokenLab。
+在 Chatbox 的 OpenAI 兼容 API 设置中填写 TokenLab 地址和密钥即可使用。
 
-<Note>
-**类型**: 聊天应用
-
-**主要路径**: OpenAI 兼容的聊天补全 (chat completions)
-
-**支持置信度**: 支持的路径
-</Note>
 
 ## 配置 Chatbox
 
@@ -21,19 +14,14 @@ Chatbox 可以通过其 OpenAI 兼容的 API 设置使用 TokenLab。
 2. 选择 **OpenAI API Compatible**
 3. 输入以下内容：
    - **API Host**: `https://api.tokenlab.sh/v1`
-   - **API Key**: `sk-your-tokenlab-key`
+   - **API 密钥**: `sk-your-tokenlab-key`
    - **Model**: `gpt-5.4-mini`
 4. 保存并发送一条简短的测试消息。
 
-## 推荐模型
+## 选择模型
 
-| 使用场景 | 模型 |
-|----------|-------|
-| 日常聊天 | `gpt-5.4-mini` |
-| 更强的推理能力 | `gpt-5.4` 或 `gpt-5.5` |
-| Claude 风格输出 | `claude-sonnet-5` |
-| 快速回退 | `deepseek-v4-flash` |
+请从[模型页](https://tokenlab.sh/zh/models)复制当前聊天模型 ID。Chatbox 没有自动显示时，可以手动添加完整 ID。
 
 ## 注意事项
 
-如果你的 Chatbox 版本已将 TokenLab 列为内置提供商，请直接选择它。如果未列出，上述 OpenAI 兼容的提供商路径是最稳妥的回退方案。
+如果 Chatbox 已经内置 TokenLab，直接选择即可；没有时使用上面的 OpenAI 兼容设置。

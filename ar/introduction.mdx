@@ -49,7 +49,7 @@ curl https://api.tokenlab.sh/v1/chat/completions \
   -H "Authorization: Bearer sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-5.4",
+    "model": "gpt-5.6-terra",
     "messages": [
       {"role": "user", "content": "Explain what TokenLab does in one sentence."}
     ]
@@ -65,7 +65,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="gpt-5.4",
+    model="gpt-5.6-terra",
     messages=[{"role": "user", "content": "Explain what TokenLab does in one sentence."}]
 )
 
@@ -81,7 +81,7 @@ const client = new OpenAI({
 });
 
 const response = await client.chat.completions.create({
-  model: 'gpt-5.4',
+  model: 'gpt-5.6-terra',
   messages: [{ role: 'user', content: 'Explain what TokenLab does in one sentence.' }],
 });
 

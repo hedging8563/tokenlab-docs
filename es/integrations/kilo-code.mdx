@@ -5,14 +5,6 @@ description: "Conecta Kilo Code y Kilo CLI a TokenLab"
 
 ## Descripción general
 
-<Note>
-**Tipo**: agente de programación para IDE y CLI
-
-**Ruta principal**: Chat Completions compatible con OpenAI
-
-**Compatibilidad**: ruta oficial de proveedor personalizado
-</Note>
-
 [Kilo Code](https://kilo.ai/docs/ai-providers/openai-compatible) admite proveedores compatibles con OpenAI en la extensión de VS Code y la CLI.
 
 ## Instalación e interfaz
@@ -60,7 +52,14 @@ export TOKENLAB_API_KEY="sk-your-tokenlab-key"
           "name": "Kimi K3",
           "tool_call": true,
           "reasoning": true,
-          "limit": { "context": 1048576, "output": 131072 }
+          "modalities": {
+            "input": ["text", "image"],
+            "output": ["text"]
+          },
+          "limit": {
+            "context": 1048576,
+            "output": 131072
+          }
         }
       }
     }

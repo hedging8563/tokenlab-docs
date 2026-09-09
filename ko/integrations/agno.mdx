@@ -7,14 +7,6 @@ description: "Agno 에이전트에서 TokenLab 모델 사용하기"
 
 Agno는 에이전트 및 워크플로우를 위한 OpenAI 호환 모델 제공자로 TokenLab을 사용할 수 있습니다.
 
-<Note>
-**유형**: 에이전트 프레임워크
-
-**기본 경로**: OpenAI 호환 채팅 완성(Chat Completions)
-
-**지원 신뢰도**: 지원되는 경로
-</Note>
-
 ## 환경 설정
 
 ```bash
@@ -29,7 +21,7 @@ export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 from agno.agent import Agent
 from agno.models.tokenlab import TokenLab
 
-agent = Agent(model=TokenLab(id="gpt-5.4-mini"))
+agent = Agent(model=TokenLab(id="gpt-5.6-luna"))
 agent.print_response("Give me a concise project risk checklist.")
 ```
 

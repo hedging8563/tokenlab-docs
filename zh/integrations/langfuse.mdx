@@ -5,15 +5,8 @@ description: "使用 Langfuse 追踪 TokenLab 兼容 OpenAI 的请求"
 
 ## 概述
 
-当 OpenAI SDK 配置为使用 TokenLab 的 `/v1` 基础 URL 时，Langfuse 可以通过其 OpenAI 集成来追踪 TokenLab 的调用。
+把 OpenAI SDK Base URL 改为 TokenLab `/v1` 后，Langfuse 就能记录这些调用。
 
-<Note>
-**类型**: 可观测性 (Observability)
-
-**主要路径**: OpenAI SDK 追踪
-
-**支持置信度**: 支持的 OpenAI 兼容追踪路径
-</Note>
 
 ## 环境配置
 
@@ -46,4 +39,4 @@ def story():
 
 ## 端点说明
 
-本页面涵盖了针对 OpenAI SDK 路径的 Langfuse 追踪。如果您的应用程序使用 TokenLab 原生响应 (Responses)、Anthropic Messages 或 Gemini 端点，请确保您的插桩 (instrumentation) 能够捕获该客户端调用路径。
+本页面涵盖了针对 OpenAI SDK 路径的 Langfuse 追踪。如果你的应用程序使用 TokenLab 原生响应 (Responses)、Anthropic Messages 或 Gemini 端点，请确保你的插桩 (instrumentation) 能够捕获该客户端调用路径。

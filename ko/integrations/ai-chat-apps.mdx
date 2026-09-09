@@ -16,14 +16,6 @@ description: "TokenLab의 OpenAI 호환 API를 사용하도록 인기 있는 AI 
 일반 채팅 앱은 대개 **chat-completions 지향적**이며, Codex Responses WebSocket 클라이언트가 아닙니다. Codex CLI/App, Cursor 또는 Responses 전용 동작이 필요한 기타 코딩 도구의 경우, 대신 전용 통합 가이드를 사용하세요.
 </Note>
 
-<Note>
-**유형**: 채팅 앱
-
-**기본 경로**: OpenAI 호환 chat-completions
-
-**지원 신뢰도**: 지원되는 경로
-</Note>
-
 ## 지원되는 애플리케이션
 
 | 애플리케이션 | 플랫폼 | 참고 사항 |
@@ -134,7 +126,7 @@ description: "TokenLab의 OpenAI 호환 API를 사용하도록 인기 있는 AI 
         apiKey: '${OPENAI_API_KEY}'
         baseURL: 'https://api.tokenlab.sh/v1'
         models:
-          default: ['gpt-5.4-mini', 'gpt-5.4', 'claude-sonnet-5']
+          default: ['gpt-5.6-luna', 'gpt-5.6-terra', 'claude-sonnet-5']
           fetch: false
     ```
   </Tab>

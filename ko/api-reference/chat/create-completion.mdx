@@ -152,7 +152,7 @@ curl -X POST "https://api.tokenlab.sh/v1/chat/completions" \
   -H "Authorization: Bearer sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-4o",
+    "model": "gpt-5.6-terra",
     "messages": [
       {"role": "system", "content": "You are a helpful assistant."},
       {"role": "user", "content": "Hello!"}
@@ -171,7 +171,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="gpt-4o",
+    model="gpt-5.6-terra",
     messages=[
         {"role": "system", "content": "You are a helpful assistant."},
         {"role": "user", "content": "Hello!"}
@@ -192,7 +192,7 @@ const client = new OpenAI({
 });
 
 const response = await client.chat.completions.create({
-  model: 'gpt-4o',
+  model: 'gpt-5.6-terra',
   messages: [
     { role: 'system', content: 'You are a helpful assistant.' },
     { role: 'user', content: 'Hello!' }
@@ -216,7 +216,7 @@ curl_setopt_array($ch, [
         'Authorization: Bearer sk-your-api-key'
     ],
     CURLOPT_POSTFIELDS => json_encode([
-        'model' => 'gpt-4o',
+        'model' => 'gpt-5.6-terra',
         'messages' => [
             ['role' => 'system', 'content' => 'You are a helpful assistant.'],
             ['role' => 'user', 'content' => 'Hello!']
@@ -258,7 +258,7 @@ echo $data['choices'][0]['message']['content'];
   "id": "chatcmpl-abc123",
   "object": "chat.completion",
   "created": 1706000000,
-  "model": "gpt-4o",
+  "model": "gpt-5.6-terra",
   "choices": [
     {
       "index": 0,

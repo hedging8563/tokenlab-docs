@@ -1,19 +1,12 @@
 ---
 title: "Jan"
-description: "Use TokenLab models in Jan through a remote OpenAI-compatible provider"
+description: "Connect Jan to TokenLab"
 ---
 
 ## Overview
 
-Jan can connect to TokenLab as a remote OpenAI-compatible provider.
+Add TokenLab to Jan as a remote OpenAI-compatible service.
 
-<Note>
-**Type**: Chat App
-
-**Primary Path**: OpenAI-compatible chat completions
-
-**Support Confidence**: Supported path
-</Note>
 
 ## Configure Jan
 
@@ -26,7 +19,7 @@ Jan can connect to TokenLab as a remote OpenAI-compatible provider.
 4. Add or select `gpt-5.4-mini`
 5. Save and start a new thread.
 
-## Model Discovery
+## Refresh models
 
 TokenLab exposes model discovery at:
 
@@ -36,10 +29,6 @@ https://api.tokenlab.sh/v1/models
 
 If your Jan build supports remote model discovery for TokenLab, refresh the model list. Otherwise, add model ids manually.
 
-## Recommended Models
+## Choose a model
 
-- `gpt-5.4-mini`
-- `gpt-5.4`
-- `claude-sonnet-5`
-- `gemini-3.5-flash`
-- `deepseek-v4-flash`
+Refresh Jan's model list or copy a current chat model ID from the [Models page](https://tokenlab.sh/en/models).

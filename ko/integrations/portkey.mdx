@@ -7,14 +7,6 @@ description: "Portkey Gateway에서 업스트림 공급자로 TokenLab 사용하
 
 Portkey Gateway는 TokenLab을 업스트림 공급자로 하여 요청을 라우팅할 수 있습니다. 가장 안전한 기본값은 OpenAI 호환 채팅 완성(chat completions)입니다. Portkey 버전에서 TokenLab을 위한 해당 경로를 노출하는 경우 Responses를 사용하십시오.
 
-<Note>
-**유형**: AI Gateway
-
-**기본 경로**: OpenAI 호환 채팅 완성 및 Responses
-
-**지원 신뢰도**: 지원되는 경로
-</Note>
-
 ## 공급자 값
 
 | 필드 | 값 |
@@ -34,7 +26,7 @@ curl https://your-portkey-gateway.example/v1/chat/completions \
   -H "x-portkey-provider: tokenlab" \
   -H "Authorization: Bearer sk-your-tokenlab-key" \
   -d '{
-    "model": "gpt-5.4-mini",
+    "model": "gpt-5.6-luna",
     "messages": [{"role": "user", "content": "Say hello from TokenLab."}]
   }'
 ```

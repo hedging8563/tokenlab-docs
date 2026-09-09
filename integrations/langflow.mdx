@@ -7,13 +7,6 @@ description: "Use TokenLab models from Langflow's OpenAI component"
 
 Langflow's **OpenAI** component includes an **OpenAI API Base** field. Point that field at TokenLab's OpenAI-compatible `/v1` endpoint and use TokenLab model IDs.
 
-<Note>
-**Type**: Low-code AI Workflow Builder
-
-**Primary Path**: OpenAI-compatible chat completions
-
-**Support Confidence**: Supported with scope limits
-</Note>
 
 ## OpenAI Component
 
@@ -32,11 +25,8 @@ Langflow's **OpenAI** component includes an **OpenAI API Base** field. Point tha
 | OpenAI API Key | `sk-your-tokenlab-key` |
 | Model Name | `gpt-5.4-mini` |
 
-## Recommended Models
+## Choose a model
 
-- `gpt-5.4-mini` for most workflow tests
-- `claude-sonnet-5` for stronger writing and reasoning
-- `gemini-3.5-flash` for fast multimodal-friendly workflows
-- `deepseek-v4-flash` for fast coding and reasoning iterations
+Copy a current chat model ID from the [Models page](https://tokenlab.sh/en/models). The selected component must use an API format supported by that model.
 
-Use Langflow's LiteLLM Proxy component if your deployment already centralizes provider routing through a LiteLLM proxy.
+If your application already uses LiteLLM Proxy, connect TokenLab through Langflow's LiteLLM Proxy component instead.

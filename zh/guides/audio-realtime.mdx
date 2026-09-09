@@ -1,22 +1,22 @@
 ---
-title: "音频与实时"
-description: "为音频应用选择语音、转写、翻译或实时 WebSocket 流程。"
+title: "音频与 Realtime"
+description: "生成语音、转写音频、翻译语音或建立实时会话"
 ---
 
-音频工作负载分成两类。文本转语音、转写、音频翻译这类文件式请求使用音频端点；需要低延迟互动音频或多模态事件时，使用实时 WebSocket 端点。
+结果是音频文件或文字时，使用音频端点；需要双向实时语音时，使用 Realtime WebSocket。
 
-## 选择流程
+## 选择 API
 
-| 流程 | 端点 | 适用场景 |
+| 需要什么 | API | 适合 |
 |----------|----------|-------------|
 | 文本转语音 | `POST /v1/audio/speech` | 需要从文本生成音频文件。 |
 | 转写 | `POST /v1/audio/transcriptions` | 需要从音频文件得到文本。 |
 | 音频翻译 | `POST /v1/audio/translations` | 需要从音频文件得到翻译后的文本。 |
 | Realtime WebSocket | `WS /v1/realtime?model={model}` | 需要通过 WebSocket 传输双向流式音频或实时多模态事件。普通 `GET /v1/realtime` 只返回元信息。 |
 
-## 发现模型
+## 选择模型
 
-不要在客户端硬编码模型列表。语音和转写可使用推荐模型短名单；实时能力需要在打开 socket 前通过模型详情确认。
+不要在客户端写死模型列表。打开 socket 前，请从模型详情确认是否支持 Realtime。
 
 ```bash
 curl "https://api.tokenlab.sh/v1/models?recommended_for=tts" \
@@ -26,9 +26,9 @@ curl "https://api.tokenlab.sh/v1/models?recommended_for=stt" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 
-## 同步音频请求
+## 音频请求
 
-语音、转写和翻译会在 HTTP 请求中直接返回。大输入可能超过常见客户端超时，建议设置更宽松的超时并保存 request ID 方便排查。
+语音、转写和翻译会直接在 HTTP 响应中返回。较大的文件可能超过客户端默认超时，请留出足够时间并保存请求 ID。
 
 ```bash
 curl -X POST "https://api.tokenlab.sh/v1/audio/speech" \
@@ -44,9 +44,9 @@ curl -X POST "https://api.tokenlab.sh/v1/audio/speech" \
 
 ## 实时会话
 
-打开 WebSocket 时在查询参数中传 model，并在 Authorization header 中传 API key。事件格式按所选实时模型文档发送；会话结束时主动关闭 socket。
+打开 WebSocket 时，在查询参数中填写 `model`，在 Authorization 请求头中填写 API 密钥。事件格式以所选实时模型文档为准；会话结束时主动关闭 socket。
 
-本指南只覆盖 WebSocket 代理。TokenLab 目前不提供 OpenAI Realtime REST client secret、translation client secret、Calls 或 legacy beta session 管理端点。
+TokenLab 当前提供 Realtime WebSocket，不提供 OpenAI Realtime REST client secret、translation client secret、Calls 或旧版 beta session 管理 API。
 
 ```javascript
 import WebSocket from 'ws';
@@ -58,12 +58,12 @@ const socket = new WebSocket('wss://api.tokenlab.sh/v1/realtime?model=gpt-realti
 socket.on('message', (event) => console.log(event.toString()));
 ```
 
-## 状态处理
+## 在产品中展示状态
 
 - 保存生成的音频文件，刷新页面时不要重复发起同一请求。
 - 转写和翻译即使是同步调用，也应展示上传和处理中状态。
 - 实时会话要处理关闭事件，只有用户重新开始会话时才重连。
-- 不要把 API key、私有 URL 或账户密钥放进音频文本输入。
+- 不要把 API 密钥、私有 URL 或账户密钥放进音频文本输入。
 
 ## API 参考
 

@@ -1,19 +1,12 @@
 ---
 title: "Cherry Studio"
-description: "Connect Cherry Studio to TokenLab with OpenAI-compatible and native endpoint options"
+description: "Connect Cherry Studio to TokenLab"
 ---
 
 ## Overview
 
-Cherry Studio can use TokenLab through a custom OpenAI-compatible provider. If your Cherry Studio version includes TokenLab in the provider registry, select TokenLab directly.
+Select TokenLab directly if it appears in Cherry Studio. Otherwise add it as a custom OpenAI-compatible service.
 
-<Note>
-**Type**: Chat App
-
-**Primary Path**: OpenAI-compatible chat completions
-
-**Native Paths**: Responses, Anthropic Messages, Gemini-compatible endpoints when exposed by the client
-</Note>
 
 ## Configure as a Custom Provider
 
@@ -26,7 +19,7 @@ Cherry Studio can use TokenLab through a custom OpenAI-compatible provider. If y
 4. Add a model such as `gpt-5.4-mini`
 5. Save and test the provider.
 
-## Provider Registry Path
+## Built-in TokenLab option
 
 When TokenLab appears as a built-in provider in Cherry Studio, prefer that option. It can carry endpoint metadata for:
 
@@ -35,6 +28,4 @@ When TokenLab appears as a built-in provider in Cherry Studio, prefer that optio
 - Anthropic Messages
 - Gemini generateContent
 
-## Good Starter Models
-
-Use `gpt-5.4-mini` for the default model, then add `claude-sonnet-5`, `gemini-3.5-flash`, and `deepseek-v4-flash` for broader coverage.
+Choose current chat models from the [Models page](https://tokenlab.sh/en/models). Add only the models you plan to use.

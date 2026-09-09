@@ -1,27 +1,14 @@
 ---
 title: "Upload File"
 openapi: "POST /v1/files"
-description: "Uploads a JSONL batch input file for later batch creation."
+description: "Upload a batch file, image reference, or Anthropic-format file."
 ---
 
-## Overview
-
-This endpoint is part of TokenLab's OpenAI-compatible Batch API. Batch jobs use uploaded JSONL files, run asynchronously, and can return output/error files later.
-
-## Supported File Modes
-
-TokenLab treats `/v1/files` as three explicit modes:
+## File Purposes
 
 - Batch files: use `purpose=batch` for `/v1/batches`.
 - Image/reference files: use `purpose=user_data` or `purpose=vision` for file-backed image requests.
-- Anthropic Files API mode: add `anthropic-beta: files-api-2025-04-14` for Anthropic-native file storage.
-
-## Notes
-
-- Batch input files must use `purpose=batch`.
-- `completion_window` is currently `24h`.
-- Output ordering is not guaranteed; always match by `custom_id`.
-- Streaming is not supported inside batch items.
+- Anthropic Files: add the `anthropic-beta: files-api-2025-04-14` header.
 
 ## Example
 
@@ -34,16 +21,6 @@ curl -X POST "https://api.tokenlab.sh/v1/files" \
 ```
 </RequestExample>
 
-## Request / Response
-
-Use the interactive OpenAPI panel above for the exact schema.
-
-## Operational Tips
-
-- Use `custom_id` for idempotent downstream reconciliation.
-- Expect `output_file_id` and `error_file_id` only after the worker finalizes the batch.
-- Batch pricing may differ from synchronous pricing because `isBatchRequest=true` discount rules apply.
-
 ## Image File Inputs
 
 This same `/v1/files` route can upload image reference files for `/v1/images/edits`.
@@ -54,11 +31,9 @@ This same `/v1/files` route can upload image reference files for `/v1/images/edi
 
 ## Anthropic Files API Mode
 
-This same `/v1/files` route also supports the Anthropic Files API path.
-
-- Add `anthropic-beta: files-api-2025-04-14` to switch the route into Anthropic mode.
+- Add `anthropic-beta: files-api-2025-04-14` to use Anthropic Files.
 - In Anthropic mode, upload the original file directly and do not send `purpose=batch`.
-- The returned `file_id` is bound to the same official Anthropic channel/workspace and should be reused from `/v1/messages` requests.
+- The returned `file_id` is available only in the current Workspace and can be reused in `/v1/messages` requests.
 - If you plan to reference the uploaded file from Anthropic message content, keep using Anthropic-native headers (`x-api-key`, `anthropic-version`, and the beta header when required).
 
 ## Response example
@@ -78,6 +53,6 @@ This same `/v1/files` route also supports the Anthropic Files API path.
 
 ## Important fields
 
-<ResponseField name="id" type="string">File identifier used by related APIs.</ResponseField>
+<ResponseField name="id" type="string">File ID.</ResponseField>
 <ResponseField name="purpose" type="string">Purpose assigned to the file. Uploads accept `batch`, `user_data`, or `vision`.</ResponseField>
 <ResponseField name="bytes" type="integer">File size in bytes.</ResponseField>

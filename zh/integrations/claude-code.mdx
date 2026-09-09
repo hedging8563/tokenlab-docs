@@ -7,19 +7,12 @@ description: "将 TokenLab 与 Anthropic 的 Claude Code CLI 一起使用"
 
 
 
-<Note>
-**类型**: 编码工具
 
-**主要路径**: Anthropic-native
-
-**支持级别**: 强原生路径
-</Note>
-
-[Claude Code](https://docs.anthropic.com/en/docs/claude-code) 是 Anthropic 官方提供的用于 AI 辅助编码的 CLI 工具。你可以将其配置为使用 TokenLab 作为 API 提供方。
+[Claude Code](https://docs.anthropic.com/en/docs/claude-code) 可以使用 TokenLab API 密钥，通过 TokenLab Messages API 调用 Claude 模型。
 
 ## 安装
 
-Anthropic 现在推荐使用原生安装程序。出于兼容性考虑，npm 安装方式仍然可用，但上游已将其弃用。
+Anthropic 当前推荐原生安装程序；npm 安装方式仍可用，但已经弃用。
 
 ```bash
 curl -fsSL https://claude.ai/install.sh | bash
@@ -87,25 +80,15 @@ claude --version
 claude doctor
 ```
 
-## 可用模型
+## 选择模型
 
-TokenLab 支持所有 Claude 模型：
-
-| 模型 | 描述 |
-|-------|-------------|
-| `claude-opus-4-6` | 能力最强，适合复杂推理 |
-| `claude-sonnet-4-6` | 性能均衡，非常适合编码 |
-| `claude-haiku-4-5` | 速度最快，性价比高 |
-
-## 模型选择
-
-使用 `--model` 标志指定模型：
+从[模型页](https://tokenlab.sh/zh/models)复制当前 Claude 模型 ID，并通过 `--model` 指定：
 
 ```bash
 claude --model claude-sonnet-4-6 "Review this PR"
 ```
 
-或者在配置中设置默认模型：
+也可以在配置中设置默认模型：
 
 ```json
 {
@@ -113,13 +96,13 @@ claude --model claude-sonnet-4-6 "Review this PR"
     "ANTHROPIC_API_KEY": "sk-your-tokenlab-key",
     "ANTHROPIC_BASE_URL": "https://api.tokenlab.sh"
   },
-  "model": "claude-sonnet-4-6"
+  "model": "claude-sonnet-5"
 }
 ```
 
 ## 扩展思考
 
-对于复杂推理任务，请使用支持扩展思考的模型：
+需要扩展思考时，请从模型页选择支持该能力的 Claude 模型：
 
 ```bash
 claude --model claude-opus-4-6 "Design a microservices architecture for..."
@@ -132,8 +115,8 @@ claude --model claude-opus-4-6 "Design a microservices architecture for..."
     请确认 base URL 精确为 `https://api.tokenlab.sh`（对于 Anthropic 风格请求，不要添加 `/v1` 后缀）。
   </Accordion>
 
-  <Accordion title="无效的 API key">
-    请确保你的 TokenLab API key 以 `sk-` 开头，并且余额充足。
+  <Accordion title="无效的 API 密钥">
+    请确认 TokenLab API 密钥以 `sk-` 开头，并且余额充足。
   </Accordion>
 
   <Accordion title="网关需要 Authorization bearer token">

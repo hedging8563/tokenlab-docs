@@ -1,34 +1,34 @@
 ---
 title: "迁移指南"
-description: "通过少量且生产安全的更改，将 OpenAI、Anthropic、Gemini 和媒体工作负载迁移至 TokenLab。"
+description: "把现有 OpenAI、Anthropic、Gemini 和媒体客户端接到 TokenLab"
 ---
 
-TokenLab 采用多格式设计：您可以保留 OpenAI 兼容的客户端、Anthropic 原生 Messages 调用、Gemini 原生 REST 调用以及媒体端点，并保持其原有形态。最安全的迁移方式并非将所有工作负载转换为一种通用格式，而是选择最符合您应用程序行为需求的路径。
+不需要把所有请求改成同一种格式。现有 OpenAI 兼容客户端、Anthropic Messages、Gemini REST 和媒体接口，都有对应的 TokenLab API 地址。
 
-## 路由映射
+## API 地址对照
 
-| 现有工作负载 | TokenLab 基础 URL | 主要端点 | 迁移说明 |
+| 现有 API | TokenLab Base URL | API | 注意 |
 |-------------------|-------------------|------------------|----------------|
-| OpenAI Chat Completions | `https://api.tokenlab.sh/v1` | `/chat/completions` | OpenAI 兼容聊天和函数调用的最小改动方案 |
-| OpenAI Responses | `https://api.tokenlab.sh/v1` | `/responses` | 当您的应用依赖于 Responses 特定的输入、工具或输出处理时使用 |
+| OpenAI Chat Completions | `https://api.tokenlab.sh/v1` | `/chat/completions` | 适合继续使用已有 OpenAI 兼容聊天代码 |
+| OpenAI Responses | `https://api.tokenlab.sh/v1` | `/responses` | 应用依赖 Responses 输入、事件或工具时使用 |
 | Anthropic SDK | `https://api.tokenlab.sh` | `/v1/messages` | 请勿在 SDK 基础 URL 后添加 `/v1` |
-| Gemini REST | `https://api.tokenlab.sh` | `/v1beta/models/:model:generateContent` | 在 Gemini 路由上保留 Gemini 原生字段 |
-| 媒体生成 | `https://api.tokenlab.sh/v1` | `/images`, `/videos`, `/music`, `/3d` | 使用 `recommended_for` 发现模型，并按文档说明处理异步轮询 |
-| 管理与计费 | `https://api.tokenlab.sh/v1` | `/management/...` | 将管理令牌用于服务器端使用情况和计费核对 |
+| Gemini REST | `https://api.tokenlab.sh` | `/v1beta/models/:model:generateContent` | 继续使用 Gemini 字段 |
+| 媒体生成 | `https://api.tokenlab.sh/v1` | `/images`, `/videos`, `/music`, `/3d` | 按任务查找模型，并保存异步任务 ID |
+| 管理与账单 | `https://api.tokenlab.sh/v1` | `/management/...` | 服务端使用管理令牌，不使用模型 API 密钥 |
 
-## 快速迁移方案
+## 常见迁移方式
 
 ### 从 OpenAI 迁移至 TokenLab
 
-仅需将 SDK 的 `base_url` / `baseURL` 修改为 `https://api.tokenlab.sh/v1`。如果为了方便推广，可以保留现有的 OpenAI API 密钥环境变量名称，并在检查 `GET /v1/models` 后替换模型 ID。
+把 SDK 的 `base_url` / `baseURL` 改为 `https://api.tokenlab.sh/v1`，换成 TokenLab API 密钥，并从 `GET /v1/models` 选择模型 ID。
 
 ### 从 OpenRouter 迁移至 TokenLab
 
-在之前使用 OpenRouter 的 OpenAI 兼容基础 URL 的位置，改用 `https://api.tokenlab.sh/v1`。移除带有提供商前缀的模型 ID，并使用来自 `/v1/models` 的 TokenLab 公共模型 ID；当工作负载需要 Claude Messages 或 Gemini `generateContent` 时，请将其迁移至原生的 TokenLab 端点，而不是强行通过 OpenAI 兼容的聊天接口进行调用。
+把 OpenRouter Base URL 换成 `https://api.tokenlab.sh/v1`。TokenLab 模型 ID 不带 OpenRouter 的 provider 前缀。只有应用确实需要 Anthropic Messages 或 Gemini 字段时，才改用相应格式。
 
 ### 从 LiteLLM 迁移至 TokenLab
 
-使用 LiteLLM 的 `custom_openai/<model>` 路由，并将 `api_base` 设置为 `https://api.tokenlab.sh/v1`。请将 LiteLLM 别名与真实的 TokenLab 模型 ID 分开，以便在不更改应用程序提示词的情况下调整路由策略。
+使用 LiteLLM 的 `custom_openai/<model>` 配置，把 `api_base` 设为 `https://api.tokenlab.sh/v1`。LiteLLM 别名与 TokenLab 模型 ID 分开保存，后续更换其中一个时不必修改应用提示词。
 
 ### 通过 TokenLab 使用 Claude Messages
 
@@ -36,7 +36,7 @@ TokenLab 采用多格式设计：您可以保留 OpenAI 兼容的客户端、Ant
 
 ### 通过 TokenLab 使用 Gemini 原生接口
 
-在 `https://api.tokenlab.sh/v1beta/models/{model}:generateContent` 上保留 Gemini 有效负载。当您的应用依赖于 Gemini 行为时，Gemini 原生的 `contents`、`parts`、文件、缓存内容、函数声明和内置工具应保留在此路由上。
+继续向 `https://api.tokenlab.sh/v1beta/models/{model}:generateContent` 发送 Gemini 请求。`contents`、`parts`、文件、缓存内容、函数声明和内置工具都保留原格式。
 
 ## OpenAI 兼容迁移
 
@@ -49,12 +49,12 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="gpt-5.4",
+    model="gpt-5.6-terra",
     messages=[{"role": "user", "content": "Hello from TokenLab"}],
 )
 ```
 
-保留您现有的重试、超时和流式传输代码，但在生产流量上线前，请务必使用 `GET /v1/models` 验证模型 ID。对于图像生成，请显式发送 `model` 参数并阅读图像指南，因为图像模型与聊天模型之间的差异更大。
+原来的重试、超时和流式代码通常可以保留。请用 `GET /v1/models` 确认模型 ID。图片请求必须明确传入模型，具体输入见图片生成指南。
 
 ## Anthropic 迁移
 
@@ -67,13 +67,13 @@ client = Anthropic(
 )
 
 message = client.messages.create(
-    model="claude-sonnet-4-6",
+    model="claude-sonnet-5",
     max_tokens=1024,
     messages=[{"role": "user", "content": "Explain TokenLab in one sentence."}],
 )
 ```
 
-对于 Claude 原生的工具使用、思维链（thinking flows）和 Anthropic 消息语义，请使用 `/v1/messages`。除非您有意想要更改为 OpenAI 兼容的行为，否则不要通过 Chat Completions 转换 Anthropic 独有的字段。
+Claude 工具调用、thinking blocks 和 Anthropic 消息字段应使用 `/v1/messages`，Chat Completions 不保证支持这些字段。
 
 ## Gemini 迁移
 
@@ -84,43 +84,28 @@ curl "https://api.tokenlab.sh/v1beta/models/gemini-3.5-flash:generateContent" \
   -d '{"contents":[{"parts":[{"text":"Hello"}]}]}'
 ```
 
-当您的应用依赖于 Gemini 原生行为时，请在 `/v1beta` 上保留 Gemini 内置工具、File API 引用、缓存内容、函数声明和原生内容部分。
+当你的应用依赖于 Gemini 原生行为时，请在 `/v1beta` 上保留 Gemini 内置工具、File API 引用、缓存内容、函数声明和原生内容部分。
 
-## 媒体迁移
+## 迁移图片、视频等媒体功能
 
-1. 查询 `GET /v1/models?recommended_for=image|video|music|3d`。
-2. 在列表响应中读取 `GET /v1/models`，并在可用时读取完整的 `GET /v1/models/{model}`。
-3. 显式发送 `model`，特别是对于图像端点。
-4. 为异步任务存储 `task_id`、`poll_url`、端点、模型以及您自己的作业 ID。
-5. 通过使用记录和 `billing_transaction_id`（而非提供商任务 ID）来核对成本。
+用 `GET /v1/models?recommended_for=image|video|music|3d` 查找候选模型，并用 `GET /v1/models/{model}` 确认输入和价格。创建请求要明确传入 `model`。
 
-媒体工作负载需要单独的上线计划，因为其延迟、重试和最终资产的行为与聊天补全不同。
-
-## 生产上线计划
-
-| 阶段 | 目标 | 检查项 |
-|-------|------|--------|
-| 1. 清单梳理 | 列出端点、模型、请求字段、流式/异步行为以及计费所有者 | 确保没有假设隐藏的提供商特定字段为公共字段 |
-| 2. 单路由试点 | 迁移一个端点和一个模型系列 | 响应形态、成本和日志符合预期 |
-| 3. 影子测试或采样 | 将选定的输出与之前的提供商进行对比 | 用户可见的质量和延迟在可接受范围内 |
-| 4. 逐步上线 | 按密钥、组织或功能标志增加流量 | 监控 `4xx`、`5xx`、延迟、余额和重复的异步作业 |
-| 5. 清理 | 仅在稳定使用后移除旧的提供商路径 | 回滚路径和支持手册已记录在案 |
+异步生成返回后，立即保存 `task_id`、`poll_url`、模型和你自己的任务 ID。创建请求超时后，确认没有任务再重发，避免同一次用户操作生成两份结果。费用以 TokenLab Usage 和 `billing_transaction_id` 为准。
 
 ## 迁移陷阱
 
-- 如果您的应用需要原生的 Anthropic、Gemini 或 Responses 行为，请勿将所有模型置于同一个 OpenAI Chat Completions 路径下。
-- 不要假设旧的图像默认值。请显式发送 `model`。
-- 在检查任务是否已创建之前，不要重试异步创建请求。
-- 不要在日志或 UI 中暴露提供商特定的标识符。
-- 不要使用提供商任务 ID 来核对账单。请使用 TokenLab 的使用记录。
+- 应用需要 Anthropic、Gemini 或 Responses 专属字段时，请使用对应 API 格式。
+- 图片请求不要依赖旧默认值，明确传入 `model`。
+- 异步创建超时后，确认没有任务再重新提交。
+- 产品中使用 TokenLab 任务 ID 和 Usage 记录，不把第三方任务 ID 当作账单 ID。
 
 ## API 参考
 
 | 主题 | 参考 |
 |-------|-----------|
-| 多格式 API | [Multi-Format API](/guides/api-formats) |
-| OpenAI SDK | [OpenAI SDK](/integrations/openai-sdk) |
-| Anthropic SDK | [Anthropic SDK](/integrations/anthropic-sdk) |
-| Gemini 原生 | [Gemini Native API](/api-reference/gemini/generate-content) |
-| 图像生成 | [图像生成](/guides/image-generation) |
-| 异步作业与轮询 | [异步作业与轮询](/guides/async-jobs-polling) |
+| API 格式 | [选择 API 格式](/zh/guides/api-formats) |
+| OpenAI SDK | [OpenAI SDK](/zh/integrations/openai-sdk) |
+| Anthropic SDK | [Anthropic SDK](/zh/integrations/anthropic-sdk) |
+| Gemini | [生成 Gemini 内容](/zh/api-reference/gemini/generate-content) |
+| 图片生成 | [图片生成](/zh/guides/image-generation) |
+| 异步任务 | [异步任务与状态查询](/zh/guides/async-jobs-polling) |

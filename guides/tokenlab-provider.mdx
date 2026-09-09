@@ -1,30 +1,28 @@
 ---
 title: "TokenLab Provider Setup"
-description: "Configure TokenLab as a custom provider in OpenClaw using OpenAI, Responses, Anthropic, and Gemini-compatible routes"
+description: "Connect a self-hosted OpenClaw instance to TokenLab"
 ---
 
 <Note>
-This guide is for **self-hosted OpenClaw** users who want to connect TokenLab as their AI provider.
+This guide is for **self-hosted OpenClaw**. The TokenLab plugin is the shortest setup; manual configuration is available when you need a specific API format.
 </Note>
 
-## Recommended: install the plugin
+## Install the plugin
 
-For standard OpenClaw agent execution, install the TokenLab provider plugin:
+Install the TokenLab provider plugin and add your API key:
 
 ```bash
 openclaw plugins install @tokenlabai/openclaw-provider
 openclaw onboard --tokenlab-api-key "$TOKENLAB_API_KEY"
 ```
 
-The plugin discovers TokenLab's live chat-model catalog and keeps 18 fallback models for offline discovery. Models use the `tokenlab/<model-id>` format.
+The plugin loads the current chat-model list from TokenLab. OpenClaw refers to them as `tokenlab/<model-id>`.
 
 [npm package](https://www.npmjs.com/package/@tokenlabai/openclaw-provider) · [ClawHub listing](https://clawhub.ai/tokenlabai/plugins/openclaw-provider) · [Source code](https://github.com/hedging8563/tokenlab-openclaw-provider)
 
-## Manual provider configuration
+## Configure providers manually
 
-Use manual `models.providers` entries when you explicitly need separate **Responses API**, **Claude native**, **Gemini native**, or **MiniMax native** routes.
-
-If you choose manual configuration, configuring `tokenlab` alone is enough. Add the other providers only when you explicitly need **Responses API**, **Claude native**, **Gemini native**, or **MiniMax native** behavior.
+Use `models.providers` only when OpenClaw needs Responses, Claude Messages, Gemini, or MiniMax formats separately. For ordinary chat, the `tokenlab` entry is enough.
 
 | Provider | OpenClaw `api` | Best for | baseUrl |
 |----------|----------------|----------|---------|
@@ -70,8 +68,8 @@ Add TokenLab providers under `models.providers`:
         baseUrl: "https://api.tokenlab.sh/v1",
         apiKey: "sk-your-tokenlab-key",
         models: [
-          { id: "gpt-4o", name: "GPT-4o" },
-          { id: "deepseek-r1", name: "DeepSeek R1" },
+          { id: "gpt-5.6-terra", name: "GPT-5.6 Terra" },
+          { id: "deepseek-reasoner", name: "DeepSeek Reasoner" },
           { id: "qwen3-coder-flash", name: "Qwen 3 Coder Flash" }
         ]
       },
@@ -80,7 +78,7 @@ Add TokenLab providers under `models.providers`:
         baseUrl: "https://api.tokenlab.sh/v1",
         apiKey: "sk-your-tokenlab-key",
         models: [
-          { id: "gpt-4o", name: "GPT-4o (Responses)" },
+          { id: "gpt-5.6-terra", name: "GPT-5.6 Terra (Responses)" },
           { id: "gpt-5.2", name: "GPT-5.2 (Responses)" }
         ]
       },
@@ -89,8 +87,8 @@ Add TokenLab providers under `models.providers`:
         baseUrl: "https://api.tokenlab.sh",
         apiKey: "sk-your-tokenlab-key",
         models: [
-          { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6" },
-          { id: "claude-opus-4-6", name: "Claude Opus 4.6" }
+          { id: "claude-sonnet-5", name: "Claude Sonnet 5" },
+          { id: "claude-opus-5", name: "Claude Opus 5" }
         ]
       },
       "tokenlab-gemini": {

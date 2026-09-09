@@ -4,7 +4,7 @@ openapi: "POST /v1/music/generations"
 description: "使用 Suno 创建音乐生成任务"
 ---
 
-使用 AI 生成音乐和歌词。这是一个异步 API - 您将收到一个任务 ID 用于轮询完成状态。
+生成音乐或歌词。创建成功后会返回任务 ID，通过状态 API 获取最终结果。
 
 ## 请求体
 
@@ -41,7 +41,7 @@ description: "使用 Suno 创建音乐生成任务"
 </ParamField>
 
 <ParamField body="audio_url" type="string">
-  可公开访问的参考/上传音频 URL。提供该字段但不传 `audio_operation` 时，默认使用 upload-cover 流程。
+  可以从互联网访问的参考音频 URL。填写这个字段但省略 `audio_operation` 时，默认使用 `upload-cover`。
 </ParamField>
 
 <ParamField body="audio_operation" type="string">
@@ -59,7 +59,7 @@ description: "使用 Suno 创建音乐生成任务"
 ## 响应
 
 <ResponseField name="id" type="string">
-  用于轮询状态的任务 ID。
+  用于查询状态的任务 ID。
 </ResponseField>
 
 <ResponseField name="status" type="string">
@@ -189,6 +189,8 @@ echo "Task ID: " . $data['id'];
 ```json Response
 {
   "id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "task_id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "poll_url": "/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "status": "pending",
   "created": 1706000000,
   "model": "suno_music"

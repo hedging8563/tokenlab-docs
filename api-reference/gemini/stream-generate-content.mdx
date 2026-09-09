@@ -22,11 +22,11 @@ Streaming version of the Gemini generateContent endpoint. Returns Server-Sent Ev
 
 Same as [Generate Content](/api-reference/gemini/generate-content). This includes multimodal `parts` arrays with structured `inline_data` image parts for vision requests.
 
-TokenLab preserves camelCase, original proto snake_case, mixed spellings, unknown fields, explicit `null`, and empty arrays. It does not pre-reject `candidateCount` or tool combinations; the selected Gemini upstream determines support.
+lowerCamelCase and proto snake_case spellings are accepted. `candidateCount`, tools, and other optional fields depend on the selected model.
 
 ## Response
 
-Returns native Gemini Server-Sent Events. Metadata-only events, intermediate chunks without `finishReason`, and natural EOF are valid. TokenLab does not append Chat Completions' `[DONE]` sentinel.
+Returns Gemini Server-Sent Events. Metadata-only events, intermediate chunks without `finishReason`, and natural EOF are valid. The stream does not append Chat Completions' `[DONE]` sentinel.
 
 <RequestExample>
 ```bash cURL

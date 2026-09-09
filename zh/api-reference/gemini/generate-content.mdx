@@ -4,7 +4,7 @@ openapi: "POST /v1beta/models/{model}:generateContent"
 description: "使用 Google Gemini API 格式生成内容"
 ---
 
-TokenLab 只对公开 Gemini 原生契约且具备同协议 upstream 路径的模型提供该入口，绝不回落 Chat Completions。ProtoJSON lowerCamelCase 和原始 proto snake_case 名称都是官方拼写，混合请求也会原样保留。未知字段会 best-effort 透传，由 upstream 决定是否支持。
+该接口使用 Gemini 的请求和响应格式，不会转换成 Chat Completions。ProtoJSON 的 lowerCamelCase 与 proto 的 snake_case 字段名都可以使用；可选字段是否生效取决于所选模型。
 ## 路径参数
 
 <ParamField path="model" type="string" required>
@@ -14,7 +14,7 @@ TokenLab 只对公开 Gemini 原生契约且具备同协议 upstream 路径的�
 ## 查询参数
 
 <ParamField query="key" type="string">
-  API key（请求头身份验证的替代方案）。
+  API 密钥，也可以改用下面任一请求头。
 </ParamField>
 
 ## 身份验证
@@ -27,7 +27,7 @@ Gemini 端点支持多种身份验证方法：
 ## 请求体
 
 <ParamField body="contents" type="array" required>
-  对话内容。`role` 值和所有 `parts` 都会保持客户端原样；TokenLab 不做 trim/lowercase、Base64 改写或 MIME 推断。`inlineData` / `inline_data` 和 `fileData` / `file_data` 都是官方拼写，TokenLab 不会在本地强制要求 `fileData.mimeType`。引用 TokenLab 创建的 Files/Cache ID 时会检查所有权并保留原 upstream 绑定；其他媒体和工具规则交给厂商判断。
+  对话内容，包含 `role` 和 `parts`。媒体字段可以使用 `inlineData` / `inline_data` 或 `fileData` / `file_data`。TokenLab 创建的 Files 或 Cache ID 只能在所属工作区使用。
 </ParamField>
 
 <ParamField body="systemInstruction" type="object">
@@ -35,7 +35,7 @@ Gemini 端点支持多种身份验证方法：
 </ParamField>
 
 <ParamField body="generationConfig" type="object">
-  原生生成配置。`maxOutputTokens`、`candidateCount`、`thinkingConfig` 等 lowerCamelCase 和对应 snake_case 名称都会原样接受。TokenLab 不会在失败后删除 `thinkingConfig`，也不会对 streaming 的 `candidateCount` 设置本地限制；范围和组合由 upstream 判断。
+  Gemini 生成设置，包括 `maxOutputTokens`、`candidateCount` 和 `thinkingConfig`。lowerCamelCase 与对应的 snake_case 名称都可以使用；取值范围以所选模型为准。
 </ParamField>
 
 <ParamField body="safetySettings" type="array">
@@ -175,16 +175,16 @@ echo $data['candidates'][0]['content']['parts'][0]['text'];
 
 ## 多模态输入示例
 
-对于 Gemini 多模态请求，请把媒体放到 `contents[].parts[]` 中，可以使用“内联字节”或“基于 URL 的文件引用”两种方式。
+把图片、音频或视频放进 `contents[].parts[]`，可以使用 Base64 数据或公网 URL。
 
-当前公共 Gemini 契约支持的媒体类别：
+支持的媒体类型：
 - 图片
 - 音频
 - 视频
 
-对于内联媒体，使用 `inlineData` 或 `inline_data`，并传入文件字节的 Base64 内容。
+内联媒体使用 `inlineData` 或 `inline_data`，`data` 中传入 Base64 内容。
 
-对于 URL 媒体，使用 `fileData` 或 `file_data`，并传入一个可公开访问的 `https` URL。
+URL 媒体使用 `fileData` 或 `file_data`，`fileUri` 中传入可公开访问的 `https` URL。
 
 ### 视频输入示例
 

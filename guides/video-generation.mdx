@@ -1,21 +1,21 @@
 ---
 title: "Video Generation"
-description: "Generate videos with explicit public operations, async polling, and model-specific media inputs."
+description: "Create videos from text, images, audio, or existing clips"
 ---
 
 import VideoModelContracts from "../snippets/generated/video-model-contracts.mdx";
 
-Video generation is asynchronous. `POST /v1/videos/generations` returns a public task identity and usually a `poll_url`; the final video appears on later status responses.
+Video generation is asynchronous. `POST /v1/videos/generations` returns a task ID and usually a `poll_url`. Use that URL until the finished video is ready.
 
-When the selected Seedance model can use the TokenLab material library, image URLs and supported inline data URLs are prepared as reusable TokenLab materials before generation. If preparation takes longer than 60 seconds, retry after the returned `auto_material_asset_ids` become `ACTIVE`. If the selected model cannot use the material library, ordinary image inputs continue on the regular image path.
+Seedance can turn supported image inputs into reusable materials automatically. If an image is still being prepared after 60 seconds, the API returns `auto_material_asset_ids`; wait until those materials are `ACTIVE`, then send the request again.
 
-## OpenAI-Style And Volc-Compatible Video APIs
+## Choose an API
 
-Use `/v1/videos/generations` for TokenLab's unified video API across models. If you are migrating an existing Seedance 2.0 integration that already uses Volc-style `content[]` or Action requests, use the Seedance compatibility endpoints under `/api/v3`. Both styles use TokenLab Bearer API keys and async polling, but their request and response shapes are different.
+Use `/v1/videos/generations` for a new video integration. Existing Seedance 2.0 clients that already send Volcengine `content[]` or Action requests can keep that format through `/api/v3`. Both APIs use a TokenLab Bearer key, but their fields and status values are different.
 
-## Supported Operations
+## Choose what to create
 
-Use explicit `operation` in production. TokenLab can infer some operations from inputs, but explicit operation values make validation, support, and retries clearer.
+Set `operation` explicitly so the API can validate the right fields for the job.
 
 | Operation | Required or typical input | Use case |
 |-----------|---------------------------|----------|
@@ -28,18 +28,18 @@ Use explicit `operation` in production. TokenLab can infer some operations from 
 | `audio-to-video` | `audio_url` | Audio-conditioned video flows |
 | `video-extension` | `task_id`, `extend_at`, or model-specific extension fields | Continue a generated video |
 
-## Model Discovery
+## Choose a model
 
 ```bash
 curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \\
   -H "Authorization: Bearer sk-your-api-key"
 ```
 
-Use the model IDs shown by TokenLab in `model`, then choose feature variants with `operation` and the corresponding media inputs. Examples include `wan-2.7`, `happyhorse-1.0`, `viduq3`, `viduq3-mix`, `pixverse-v6`, `kling-3.0-video`, `veo3.1`, and `seedance-2.0`; do not use operation-specific suffixes as TokenLab model names.
+Use a model ID returned by TokenLab, then choose the generation type with `operation` and the corresponding media inputs. Do not use an operation name as the model ID.
 
 Read the selected model detail before relying on specialized fields such as `reference_images`, `kling_elements`, `output_audio`, `duration`, `resolution`, or `aspect_ratio`.
 
-## Create Request
+## Create a video
 
 ```bash
 curl https://api.tokenlab.sh/v1/videos/generations \\
@@ -54,9 +54,9 @@ curl https://api.tokenlab.sh/v1/videos/generations \\
   }'
 ```
 
-For production media input, prefer public `https` URLs over inline `data:` URLs. If you use temporary URLs, keep them valid until TokenLab finishes creating the task.
+Use `https` URLs for media that can be fetched from the internet. Temporary URLs must stay valid until TokenLab creates the task.
 
-## Inputs And Model-Specific Fields
+## Model-specific fields
 
 - Veo 3 family requests default to audio-on when `output_audio` is omitted. Set it explicitly when the model supports the toggle and your UX depends on sound.
 - `kling_elements` is for `kling-3.0-video` image-conditioned requests. Reference each element in `prompt` as `@name`; do not combine it with `output_audio=true`.
@@ -65,9 +65,9 @@ For production media input, prefer public `https` URLs over inline `data:` URLs.
 
 <VideoModelContracts />
 
-## Polling Results
+## Get the finished video
 
-Use the returned `poll_url` first. If you need a fixed endpoint, use `GET /v1/tasks/{id}` with the same `id` / `task_id` from the create response.
+Use the returned `poll_url`. If you need a fixed URL, call `GET /v1/tasks/{id}` with the `id` or `task_id` from the create response.
 
 Completed video tasks may return `video_url`, `video`, or `videos` depending on the model and output count. Treat `billing_transaction_id` as a billing identifier, not as a task identifier.
 

@@ -39,6 +39,12 @@ Gunakan panel OpenAPI interaktif di atas untuk skema yang tepat.
 - Harapkan `output_file_id` dan `error_file_id` hanya setelah worker menyelesaikan batch.
 - Harga batch bisa berbeda dari harga sinkron karena aturan diskon `isBatchRequest=true` diterapkan.
 
+## Filter
+
+- `limit` menerima nilai dari 1 hingga 10000 dan default-nya 10000.
+- `purpose` dapat berupa `batch`, `batch_output`, `user_data`, atau `vision`.
+- `user_data` dan `vision` mengembalikan file referensi gambar yang dibuat oleh TokenLab jika tersedia.
+
 ## Contoh respons
 
 <ResponseExample>

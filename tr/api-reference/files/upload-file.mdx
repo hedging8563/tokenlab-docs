@@ -58,7 +58,7 @@ Bu aynı `/v1/files` rotası, Anthropic Files API yolunu da destekler.
 
 - Anthropic moduna geçmek için `anthropic-beta: files-api-2025-04-14` başlığını ekleyin.
 - Anthropic modunda orijinal dosyayı doğrudan yükleyin ve `purpose=batch` göndermeyin.
-- Dönen `file_id`, aynı resmi Anthropic kanalına/çalışma alanına bağlanır ve sonraki `/v1/messages` isteklerinde yeniden kullanılmalıdır.
+- Dönen `file_id`, aynı Anthropic uyumlu çalışma alanına bağlanır ve sonraki `/v1/messages` isteklerinde yeniden kullanılmalıdır.
 - Bu dosyaya Anthropic mesaj içeriğinde referans verecekseniz Anthropic yerel başlıklarını (`x-api-key`, `anthropic-version` ve gerektiğinde beta header) kullanmaya devam edin.
 
 ## Yanıt örneği

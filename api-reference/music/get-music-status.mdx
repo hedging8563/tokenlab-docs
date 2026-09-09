@@ -7,7 +7,7 @@ description: "Retrieves the status and result of a music generation task"
 Poll this endpoint to check the status of your music generation task.
 
 <Info>
-If the create response included `poll_url`, prefer calling that exact URL for polling. `/v1/tasks/{id}` is the canonical fixed status endpoint for music jobs, and `id` / `task_id` should be treated as the same async task identity.
+If the create response includes `poll_url`, call that URL directly. `id` and `task_id` identify the same task; you can also use `/v1/tasks/{id}`.
 
 If the task no longer exists or is no longer available in the public task record, TokenLab returns `async_task_not_found` with the message `Task not found or no longer available.`
 </Info>

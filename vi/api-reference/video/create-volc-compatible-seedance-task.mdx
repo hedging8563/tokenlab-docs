@@ -1,39 +1,77 @@
 ---
-title: "Tạo tác vụ (tương thích Volc)"
+title: "Tạo tác vụ (Tương thích Volc)"
 openapi: "POST /api/v3/contents/generations/tasks"
-description: "Tạo tác vụ Seedance 2.0 bằng body REST kiểu Volc hoặc yêu cầu Action."
+description: "Tạo tác vụ Seedance 2.0 với API tương thích Volc."
 ---
 
 ## Tổng quan
 
-Các endpoint này dành cho nhóm đã dùng cấu trúc tác vụ Seedance kiểu Volc. Xác thực bằng TokenLab Bearer API key. ID tác vụ trả về bắt đầu bằng `cgt-`; hãy polling trạng thái cho đến khi `status` là `succeeded`, `failed`, `cancelled` hoặc `expired`.
+Các client Seedance kiểu Volc hiện có có thể sử dụng TokenLab bằng cách thay đổi địa chỉ API và khóa (key).
 
-Hợp đồng tác vụ chính thức dùng các đường dẫn REST dưới `/api/v3/contents/generations/tasks`. Các alias Action cũ chỉ được giữ cho tích hợp TokenLab trước đây và không thuộc hợp đồng wire-compatible chính thức.
+Xem thêm [Mô hình Video Seedance 2.0](/guides/seedance-2-video) và [Tạo Video](/guides/video-generation).
 
-`callback_url` nhận một địa chỉ HTTP(S) công khai. TokenLab gửi đúng đối tượng truy vấn mỗi khi trạng thái đổi sang `queued`, `running`, `succeeded`, `failed` hoặc `expired`, không kèm header riêng của TokenLab. `succeeded` và `failed` được thử lại tối đa ba lần sau năm giây.
+## Xác thực và Endpoint
 
-<Note>
-Để khôi phục an toàn sau khi mất kết nối, hãy gửi một `Idempotency-Key` duy nhất trong yêu cầu tạo REST. Gửi lại cùng body và key sẽ trả về cùng ID `cgt-...`; dùng key đó với body khác sẽ trả về `409`. Cơ chế này không áp dụng cho tuyến Action cũ.
-</Note>
-
-Xem thêm [Mô hình video Seedance 2.0](/vi/guides/seedance-2-video) và [Tạo video](/vi/guides/video-generation).
+- Sử dụng `Authorization: Bearer <TOKENLAB_API_KEY>`.
+- Chữ ký Volc AK/SK không được chấp nhận. Các yêu cầu phải bao gồm khóa TokenLab Bearer.
+- Sử dụng đường dẫn tác vụ chính thức: `POST /api/v3/contents/generations/tasks`.
 
 ## Quy tắc nội dung
 
-- Dùng `type=text` cho văn bản prompt.
-- `type=image_url` không có `role` được xử lý như khung đầu; bạn cũng có thể đặt `role=first_frame`.
-- Chỉ dùng `role=last_frame` cùng với khung đầu.
-- Dùng `role=reference_image`, `reference_video` hoặc `reference_audio` cho media tham chiếu.
-- Không trộn đầu vào khung đầu/cuối với media tham chiếu trong cùng một yêu cầu.
+- `type: "text"` là văn bản gợi ý (prompt).
+- `type: "image_url"` không có `role`, hoặc có `role: "first_frame"`, được coi là khung hình đầu tiên.
+- `role: "last_frame"` phải đi kèm với một khung hình đầu tiên.
+- `role: "reference_image"`, `reference_video`, và `reference_audio` được sử dụng làm tài liệu tham khảo.
+- `image_url.url` chấp nhận URL hình ảnh công khai hoặc URI tài nguyên như `asset://asset-YYYYMMDDHHMMSS-xxxxx`. `role` xác định liệu tài nguyên đó là khung hình đầu tiên, khung hình cuối cùng hay hình ảnh tham khảo.
+- Không trộn lẫn đầu vào khung hình đầu/cuối với phương tiện tham khảo trong cùng một yêu cầu.
+- Phần thân yêu cầu (request body) chỉ chấp nhận các trường được định dạng này hỗ trợ. Các trường cấp cao nhất `material_asset_id`, `material_asset_ids`, và `priority` sẽ bị từ chối. Thay vào đó, hãy đặt URI tài nguyên TokenLab vào trong `image_url.url`.
 
-## Ghi chú tham số
+## Lưu ý về tham số
 
-- `ratio` chấp nhận `16:9`, `4:3`, `1:1`, `3:4`, `9:16`, `21:9` hoặc `adaptive`.
-- Giá trị mặc định chính thức của `generate_audio` là `false`; đặt `true` khi cần âm thanh đồng bộ.
-- `service_tier=default` được chấp nhận. Tác vụ tương thích Seedance 2.0 từ chối `service_tier=flex`, `frames` và `camera_fixed=true`.
-- Khi mô hình đã chọn hỗ trợ, `tools` có thể chứa các object như `{ "type": "web_search" }`. Mục tool sai định dạng sẽ bị từ chối thay vì bị bỏ qua.
+- `ratio` chấp nhận `16:9`, `4:3`, `1:1`, `3:4`, `9:16`, `21:9`, hoặc `adaptive`.
+- `duration` là độ dài video tính bằng giây, bao gồm các giá trị thời lượng tự động được mô hình hỗ trợ.
+- `resolution` chấp nhận `480p`, `720p`, hoặc `1080p`.
+- `generate_audio` mặc định là `false`; đặt thành `true` khi cần âm thanh đồng bộ.
+- `watermark`, `return_last_frame`, `seed`, `execution_expires_after`, và `safety_identifier` được chấp nhận khi hợp lệ với mô hình đã chọn.
+- `callback_url` có thể trỏ đến một endpoint HTTP(S) công khai.
+
+## Gửi Callback
+
+Khi có `callback_url`, TokenLab sẽ gửi một yêu cầu HTTP `POST` khi trạng thái tác vụ thay đổi. Các trạng thái callback bao gồm `queued`, `running`, `succeeded`, `failed`, và `expired`. Phần thân JSON khớp với phản hồi của get-task.
+
+Phản hồi `2xx` xác nhận việc gửi thành công. Đối với `succeeded` và `failed`, nếu việc gửi không thành công trong vòng năm giây, hệ thống sẽ thử lại tối đa ba lần, khớp với hành vi chính thức. Callback chỉ có tiêu đề nội dung JSON tiêu chuẩn và không có tiêu đề gửi cụ thể của TokenLab. Các chuyển hướng (redirects) sẽ không được theo dõi và các mục tiêu mạng riêng tư hoặc dành riêng sẽ bị từ chối.
+
+Hãy lưu lại ID tác vụ. Nếu callback không được gửi, bạn vẫn có thể truy xuất kết quả bằng endpoint get-task.
+
+## Chuẩn bị hình ảnh
+
+Khi `content[]` chứa các URL hình ảnh, TokenLab sẽ chuẩn bị chúng thành các tài nguyên có thể tái sử dụng khi mô hình Seedance đã chọn yêu cầu. Nếu quá trình chuẩn bị không hoàn tất trong vòng 60 giây, yêu cầu tạo sẽ trả về lỗi material-preparing có thể thử lại thay vì gửi một tác vụ video không hoàn chỉnh.
+
+Đối với các tài nguyên hiện có, hãy sử dụng ID `asset-YYYYMMDDHHMMSS-xxxxx` công khai thay vì ID tài nguyên gốc do hệ thống khác trả về. TokenLab xác minh quyền sở hữu tài nguyên trước khi tạo.
+
+## Phản hồi tạo tác vụ
+
+```json
+{
+  "id": "cgt-20260102030405-a1b2c"
+}
+```
+
+Phản hồi tạo tác vụ chỉ chứa ID tác vụ. Hãy lưu lại để bạn có thể truy xuất trạng thái và kết quả bất cứ lúc nào.
+
+## Ngăn chặn tác vụ trùng lặp
+
+Gửi một `Idempotency-Key` duy nhất cùng với các yêu cầu tạo. Nếu kết nối đóng trước khi nhận được phản hồi, hãy thử lại với cùng khóa API, khóa idempotency và phần thân yêu cầu:
+
+- Nếu tác vụ gốc đã được tạo, TokenLab trả về cùng ID `cgt-...` và thêm `Idempotency-Replayed: true`.
+- Nếu yêu cầu gốc vẫn đang được đăng ký, TokenLab trả về `409 IdempotencyRequestInProgress` kèm theo `Retry-After`; hãy thử lại với cùng khóa và phần thân sau khoảng thời gian đó.
+- Việc sử dụng lại khóa với phần thân khác sẽ trả về `409 IdempotencyConflict` và không bao giờ tạo tác vụ thứ hai.
+
+Idempotency áp dụng cho đường dẫn tạo REST v3 chính thức. Nó không thay đổi cấu trúc phản hồi JSON và không được suy ra từ `X-Request-ID` hoặc từ các phần thân yêu cầu giống hệt nhau mà không có khóa.
 
 ## Ví dụ
+
+### Tạo bằng REST
 
 ```bash
 curl https://api.tokenlab.sh/api/v3/contents/generations/tasks \
@@ -41,7 +79,7 @@ curl https://api.tokenlab.sh/api/v3/contents/generations/tasks \
   -H "Idempotency-Key: $CLIENT_JOB_ID" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "doubao-seedance-2-0-260128",
+    "model": "doubao-seedance-2.0",
     "content": [
       {"type": "text", "text": "A cinematic forest at sunset"},
       {"type": "image_url", "role": "reference_image", "image_url": {"url": "https://example.com/ref.png"}}
@@ -49,6 +87,28 @@ curl https://api.tokenlab.sh/api/v3/contents/generations/tasks \
     "ratio": "16:9",
     "duration": 5,
     "resolution": "720p",
-    "generate_audio": false
+    "generate_audio": false,
+    "callback_url": "https://example.com/webhooks/seedance"
   }'
 ```
+
+Đối với các tài nguyên hiện có, hãy đặt mỗi URI vào mục `content[]` chính thức và khai báo vai trò của nó:
+
+```json
+[
+  {
+    "type": "image_url",
+    "role": "first_frame",
+    "image_url": {"url": "asset://asset-20260720123458-start"}
+  },
+  {
+    "type": "image_url",
+    "role": "last_frame",
+    "image_url": {"url": "asset://asset-20260720123459-end01"}
+  }
+]
+```
+
+## Bước tiếp theo
+
+Sử dụng ID `cgt-...` được trả về với [Lấy tác vụ (Tương thích Volc)](/api-reference/video/get-volc-compatible-seedance-task) cho đến khi tác vụ đạt trạng thái cuối cùng.

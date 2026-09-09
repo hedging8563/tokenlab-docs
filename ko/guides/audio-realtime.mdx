@@ -46,7 +46,7 @@ curl -X POST "https://api.tokenlab.sh/v1/audio/speech" \
 
 WebSocket을 열 때 query string에 model을, Authorization header에 API key를 넣습니다. 선택한 realtime 모델 문서의 이벤트 형식을 사용하고, 세션이 끝나면 socket을 닫으세요.
 
-이 가이드는 WebSocket 프록시만 다룹니다. TokenLab은 현재 OpenAI Realtime REST client secret, translation client secret, Calls, legacy beta session 관리 엔드포인트를 제공하지 않습니다.
+이 가이드는 WebSocket 하위 집합만 다룹니다. TokenLab은 현재 OpenAI Realtime REST client secret, translation client secret, Calls, legacy beta session 관리 엔드포인트를 제공하지 않습니다.
 
 ```javascript
 import WebSocket from 'ws';

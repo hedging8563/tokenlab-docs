@@ -39,7 +39,7 @@ As operações públicas de 3D são inferidas pelo formato da requisição: requ
 </ParamField>
 
 <ParamField body="seed" type="integer">
-  Seed para geração reproduzível.
+  Seed inteiro para geração reproduzível. Deve estar entre `0` e `4294967295`.
 </ParamField>
 
 <ParamField body="user" type="string">
@@ -182,6 +182,8 @@ echo "Task ID: " . $data['id'];
 ```json Response
 {
   "id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "task_id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "poll_url": "/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "status": "pending",
   "created": 1706000000,
   "model": "tripo-h3.1"

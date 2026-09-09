@@ -1,278 +1,107 @@
 ---
-title: "معالجة الأخطاء"
-description: "التعامل مع أخطاء API بشكل مناسب"
+title: "التعامل مع أخطاء API"
+description: "اقرأ رموز الخطأ، وأعد المحاولة فقط عند الضرورة، واحتفظ بمعرف الطلب (Request ID)"
 ---
 
-## تنسيق استجابة الخطأ
+تعامل مع الأخطاء بناءً على حالة HTTP و `code`. تم كتابة `message` للمستخدمين البشريين وقد تتغير دون إشعار مسبق.
 
-تُعد Chat Completions وResponses وMessages وGemini حدود بروتوكول عامة وليست واجهات Web. لا تُلف أخطاء البروتوكول الأصلي في غلاف Web مثل `{ success, data, error }`. المثال التالي يخص أخطاء gateway المتوافقة مع OpenAI في Chat وResponses:
+تستخدم Chat Completions و Responses كائن `error` بنمط OpenAI. بينما تحتفظ Anthropic Messages و Gemini بتنسيقات الأخطاء الخاصة بها، لذا لا تستخدم محللًا (parser) واحدًا لكل TokenLab API.
+
 ```json
 {
   "error": {
-    "message": "Human-readable error description",
+    "message": "Human-readable description",
     "type": "error_type",
     "code": "error_code",
     "param": "parameter_name",
-    "did_you_mean": "suggested_model",
-    "suggestions": [{"id": "model-id"}],
-    "hint": "Next step guidance",
     "retryable": true,
     "retry_after": 30
   }
 }
 ```
 
-في أخطاء gateway المتوافقة مع OpenAI يظهر الحقلان `message` و`type`، بينما `code` و`param` وحقول الإرشاد اختيارية. تستخدم Messages وGemini عائلات الخطأ الأصلية الخاصة بهما. تُحفظ أخطاء validation القادمة من upstream عندما يمكن إعادتها بأمان؛ ولا يؤدي 400/422 حتمي إلى تبديل القناة، ولا تحدث إعادة المحاولة بعد تسليم أول بايت.
-## رموز حالة HTTP
+فقط `message` و `type` موجودان دائمًا في الأخطاء المتوافقة مع OpenAI التي تم إنشاؤها بواسطة TokenLab. تظهر الحقول الأخرى عندما تكون ذات صلة.
 
-| الكود | الوصف |
-|------|-------------|
-| 400 | طلب خاطئ - معلمات غير صالحة |
-| 401 | غير مصرح - مفتاح API مفقود أو غير صالح |
-| 402 | يتطلب دفع - رصيد غير كافٍ |
-| 403 | ممنوع - الوصول مرفوض أو النموذج غير مسموح به |
-| 404 | غير موجود - النموذج أو المورد غير موجود |
-| 413 | الحِمل أكبر من المسموح - تجاوز حجم الإدخال أو الملف |
-| 429 | عدد الطلبات أكبر من المسموح - تجاوز حد المعدل |
-| 500 | خطأ داخلي في الخادم |
-| 502 | بوابة خاطئة - خطأ من المزود الأعلى |
-| 503 | الخدمة غير متاحة - الخدمة غير متاحة مؤقتًا |
-| 504 | نفاذ مهلة البوابة - انقضت مهلة الطلب |
+## رموز الحالة (Status codes)
 
-## أنواع الأخطاء
+| الحالة | المعنى | الإجراء المعتاد |
+| --- | --- | --- |
+| `400` | حقل أو معرف نموذج أو مدخل غير صالح | صحح الطلب؛ لا تكرره دون تغيير |
+| `401` | مفتاح API مفقود أو غير صالح أو منتهي الصلاحية أو ملغى | استبدل المفتاح |
+| `402` | الرصيد أو حد مفتاح API منخفض جدًا | اشحن الرصيد، أو ارفع الحد، أو قلل الطلب |
+| `403` | هذا المفتاح لا يمكنه استخدام المورد أو النموذج | غيّر صلاحيات المفتاح أو النموذج |
+| `404` | المورد غير موجود أو لم يعد متاحًا | تحقق من المعرف ومفتاح API الذي أنشأه |
+| `413` | الطلب أو الملف المرفوع كبير جدًا | قلل المدخلات لتناسب حد النموذج أو نقطة النهاية الموثقة |
+| `429` | تم الوصول إلى حد الطلبات | انتظر وفقًا لـ `Retry-After` |
+| `500`–`504` | فشل مؤقت في الخدمة أو الشبكة | أعد المحاولة مع تحديد حد أقصى وتراجع تدريجي (backoff) عندما يكون الطلب آمنًا للتكرار |
 
-### أخطاء المصادقة (401)
+## رموز الخطأ الشائعة
 
-| النوع | الرمز | الوصف |
-|------|------|-------------|
-| `invalid_api_key` | `invalid_api_key` | مفتاح API مفقود أو غير صالح |
-| `expired_api_key` | `expired_api_key` | تم إبطال مفتاح API |
+| الرمز | ماذا يعني | ماذا يجب أن تغير |
+| --- | --- | --- |
+| `invalid_api_key` | مفتاح API مفقود أو غير صالح | تحقق من ترويسة Authorization وقيمة المفتاح |
+| `expired_api_key` | المفتاح منتهي الصلاحية أو تم إلغاؤه | أنشئ أو اختر مفتاحًا نشطًا |
+| `insufficient_balance` | رصيد الحساب لا يغطي الطلب | أضف رصيدًا، أو قلل الطلب، أو اختر نموذجًا أقل تكلفة |
+| `quota_exceeded` | وصل مفتاح API إلى حده الخاص | زد حد ذلك المفتاح أو استخدم مفتاحًا مصرحًا به آخر |
+| `model_not_allowed` | المفتاح لا يمكنه استخدام النموذج المطلوب | حدّث قائمة نماذج المفتاح أو اختر نموذجًا مسموحًا به |
+| `model_not_found` | معرف النموذج غير معروف أو غير متاح | اقرأ `/v1/models` واستخدم معرف نموذج حالي |
+| `context_length_exceeded` | المدخلات أطول مما يقبله النموذج | احذف السجل أو اختر نموذجًا بنافذة سياق أكبر |
+| `rate_limit_exceeded` | تم إرسال الكثير من الطلبات في النافذة الحالية | انتظر وفقًا لـ `Retry-After` |
+| `payload_too_large` | جسم الطلب أو الملف يتجاوز حد نقطة النهاية | قلل أو اضغط المدخلات |
+| `all_channels_failed` | النموذج المختار غير متاح مؤقتًا | انتظر `retry_after` أو اسمح للمستخدم باختيار بديل |
+| `timeout_error` | لم ينتهِ الطلب في الوقت المحدد | أعد المحاولة فقط عندما تكون العملية آمنة للتكرار |
 
-```python
-from openai import OpenAI, AuthenticationError
+تتضمن بعض الأخطاء المتوافقة مع OpenAI حقولًا اختيارية مثل `did_you_mean` أو `suggestions` أو `alternatives` أو `hint` أو `retryable` أو `retry_after`. راجع [الأخطاء التي يمكن للوكلاء (Agents) التعامل معها](/guides/agent-first-api).
 
-try:
-    response = client.chat.completions.create(...)
-except AuthenticationError as e:
-    print(f"Authentication failed: {e.message}")
-```
+## قرارات إعادة المحاولة
 
-### أخطاء الدفع (402)
+| الخطأ | هل تكرر نفس الطلب؟ |
+| --- | --- |
+| `400`, `401`, `402`, `403`, `404`, `413` | لا. غيّر الطلب أو بيانات الاعتماد أو الرصيد أو الصلاحيات أو المدخلات. |
+| `429` | نعم، بعد التأخير الذي يحدده الخادم. |
+| `500`–`504` | أحيانًا. استخدم التراجع الأسي (exponential backoff) وحد أقصى صارم لإعادة المحاولة. |
+| انقطاع الاتصال قبل أي استجابة | أحيانًا. بالنسبة لعمليات الإنشاء، تحقق مما إذا كانت المهمة أو الأثر الجانبي موجودًا بالفعل. |
+| انقطاع البث بعد وصول المخرجات | لا تعتبرها استجابة كاملة. قد يؤدي التكرار إلى إنشاء مخرجات مختلفة أو فرض رسوم ثانية. |
 
-| النوع | الرمز | الوصف |
-|------|------|-------------|
-| `insufficient_balance` | `insufficient_balance` | رصيد الحساب منخفض جدًا |
-| `quota_exceeded` | `quota_exceeded` | تم الوصول إلى حد استخدام مفتاح API |
+بالنسبة لإنشاء الصور والفيديو والموسيقى والنماذج ثلاثية الأبعاد والعوالم، احفظ معرف المهمة (task ID) بمجرد إرجاعه. إذا انتهت مهلة طلب الإنشاء، تحقق من سجل المهمة قبل إرسال طلب إنشاء آخر.
 
-```python
-from openai import OpenAI, APIStatusError
-
-try:
-    response = client.chat.completions.create(...)
-except APIStatusError as e:
-    if e.status_code == 402:
-        print("Please top up your account balance")
-```
-
-### أخطاء الوصول (403)
-
-| النوع | الرمز | الوصف |
-|------|------|-------------|
-| `access_denied` | `access_denied` | تم رفض الوصول إلى المورد |
-| `access_denied` | `model_not_allowed` | النموذج غير مسموح به لمفتاح API هذا |
-
-```json
-{
-  "error": {
-    "message": "You don't have permission to access this model",
-    "type": "access_denied",
-    "code": "model_not_allowed"
-  }
-}
-```
-
-### أخطاء التحقق (400)
-
-| النوع | الوصف |
-|------|-------------|
-| `invalid_request_error` | معلمات الطلب غير صالحة |
-| `context_length_exceeded` | الإدخال طويل جدًا بالنسبة لطول سياق النموذج |
-| `model_not_found` | النموذج المطلوب غير متوفر في العقدة العامة الحالية |
-
-```json
-{
-  "error": {
-    "message": "Model not found: please check the model name",
-    "type": "invalid_request_error",
-    "param": "model",
-    "code": "model_not_found",
-    "did_you_mean": "gpt-5.4",
-    "suggestions": [{"id": "gpt-5.4"}, {"id": "gpt-5-mini"}],
-    "hint": "Did you mean 'gpt-5.4'? Use GET https://api.tokenlab.sh/v1/models to list all available models."
-  }
-}
-```
-
-لا تميز المسارات العامة بين حالات الخطأ الإملائي أو المخفي أو المؤجل أو غير العام في جسم الاستجابة. إذا لم يكن النموذج متوفرًا حاليًا عبر العقدة العامة، تعيد TokenLab `model_not_found`.
-
-### أخطاء حد المعدل (429)
-
-عند تجاوز حدود المعدل:
-
-```json
-{
-  "error": {
-    "message": "Rate limit: 1000 rpm exceeded",
-    "type": "rate_limit_exceeded",
-    "code": "rate_limit_exceeded",
-    "retryable": true,
-    "retry_after": 8,
-    "hint": "Rate limited. Retry after 8s. Current limit: 1000/min for user role."
-  }
-}
-```
-
-**الرؤوس المضمنة:**
-
-```
-Retry-After: 8
-```
-
-يشير كل من ترويسة `Retry-After` وحقل `retry_after` إلى عدد الثواني الدقيق للانتظار قبل إعادة المحاولة.
-
-### الحِمل أكبر من المسموح (413)
-
-عندما يتجاوز حجم الإدخال أو الملف الحدود:
-
-```json
-{
-  "error": {
-    "message": "Input size exceeds maximum allowed",
-    "type": "invalid_request_error",
-    "code": "payload_too_large"
-  }
-}
-```
-
-الأسباب الشائعة:
-- ملف صورة كبير جدًا (الحد الأقصى 20MB)
-- ملف صوتي كبير جدًا (الحد الأقصى 25MB)
-- نص الإدخال يتجاوز طول سياق النموذج
-
-### أخطاء المزود الأعلى (502، 503)
-
-| النوع | الوصف |
-|------|-------------|
-| `upstream_error` | أعاد المزود خطأً |
-| `all_channels_failed` | لا توجد مزودات متاحة |
-| `timeout_error` | انتهت مهلة الطلب |
-
-عندما تفشل كل القنوات، تتضمن الاستجابة نماذج بديلة:
-
-```json
-{
-  "error": {
-    "message": "Model claude-opus-4-6 temporarily unavailable",
-    "code": "all_channels_failed",
-    "retryable": true,
-    "retry_after": 30,
-    "alternatives": [
-      {"id": "claude-sonnet-4-6", "status": "available", "tags": []},
-      {"id": "gpt-5-mini", "status": "available", "tags": []}
-    ],
-    "hint": "Retry in 30s or switch to an available model."
-  }
-}
-```
-
-## معالجة الأخطاء في Python
+## مثال بلغة Python
 
 ```python
-from openai import OpenAI, APIError, RateLimitError, APIConnectionError
+import random
+import time
+from openai import OpenAI, APIConnectionError, APIStatusError, RateLimitError
 
 client = OpenAI(
     api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1"
+    base_url="https://api.tokenlab.sh/v1",
 )
 
-def chat_with_retry(messages, max_retries=3):
-    for attempt in range(max_retries):
+def chat(messages, model="gpt-5.6-luna", attempts=3):
+    for attempt in range(attempts):
         try:
             return client.chat.completions.create(
-                model="gpt-4o",
-                messages=messages
+                model=model,
+                messages=messages,
             )
-        except RateLimitError as e:
-            if attempt < max_retries - 1:
-                import time
-                time.sleep(2 ** attempt)  # Exponential backoff
-                continue
-            raise
-        except APIConnectionError as e:
-            print(f"Connection error: {e}")
-            raise
-        except APIError as e:
-            print(f"API error: {e.status_code} - {e.message}")
-            raise
+        except RateLimitError as exc:
+            if attempt == attempts - 1:
+                raise
+            retry_after = exc.response.headers.get("Retry-After")
+            wait = float(retry_after) if retry_after else (2 ** attempt + random.random())
+            time.sleep(wait)
+        except APIStatusError as exc:
+            if exc.status_code < 500 or attempt == attempts - 1:
+                raise
+            time.sleep(2 ** attempt + random.random())
+        except APIConnectionError:
+            if attempt == attempts - 1:
+                raise
+            time.sleep(2 ** attempt + random.random())
 ```
 
-## معالجة الأخطاء في JavaScript
+## احتفظ بمعرف الطلب (Request ID)
 
-```javascript
-import OpenAI from 'openai';
+تتضمن ترويسات الاستجابة معرف طلب (Request ID) للتتبع. احفظه مع نقطة النهاية، والنموذج، والوقت، ومعرف المستخدم أو الوظيفة الخاص بك. بالنسبة للعمليات غير المتزامنة (async)، احفظ أيضًا `task_id` و `billing_transaction_id` عند توفرهما.
 
-const client = new OpenAI({
-  apiKey: 'sk-your-api-key',
-  baseURL: 'https://api.tokenlab.sh/v1'
-});
-
-async function chatWithRetry(messages, maxRetries = 3) {
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    try {
-      return await client.chat.completions.create({
-        model: 'gpt-4o',
-        messages
-      });
-    } catch (error) {
-      if (error instanceof OpenAI.RateLimitError) {
-        if (attempt < maxRetries - 1) {
-          await new Promise(r => setTimeout(r, 2 ** attempt * 1000));
-          continue;
-        }
-      }
-      throw error;
-    }
-  }
-}
-```
-
-## أفضل الممارسات
-
-<AccordionGroup>
-  <Accordion title="تنفيذ التراجع الأسي">
-    عند تقييد المعدل، انتظر فترات أطول تدريجيًا بين محاولات إعادة المحاولة:
-    ```python
-    wait_time = 2 ** attempt  # 1s, 2s, 4s, 8s...
-    ```
-  </Accordion>
-
-  <Accordion title="تعيين مهلات زمنية">
-    دائمًا قم بتعيين مهلات زمنية معقولة لتجنب الطلبات المعلقة:
-    ```python
-    client = OpenAI(timeout=60.0)  # 60 second timeout
-    ```
-  </Accordion>
-
-  <Accordion title="تسجيل الأخطاء لأغراض التصحيح">
-    سجّل استجابة الخطأ الكاملة بما في ذلك معرف الطلب للدعم:
-    ```python
-    except APIError as e:
-        logger.error(f"API Error: {e.status_code} - {e.message}")
-    ```
-  </Accordion>
-
-  <Accordion title="معالجة الأخطاء الخاصة بالنماذج">
-    بعض النماذج لها متطلبات محددة (مثل max tokens، تنسيقات الصور).
-    تحقق من صحة المدخلات قبل إرسال الطلبات.
-  </Accordion>
-</AccordionGroup>
+عند التواصل مع الدعم، قم بتضمين تلك المعرفات ومثال منقح. لا ترسل أبدًا مفاتيح API، أو رموز الإدارة (management tokens)، أو الوسائط الخاصة، أو الروابط الموقعة، أو المطالبات الخاصة الكاملة.

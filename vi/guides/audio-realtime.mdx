@@ -46,7 +46,7 @@ curl -X POST "https://api.tokenlab.sh/v1/audio/speech" \
 
 Mở WebSocket với model trong query string và API key trong header Authorization. Dùng định dạng sự kiện được tài liệu hóa cho realtime model đã chọn, rồi đóng socket khi phiên hoàn tất.
 
-Hướng dẫn này chỉ bao phủ proxy WebSocket. TokenLab hiện chưa cung cấp các endpoint REST của OpenAI Realtime cho client secret, translation client secret, Calls hoặc quản lý legacy beta session.
+Hướng dẫn này chỉ bao phủ WebSocket subset. TokenLab hiện chưa cung cấp các endpoint REST của OpenAI Realtime cho client secret, translation client secret, Calls hoặc quản lý legacy beta session.
 
 ```javascript
 import WebSocket from 'ws';
