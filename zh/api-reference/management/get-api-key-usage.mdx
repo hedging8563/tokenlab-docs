@@ -1,10 +1,12 @@
 ---
-title: "获取 API 密钥用量"
+title: "获取 API Key 用量"
 openapi: "GET /v1/management/api-keys/{keyId}/usage"
-description: "分页获取一枚 API 密钥的用量明细。"
+description: "返回某个用户 API Key 的分页用量明细。"
 ---
 
-返回单个 API 密钥的逐条用量记录。
+## 概览
+
+该接口返回单个 API Key 维度的分页用量明细，不暴露提供商执行细节。
 
 ## 查询参数
 
@@ -25,7 +27,9 @@ description: "分页获取一枚 API 密钥的用量明细。"
 - 金额字段仅支持 USD。`CNY` 输入已停用，并会返回 `400 currency_retired`。
 
 - 响应是分页的。
-- 完成结算的记录会带有 `billing_transaction_id`，可与 `request_id` 一起保存。
+- 响应只包含公开账单和报表字段。
+- 当底层请求已完成结算时，每条用量明细还会包含 `billing_transaction_id`。建议将它与 `request_id` 一起用于请求级对账。
+- 供应商执行细节会被隐藏。
 
 ## 示例
 
@@ -35,6 +39,10 @@ curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page
   -H "Authorization: Bearer mt-your-management-token"
 ```
 </RequestExample>
+
+## 请求 / 响应
+
+精确 schema 和响应字段请使用上方的交互式 OpenAPI 面板。
 
 ## 响应示例
 
@@ -51,7 +59,7 @@ curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page
     "used_amount": 148.25,
     "used_amount_decimal": "148.25",
     "models": [
-      "gpt-5.6-luna",
+      "gpt-5-mini",
       "claude-3-7-sonnet"
     ],
     "expires_at": "2026-12-31T23:59:59.000Z",
@@ -62,8 +70,8 @@ curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page
     {
       "request_id": "req_abc123",
       "billing_transaction_id": "billtxn_abc123",
-      "model": "gpt-5.6-luna",
-      "logical_model": "gpt-5.6-luna",
+      "model": "gpt-5-mini",
+      "logical_model": "gpt-5-mini",
       "model_vendor": "OpenAI",
       "scene": "chat",
       "usage_unit": "per_token",
@@ -104,8 +112,8 @@ curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page
   "breakdowns": {
     "by_model": [
       {
-        "model": "gpt-5.6-luna",
-        "logical_model": "gpt-5.6-luna",
+        "model": "gpt-5-mini",
+        "logical_model": "gpt-5-mini",
         "model_vendor": "OpenAI",
         "requests": 1,
         "cost": 0.0012,
@@ -116,8 +124,8 @@ curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page
     ],
     "by_logical_model": [
       {
-        "model": "gpt-5.6-luna",
-        "logical_model": "gpt-5.6-luna",
+        "model": "gpt-5-mini",
+        "logical_model": "gpt-5-mini",
         "model_vendor": "OpenAI",
         "requests": 1,
         "cost": 0.0012,
@@ -155,15 +163,15 @@ curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page
 
 ## 重要字段
 
-<ResponseField name="api_key" type="object">API 密钥摘要。</ResponseField>
+<ResponseField name="api_key" type="object">API Key 摘要，字段与列出、创建和更新响应相同。</ResponseField>
 <ResponseField name="items" type="array">分页后的用量明细。</ResponseField>
 <ResponseField name="pagination" type="object">分页元数据，包含 `page`、`limit`、`total` 和 `totalPages`。</ResponseField>
 <ResponseField name="summary" type="object">按所选筛选条件汇总的总计。</ResponseField>
-<ResponseField name="breakdowns" type="object">按不同维度汇总的费用和用量。</ResponseField>
-<ResponseField name="items[].request_id" type="string | null">请求 ID。</ResponseField>
+<ResponseField name="breakdowns" type="object">按所选筛选条件汇总的明细拆分。</ResponseField>
+<ResponseField name="items[].request_id" type="string | null">用于技术支持和对账的公开请求标识符。</ResponseField>
 <ResponseField name="items[].billing_transaction_id" type="string | null">完成结算后可用的账单交易 ID。</ResponseField>
 <ResponseField name="items[].model" type="string">请求时使用的公开模型名称。</ResponseField>
-<ResponseField name="items[].logical_model" type="string">用于汇总的公开模型。</ResponseField>
+<ResponseField name="items[].logical_model" type="string">用于报表的逻辑公开模型。</ResponseField>
 <ResponseField name="items[].model_vendor" type="string | null">公开模型厂商。</ResponseField>
 <ResponseField name="items[].scene" type="string | null">公开请求场景。</ResponseField>
 <ResponseField name="items[].usage_unit" type="string">账单计量单位，例如 `per_token`。</ResponseField>

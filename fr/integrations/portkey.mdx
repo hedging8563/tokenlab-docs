@@ -7,6 +7,14 @@ description: "Utilisez TokenLab comme fournisseur amont dans Portkey Gateway"
 
 Portkey Gateway peut acheminer les requêtes vers TokenLab en tant que fournisseur amont. L'option par défaut la plus sûre est celle des complétions de chat compatibles avec OpenAI ; utilisez Responses lorsque votre version de Portkey expose ce chemin pour TokenLab.
 
+<Note>
+**Type** : AI Gateway
+
+**Chemins principaux** : Complétions de chat compatibles avec OpenAI et Responses
+
+**Niveau de support** : Chemin pris en charge
+</Note>
+
 ## Valeurs du fournisseur
 
 | Champ | Valeur |
@@ -26,7 +34,7 @@ curl https://your-portkey-gateway.example/v1/chat/completions \
   -H "x-portkey-provider: tokenlab" \
   -H "Authorization: Bearer sk-your-tokenlab-key" \
   -d '{
-    "model": "gpt-5.6-luna",
+    "model": "gpt-5.4-mini",
     "messages": [{"role": "user", "content": "Say hello from TokenLab."}]
   }'
 ```

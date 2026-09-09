@@ -11,6 +11,14 @@ TokenLab fonctionne bien avec les intégrations `ChatOpenAI` et `OpenAIEmbedding
 La documentation actuelle de LangChain indique que `ChatOpenAI` cible les formats standard de requête/réponse compatibles avec OpenAI. Si vous avez besoin de champs de réponse spécifiques à un fournisseur et non standard, utilisez plutôt une intégration LangChain spécifique à ce fournisseur au lieu de vous appuyer sur `ChatOpenAI`.
 </Note>
 
+<Note>
+**Type**: Framework ou plateforme
+
+**Chemin principal**: surface standard compatible avec OpenAI
+
+**Niveau de support**: Surface standard prise en charge
+</Note>
+
 Cette page couvre volontairement uniquement la surface standard compatible OpenAI de LangChain, et non les fonctionnalités LangChain propres à un fournisseur au-delà de cette surface.
 
 ## Installation
@@ -25,7 +33,7 @@ pip install langchain langchain-openai langchain-community faiss-cpu
 from langchain_openai import ChatOpenAI
 
 llm = ChatOpenAI(
-    model="gpt-5.6-terra",
+    model="gpt-5.4",
     api_key="sk-your-tokenlab-key",
     base_url="https://api.tokenlab.sh/v1",
 )
@@ -40,13 +48,13 @@ print(response.content)
 from langchain_openai import ChatOpenAI
 
 gpt = ChatOpenAI(
-    model="gpt-5.6-terra",
+    model="gpt-5.4",
     api_key="sk-your-key",
     base_url="https://api.tokenlab.sh/v1",
 )
 
 claude = ChatOpenAI(
-    model="claude-sonnet-5",
+    model="claude-sonnet-4-6",
     api_key="sk-your-key",
     base_url="https://api.tokenlab.sh/v1",
 )
@@ -58,7 +66,7 @@ gemini = ChatOpenAI(
 )
 
 deepseek = ChatOpenAI(
-    model="deepseek-reasoner",
+    model="deepseek-r1",
     api_key="sk-your-key",
     base_url="https://api.tokenlab.sh/v1",
 )

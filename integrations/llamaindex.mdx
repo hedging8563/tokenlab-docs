@@ -7,8 +7,19 @@ description: "Integrate TokenLab with LlamaIndex using OpenAI-compatible integra
 
 
 
+<Note>
+**Type**: Framework or Platform
 
-Use LlamaIndex `OpenAILike` for TokenLab. It accepts a custom Base URL and does not infer model metadata from OpenAI model names.
+**Primary Path**: OpenAI-compatible via OpenAILike
+
+**Support Confidence**: Supported via OpenAILike
+</Note>
+
+For TokenLab, the more robust LlamaIndex setup is to use **OpenAI-compatible integrations** instead of the built-in OpenAI classes.
+
+Current LlamaIndex docs explicitly recommend `OpenAILike` for third-party OpenAI-compatible endpoints, because the built-in OpenAI classes infer metadata from official model names.
+
+In other words: treat `OpenAILike` as the supported TokenLab path here, not the built-in OpenAI classes.
 
 ## Installation
 
@@ -27,7 +38,7 @@ from llama_index.llms.openai_like import OpenAILike
 from llama_index.embeddings.openai_like import OpenAILikeEmbedding
 
 llm = OpenAILike(
-    model="gpt-5.6-terra",
+    model="gpt-5.4",
     api_base="https://api.tokenlab.sh/v1",
     api_key="sk-your-tokenlab-key",
     is_chat_model=True,

@@ -1,20 +1,18 @@
 ---
-title: "Xóa tệp"
+title: "Xóa file"
 openapi: "DELETE /v1/files/{file_id}"
-description: "Xóa một tệp đã tải lên thuộc về tổ chức hiện tại."
+description: "Xóa file batch, liên kết file ảnh/tham chiếu hoặc file ở chế độ Anthropic."
 ---
 
 ## Tổng quan
 
-Xóa tệp được tạo qua `/v1/files`. Tệp Batch và tệp tham chiếu hình ảnh do TokenLab tạo sẽ trả về đối tượng deleted tương thích OpenAI.
-
-Khi request dùng chế độ tương thích Anthropic Files, cùng route này xóa tệp kiểu Anthropic khỏi workspace đã gắn.
+Xóa file được tạo qua `/v1/files`. Khi không có header Anthropic, route này xóa file batch của TokenLab hoặc liên kết file ảnh/tham chiếu đã bind. Với `anthropic-beta: files-api-2025-04-14`, route dùng chế độ Anthropic Files API cho workspace đã bind.
 
 ## Ghi chú
 
-- Xóa tệp không hủy các job Batch đã tham chiếu tệp đó.
-- file ids không tồn tại hoặc không được phép sẽ trả về lỗi not-found công khai mà không lộ trạng thái định tuyến.
-- Chỉ xóa tệp tham chiếu hình ảnh sau khi không còn request chỉnh sửa hình ảnh đang chờ cần đến chúng.
+- Xóa file batch sẽ xóa bản ghi file đã lưu và ngăn các job batch sau này dùng file ID đó.
+- Xóa file ảnh/tham chiếu sẽ yêu cầu provider đã chọn xóa file, rồi xóa liên kết file của TokenLab sau khi provider chấp nhận.
+- Chế độ Anthropic Files API yêu cầu cùng các header Anthropic native dùng khi upload và retrieve.
 
 ## Ví dụ
 
@@ -27,4 +25,21 @@ curl -X DELETE "https://api.tokenlab.sh/v1/files/file_abc123" \
 
 ## Yêu cầu / Phản hồi
 
-Dùng bảng OpenAPI tương tác ở trên để xem schema chính xác.
+Dùng bảng OpenAPI tương tác phía trên để xem schema chính xác.
+
+## Ví dụ response
+
+<ResponseExample>
+```json 200 OK
+{
+  "id": "file_abc123",
+  "object": "file",
+  "deleted": true
+}
+```
+</ResponseExample>
+
+## Trường quan trọng
+
+<ResponseField name="id" type="string">Định danh file đã bị xóa.</ResponseField>
+<ResponseField name="deleted" type="boolean">Yêu cầu xóa có thành công hay không.</ResponseField>

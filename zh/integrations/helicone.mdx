@@ -1,12 +1,19 @@
 ---
 title: "Helicone"
-description: "用 Helicone 记录和分析 TokenLab 请求"
+description: "通过 Helicone Gateway 观测 TokenLab 请求"
 ---
 
 ## 概述
 
-Helicone Gateway 可以把 OpenAI 兼容请求转发到 TokenLab，并记录调用信息。
+Helicone 可以通过将 TokenLab 的 OpenAI 兼容请求路由至 Helicone Gateway 并指向 TokenLab，从而实现对这些请求的代理和观测。
 
+<Note>
+**类型**: 可观测性网关 (Observability Gateway)
+
+**主要路径**: 通过 Helicone Gateway 进行 OpenAI 兼容的聊天补全 (chat completions)
+
+**支持置信度**: 支持的可观测性路径
+</Note>
 
 ## 环境
 
@@ -26,7 +33,7 @@ curl --request POST \
   --header "Helicone-Target-Provider: TokenLab" \
   --header "Content-Type: application/json" \
   --data '{
-    "model": "gpt-5.6-luna",
+    "model": "gpt-5.4-mini",
     "messages": [
       {
         "role": "user",
@@ -59,4 +66,4 @@ const response = await client.chat.completions.create({
 
 ## 范围
 
-此设置适用于 OpenAI 兼容的 `/v1` 请求。Responses、Anthropic Messages 和 Gemini 格式只有在 Helicone 明确支持时才经过它，否则直接调用 TokenLab。
+此设置适用于 OpenAI 兼容的 `/v1` 流量。TokenLab 同时还公开了原生 Responses、Anthropic Messages 和 Gemini 兼容的端点；除非您的可观测性代理明确支持这些原生格式，否则请使用直接的 TokenLab 路由。

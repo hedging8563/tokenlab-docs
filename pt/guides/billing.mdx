@@ -93,7 +93,7 @@ def estimate_tokens(text):
 
 # Contagem real (para modelos OpenAI)
 import tiktoken
-encoder = tiktoken.encoding_for_model("gpt-5.6-terra")
+encoder = tiktoken.encoding_for_model("gpt-4o")
 tokens = encoder.encode("Your text here")
 print(f"Token count: {len(tokens)}")
 ```

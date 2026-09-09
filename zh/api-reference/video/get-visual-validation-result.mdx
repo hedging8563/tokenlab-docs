@@ -4,7 +4,7 @@ openapi: "POST /api/v3"
 description: "获取视觉验证生成的真人素材组。"
 ---
 
-H5 验证完成后，通过此 Action 获取对应的 TokenLab 素材组 ID。
+H5 视觉验证流程结束后轮询此 Action。成功结果会返回已验证人员对应的 TokenLab 素材组 ID。
 
 ## 接口与认证
 
@@ -16,7 +16,7 @@ Content-Type: application/json
 
 发送 [创建视觉验证会话](/zh/api-reference/video/create-visual-validation-session) 返回的 `BytedToken`。如果创建时设置了 `ProjectName`，此处必须发送相同且区分大小写的值；否则可省略或使用 `default`。
 
-浏览器回调后，结果可能还需要几秒钟才会就绪。重复请求直到返回 `Result.GroupId`；`BytedToken` 的有效期为 30 分钟。同一 token 会返回同一个 `GroupId`。
+浏览器回调后，结果可能不会立即就绪。请重复同一请求，直到返回 `Result.GroupId`，或 30 分钟的 `BytedToken` 过期。使用同一 token 重复成功请求，会返回同一个已映射的 `GroupId`。
 
 创建 `liveness_face` 素材时，将返回的 `GroupId` 作为 `group_id`。
 
@@ -46,4 +46,4 @@ curl 'https://api.tokenlab.sh/api/v3?Action=GetVisualValidateResult&Version=2024
 }
 ```
 
-失败时，错误码和错误信息分别位于 `ResponseMetadata.Error.Code` 和 `ResponseMetadata.Error.Message`。
+错误使用 `ResponseMetadata.Error.Code` 和 `ResponseMetadata.Error.Message`。成功响应包含 `ResponseMetadata` 和 `Result`，不使用 TokenLab 其他 `/v1` API 的响应结构。

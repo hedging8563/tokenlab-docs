@@ -7,6 +7,14 @@ description: "Conecta Microsoft Semantic Kernel a TokenLab con un endpoint perso
 
 Semantic Kernel puede llamar a TokenLab a través de su servicio de finalización de chat con endpoint personalizado de OpenAI.
 
+<Note>
+**Tipo**: SDK / Framework de agentes
+
+**Ruta principal**: Finalizaciones de chat compatibles con OpenAI
+
+**Nivel de soporte**: Ruta de endpoint personalizado compatible
+</Note>
+
 ## Entorno
 
 ```bash
@@ -25,7 +33,7 @@ using Microsoft.SemanticKernel;
 var builder = Kernel.CreateBuilder();
 
 builder.AddOpenAIChatCompletion(
-    modelId: "gpt-5.6-luna",
+    modelId: "gpt-5.4-mini",
     endpoint: new Uri("https://api.tokenlab.sh/v1"),
     apiKey: Environment.GetEnvironmentVariable("TOKENLAB_API_KEY"));
 

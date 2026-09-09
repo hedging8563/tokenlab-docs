@@ -20,7 +20,7 @@ description: "استخدم نماذج TokenLab مع OpenAI Agents SDK"
 ```bash
 export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 export TOKENLAB_BASE_URL="https://api.tokenlab.sh/v1"
-export TOKENLAB_MODEL="gpt-5.6-luna"
+export TOKENLAB_MODEL="gpt-5.4-mini"
 ```
 
 ## مثال
@@ -46,7 +46,7 @@ async def main():
         name="Assistant",
         instructions="You are concise and practical.",
         model=OpenAIChatCompletionsModel(
-            model=os.getenv("TOKENLAB_MODEL", "gpt-5.6-luna"),
+            model=os.getenv("TOKENLAB_MODEL", "gpt-5.4-mini"),
             openai_client=client,
         ),
     )

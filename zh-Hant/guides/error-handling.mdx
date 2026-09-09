@@ -1,107 +1,278 @@
 ---
-title: "處理 API 錯誤"
-description: "讀取錯誤代碼、僅在必要時重試，並保留 Request ID"
+title: "錯誤處理"
+description: "優雅地處理 API 錯誤"
 ---
 
-請根據 HTTP 狀態碼和 `code` 來處理錯誤。`message` 欄位是為人類閱讀而編寫的，可能會隨時變更，恕不另行通知。
+## 錯誤回應格式
 
-Chat Completions 和 Responses 使用 OpenAI 風格的 `error` 物件。Anthropic Messages 和 Gemini 則保留其各自的錯誤格式，因此請勿對所有 TokenLab API 使用同一種解析器。
-
+Chat Completions、Responses、Messages 與 Gemini 是公開協議邊界，不是 Web API。原生協議錯誤不會包成 Web 的 `{ success, data, error }` envelope。以下範例只適用於 Chat 與 Responses 的 OpenAI 相容 gateway 錯誤：
 ```json
 {
   "error": {
-    "message": "Human-readable description",
+    "message": "Human-readable error description",
     "type": "error_type",
     "code": "error_code",
     "param": "parameter_name",
+    "did_you_mean": "suggested_model",
+    "suggestions": [{"id": "model-id"}],
+    "hint": "Next step guidance",
     "retryable": true,
     "retry_after": 30
   }
 }
 ```
 
-在 TokenLab 建立的 OpenAI 相容錯誤中，僅 `message` 和 `type` 是必定存在的。其他欄位僅在相關時才會出現。
+OpenAI 相容 gateway 錯誤會包含 `message` 與 `type`；`code`、`param` 和提示擴充是選填。Messages 與 Gemini 使用各自的原生錯誤格式。可安全回傳的 upstream validation 錯誤會原樣保留；確定性的 400/422 不切換 channel，交付第一個 byte 後也不重試。
+## HTTP 狀態碼
 
-## 狀態碼
+| 狀態碼 | 說明 |
+|------|-------------|
+| 400 | Bad Request - 參數無效 |
+| 401 | Unauthorized - API key 無效或遺失 |
+| 402 | Payment Required - 餘額不足 |
+| 403 | Forbidden - 存取被拒或模型不允許 |
+| 404 | Not Found - 模型或資源不存在 |
+| 413 | 負載過大 - 輸入或檔案大小超過限制 |
+| 429 | Too Many Requests - 超過速率限制 |
+| 500 | 內部伺服器錯誤 |
+| 502 | Bad Gateway - 上游供應商錯誤 |
+| 503 | Service Unavailable - 服務暫時不可用 |
+| 504 | Gateway Timeout - 請求逾時 |
 
-| 狀態 | 含義 | 建議操作 |
-| --- | --- | --- |
-| `400` | 欄位、模型 ID 或輸入無效 | 修改請求；請勿在未修改的情況下重複發送 |
-| `401` | API key 遺失、無效、過期或已撤銷 | 更換 API key |
-| `402` | 餘額不足或達到 API-key 限制 | 儲值、提高限制或減少請求量 |
-| `403` | 此 key 無權使用該資源或模型 | 更改 key 的權限或更換模型 |
-| `404` | 資源不存在或已無法存取 | 檢查 ID 以及建立該資源的 API key |
-| `413` | 請求或上傳的檔案過大 | 根據文件限制減少輸入內容或調整端點限制 |
-| `429` | 已達請求限制 | 等待 `Retry-After` 指定的時間 |
-| `500`–`504` | 暫時性的服務或網路故障 | 在請求可安全重複的情況下，使用限制次數與退避機制 (backoff) 進行重試 |
+## 錯誤類型
 
-## 常見錯誤代碼
+### 身份驗證錯誤 (401)
 
-| 代碼 | 含義 | 應採取的變更 |
-| --- | --- | --- |
-| `invalid_api_key` | API key 遺失或無效 | 檢查 Authorization 標頭與 key 值 |
-| `expired_api_key` | key 已過期或被撤銷 | 建立或選擇一個有效的 key |
-| `insufficient_balance` | 帳戶餘額不足以支付請求 | 儲值、減少請求量或選擇價格較低的模型 |
-| `quota_exceeded` | API key 已達其自身限制 | 提高該 key 的限制或使用其他已授權的 key |
-| `model_not_allowed` | 此 key 無權使用請求的模型 | 更新 key 的模型列表或選擇允許的模型 |
-| `model_not_found` | 模型 ID 未知或不可用 | 查閱 `/v1/models` 並使用當前的模型 ID |
-| `context_length_exceeded` | 輸入長度超過模型限制 | 刪除歷史記錄或選擇具有更大上下文視窗的模型 |
-| `rate_limit_exceeded` | 在當前時間視窗內請求過多 | 等待 `Retry-After` 指定的時間 |
-| `payload_too_large` | 請求主體或檔案超過端點限制 | 減少或壓縮輸入內容 |
-| `all_channels_failed` | 所選模型暫時不可用 | 等待 `retry_after` 或讓使用者選擇替代方案 |
-| `timeout_error` | 請求未在時限內完成 | 僅在操作可安全重複時進行重試 |
-
-部分 OpenAI 相容錯誤包含選用的 `did_you_mean`、`suggestions`、`alternatives`、`hint`、`retryable` 或 `retry_after` 欄位。請參閱 [代理可處理的錯誤](/guides/agent-first-api)。
-
-## 重試決策
-
-| 錯誤 | 是否重複相同請求？ |
-| --- | --- |
-| `400`, `401`, `402`, `403`, `404`, `413` | 否。請更改請求、憑證、餘額、權限或輸入內容。 |
-| `429` | 是，請在伺服器提供的延遲時間後重試。 |
-| `500`–`504` | 有時。請使用指數退避 (exponential backoff) 並設定嚴格的重試限制。 |
-| 連線在收到任何回應前中斷 | 有時。對於建立操作，請先檢查任務或副作用是否已存在。 |
-| 串流在輸出到達後中斷 | 請勿視為完整回應。重複請求可能會產生不同的輸出或導致二次扣款。 |
-
-對於圖像、影片、音樂、3D 和 Worlds 的建立任務，請在收到任務 ID 後立即儲存。如果建立請求逾時，請在發送另一個建立請求前檢查任務記錄。
-
-## Python 範例
+| 類型 | 代碼 | 說明 |
+|------|------|-------------|
+| `invalid_api_key` | `invalid_api_key` | API key 遺失或無效 |
+| `expired_api_key` | `expired_api_key` | API key 已被撤銷 |
 
 ```python
-import random
-import time
-from openai import OpenAI, APIConnectionError, APIStatusError, RateLimitError
+from openai import OpenAI, AuthenticationError
+
+try:
+    response = client.chat.completions.create(...)
+except AuthenticationError as e:
+    print(f"Authentication failed: {e.message}")
+```
+
+### 付款錯誤 (402)
+
+| 類型 | 代碼 | 說明 |
+|------|------|-------------|
+| `insufficient_balance` | `insufficient_balance` | 帳戶餘額過低 |
+| `quota_exceeded` | `quota_exceeded` | API key 使用額度已達上限 |
+
+```python
+from openai import OpenAI, APIStatusError
+
+try:
+    response = client.chat.completions.create(...)
+except APIStatusError as e:
+    if e.status_code == 402:
+        print("Please top up your account balance")
+```
+
+### 存取錯誤 (403)
+
+| 類型 | 代碼 | 說明 |
+|------|------|-------------|
+| `access_denied` | `access_denied` | 存取資源被拒 |
+| `access_denied` | `model_not_allowed` | 此 API key 不允許使用該模型 |
+
+```json
+{
+  "error": {
+    "message": "You don't have permission to access this model",
+    "type": "access_denied",
+    "code": "model_not_allowed"
+  }
+}
+```
+
+### 驗證錯誤 (400)
+
+| 類型 | 說明 |
+|------|-------------|
+| `invalid_request_error` | 請求參數無效 |
+| `context_length_exceeded` | 輸入超過模型的上下文長度 |
+| `model_not_found` | 請求的模型在目前模型詳情中不可用 |
+
+```json
+{
+  "error": {
+    "message": "Model not found: please check the model name",
+    "type": "invalid_request_error",
+    "param": "model",
+    "code": "model_not_found",
+    "did_you_mean": "gpt-5.4",
+    "suggestions": [{"id": "gpt-5.4"}, {"id": "gpt-5-mini"}],
+    "hint": "Did you mean 'gpt-5.4'? Use GET https://api.tokenlab.sh/v1/models to list all available models."
+  }
+}
+```
+
+公開路由在回應主體中不會區分拼字錯誤、隱藏、延後啟用或非公開的模型狀態。如果模型目前無法透過模型詳情取得，TokenLab 會回傳 `model_not_found`。
+
+### 速率限制錯誤 (429)
+
+當您超過速率限制時：
+
+```json
+{
+  "error": {
+    "message": "Rate limit: 1000 rpm exceeded",
+    "type": "rate_limit_exceeded",
+    "code": "rate_limit_exceeded",
+    "retryable": true,
+    "retry_after": 8,
+    "hint": "Rate limited. Retry after 8s. Current limit: 1000/min for user role."
+  }
+}
+```
+
+**包含的標頭：**
+
+```
+Retry-After: 8
+```
+
+`Retry-After` 標頭與 `retry_after` 欄位皆表示在重新嘗試前需等待的確切秒數。
+
+### 載荷過大 (413)
+
+當輸入或檔案大小超過限制時：
+
+```json
+{
+  "error": {
+    "message": "Input size exceeds maximum allowed",
+    "type": "invalid_request_error",
+    "code": "payload_too_large"
+  }
+}
+```
+
+常見原因：
+- 圖像檔案過大（最大 20MB）
+- 音訊檔案過大（最大 25MB）
+- 輸入文字超過模型的上下文長度
+
+### 上游錯誤 (502, 503)
+
+| 類型 | 說明 |
+|------|-------------|
+| `upstream_error` | 供應商回傳錯誤 |
+| `all_channels_failed` | 沒有可用的供應商 |
+| `timeout_error` | 請求逾時 |
+
+當所有通道皆失敗時，回應會包含替代模型：
+
+```json
+{
+  "error": {
+    "message": "Model claude-opus-4-6 temporarily unavailable",
+    "code": "all_channels_failed",
+    "retryable": true,
+    "retry_after": 30,
+    "alternatives": [
+      {"id": "claude-sonnet-4-6", "status": "available", "tags": []},
+      {"id": "gpt-5-mini", "status": "available", "tags": []}
+    ],
+    "hint": "Retry in 30s or switch to an available model."
+  }
+}
+```
+
+## 在 Python 中處理錯誤
+
+```python
+from openai import OpenAI, APIError, RateLimitError, APIConnectionError
 
 client = OpenAI(
     api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1",
+    base_url="https://api.tokenlab.sh/v1"
 )
 
-def chat(messages, model="gpt-5.6-luna", attempts=3):
-    for attempt in range(attempts):
+def chat_with_retry(messages, max_retries=3):
+    for attempt in range(max_retries):
         try:
             return client.chat.completions.create(
-                model=model,
-                messages=messages,
+                model="gpt-4o",
+                messages=messages
             )
-        except RateLimitError as exc:
-            if attempt == attempts - 1:
-                raise
-            retry_after = exc.response.headers.get("Retry-After")
-            wait = float(retry_after) if retry_after else (2 ** attempt + random.random())
-            time.sleep(wait)
-        except APIStatusError as exc:
-            if exc.status_code < 500 or attempt == attempts - 1:
-                raise
-            time.sleep(2 ** attempt + random.random())
-        except APIConnectionError:
-            if attempt == attempts - 1:
-                raise
-            time.sleep(2 ** attempt + random.random())
+        except RateLimitError as e:
+            if attempt < max_retries - 1:
+                import time
+                time.sleep(2 ** attempt)  # Exponential backoff
+                continue
+            raise
+        except APIConnectionError as e:
+            print(f"Connection error: {e}")
+            raise
+        except APIError as e:
+            print(f"API error: {e.status_code} - {e.message}")
+            raise
 ```
 
-## 保留 Request ID
+## 在 JavaScript 中處理錯誤
 
-回應標頭包含用於追蹤的 Request ID。請將其與端點、模型、時間以及您自己的使用者或工作 ID 一併儲存。對於非同步工作，若存在 `task_id` 和 `billing_transaction_id`，也請一併儲存。
+```javascript
+import OpenAI from 'openai';
 
-聯繫支援團隊時，請提供這些 ID 以及去識別化後的範例。切勿傳送 API keys、管理權杖 (management tokens)、私人媒體、簽名 URL 或完整的私人提示詞 (prompts)。
+const client = new OpenAI({
+  apiKey: 'sk-your-api-key',
+  baseURL: 'https://api.tokenlab.sh/v1'
+});
+
+async function chatWithRetry(messages, maxRetries = 3) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await client.chat.completions.create({
+        model: 'gpt-4o',
+        messages
+      });
+    } catch (error) {
+      if (error instanceof OpenAI.RateLimitError) {
+        if (attempt < maxRetries - 1) {
+          await new Promise(r => setTimeout(r, 2 ** attempt * 1000));
+          continue;
+        }
+      }
+      throw error;
+    }
+  }
+}
+```
+
+## 最佳實踐
+
+<AccordionGroup>
+  <Accordion title="實作指數退避">
+    當被限制速率時，在重試之間逐步增加等待時間：
+    ```python
+    wait_time = 2 ** attempt  # 1s, 2s, 4s, 8s...
+    ```
+  </Accordion>
+
+  <Accordion title="設定逾時">
+    始終設定合理的逾時以避免請求掛起：
+    ```python
+    client = OpenAI(timeout=60.0)  # 60 second timeout
+    ```
+  </Accordion>
+
+  <Accordion title="記錄錯誤以利除錯">
+    記錄完整的錯誤回應（包含 request ID）以便支援：
+    ```python
+    except APIError as e:
+        logger.error(f"API Error: {e.status_code} - {e.message}")
+    ```
+  </Accordion>
+
+  <Accordion title="處理模型特定錯誤">
+    某些模型有特定要求（例如 max tokens、圖像格式）。
+    在發出請求前驗證輸入。
+  </Accordion>
+</AccordionGroup>

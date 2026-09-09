@@ -1,79 +1,388 @@
 ---
-title: "工具与 SDK 兼容性"
-description: "找到编程工具、聊天应用、SDK 和框架对应的 TokenLab 配置"
+title: "IDE 与 SDK 兼容性"
+description: "针对 AI 编码工具、SDK 和框架的基于证据的兼容性指南"
 ---
 
-大多数工具只需更换 API 密钥和地址就能连接 TokenLab。具体配置取决于工具使用哪种 API 格式。
+## 概述
 
-| API 格式 | Base URL | 常见客户端 |
-| --- | --- | --- |
-| OpenAI 兼容 Chat Completions | `https://api.tokenlab.sh/v1` | OpenAI SDK、许多聊天应用和框架 |
-| OpenAI Responses | `https://api.tokenlab.sh/v1` | Responses 客户端和依赖 Responses 事件的工具 |
-| Anthropic Messages | `https://api.tokenlab.sh` | Anthropic SDK 和 Claude 工具 |
-| Gemini | `https://api.tokenlab.sh` | 允许自定义地址的 Gemini REST 或 SDK 客户端 |
+TokenLab 提供了多种 API 格式，以便常见的编码工具、SDK 和框架能够以最少的胶水代码进行集成。
 
-所选模型的 `accepted_request_formats` 必须包含同一种格式。配置示例见[选择 API 格式](/zh/guides/api-formats)。
+本页面特意比营销矩阵更为精简：
 
-## 状态说明
+- **支持 (Supported)**：意味着我们记录了具体的设置路径，且 TokenLab 提供了该路径所期望的协议形态。
+- **强原生路径 (Strong native path)**：意味着代码库中还包含针对该协议族的直接适配器或请求格式证据。
+- **尽力而为 (Best-effort)**：意味着集成可以工作，但上游客户端并未将此自定义网关工作流视为稳定的契约。
 
-| 状态 | 含义 |
-| --- | --- |
-| **可用** | 仓库中的配置与该工具公开的自定义服务设置一致 |
-| **有部分限制** | 基本模型请求可用，但工具自营或厂商专属功能仍由原服务提供 |
-| **实验性** | 依赖未正式承诺或经常变化的自定义地址设置，工具升级后可能失效 |
+<Note>
+  不支持的字段处理方式不尽相同。在兼容性路由上，某些字段会被忽略或标准化。在 `/v1/responses` 上，当路由无法保证所请求的行为时，不支持的字段可能会返回明确的 `400` 或 `503` 错误。
+</Note>
 
-这里描述的是文档中的连接方式，不代表第三方产品的每个插件和功能都经过验证。
+## 支持的 API 格式
 
-## 编程工具
+| 端点 | 格式 | 用例 |
+|----------|--------|----------|
+| `/v1/chat/completions` | OpenAI Chat | 通用兼容性 |
+| `/v1/responses` | OpenAI Responses | 有状态对话 |
+| `/v1/messages` | Anthropic Messages | Claude 原生功能 |
+| `/v1beta/models/:model:generateContent` | Google Gemini | Gemini 原生功能 |
 
-| 工具 | 状态 | API 格式 | 说明 |
-| --- | --- | --- | --- |
-| [Claude Code](/zh/integrations/claude-code) | 可用 | Anthropic Messages | 使用 `ANTHROPIC_BASE_URL` 和 TokenLab API 密钥 |
-| [Codex CLI](/zh/integrations/codex-cli) | 有部分限制 | Responses | Responses 专属功能取决于所选模型 |
-| [Cursor](/zh/integrations/cursor) | 有部分限制 | OpenAI 兼容 | 只适用于 Cursor 中允许自定义 API 密钥和地址的功能 |
-| [Cline](/zh/integrations/cline) | 可用 | OpenAI 兼容 | 把 TokenLab 添加为自定义 OpenAI 兼容服务 |
-| [Kilo Code](/zh/integrations/kilo-code) | 可用 | OpenAI 兼容 | 配置自定义服务和模型 ID |
-| [OpenCode](/zh/integrations/opencode) | 可用 | OpenAI 兼容 | 添加 OpenAI 兼容服务 |
-| [OpenHands](/zh/integrations/openhands) | 可用 | OpenAI 兼容 | 使用自定义 LLM 设置 |
-| [Gemini CLI](/zh/integrations/gemini-cli) | 实验性 | Gemini | Google 没有把自定义 TokenLab 地址列为稳定集成 |
+## IDE 与 CLI 兼容性
 
-## 聊天应用
+### 已记录的工具路径
 
-| 应用 | 状态 | 说明 |
-| --- | --- | --- |
-| [Chatbox](/zh/integrations/chatbox) | 可用 | 添加 OpenAI 兼容服务 |
-| [Cherry Studio](/zh/integrations/cherry-studio) | 可用 | 在自定义模型设置中添加 TokenLab |
-| [DeepChat](/zh/integrations/deepchat) | 可用 | 使用 OpenAI 兼容客户端配置 |
-| [Jan](/zh/integrations/jan) | 可用 | 添加 OpenAI 兼容服务 |
-| [LibreChat](/zh/integrations/librechat) | 可用 | 配置自定义 OpenAI 兼容地址 |
-| [Open WebUI](/zh/integrations/open-webui) | 可用 | 添加 OpenAI 兼容连接 |
+| 工具 | 支持级别 | 格式 | 备注 |
+|------|---------------|--------|-------|
+| **Cursor** | 支持（有限制） | OpenAI 兼容 | 适用于 BYOK 标准聊天/编辑器流程，不能替代 Cursor 管理的功能（如 Tab Completion） |
+| **Claude Code CLI** | 强原生路径 | Anthropic | 原生 `/v1/messages` 路由，涵盖 thinking 和 `tool_choice` 的适配器支持 |
+| **Codex CLI** | 支持（模型/路径有限制） | OpenAI Responses | 将 `/v1/responses` 视为 Codex 特定工作流的高级路径；并非所有模型和路由路径都能保证支持仅限 Responses 的字段 |
+| **Gemini CLI** | 尽力而为 / 实验性 | Gemini | 自定义 TokenLab 基础 URL 流程并非官方 Gemini CLI 集成 |
+| **OpenCode** | 支持 | OpenAI 兼容 | 默认使用 OpenAI 兼容提供商；仅在明确需要时切换到基于 Responses 的提供商 |
+| **OpenHands** | 支持 | OpenAI 兼容 | 使用 LiteLLM/OpenAI 兼容路径，配置 `openai/<model>` 和 TokenLab 的 `/v1` 基础 URL |
 
-## SDK 与框架
+<Note>
+  其他 OpenAI 兼容的编辑器和代理工具通常也适用于相同的基本 URL 模式；在生产环境使用前，请检查工具自身的自定义提供商支持情况。
+</Note>
 
-| 客户端 | 状态 | 配置 |
-| --- | --- | --- |
-| [OpenAI SDK](/zh/integrations/openai-sdk) | 可用 | 把 `base_url` / `baseURL` 设为 `https://api.tokenlab.sh/v1` |
-| [Anthropic SDK](/zh/integrations/anthropic-sdk) | 可用 | 把 Base URL 设为 `https://api.tokenlab.sh` |
-| [Vercel AI SDK](/zh/integrations/vercel-ai-sdk) | 可用 | 创建自定义 OpenAI 兼容服务 |
-| [LangChain](/zh/integrations/langchain) | 可用 | 为 `ChatOpenAI` 或 `OpenAIEmbeddings` 配置 TokenLab 地址 |
-| [LlamaIndex](/zh/integrations/llamaindex) | 可用 | 使用 OpenAI 兼容客户端选项 |
-| [OpenAI Agents SDK](/zh/integrations/openai-agents-sdk) | 有部分限制 | 模型没有明确支持 Responses 时，请使用 Chat Completions |
-| [AutoGen](/zh/integrations/autogen) | 可用 | 使用 OpenAI 兼容模型客户端 |
-| [CrewAI](/zh/integrations/crewai) | 可用 | 配置 OpenAI 兼容 LLM 客户端 |
-| [PydanticAI](/zh/integrations/pydantic-ai) | 可用 | 提供 OpenAI 兼容服务配置 |
+### 配置示例
 
-其他框架、监控工具、网关和评测产品可在 Integrations 分类中找到。
+<Tabs>
+  <Tab title="Cursor">
+    ```
+    Base URL: https://api.tokenlab.sh/v1
+    API Key: sk-your-tokenlab-key
+    ```
+    Cursor 内部使用 Anthropic 风格的工具格式。TokenLab 同时支持：
+    - OpenAI 格式：`{ type: "function", function: { name, parameters } }`
+    - Anthropic 格式：`{ name, input_schema }` (无 type 字段)
+  </Tab>
+  <Tab title="Claude Code">
+    ```bash
+    export ANTHROPIC_BASE_URL="https://api.tokenlab.sh"
+    export ANTHROPIC_API_KEY="sk-your-tokenlab-key"
+    ```
+  </Tab>
+  <Tab title="OpenCode">
+    ```bash
+    export OPENAI_API_KEY="sk-your-tokenlab-key"
+    export LOCAL_ENDPOINT="https://api.tokenlab.sh/v1"
+    ```
+  </Tab>
+  <Tab title="Aider">
+    ```bash
+    export OPENAI_API_KEY="sk-your-tokenlab-key"
+    export OPENAI_BASE_URL="https://api.tokenlab.sh/v1"
+    aider --model gpt-5.4
+    ```
+  </Tab>
+</Tabs>
 
-## 自定义 API 密钥不能替代什么
+## SDK 兼容性
 
-有些产品既调用模型，也提供自己的在线功能。TokenLab API 密钥可以用于 BYOK 设置开放的模型请求，但不能替代第三方产品的订阅、补全服务、账户功能或专有扩展。
+### 已记录的 SDK 与框架路径
 
-工具升级后如果配置方式变化，请以当前集成页面为准，不要继续复制旧的环境变量片段。
+| SDK / 框架 | 语言 | 支持级别 | 备注 |
+|-----------------|----------|---------------|-------|
+| **OpenAI SDK** | Python/JS/Go | 支持核心路径 | `/v1` Chat Completions 和 Embeddings 的兼容路径；针对提供商特定行为请使用原生提供商路由，不要假设仅限 Responses 的字段在所有模型上都有效 |
+| **Anthropic SDK** | Python/JS | 强原生路径 | 原生 Messages 路由，直接支持工具、thinking 和提示词缓存 |
+| **Vercel AI SDK** | TypeScript | 推荐集成模式 | 优先使用 `@ai-sdk/openai-compatible`；仅在明确需要 Responses 原生行为时使用 `@ai-sdk/openai` |
+| **LangChain** | Python/JS | 支持标准表面 | `ChatOpenAI` 和 `OpenAIEmbeddings` 是预期的范围；供应商原生扩展不在范围内 |
+| **LlamaIndex** | Python | 通过 `OpenAILike` 支持 | 对于 TokenLab 等第三方网关，请使用 `OpenAILike`，而非内置的 OpenAI 类 |
+| **OpenAI Agents SDK** | Python | 支持 chat-completions 路径 | 使用 `AsyncOpenAI(base_url="https://api.tokenlab.sh/v1")` 配合 `OpenAIChatCompletionsModel`；原生 Responses 行为取决于所选模型和路由 |
+| **AutoGen** | Python | 支持自定义端点路径 | 使用 `OpenAIChatCompletionClient` 并设置 `base_url: https://api.tokenlab.sh/v1` |
+| **Semantic Kernel** | .NET | 支持自定义端点路径 | 使用 OpenAI 聊天完成连接器的自定义端点，并指向 `https://api.tokenlab.sh/v1` |
+| **CrewAI** | Python | 支持自定义端点路径 | 将 `OPENAI_API_BASE` 或 `LLM(base_url=...)` 设置为 TokenLab 的 `/v1` 端点 |
+| **Pydantic AI** | Python | 支持 OpenAI 兼容提供商路径 | 使用 `OpenAIChatModel` 配合 `OpenAIProvider(base_url="https://api.tokenlab.sh/v1")` |
+| **DSPy** | Python | 支持自定义端点路径 | 使用 `dspy.LM("openai/<model>", api_base="https://api.tokenlab.sh/v1")` |
+| **Langflow** | Python / Web | 支持（有限制） | 使用 OpenAI 组件的 **OpenAI API Base** 字段，填入 TokenLab 的 `/v1` 端点 |
+| **Haystack** | Python | 支持自定义端点路径 | 使用 `OpenAIChatGenerator(api_base_url="https://api.tokenlab.sh/v1")` |
+| **Graphiti** | Python | 支持自定义端点路径 | 使用 `OpenAIGenericClient` 配合 TokenLab 的 `/v1` 端点 |
+| **Dify** | - | 支持（有限制） | OpenAI 提供商和面向 chat-completions 的流程是预期路径；不适用于 Codex 特定的 Responses 或 WebSocket 行为 |
+| **Flowise** | Web / Node | 支持（有限制） | 在可用时使用 TokenLab 聊天节点，或使用指向 `https://api.tokenlab.sh/v1` 的 ChatOpenAI 兼容节点 |
+| **Mem0** | Python | 支持自定义端点路径 | 保留 OpenAI 提供商并将 `openai_base_url` 设置为 TokenLab 的 `/v1` 端点 |
+| **Agno** | Python | 支持路径 | 在可用时使用 TokenLab 模型包装器，或使用 OpenAI 兼容的基础 URL 路径 |
+| **Browser Use** | Python | 支持自定义端点路径 | 使用 `ChatOpenAILike` 配合 TokenLab 的 `/v1` 端点 |
+| **VoltAgent** | TypeScript | 支持自定义端点路径 | 传入配置了 `baseURL: "https://api.tokenlab.sh/v1"` 的 AI SDK OpenAI 提供商 |
+| **Ragas** | Python | 支持自定义端点路径 | 将 `AsyncOpenAI(base_url="https://api.tokenlab.sh/v1")` 传入 `llm_factory` |
+| **Guardrails** | Python | 支持验证路径 | 传入配置了 TokenLab `/v1` 端点的 OpenAI SDK 聊天完成可调用对象 |
+| **Prompt flow** | Python / CLI | 支持自定义端点路径 | 创建一个 `base_url=https://api.tokenlab.sh/v1` 的 OpenAI 连接 |
+| **Promptfoo** | CLI / Node | 支持路径 | 使用 `apiBaseUrl: https://api.tokenlab.sh/v1` 的 OpenAI 聊天或 Responses 提供商 |
+| **Portkey Gateway** | Gateway | 支持路径 | 将 TokenLab 用作 OpenAI 兼容聊天和 Responses 流量的上游提供商 |
+| **Helicone** | Gateway / Observability | 支持可观测性路径 | 通过 Helicone Gateway 路由 OpenAI 兼容请求，并设置 `Helicone-Target-Url: https://api.tokenlab.sh` |
+| **Langfuse** | Observability | 支持追踪路径 | 使用 TokenLab 的 `/v1` 基础 URL 配置 Langfuse OpenAI 集成 |
+| **OpenLIT** | Observability | 支持追踪路径 | 对配置了 TokenLab `/v1` 基础 URL 的 OpenAI SDK 客户端进行插桩 |
+| **OpenLLMetry** | Observability | 支持追踪路径 | 使用配置了 TokenLab `/v1` 基础 URL 的 OpenAI SDK 插桩 |
+| **Phoenix** | Observability | 支持追踪路径 | 自动插桩配置了 TokenLab `/v1` 基础 URL 的 OpenAI SDK 客户端 |
+| **Opik** | Observability | 支持追踪路径 | 包装配置了 TokenLab `/v1` 基础 URL 的 OpenAI SDK 客户端 |
+| **LangBot** | Bot Platform | 支持聊天路径 | 在可用时使用 TokenLab 请求器，或配置一个指向 TokenLab `/v1` 端点的 OpenAI 兼容请求器 |
+| **Open WebUI** | Web Chat | 支持聊天应用路径 | 添加 TokenLab 作为 OpenAI 兼容的 API 连接并刷新模型列表 |
+| **Chatbox / DeepChat / Jan / LibreChat / Cherry Studio** | Desktop / Web | 支持聊天应用路径 | 使用各应用自带的 OpenAI 兼容自定义提供商流程；这些应用通常面向 chat-completions |
 
-## 使用前确认
+## Chat Completions 参数
 
-- 工具允许为所需格式填写自定义 Base URL。
-- 模型的 `accepted_request_formats` 包含该格式。
-- 功能依赖流式输出或工具调用时，使用真实请求验证。
-- API 密钥只保存在可信设备或服务端。
-- 报告问题时保留请求 ID。
+### 核心参数
+
+| 参数 | 类型 | 描述 |
+|-----------|------|-------------|
+| `model` | string | 模型标识符（必填） |
+| `messages` | array | 对话消息（必填） |
+| `max_tokens` | integer | 最大输出 token 数 |
+| `temperature` | number | 采样温度 (0-2) |
+| `top_p` | number | 核采样 (0-1) |
+| `stream` | boolean | 启用流式传输 |
+
+### 工具调用
+
+```json
+{
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "get_weather",
+        "description": "获取某地天气",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "location": { "type": "string" }
+          }
+        },
+        "strict": true
+      }
+    }
+  ],
+  "tool_choice": "auto",
+  "parallel_tool_calls": true
+}
+```
+
+### 工具选择选项
+
+| 格式 | 示例 | 描述 |
+|--------|---------|-------------|
+| 字符串 | `"auto"`, `"none"`, `"required"` | 简单选择 |
+| OpenAI 对象 | `{ "type": "function", "function": { "name": "fn" } }` | 强制指定函数 |
+| Anthropic 对象 | `{ "type": "tool", "name": "fn", "disable_parallel_tool_use": true }` | Anthropic 原生格式 |
+
+### 高级参数
+
+| 参数 | 类型 | 描述 |
+|-----------|------|-------------|
+| `stream_options` | object | 仅限 Chat Completions：`{ include_usage: true }` 以获取 token 计数 |
+| `reasoning_effort` | string | 针对启用推理的 GPT-5 模型：`"low"`, `"medium"`, `"high"` |
+| `service_tier` | string | `"auto"` 或 `"default"` |
+| `seed` | integer | 确定性输出 |
+| `logprobs` | boolean | 返回对数概率 |
+| `top_logprobs` | integer | 前 N 个对数概率 (0-20) |
+| `logit_bias` | object | Token 偏置映射 (-100 到 100) |
+| `frequency_penalty` | number | 重复惩罚 (-2 到 2) |
+| `presence_penalty` | number | 主题惩罚 (-2 到 2) |
+| `stop` | string/array | 停止序列 |
+| `n` | integer | 完成数 (1-128) |
+| `user` | string | 用于追踪的用户标识符 |
+
+### OpenAI 高级功能
+
+| 参数 | 类型 | 描述 |
+|-----------|------|-------------|
+| `modalities` | array | 多模态：`["text", "audio"]` |
+| `audio` | object | 音频输出配置（语音、格式） |
+| `prediction` | object | 预测输出以实现更快完成 |
+| `metadata` | object | 用于追踪的键值对 |
+| `store` | boolean | 存储以供后续检索 |
+
+### 提供商特定选项
+
+```json
+{
+  "anthropic_options": {
+    "thinking": {
+      "type": "enabled",
+      "budget_tokens": 10000
+    },
+    "prompt_caching": true
+  },
+  "google_options": {
+    "safety_settings": [...],
+    "google_search": true,
+    "code_execution": true
+  }
+}
+```
+
+## Anthropic Messages 参数
+
+### 核心参数
+
+| 参数 | 类型 | 描述 |
+|-----------|------|-------------|
+| `model` | string | 模型标识符 |
+| `messages` | array | 对话消息 |
+| `max_tokens` | integer | 最大输出 (最高 128000) |
+| `system` | string/array | 系统提示词 |
+| `stream` | boolean | 启用流式传输 |
+
+### 工具调用
+
+```json
+{
+  "tools": [
+    {
+      "name": "get_weather",
+      "description": "获取天气",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "location": { "type": "string" }
+        }
+      }
+    }
+  ],
+  "tool_choice": {
+    "type": "auto",
+    "disable_parallel_tool_use": false
+  }
+}
+```
+
+### 扩展推理 (Extended Thinking)
+
+```json
+{
+  "model": "claude-opus-4-6",
+  "thinking": {
+    "type": "enabled",
+    "budget_tokens": 10000
+  }
+}
+```
+
+## Responses API 参数
+
+### 核心参数
+
+| 参数 | 类型 | 描述 |
+|-----------|------|-------------|
+| `model` | string | 模型标识符 |
+| `input` | string/array | 输入内容 |
+| `instructions` | string | 系统指令 |
+| `max_output_tokens` | integer | 最大输出 token 数 |
+| `previous_response_id` | string | 继续对话 |
+
+### 高级参数
+
+| 参数 | 类型 | 描述 |
+|-----------|------|-------------|
+| `truncation_strategy` | string | `"auto"` 或 `"disabled"` |
+| `include` | array | `["reasoning.encrypted_content"]` |
+| `reasoning_effort` | string | 针对推理模型 |
+| `service_tier` | string | 优先级层级 |
+
+### 工具格式
+
+同时支持 OpenAI 和 Anthropic 工具格式：
+
+```json
+// OpenAI 格式
+{ "type": "function", "name": "fn", "parameters": {...} }
+
+// Anthropic 格式 (Cursor 兼容性)
+{ "name": "fn", "input_schema": {...} }
+```
+
+## Gemini API 参数
+
+### 核心参数
+
+| 参数 | 类型 | 描述 |
+|-----------|------|-------------|
+| `contents` | array | 对话内容 |
+| `systemInstruction` | object | 系统提示词 |
+| `generationConfig` | object | 生成设置 |
+
+### 工具
+
+```json
+{
+  "tools": [{
+    "functionDeclarations": [{
+      "name": "search",
+      "description": "搜索网络",
+      "parameters": {...}
+    }],
+    "codeExecution": {},
+    "googleSearch": {}
+  }],
+  "toolConfig": {
+    "functionCallingConfig": {
+      "mode": "AUTO"
+    }
+  }
+}
+```
+
+### 安全设置
+
+```json
+{
+  "safetySettings": [
+    {
+      "category": "HARM_CATEGORY_HARASSMENT",
+      "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+    }
+  ]
+}
+```
+
+### 附加参数
+
+| 参数 | 类型 | 描述 |
+|-----------|------|-------------|
+| `cachedContent` | string | 缓存内容引用 |
+| `responseMimeType` | string | `"text/plain"` 或 `"application/json"` |
+| `responseSchema` | object | 结构化输出的 JSON schema |
+
+## 流式传输
+
+暴露 `stream: true` 的生成端点（包括 Chat Completions 和 Responses）使用服务器发送事件 (SSE)：
+
+```bash
+# Chat Completions
+curl https://api.tokenlab.sh/v1/chat/completions \
+  -H "Authorization: Bearer sk-xxx" \
+  -d '{"model": "gpt-4o", "messages": [...], "stream": true}'
+
+# Chat Completions 使用量追踪
+-d '{"...", "stream_options": {"include_usage": true}}'
+```
+
+## 错误处理
+
+TokenLab 返回 OpenAI 兼容的错误响应：
+
+```json
+{
+  "error": {
+    "message": "无效的 API 密钥",
+    "type": "invalid_api_key",
+    "code": "invalid_api_key"
+  }
+}
+```
+
+详情请参阅 [错误处理指南](/guides/error-handling)。
+
+## 最佳实践
+
+<AccordionGroup>
+  <Accordion title="对未知参数使用透传">
+    仅当所选公共路由和模型支持时，才会转发未知参数。
+  </Accordion>
+
+  <Accordion title="仅在 Chat Completions 中使用 stream_options.include_usage">
+    对于 Chat Completions 流式传输，启用 `stream_options.include_usage` 以获取准确的 token 计数。Responses 有其自己的流式契约，不暴露此仅限 Chat 的选项。
+  </Accordion>
+
+  <Accordion title="使用适当的 tool_choice 格式">
+    匹配 SDK 预期的格式。TokenLab 同时接受 OpenAI 和 Anthropic 格式。
+  </Accordion>
+</AccordionGroup>

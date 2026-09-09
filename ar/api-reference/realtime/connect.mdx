@@ -6,11 +6,11 @@ description: "الاتصال بجلسات صوتية ومتعددة الوسائ
 
 ## نظرة عامة
 
-استخدم نقطة النهاية هذه لجلسات الوقت الفعلي مثل التعرّف على الكلام بالبث، وتركيب الكلام، وترجمة الكلام، أو النماذج متعددة الوسائط في الوقت الفعلي. يعيد طلب `GET` العادي بيانات وصف نقطة النهاية، بينما يفتح طلب ترقية WebSocket جلسة في الوقت الفعلي للنموذج المحدد.
+يستخدم هذا المسار لجلسات التعرف على الكلام، توليد الكلام، ترجمة الكلام، أو النماذج متعددة الوسائط الفورية. طلب `GET` العادي يعيد معلومات المسار؛ أما ترقية WebSocket فتُمرر إلى جلسة المزود المختارة.
 
 ## النطاق المدعوم
 
-يوفّر TokenLab نقطة WebSocket فورية على `GET /v1/realtime` لفحص metadata وطلبات ترقية WebSocket. تعامل معها كسطح WebSocket محدود (WebSocket subset): فهي تمرّر أحداث نماذج realtime المدعومة فقط، ولا تدعم أسطح مساعدات REST في OpenAI Realtime مثل إنشاء الجلسات، أو `client_secrets`، أو واجهات التحكم بالمكالمات `Calls`، أو legacy beta session APIs.
+هذا المسار هو وكيل WebSocket الفوري في TokenLab. يدعم فحص metadata عبر `GET /v1/realtime` وترقية WebSocket على المسار نفسه. لا يوفّر مسارات REST المساعدة في OpenAI Realtime مثل `POST /v1/realtime/client_secrets` أو `POST /v1/realtime/translations/client_secrets` أو Realtime Calls (`accept`, `hangup`, `refer`, `reject`) أو إنشاء legacy beta REST session / transcription-session.
 
 في تطبيقات المتصفح أو الجوال، احتفظ بمفاتيح API طويلة العمر على الخادم. هذا المسار لا يصدر Realtime client secrets قصيرة العمر.
 
@@ -54,13 +54,13 @@ curl "https://api.tokenlab.sh/v1/realtime" \
 
 ## الرسائل
 
-ينقل TokenLab رسائل WebSocket بين عميلك والنموذج الفوري المحدد. استخدم تنسيق الأحداث الموثّق لذلك النموذج، وأدرج `model` في سلسلة الاستعلام بدلاً من إدراجه في كل حدث.
+يمرر TokenLab رسائل WebSocket بين عميلك والمزود الفوري الذي تم اختياره. احتفظ بشكل الأحداث الرسمي للنموذج المحدد ومرر `model` في query string.
 
 ## الفوترة والإغلاق
 
-تُحتسب تكلفة الجلسات من رصيد مفتاح API الخاص بك: يحجز TokenLab مبلغًا تقديريًا عند البدء، ثم يسوّي الاستخدام الفعلي عند الانتهاء ويعيد الفرق.
+تستخدم جلسات realtime رصيد مفتاح API نفسه. يخصم TokenLab تقديراً صغيراً عند فتح socket، ثم يسوي المبلغ أو يرده عند الإغلاق.
 
-أغلق مقبس العميل عند اكتمال الجلسة. إذا أغلقت الخدمة الجلسة أولاً، يرسل TokenLab إلى عميلك حدث/رمز إغلاق آمنًا عند الإمكان.
+أغلق socket العميل عند اكتمال الجلسة. إذا أغلق المزود أولاً، يحاول TokenLab تمرير رمز الإغلاق إلى العميل.
 
 ## مثال الاستجابة
 
@@ -80,4 +80,4 @@ curl "https://api.tokenlab.sh/v1/realtime" \
 ## حقول مهمة
 
 <ResponseField name="type" type="string">نوع الحدث أو الرسالة الذي تعيده API.</ResponseField>
-<ResponseField name="session.id" type="string">معرّف مبهم يتم استلامه عبر اتصال realtime. ضمّنه في سجلات الدعم لتسهيل التشخيص؛ وليس عنوان URL لجلسة REST.</ResponseField>
+<ResponseField name="session.id" type="string">معرّف يصدره مزود الوقت الفعلي؛ ضمّنه في سجلات الدعم، وليس كعنوان URL لجلسة REST.</ResponseField>

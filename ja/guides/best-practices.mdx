@@ -37,12 +37,12 @@ def smart_query(question: str, complexity: str = "auto"):
     """Use cheaper models for simple tasks."""
 
     if complexity == "simple":
-        model = "gpt-5.6-luna"
+        model = "gpt-5-mini"
     elif complexity == "complex":
-        model = "gpt-5.6-terra"
+        model = "gpt-4o"
     else:
         # Start cheap, escalate if needed
-        model = "gpt-5.6-luna"
+        model = "gpt-5-mini"
 
     response = client.chat.completions.create(
         model=model,
@@ -58,13 +58,13 @@ def smart_query(question: str, complexity: str = "auto"):
 ```python
 # ❌ Bad: No limit, could generate thousands of tokens
 response = client.chat.completions.create(
-    model="gpt-5.6-terra",
+    model="gpt-4o",
     messages=[{"role": "user", "content": "Summarize this article"}]
 )
 
 # ✅ Good: Limit response length
 response = client.chat.completions.create(
-    model="gpt-5.6-terra",
+    model="gpt-4o",
     messages=[{"role": "user", "content": "Summarize this article"}],
     max_tokens=500  # Reasonable limit for a summary
 )
@@ -91,14 +91,14 @@ prompt = "Summarize the key points:\n{text}"
 # ❌ Many small requests
 for question in questions:
     response = client.chat.completions.create(
-        model="gpt-5.6-terra",
+        model="gpt-4o",
         messages=[{"role": "user", "content": question}]
     )
 
 # ✅ Fewer larger requests
 combined_prompt = "\n".join([f"{i+1}. {q}" for i, q in enumerate(questions)])
 response = client.chat.completions.create(
-    model="gpt-5.6-terra",
+    model="gpt-4o",
     messages=[{"role": "user", "content": f"Answer each question:\n{combined_prompt}"}]
 )
 ```
@@ -111,7 +111,7 @@ response = client.chat.completions.create(
 
 ```python
 stream = client.chat.completions.create(
-    model="gpt-5.6-terra",
+    model="gpt-4o",
     messages=[{"role": "user", "content": "Write a long essay"}],
     stream=True
 )
@@ -151,7 +151,7 @@ def chat_with_retry(messages, max_retries=3):
     for attempt in range(max_retries):
         try:
             return client.chat.completions.create(
-                model="gpt-5.6-terra",
+                model="gpt-4o",
                 messages=messages
             )
         except RateLimitError:
@@ -189,7 +189,7 @@ except APIError as e:
 ### 10. フォールバックモデルを使う
 
 ```python
-FALLBACK_CHAIN = ["gpt-5.6-terra", "claude-sonnet-5", "gemini-3.5-flash"]
+FALLBACK_CHAIN = ["gpt-4o", "claude-sonnet-4-6", "gemini-3.5-flash"]
 
 def chat_with_fallback(messages):
     for model in FALLBACK_CHAIN:

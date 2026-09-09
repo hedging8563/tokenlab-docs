@@ -1,20 +1,18 @@
 ---
 title: "刪除檔案"
 openapi: "DELETE /v1/files/{file_id}"
-description: "刪除目前組織擁有的已上傳檔案。"
+description: "刪除批次檔案、圖像/參考檔案綁定，或 Anthropic 模式檔案。"
 ---
 
 ## 概述
 
-刪除透過 `/v1/files` 建立的檔案。批次檔案和 TokenLab 建立的圖像參考檔案會回傳 OpenAI 相容的 deleted 物件。
-
-當請求選擇 Anthropic Files 相容模式時，同一路徑會從繫結工作區刪除 Anthropic 風格檔案。
+刪除透過 `/v1/files` 建立的檔案。不帶 Anthropic 標頭時，此路由會刪除 TokenLab 批次檔案，或已綁定的圖像/參考檔案綁定。帶 `anthropic-beta: files-api-2025-04-14` 時，此路由會依綁定工作區使用 Anthropic Files API 模式。
 
 ## 注意事項
 
-- 刪除檔案不會取消已經引用該檔案的批次工作。
-- 不存在或無權存取的 file id 會回傳公開的 not-found 錯誤，不暴露路由狀態。
-- 只有在沒有待處理的圖像編輯請求需要該參考檔案後，才刪除圖像參考檔案。
+- 刪除批次檔案會移除已儲存的批次檔案記錄，並阻止後續批次作業繼續使用該檔案 ID。
+- 刪除圖像/參考檔案會先要求所選提供商刪除檔案，提供商接受刪除後再移除 TokenLab 檔案綁定。
+- Anthropic Files API 模式需要使用與上傳、擷取相同的 Anthropic 原生標頭。
 
 ## 範例
 
@@ -27,4 +25,21 @@ curl -X DELETE "https://api.tokenlab.sh/v1/files/file_abc123" \
 
 ## 請求 / 回應
 
-使用上方互動式 OpenAPI 面板查看精確 schema。
+使用上方互動式 OpenAPI 面板取得精確 schema。
+
+## 回應範例
+
+<ResponseExample>
+```json 200 OK
+{
+  "id": "file_abc123",
+  "object": "file",
+  "deleted": true
+}
+```
+</ResponseExample>
+
+## 重要欄位
+
+<ResponseField name="id" type="string">已刪除的檔案識別碼。</ResponseField>
+<ResponseField name="deleted" type="boolean">刪除請求是否成功。</ResponseField>

@@ -32,9 +32,7 @@ Khi bạn vượt quá giới hạn, bạn sẽ nhận được phản hồi `42
   "error": {
     "message": "Rate limit exceeded. Please retry later.",
     "type": "rate_limit_exceeded",
-    "code": "rate_limit_exceeded",
-    "retryable": true,
-    "retry_after": 8
+    "code": "rate_limit_exceeded"
   }
 }
 ```
@@ -63,7 +61,7 @@ def make_request_with_backoff(messages, max_retries=5):
     for attempt in range(max_retries):
         try:
             return client.chat.completions.create(
-                model="gpt-5.6-terra",
+                model="gpt-4o",
                 messages=messages
             )
         except RateLimitError as e:
@@ -98,7 +96,7 @@ class RateLimitedClient:
 
         self.last_request = asyncio.get_event_loop().time()
         return await self.client.chat.completions.create(
-            model="gpt-5.6-terra",
+            model="gpt-4o",
             messages=messages
         )
 ```
@@ -114,7 +112,7 @@ def process_batch(items, batch_size=50, delay=1):
         batch = items[i:i + batch_size]
         for item in batch:
             result = client.chat.completions.create(
-                model="gpt-5.6-terra",
+                model="gpt-4o",
                 messages=[{"role": "user", "content": item}]
             )
             results.append(result)

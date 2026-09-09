@@ -1,68 +1,245 @@
 ---
-title: "Listar Modelos"
+title: "Listar modelos"
 openapi: "GET /v1/models"
-description: "Listar modelos atualmente disponíveis no TokenLab"
+description: "Lista todos os modelos disponíveis"
 ---
 
-O catálogo de modelos é público e não requer uma API key. Cada item inclui um resumo das capacidades atuais, preços e formatos de API. Recupere um modelo específico quando precisar de detalhes completos.
+## Resumo
 
-## Parâmetros de Consulta
+`GET /v1/models` é otimizado para descoberta. Metadados apenas de detalhe, como `capability_flags`, `pricing_provenance` e o `request_format_details` completo, ficam em `GET /v1/models/{model}`.
+
+## Parâmetros de consulta
 
 <ParamField query="category" type="string">
-  Filtre por `chat`, `image`, `video`, `audio`, `tts`, `stt`, `music`, `3d`, `embedding`, `rerank` ou `translation`.
+  Filtro opcional por categoria pública. Suporta `chat`, `image`, `video`, `audio`, `tts`, `stt`, `music`, `3d`, `embedding`, `rerank` e `translation`.
 </ParamField>
 
 <ParamField query="recommended_for" type="string">
-  Retorne as recomendações atuais para uma tarefa como `image`, `video`, `music`, `3d`, `tts`, `stt`, `embedding`, `rerank` ou `translation`.
+  Cena opcional de recomendação não chat. Suporta `image`, `video`, `music`, `3d`, `tts`, `stt`, `embedding`, `rerank` e `translation`.
 </ParamField>
 
 <ParamField query="provider" type="string">
-  Filtre pelo fabricante do modelo, como `openai`, `anthropic`, `google` ou `deepseek`.
+  Filtro opcional por provedor, como `openai`, `anthropic`, `google` ou `deepseek`.
 </ParamField>
 
 <ParamField query="tag" type="string">
-  Filtre por uma tag como `chat`, `image`, `video`, `embedding` ou `translation`.
+  Filtro opcional por tag de modelo, como `chat`, `image`, `video`, `embedding` ou `translation`.
 </ParamField>
+
+<Note>
+Quando `recommended_for` está presente, `/v1/models` ordena os modelos não chat pela captura mais recente de taxa de sucesso das últimas 24 horas em cache. Modelos com `status = "insufficient_samples"` continuam visíveis, mas aparecem depois dos modelos pontuados.
+</Note>
 
 ## Resposta
 
-<ResponseField name="object" type="string">Sempre `list`.</ResponseField>
-<ResponseField name="data" type="array">Modelos com `id`, `owned_by` e um resumo `tokenlab`.</ResponseField>
+<ResponseField name="object" type="string">
+  Sempre `list`.
+</ResponseField>
 
-Campos comuns da lista sob `tokenlab` incluem:
+<ResponseField name="data" type="array">
+  Array de objetos de modelo.
 
-- `tokenlab.aliases`
-- `tokenlab.capabilities`
-- `tokenlab.pricing` e `tokenlab.pricing_unit`
-- `tokenlab.max_input_tokens` e `tokenlab.max_output_tokens`
-- `tokenlab.category`
-- `tokenlab.lifecycle`, `tokenlab.commercial` e `tokenlab.badges`
-- `tokenlab.request_format_summary`
-- `tokenlab.agent_preferences` quando `recommended_for` é utilizado
+  Cada modelo sempre contém:
+  - `id` (string): Identificador do modelo
+  - `object` (string): `model`
+  - `created` (integer): Timestamp de criação
+  - `owned_by` (string): Provedor do modelo
+  - `tokenlab.aliases` (array): Aliases públicos do mesmo modelo
+  - `tokenlab.pricing` (object): Resumo público de preços escalares
+  - `tokenlab.capabilities` (array): Tags públicas de capacidade
+  - `tokenlab.max_input_tokens` (number ou `null`): Limite de contexto de entrada quando disponível
+  - `tokenlab.max_output_tokens` (number ou `null`): Limite de saída quando disponível
+  - `tokenlab.category` (string): Categoria pública do modelo
+  - `tokenlab.pricing_unit` (string): Unidade pública de preço
+  - `tokenlab.has_complex_pricing` (boolean): Se o preço tem dimensões específicas do modelo
+  - `tokenlab.lifecycle` (object): estágio do ciclo de vida, datas de lançamento/depreciação, modelo substituto e origem do badge latest
+  - `tokenlab.commercial` (object): política de cobrança do usuário, motivo gratuito e prazo opcional de gratuidade
+  - `tokenlab.badges` (array): badges derivados dos metadados de ciclo de vida e comercial
 
-Quando `recommended_for` é utilizado, os resultados também podem incluir o status da recomendação e um horário de atualização. Leia a resposta atual em vez de fixar a ordem.
+  Metadados condicionais da lista:
+  - `tokenlab.providers` (array): Provedores públicos quando disponíveis
+  - `tokenlab.cache_pricing` (object ou `null`): Preços de prompt cache quando disponíveis
+  - `tokenlab.pricing_summary` (object ou `null`): Retornado apenas para modelos com preços complexos
+  - `tokenlab.request_format_summary` (object ou `null`): Resumo leve de descoberta não chat com `public_operations`, `request_endpoint` e `request_endpoint_by_operation`
+  - `tokenlab.agent_preferences` (object): Só é retornado quando `recommended_for` está presente
 
-## Exemplo
+  Campos apenas de detalhe, como `tokenlab.capability_flags`, `tokenlab.supported_operations`, `tokenlab.pricing_provenance` e `tokenlab.request_format_details`, só são retornados por `GET /v1/models/{model}`.
+</ResponseField>
 
-```bash
-curl "https://api.tokenlab.sh/v1/models?category=video"
+<RequestExample>
+```bash cURL
+curl "https://api.tokenlab.sh/v1/models" \
+  -H "Authorization: Bearer sk-your-api-key"
 ```
 
-```json
+```bash cURL
+curl "https://api.tokenlab.sh/v1/models?recommended_for=image" \
+  -H "Authorization: Bearer sk-your-api-key"
+```
+
+```python Python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="sk-your-api-key",
+    base_url="https://api.tokenlab.sh/v1"
+)
+
+models = client.models.list()
+
+for model in models.data:
+    print(f"{model.id} ({model.owned_by})")
+```
+
+```javascript JavaScript
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  apiKey: 'sk-your-api-key',
+  baseURL: 'https://api.tokenlab.sh/v1'
+});
+
+const models = await client.models.list();
+
+for (const model of models.data) {
+  console.log(`${model.id} (${model.owned_by})`);
+}
+```
+
+```go Go
+package main
+
+import (
+    "encoding/json"
+    "fmt"
+    "net/http"
+)
+
+func main() {
+    req, _ := http.NewRequest("GET", "https://api.tokenlab.sh/v1/models", nil)
+    req.Header.Set("Authorization", "Bearer sk-your-api-key")
+
+    resp, _ := http.DefaultClient.Do(req)
+    defer resp.Body.Close()
+
+    var payload struct {
+        Data []struct {
+            ID      string `json:"id"`
+            OwnedBy string `json:"owned_by"`
+        } `json:"data"`
+    }
+
+    json.NewDecoder(resp.Body).Decode(&payload)
+
+    for _, model := range payload.Data {
+        fmt.Printf("%s (%s)\n", model.ID, model.OwnedBy)
+    }
+}
+```
+
+```php PHP
+<?php
+$ch = curl_init('https://api.tokenlab.sh/v1/models');
+
+curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HTTPHEADER => [
+        'Authorization: Bearer sk-your-api-key'
+    ]
+]);
+
+$response = curl_exec($ch);
+curl_close($ch);
+
+$data = json_decode($response, true);
+foreach ($data['data'] as $model) {
+    echo "{$model['id']} ({$model['owned_by']})\n";
+}
+```
+</RequestExample>
+
+<ResponseExample>
+```json Response
 {
   "object": "list",
   "data": [
     {
-      "id": "veo3.1",
+      "id": "gpt-5.4",
       "object": "model",
+      "created": 1706000000,
+      "owned_by": "openai"
+    },
+    {
+      "id": "claude-sonnet-4-6",
+      "object": "model",
+      "created": 1706000000,
+      "owned_by": "anthropic"
+    },
+    {
+      "id": "gemini-3.5-flash",
+      "object": "model",
+      "created": 1706000000,
+      "owned_by": "google"
+    }
+  ]
+}
+```
+</ResponseExample>
+
+## Filtragem por provedor
+
+```python
+# Obter todos os modelos OpenAI
+openai_models = [m for m in models.data if m.owned_by == "openai"]
+
+# Obter todos os modelos Anthropic
+anthropic_models = [m for m in models.data if m.owned_by == "anthropic"]
+```
+
+## Categorias de modelos
+
+| Provedor | Modelos de exemplo |
+|----------|--------------------|
+| `openai` | gpt-5.4, gpt-5.4-mini, gpt-5-mini, gpt-4o, gpt-image-2 |
+| `anthropic` | claude-opus-4-6, claude-sonnet-4-6, claude-haiku-4-5 |
+| `google` | gemini-3.1-pro-preview, gemini-3.5-flash, gemini-2.5-pro |
+| `deepseek` | deepseek-r1, deepseek-v3-2 |
+| `xai` | grok-4.1 |
+| `moonshot` | kimi-k2.5 |
+| `minimax` | minimax-m3 |
+| `meta` | llama-3.3-70b, llama-3.1-405b |
+
+## Exemplo de recomendação do agente
+
+```json Response
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "gemini-2.5-flash-image",
+      "object": "model",
+      "created": 1706000000,
       "owned_by": "google",
       "tokenlab": {
-        "category": "video",
-        "capabilities": ["text-to-video", "image-to-video"]
+        "category": "image",
+        "pricing_unit": "per_request",
+        "agent_preferences": {
+          "image": {
+            "preferred_rank": 1,
+            "success_rate_24h": 0.98,
+            "sample_count_24h": 423,
+            "status": "ready",
+            "updated_at": "2026-03-28T12:00:00.000Z",
+            "basis": {
+              "source": "recent_activity_24h"
+            }
+          }
+        }
       }
     }
   ]
 }
 ```
+## Exclusão de modelos
 
-Veja [Obter um Modelo](/api-reference/models/get-model) para detalhes completos.
+`DELETE /v1/models/{model}` não é compatível. Os modelos da TokenLab são um catálogo público compartilhado, não recursos de modelos fine-tuned pertencentes ao usuário.

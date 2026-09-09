@@ -4,10 +4,10 @@ openapi: "GET /v1/tasks/{id}"
 description: "获取 3D 生成任务的状态和结果"
 ---
 
-使用创建响应中的任务 ID 查询进度和结果。
+轮询此端点以检查 3D 模型生成任务的状态。
 
 <Info>
-找不到任务时，TokenLab 会返回 `async_task_not_found` 和消息 `Task not found or no longer available.`
+如果该任务已不存在或无法再从公开任务记录中查询到，TokenLab 会返回 `async_task_not_found`，并附带消息 `Task not found or no longer available.`
 </Info>
 
 ## 路径参数

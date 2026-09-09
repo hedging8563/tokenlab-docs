@@ -5,27 +5,37 @@ description: "在 Open WebUI 中将 TokenLab 作为兼容 OpenAI 的 API 连接�
 
 ## 概述
 
-在 Open WebUI 中添加 OpenAI 兼容连接，填入 TokenLab 地址和 API 密钥，再刷新模型列表。
+Open WebUI 支持自定义兼容 OpenAI 的 API 连接。您可以将 TokenLab 添加为远程兼容 OpenAI 的端点，并刷新模型列表。
 
+<Note>
+**类型**: Web 聊天应用
+
+**主要路径**: 兼容 OpenAI 的聊天补全 (chat completions)
+
+**支持置信度**: 支持的聊天应用路径
+</Note>
 
 ## 管理员连接
 
 1. 打开 **Admin Panel** -> **Settings** -> **Connections**。
 2. 在 OpenAI API 连接区域，添加一个连接。
 3. 将 Base URL 设置为 `https://api.tokenlab.sh/v1`。
-4. 填入 TokenLab API 密钥。
+4. 将 API key 设置为您的 TokenLab 密钥。
 5. 保存连接并刷新模型。
 
-## 配置值
+## 数值
 
 | 字段 | 数值 |
 |-------|-------|
 | API Base URL | `https://api.tokenlab.sh/v1` |
-| API 密钥 | `sk-your-tokenlab-key` |
+| API Key | `sk-your-tokenlab-key` |
 | 示例模型 | `gpt-5.4-mini` |
 
-## 选择模型
+## 推荐模型
 
-刷新模型列表，或从[模型页](https://tokenlab.sh/zh/models)复制当前聊天模型 ID。
+- `gpt-5.4-mini` 用于通用聊天
+- `claude-sonnet-5` 用于写作和推理
+- `deepseek-v4-pro` 用于代码密集型聊天
+- `gemini-3.5-flash` 用于快速且支持多模态的工作流
 
-如果你的部署中禁用了模型发现功能或模型已缓存，请在 Open WebUI 的模型设置中手动添加模型 ID。
+如果您的部署中禁用了模型发现功能或模型已缓存，请在 Open WebUI 的模型设置中手动添加模型 ID。

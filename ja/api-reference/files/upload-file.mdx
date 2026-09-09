@@ -50,7 +50,7 @@ curl -X POST "https://api.tokenlab.sh/v1/files" \
 
 - `purpose=user_data` または `purpose=vision` を使用します。
 - 任意で `model` を指定して画像編集モデルを選択できます。デフォルトは `gpt-image-2` です。
-- 返された `file_id` は選択した画像編集モデルの範囲で有効で、`images[].file_id` で再利用できます。
+- 返された `file_id` は選択された上流画像編集チャネルにバインドされ、`images[].file_id` で再利用できます。
 
 ## Anthropic Files API モード
 
@@ -58,12 +58,8 @@ curl -X POST "https://api.tokenlab.sh/v1/files" \
 
 - `anthropic-beta: files-api-2025-04-14` ヘッダーを追加すると、Anthropic モードに切り替わります。
 - Anthropic モードでは、元のファイルをそのままアップロードし、`purpose=batch` は送らないでください。
-- 返された `file_id` は同じ Anthropic 互換ワークスペースの範囲で有効で、以後の `/v1/messages` リクエストで再利用する必要があります。
+- 返される `file_id` は同じ公式 Anthropic チャンネル/ワークスペースにひも付けられ、以後の `/v1/messages` リクエストで再利用する必要があります。
 - Anthropic メッセージ内容からそのファイルを参照する場合は、Anthropic ネイティブのヘッダー（`x-api-key`、`anthropic-version`、必要に応じた beta header）をそのまま使ってください。
-
-## ファイルの有効期限
-
-バッチ入力ファイルでは、必要に応じて `expires_after[anchor]=created_at` と `expires_after[seconds]` で有効期限ウィンドウを設定できます。秒数は 3600 から 2592000 の間で指定してください。
 
 ## レスポンス例
 

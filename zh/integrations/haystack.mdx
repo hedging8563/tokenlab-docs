@@ -5,8 +5,15 @@ description: "在 Haystack OpenAIChatGenerator 中使用 TokenLab"
 
 ## 概述
 
-在 Haystack `OpenAIChatGenerator` 的 `api_base_url` 中填写 TokenLab 地址，并提供 TokenLab API 密钥即可。
+Haystack 的 `OpenAIChatGenerator` 通过 `api_base_url` 支持自定义的 OpenAI 兼容部署。将其指向 TokenLab 并提供 TokenLab API key 即可使用。
 
+<Note>
+**类型**: RAG 和 pipeline 框架
+
+**主要路径**: OpenAI 兼容的 Chat Completions
+
+**支持置信度**: 支持的 OpenAI 兼容路径
+</Note>
 
 ## 环境配置
 

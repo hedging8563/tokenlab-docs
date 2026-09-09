@@ -7,6 +7,14 @@ description: "カスタムのOpenAI互換エンドポイントを使用して、
 
 Semantic Kernelは、OpenAI互換のカスタムエンドポイントチャット補完サービスを通じてTokenLabを呼び出すことができます。
 
+<Note>
+**タイプ**: SDK / エージェントフレームワーク
+
+**主要パス**: OpenAI互換チャット補完
+
+**サポート信頼度**: サポートされているカスタムエンドポイントパス
+</Note>
+
 ## 環境設定
 
 ```bash
@@ -25,7 +33,7 @@ using Microsoft.SemanticKernel;
 var builder = Kernel.CreateBuilder();
 
 builder.AddOpenAIChatCompletion(
-    modelId: "gpt-5.6-luna",
+    modelId: "gpt-5.4-mini",
     endpoint: new Uri("https://api.tokenlab.sh/v1"),
     apiKey: Environment.GetEnvironmentVariable("TOKENLAB_API_KEY"));
 

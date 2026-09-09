@@ -1,34 +1,34 @@
 ---
 title: "Migration Guides"
-description: "Move existing OpenAI, Anthropic, Gemini, and media clients to TokenLab"
+description: "Move OpenAI, Anthropic, Gemini, and media workloads to TokenLab with small, production-safe changes."
 ---
 
-Keep the request format your application already uses. OpenAI-compatible clients, Anthropic Messages, Gemini REST, and media endpoints each have a matching TokenLab API address.
+TokenLab is multi-format: you can keep OpenAI-compatible clients, Anthropic-native Messages calls, Gemini-native REST calls, and media endpoints in their natural shapes. The safest migration is not to translate every workload into one universal format. Choose the route that owns the behavior your application needs.
 
-## API mapping
+## Route Mapping
 
-| Existing API | TokenLab base URL | Endpoint | Keep in mind |
+| Existing workload | TokenLab base URL | Primary endpoint | Migration note |
 |-------------------|-------------------|------------------|----------------|
 | OpenAI Chat Completions | `https://api.tokenlab.sh/v1` | `/chat/completions` | Smallest change for OpenAI-compatible chat and function calling |
 | OpenAI Responses | `https://api.tokenlab.sh/v1` | `/responses` | Use when your app depends on Responses-specific input, tools, or output handling |
 | Anthropic SDK | `https://api.tokenlab.sh` | `/v1/messages` | Do not append `/v1` to the SDK base URL |
 | Gemini REST | `https://api.tokenlab.sh` | `/v1beta/models/:model:generateContent` | Keep Gemini-native fields on the Gemini route |
 | Media generation | `https://api.tokenlab.sh/v1` | `/images`, `/videos`, `/music`, `/3d` | Discover models with `recommended_for` and expect async polling where documented |
-| Management and billing | `https://api.tokenlab.sh/v1` | `/management/...` | Server-side calls use a management token, not a model API key |
+| Management and billing | `https://api.tokenlab.sh/v1` | `/management/...` | Use management tokens for server-side usage and billing reconciliation |
 
 ## Quick Migration Recipes
 
 ### OpenAI to TokenLab
 
-Change the SDK `base_url` / `baseURL` to `https://api.tokenlab.sh/v1`, replace the API key, and choose a model ID from `GET /v1/models`.
+Change only the SDK `base_url` / `baseURL` to `https://api.tokenlab.sh/v1`, keep your existing OpenAI API key environment variable name if that is easier for rollout, and replace model IDs after checking `GET /v1/models`.
 
 ### OpenRouter to TokenLab
 
-Replace the OpenRouter base URL with `https://api.tokenlab.sh/v1`. TokenLab model IDs do not include an OpenRouter provider prefix. Use Anthropic Messages or Gemini only when your application needs fields from those formats.
+Use `https://api.tokenlab.sh/v1` where your app previously used OpenRouter's OpenAI-compatible base URL. Remove provider-prefixed model IDs and use TokenLab public model IDs from `/v1/models`; when a workload needs Claude Messages or Gemini `generateContent`, move it to the native TokenLab endpoint instead of forcing it through OpenAI-compatible chat.
 
 ### LiteLLM to TokenLab
 
-Use LiteLLM's `custom_openai/<model>` configuration with `api_base: https://api.tokenlab.sh/v1`. Keep your LiteLLM alias separate from the TokenLab model ID so either can change without editing application prompts.
+Use LiteLLM's `custom_openai/<model>` route with `api_base: https://api.tokenlab.sh/v1`. Keep LiteLLM aliases separate from real TokenLab model IDs so you can change routing policy without changing application prompts.
 
 ### Claude Messages via TokenLab
 
@@ -49,12 +49,12 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="gpt-5.6-terra",
+    model="gpt-5.4",
     messages=[{"role": "user", "content": "Hello from TokenLab"}],
 )
 ```
 
-Your existing retry, timeout, and streaming code can usually stay. Confirm the model ID with `GET /v1/models`. Image requests must include a model explicitly; see the image guide for model-specific inputs.
+Keep your existing retry, timeout, and streaming code, but validate model IDs with `GET /v1/models` before production traffic. For image generation, send `model` explicitly and read the image guide because image models differ more than chat models.
 
 ## Anthropic Migration
 
@@ -67,13 +67,13 @@ client = Anthropic(
 )
 
 message = client.messages.create(
-    model="claude-sonnet-5",
+    model="claude-sonnet-4-6",
     max_tokens=1024,
     messages=[{"role": "user", "content": "Explain TokenLab in one sentence."}],
 )
 ```
 
-Use `/v1/messages` for Claude tool calls, thinking blocks, and Anthropic message fields. Chat Completions does not guarantee those fields.
+Use `/v1/messages` for Claude-native tool use, thinking flows, and Anthropic message semantics. Do not translate Anthropic-only fields through Chat Completions unless you intentionally want an OpenAI-compatible behavior change.
 
 ## Gemini Migration
 
@@ -94,14 +94,25 @@ Keep Gemini built-in tools, File API references, cached contents, function decla
 4. Store `task_id`, `poll_url`, endpoint, model, and your own job ID for async jobs.
 5. Reconcile costs through usage records and `billing_transaction_id`, not provider task IDs.
 
-Media generation can finish asynchronously, so save `task_id` and `poll_url` before replacing an existing integration. A create-request timeout must not produce a second user job.
+Media workloads need their own rollout plan because latency, retries, and final assets behave differently from chat completions.
+
+## Production Rollout Plan
+
+| Phase | Goal | Checks |
+|-------|------|--------|
+| 1. Inventory | List endpoints, models, request fields, streaming/async behavior, and billing owner | No hidden provider-only fields are assumed public |
+| 2. Single-route pilot | Move one endpoint and one model family | Response shape, cost, and logs match expectations |
+| 3. Shadow or sample | Compare selected outputs against the previous provider | User-visible quality and latency are acceptable |
+| 4. Gradual rollout | Increase traffic by key, org, or feature flag | Watch `4xx`, `5xx`, latency, balance, and duplicate async jobs |
+| 5. Cleanup | Remove old provider path only after stable usage | Rollback path and support playbook are documented |
 
 ## Migration Pitfalls
 
 - Do not put every model behind one OpenAI Chat Completions path if your app needs native Anthropic, Gemini, or Responses behavior.
 - Do not assume old image defaults. Send `model` explicitly.
 - Do not retry async create requests without checking whether a task was already created.
-- Use TokenLab task IDs and usage records in your product. Third-party task IDs are not billing identifiers.
+- Do not expose provider-specific identifiers in your logs or UI.
+- Do not compare billing with provider task IDs. Use TokenLab usage records.
 
 ## API Reference
 

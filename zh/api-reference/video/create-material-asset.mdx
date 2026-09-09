@@ -1,12 +1,12 @@
 ---
-title: "创建素材"
+title: "创建素材资产"
 openapi: "POST /v1/videos/assets"
-description: "把图片、视频或音频保存为可复用的 Seedance 素材。"
+description: "将 Seedance 素材资产上传至 TokenLab 素材组。"
 ---
 
-提交一个可公开访问的文件 URL，TokenLab 会将它保存到 Seedance 素材组。后续生成使用返回的素材 `id`。
+将一个可公开访问的源 URL 导入到 Seedance 素材组中。TokenLab 会存储该素材以供后续使用；请使用返回的素材资产 `id` 进行生成，而不是使用源 URL。
 
-`library_type: "aigc_avatar"` 可以省略 `group_id`，素材会进入工作区的默认素材组。`library_type: "liveness_face"` 必须传入 [视觉验证结果](/zh/api-reference/video/get-visual-validation-result) 返回的素材组 ID。
+对于 `library_type: "aigc_avatar"`，`group_id` 是可选的；TokenLab 将使用或创建组织默认的虚拟人素材组。对于 `library_type: "liveness_face"`，`group_id` 是必填项，且必须是 [获取视觉验证结果](/zh/api-reference/video/get-visual-validation-result) 所返回的 TokenLab 素材组。
 
 | 类型 | 支持的输入 |
 |------|-----------------|
@@ -14,9 +14,9 @@ description: "把图片、视频或音频保存为可复用的 Seedance 素材�
 | 视频 | `mp4`, `mov`；`480p`, `720p` 或 `1080p`；2-15 秒；宽高比 `[0.4, 2.5]`；宽度和高度 `[300, 6000]` px；总像素在 409600 到 2068676 之间；最大 200 MB；24-60 FPS。 |
 | 音频 | `aac`, `wav`, `mp3`；2-15 秒；最大 15 MB。 |
 
-TokenLab 会检查 URL、文件格式和大小。宽高、时长、分辨率与 FPS 还需满足 Seedance 的要求。
+TokenLab 会校验源 URL、声明或探测到的媒体格式以及文件大小上限。宽高、宽高比、时长、分辨率、总像素和 FPS 采用 best effort 透传，最终由所选视频服务判断。
 
-素材需要一些时间处理。通过 [获取素材](/zh/api-reference/video/get-material-asset) 查询状态；`status` 变为 `ACTIVE` 后即可使用。真人素材组只对应一位已验证人员，图片中出现多张人脸或人员不一致时会处理失败。
+创建过程是异步的。请轮询 [获取素材资产](/zh/api-reference/video/get-material-asset) 接口，直到 `status` 变为 `ACTIVE`。对于真人素材组，一个组对应一个已验证的人员；如果上传包含多张人脸或人脸与已验证人员不匹配，可能会导致失败。
 
 ## 请求示例
 

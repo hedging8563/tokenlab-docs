@@ -4,7 +4,9 @@ openapi: "DELETE /v1/worlds/{id}"
 description: "Deletes a World Labs Marble world"
 ---
 
-Permanently delete a Marble World created through TokenLab. It cannot be restored or accessed through TokenLab afterward.
+Delete a Marble world created through TokenLab. TokenLab forwards the deletion to World Labs and marks the local world record as deleted.
+
+Deletion is permanent.
 
 ## Path Parameters
 

@@ -1,29 +1,35 @@
 ---
 title: "Create Video"
 openapi: "POST /v1/videos/generations"
-description: "Start a video generation task"
+description: "Creates a video generation task"
 ---
 
 import VideoModelContractNote from "../../snippets/generated/video-model-contract-note.mdx";
 
 ## Overview
 
-Video generation takes time. A successful create response returns a task ID and `poll_url`; use that URL to check progress and retrieve the result.
+For coding agents, discover the current recommended video shortlist first with `GET /v1/models?recommended_for=video`, then send the selected `model` explicitly to this endpoint.
 
-### Check Task Status
+Video generation is asynchronous. You submit a request, receive a canonical async task ID and `poll_url`, then poll for the result.
 
-Call the `poll_url` in the create response. `id` and `task_id` identify the same task; you can also use `GET /v1/tasks/{id}`.
+### Polling behavior
 
-### Audio and Media Input
+For the most reliable polling behavior, follow the exact `poll_url` returned by the create request.
+
+If a create response returns `poll_url`, call that exact URL. When it points to `/v1/tasks/{id}`, treat that as the canonical fixed status endpoint.
+
+The async task identifier may surface as `id` or `task_id`. Treat them as the same task identity.
+
+### Model and media behavior
 
 Audio output is model-dependent. In TokenLab, Veo 3 and Seedance requests default to audio-on when `output_audio` is omitted. When a model supports audio control, use `output_audio` to explicitly toggle it. The aliases `outputAudio` and `generate_audio` are accepted for compatibility and must match `output_audio` when more than one is provided.
 
-Use publicly reachable `https` URLs for images, videos, and audio. Some models also accept inline `data:` URLs; URLs are more reliable for large files.
+For production integrations, prefer publicly reachable `https` URLs for images, videos, and audio. Inline `data:` URLs remain supported for compatible models, but large base64 payloads are harder to retry, inspect, and debug.
 
 ## Request Body
 
 <ParamField body="model" type="string" default="veo3.1">
-  Video model ID. Use the [Models API](/api-reference/models/list-models) for current models and `operation` for text-to-video, image-to-video, and other generation modes.
+  Video model ID. Use the model IDs shown by TokenLab such as `veo3.1`, `wan-2.7`, `happyhorse-1.0`, `viduq3`, `pixverse-v6`, or `kling-3.0-video`; choose text-to-video, image-to-video, reference-to-video, or other variants with `operation`. See the [Video Generation Guide](/guides/video-generation) and [Models API](/api-reference/models/list-models) for current public video model capabilities.
 </ParamField>
 
 <VideoModelContractNote />
@@ -33,7 +39,7 @@ Use publicly reachable `https` URLs for images, videos, and audio. Some models a
 </ParamField>
 
 <ParamField body="operation" type="string">
-  Generation mode. Supported values include `text-to-video`, `image-to-video`, `reference-to-video`, `start-end-to-video`, `video-to-video`, `video-extension`, `audio-to-video`, and `motion-control`. If omitted, TokenLab infers it from the inputs. Sending it explicitly catches mismatched fields earlier.
+  Video operation to run. Supported values include `text-to-video`, `image-to-video`, `reference-to-video`, `start-end-to-video`, `video-to-video`, `video-extension`, `audio-to-video`, and `motion-control`. TokenLab can infer the operation from the supplied inputs, but explicit `operation` is recommended for production reliability.
 </ParamField>
 
 <ParamField body="image_url" type="string">
@@ -57,7 +63,7 @@ Reference image inputs for models that support dedicated reference conditioning.
 </ParamField>
 
 <Info>
-Seedance can save request images as reusable materials in the current Workspace. These fields also accept TokenLab material URIs such as `asset://asset-YYYYMMDDHHMMSS-xxxxx`. If a material is not ready within 60 seconds, the API returns `409 seedance_material_preparing` with `auto_material_asset_ids`; retry after the materials become `ACTIVE`.
+When the selected Seedance model can use the TokenLab material library, TokenLab prepares image fields (`image`, `image_url`, `image_urls`, `reference_images`, `start_image`, `end_image`) as reusable materials before generation. These fields also accept TokenLab material URIs in the form `asset://asset-YYYYMMDDHHMMSS-xxxxx`; TokenLab verifies that the material belongs to the requesting organization and preserves the field's role. Raw upstream `asset://` IDs are rejected. If preparation is not complete within 60 seconds, the API returns `409 seedance_material_preparing` with `auto_material_asset_ids`; retry after those material assets become `ACTIVE`. If the selected model cannot use the material library, ordinary image inputs continue on the regular image path and explicit material IDs return a material availability error.
 </Info>
 
 
@@ -106,7 +112,7 @@ Seedance can save request images as reusable materials in the current Workspace.
 </ParamField>
 
 <ParamField body="aspect_ratio" type="string">
-  Aspect ratio, for example `adaptive`, `16:9`, `9:16`, `1:1`, `4:3`, `3:4`, or `21:9`. Seedance defaults to `adaptive` when omitted.
+  Canonical aspect ratio, for example `adaptive`, `16:9`, `9:16`, `1:1`, `4:3`, `3:4`, or `21:9`. Seedance defaults to `adaptive` when omitted.
 </ParamField>
 
 <ParamField body="resolution" type="string">
@@ -114,11 +120,11 @@ Seedance can save request images as reusable materials in the current Workspace.
 </ParamField>
 
 <ParamField body="output_audio" type="boolean">
-  Whether to generate audio. Veo 3 and Seedance default to `true` when omitted. `kling-3.0-video` accepts it only without element references and defaults to silent output. Do not combine `output_audio=true` with `kling_elements`.
+  Canonical model-dependent audio output toggle. Veo 3 and Seedance default to `true` when omitted. `kling-3.0-video` accepts this selector for non-element-reference requests and defaults to silent output when omitted. Do not combine `output_audio=true` with `kling_elements`.
 </ParamField>
 
 <ParamField body="draft" type="boolean">
-  Enable Seedance 1.5 Pro draft mode. Do not send it with `draft_task_id`.
+  Seedance 1.5 Pro draft workflow flag. Use `draft=true` with Seedance models that support draft tasks. Do not send it together with `draft_task_id`.
 </ParamField>
 
 <ParamField body="draft_task_id" type="string">
@@ -201,18 +207,18 @@ Seedance can save request images as reusable materials in the current Workspace.
   A unique identifier for the end-user. For Seedance, TokenLab also uses this value as `safety_identifier` when that field is omitted.
 </ParamField>
 
-## Compatible Field Names
+## Compatibility Notes
 
-- Primary fields use snake_case: `aspect_ratio`, `output_audio`, `reference_images`, and `reference_image_type`.
+- Canonical public fields remain snake_case: `aspect_ratio`, `output_audio`, `reference_images`, and `reference_image_type`.
 - For compatibility, TokenLab also accepts `ratio`, `generate_audio`, `outputAudio`, `seconds`, `referenceImages`, and `referenceImageType`.
-- If a primary field and its alias are both sent, their values must match.
-- If `operation` is omitted, TokenLab infers it from the inputs.
+- If canonical and alias fields are both sent, their values must match; conflicting aliases are rejected before the task is created.
+- If `operation` is omitted, TokenLab infers it from the supplied inputs. For production traffic, explicit `operation` is still recommended.
 
-## Media Input
+## Media Input Best Practices
 
 - Prefer publicly reachable `https` URLs over inline base64 for `image_url`, `reference_images`, `video_url`, and `audio_url`.
-- Avoid mixing inline base64 and remote URLs in the same request.
-- Keep remote media URLs valid until task processing starts.
+- Avoid mixing inline base64 and remote URLs in the same request when possible; using one representation per request is easier to reason about and debug.
+- Keep remote media URLs valid long enough to cover retries and asynchronous task creation.
 
 ## Seedance Parameters
 
@@ -227,7 +233,7 @@ curl -X POST "https://api.tokenlab.sh/v1/videos/generations" \
   -H "Authorization: Bearer sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "seedance-2.5",
+    "model": "seedance-2.0",
     "prompt": "A sleek product reveal with cinematic camera movement",
     "operation": "text-to-video",
     "duration": -1,
@@ -272,11 +278,11 @@ curl -X POST "https://api.tokenlab.sh/v1/videos/generations" \
 </ResponseField>
 
 <ResponseField name="video" type="object">
-  Single video result with `url`, `duration`, `width`, and `height` when available.
+  Single video payload with `url`, `duration`, `width`, and `height` when available.
 </ResponseField>
 
 <ResponseField name="videos" type="array">
-  Multiple video results when the task returns more than one output.
+  Multiple video payloads when the task returns more than one output.
 </ResponseField>
 
 <ResponseField name="error" type="string">

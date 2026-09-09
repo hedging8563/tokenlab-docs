@@ -39,10 +39,6 @@ curl -X GET "https://api.tokenlab.sh/v1/files/file_abc123" \
 - ワーカーがバッチを最終化した後にのみ`output_file_id`と`error_file_id`を期待してください。
 - バッチの価格は、`isBatchRequest=true`の割引ルールが適用されるため、同期価格とは異なる場合があります。
 
-## 画像参照ファイル
-
-このエンドポイントは、TokenLab が作成した画像参照ファイルのメタデータも返せます。`status` フィールドは任意であり、ファイル種別によっては存在しない場合があります。
-
 ## レスポンス例
 
 <ResponseExample>

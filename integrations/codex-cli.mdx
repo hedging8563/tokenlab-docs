@@ -7,10 +7,19 @@ description: "Configure OpenAI Codex CLI to use TokenLab API"
 
 
 
+<Note>
+**Type**: Coding Tool
 
-Codex CLI can connect to TokenLab through `/v1/responses`. The selected model must list `responses` in `accepted_request_formats`; features can vary by model.
+**Primary Path**: OpenAI Responses (advanced optional path)
 
-Remote compaction uses `POST /v1/responses/compact`. Codex sends the current session model in `body.model`, so that model must also support Responses. Do not configure `/v1/compact`.
+**Support Confidence**: Supported with model/path limits
+</Note>
+
+OpenAI Codex is an open-source command-line tool (CLI) that serves as a lightweight coding agent, capable of reading, modifying, and running code in the terminal. It's built on GPT models and optimized for code generation.
+
+For TokenLab, Codex CLI can use `/v1/responses`, but you should treat it as an advanced compatibility path. Some Responses-only features are not guaranteed across every model and routed path.
+
+Codex CLI remote compaction is supported on `POST /v1/responses/compact`. Codex sends the current session `model` in `body.model` for `/compact` and auto-compact, so keep the model you want to compact with available on the Responses path; do not configure `/v1/compact`.
 
 ## System Requirements
 
@@ -94,7 +103,7 @@ Codex is deprecating `chat/completions` support for custom providers. Keep `wire
 </Warning>
 
 <Note>
-Responses requests are not converted to Chat Completions. Optional and future fields depend on the selected model.
+TokenLab forwards unknown Responses fields best-effort without silently downgrading the request to Chat Completions. The selected upstream decides whether a field or combination is supported.
 </Note>
 
 ## Basic Usage
@@ -117,9 +126,14 @@ codex "Fix the bug in main.py line 42"
 codex -m gpt-5.6-sol "Build a REST API server"
 ```
 
-## Choose a model
+## Recommended Models
 
-Use a model that currently lists `responses` in `accepted_request_formats`. Compare candidates on your own coding tasks and check current prices on the [Models page](https://tokenlab.sh/en/models).
+| Model | Best For |
+|-------|----------|
+| `gpt-5.6-sol` | Best default choice for coding and reasoning |
+| `gpt-5-mini` | Faster, cheaper fallback for coding workflows |
+| `claude-sonnet-4-6` | Code review, documentation |
+| `deepseek-r1` | Algorithm design, reasoning |
 
 ## Interactive Commands
 
@@ -193,7 +207,7 @@ cat main.py | codex "Explain what this code does"
   </Accordion>
 
   <Accordion title="Responses-native field rejected">
-    - Optional `/v1/responses` fields depend on the selected model
+    - Some fields are only available on `/v1/responses` when TokenLab can guarantee that behavior for the selected model and route
     - If you see `unsupported_request_field`, remove that field or switch to a workflow that does not depend on it
   </Accordion>
 

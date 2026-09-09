@@ -1,68 +1,240 @@
 ---
-title: "List Models"
+title: "Daftar Model"
 openapi: "GET /v1/models"
-description: "Daftar model yang saat ini tersedia di TokenLab"
+description: "Daftar semua model yang tersedia"
 ---
 
-Katalog model bersifat publik dan tidak memerlukan API key. Setiap item mencakup ringkasan kemampuan saat ini, harga, dan format API. Ambil satu model jika Anda memerlukan detail lengkap.
+## Respons
 
-## Query Parameters
+<ResponseField name="object" type="string">
+  Selalu `list`.
+</ResponseField>
+
+<ResponseField name="data" type="array">
+  Array objek model.
+
+  Setiap model selalu berisi:
+  - `id` (string): Identifier model
+  - `object` (string): `model`
+  - `created` (integer): Timestamp pembuatan
+  - `owned_by` (string): Penyedia model
+  - `tokenlab.aliases` (array): Alias publik untuk model yang sama
+  - `tokenlab.pricing` (object): Ringkasan harga publik skalar
+  - `tokenlab.capabilities` (array): Tag kapabilitas publik
+  - `tokenlab.max_input_tokens` (number atau `null`): Batas konteks input jika tersedia
+  - `tokenlab.max_output_tokens` (number atau `null`): Batas output jika tersedia
+  - `tokenlab.category` (string): Kategori publik model
+  - `tokenlab.pricing_unit` (string): Unit harga publik
+  - `tokenlab.has_complex_pricing` (boolean): Apakah harga memiliki dimensi khusus model
+  - `tokenlab.lifecycle` (object): tahap lifecycle, tanggal rilis/deprecation, model pengganti, dan sumber badge latest
+  - `tokenlab.commercial` (object): kebijakan biaya pengguna, alasan gratis, dan waktu gratis opsional
+  - `tokenlab.badges` (array): badge tampilan dari metadata lifecycle dan komersial
+
+  Metadata daftar bersyarat:
+  - `tokenlab.providers` (array): Penyedia publik jika tersedia
+  - `tokenlab.cache_pricing` (object atau `null`): Harga prompt cache jika tersedia
+  - `tokenlab.pricing_summary` (object atau `null`): Hanya dikembalikan untuk model dengan harga kompleks
+  - `tokenlab.request_format_summary` (object atau `null`): Ringkasan discovery non-chat ringan dengan `public_operations`, `request_endpoint`, dan `request_endpoint_by_operation`
+  - `tokenlab.agent_preferences` (object): Hanya dikembalikan saat `recommended_for` ada
+
+  Field khusus detail seperti `tokenlab.capability_flags`, `tokenlab.supported_operations`, `tokenlab.pricing_provenance`, dan `tokenlab.request_format_details` hanya dikembalikan oleh `GET /v1/models/{model}`.
+</ResponseField>
+
+<Note>
+`GET /v1/models` dioptimalkan untuk discovery. Metadata khusus detail seperti `capability_flags`, `pricing_provenance`, dan `request_format_details` lengkap berada di `GET /v1/models/{model}`.
+</Note>
+
+## Parameter Query
 
 <ParamField query="category" type="string">
-  Filter berdasarkan `chat`, `image`, `video`, `audio`, `tts`, `stt`, `music`, `3d`, `embedding`, `rerank`, atau `translation`.
+  Filter kategori publik opsional. Mendukung `chat`, `image`, `video`, `audio`, `tts`, `stt`, `music`, `3d`, `embedding`, `rerank`, dan `translation`.
 </ParamField>
 
 <ParamField query="recommended_for" type="string">
-  Kembalikan rekomendasi saat ini untuk tugas seperti `image`, `video`, `music`, `3d`, `tts`, `stt`, `embedding`, `rerank`, atau `translation`.
+  Skenario rekomendasi non-chat opsional. Mendukung `image`, `video`, `music`, `3d`, `tts`, `stt`, `embedding`, `rerank`, dan `translation`.
 </ParamField>
 
 <ParamField query="provider" type="string">
-  Filter berdasarkan pembuat model, seperti `openai`, `anthropic`, `google`, atau `deepseek`.
+  Filter provider opsional seperti `openai`, `anthropic`, `google`, atau `deepseek`.
 </ParamField>
 
 <ParamField query="tag" type="string">
-  Filter berdasarkan tag seperti `chat`, `image`, `video`, `embedding`, atau `translation`.
+  Filter tag model opsional seperti `chat`, `image`, `video`, `embedding`, atau `translation`.
 </ParamField>
 
-## Response
+<Note>
+Saat `recommended_for` ada, `/v1/models` mengurutkan model non-chat berdasarkan snapshot sukses 24 jam cached terbaru. Model dengan `status = "insufficient_samples"` tetap terlihat tetapi diurutkan setelah model yang sudah diberi skor.
+</Note>
 
-<ResponseField name="object" type="string">Selalu `list`.</ResponseField>
-<ResponseField name="data" type="array">Model dengan `id`, `owned_by`, dan ringkasan `tokenlab`.</ResponseField>
-
-Field daftar umum di bawah `tokenlab` meliputi:
-
-- `tokenlab.aliases`
-- `tokenlab.capabilities`
-- `tokenlab.pricing` dan `tokenlab.pricing_unit`
-- `tokenlab.max_input_tokens` dan `tokenlab.max_output_tokens`
-- `tokenlab.category`
-- `tokenlab.lifecycle`, `tokenlab.commercial`, dan `tokenlab.badges`
-- `tokenlab.request_format_summary`
-- `tokenlab.agent_preferences` saat `recommended_for` digunakan
-
-Saat `recommended_for` digunakan, hasil mungkin juga menyertakan status rekomendasi dan waktu pembaruan. Baca respons saat ini alih-alih menyematkan urutan.
-
-## Example
-
-```bash
-curl "https://api.tokenlab.sh/v1/models?category=video"
+<RequestExample>
+```bash cURL
+curl "https://api.tokenlab.sh/v1/models" \
+  -H "Authorization: Bearer sk-your-api-key"
 ```
 
-```json
+```python Python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="sk-your-api-key",
+    base_url="https://api.tokenlab.sh/v1"
+)
+
+models = client.models.list()
+
+for model in models.data:
+    print(f"{model.id} ({model.owned_by})")
+```
+
+```javascript JavaScript
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  apiKey: 'sk-your-api-key',
+  baseURL: 'https://api.tokenlab.sh/v1'
+});
+
+const models = await client.models.list();
+
+for (const model of models.data) {
+  console.log(`${model.id} (${model.owned_by})`);
+}
+```
+
+```go Go
+package main
+
+import (
+    "encoding/json"
+    "fmt"
+    "net/http"
+)
+
+func main() {
+    req, _ := http.NewRequest("GET", "https://api.tokenlab.sh/v1/models", nil)
+    req.Header.Set("Authorization", "Bearer sk-your-api-key")
+
+    resp, _ := http.DefaultClient.Do(req)
+    defer resp.Body.Close()
+
+    var payload struct {
+        Data []struct {
+            ID      string `json:"id"`
+            OwnedBy string `json:"owned_by"`
+        } `json:"data"`
+    }
+
+    json.NewDecoder(resp.Body).Decode(&payload)
+
+    for _, model := range payload.Data {
+        fmt.Printf("%s (%s)\n", model.ID, model.OwnedBy)
+    }
+}
+```
+
+```php PHP
+<?php
+$ch = curl_init('https://api.tokenlab.sh/v1/models');
+
+curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HTTPHEADER => [
+        'Authorization: Bearer sk-your-api-key'
+    ]
+]);
+
+$response = curl_exec($ch);
+curl_close($ch);
+
+$data = json_decode($response, true);
+foreach ($data['data'] as $model) {
+    echo "{$model['id']} ({$model['owned_by']})\n";
+}
+```
+</RequestExample>
+
+<ResponseExample>
+```json Response
 {
   "object": "list",
   "data": [
     {
-      "id": "veo3.1",
+      "id": "gpt-5.4",
       "object": "model",
+      "created": 1706000000,
+      "owned_by": "openai"
+    },
+    {
+      "id": "claude-sonnet-4-6",
+      "object": "model",
+      "created": 1706000000,
+      "owned_by": "anthropic"
+    },
+    {
+      "id": "gemini-3.5-flash",
+      "object": "model",
+      "created": 1706000000,
+      "owned_by": "google"
+    }
+  ]
+}
+```
+</ResponseExample>
+
+## Filter Berdasarkan Provider
+
+```python
+# Get all OpenAI models
+openai_models = [m for m in models.data if m.owned_by == "openai"]
+
+# Get all Anthropic models
+anthropic_models = [m for m in models.data if m.owned_by == "anthropic"]
+```
+
+## Kategori Model
+
+| Penyedia | Contoh Model |
+|----------|----------------|
+| `openai` | gpt-5.4, gpt-5.4-mini, gpt-5-mini, gpt-4o, gpt-image-2 |
+| `anthropic` | claude-opus-4-6, claude-sonnet-4-6, claude-haiku-4-5 |
+| `google` | gemini-3.1-pro-preview, gemini-3.5-flash, gemini-2.5-pro |
+| `deepseek` | deepseek-r1, deepseek-v3-2 |
+| `xai` | grok-4.1 |
+| `moonshot` | kimi-k2.5 |
+| `minimax` | minimax-m3 |
+| `meta` | llama-3.3-70b, llama-3.1-405b |
+
+## Contoh Rekomendasi Agent
+
+```json Response
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "gemini-2.5-flash-image",
+      "object": "model",
+      "created": 1706000000,
       "owned_by": "google",
       "tokenlab": {
-        "category": "video",
-        "capabilities": ["text-to-video", "image-to-video"]
+        "category": "image",
+        "pricing_unit": "per_request",
+        "agent_preferences": {
+          "image": {
+            "preferred_rank": 1,
+            "success_rate_24h": 0.98,
+            "sample_count_24h": 423,
+            "status": "ready",
+            "updated_at": "2026-03-28T12:00:00.000Z",
+            "basis": {
+              "source": "recent_activity_24h"
+            }
+          }
+        }
       }
     }
   ]
 }
 ```
+## Penghapusan Model
 
-Lihat [Mendapatkan Model](/api-reference/models/get-model) untuk detail lengkap.
+`DELETE /v1/models/{model}` tidak didukung. Model TokenLab adalah katalog publik bersama, bukan resource model fine-tuned milik pengguna.

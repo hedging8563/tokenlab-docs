@@ -1,10 +1,10 @@
 ---
 title: "素材 Action（火山兼容）"
 openapi: "POST /api/v3"
-description: "通过火山兼容 Action 管理 Seedance 素材和素材组。"
+description: "10 个火山兼容素材和素材组 Action 的接口参考。"
 ---
 
-已有火山素材客户端可以保留 Action 名称、`Version=2024-01-01`、PascalCase JSON 和 `ResponseMetadata + Result` 响应结构，只需更换接口地址和鉴权方式。
+这些 Action 允许现有火山素材客户端保留 Action 名称、`Version=2024-01-01`、PascalCase JSON、筛选、排序、分页以及 `ResponseMetadata + Result` 信封。TokenLab 只替换接口地址和鉴权方式。
 
 ## 接口与鉴权
 
@@ -16,7 +16,7 @@ Content-Type: application/json
 
 也支持 `POST /api/v3?Action=<ACTION>&Version=2024-01-01`。所有素材 Action 只接受 POST。仅带 AK/SK 签名的请求会返回 `401 InvalidCredential`。
 
-`ProjectName` 默认为 `default`。同一组素材的创建、查询、更新和删除请求需要使用相同的值。
+`ProjectName` 默认是 `default`，并在当前组织内形成真实隔离边界。相关的创建、列表、读取、更新和删除请求必须使用同一个值。
 
 ## 素材组 Action
 
@@ -104,7 +104,7 @@ curl 'https://api.tokenlab.sh/?Action=CreateAsset&Version=2024-01-01' \
 
 ## 错误
 
-错误码和消息位于 `ResponseMetadata.Error`。
+错误继续使用火山响应信封，错误码和消息位于 `ResponseMetadata.Error`。
 
 ```json
 {
@@ -121,6 +121,6 @@ curl 'https://api.tokenlab.sh/?Action=CreateAsset&Version=2024-01-01' \
 
 `InvalidCredential`, `InvalidVersion`, `InvalidParameter`, `NotFound`, `Conflict`, `MethodNotAllowed`, `InternalError`.
 
-## REST 接口
+## REST 替代接口
 
-也可以使用 snake_case 的 `/v1/videos/assets*` REST 接口。完整用法见 [Seedance 素材与真人验证](/zh/guides/seedance-materials)。
+TokenLab 的 `/v1/videos/assets*` REST 接口继续可用。新接入可选择 snake_case REST；已有火山客户端无需改造请求体。 [Seedance 素材与真人验证](/zh/guides/seedance-materials).

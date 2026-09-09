@@ -5,8 +5,15 @@ description: "使用 Opik 追踪 TokenLab 的 OpenAI 兼容请求"
 
 ## 概述
 
-把 OpenAI 客户端指向 TokenLab，再用 Opik 包装这个客户端即可记录调用。
+Opik 可以通过封装指向 TokenLab OpenAI 兼容端点的 OpenAI 客户端来记录 TokenLab 的调用。
 
+<Note>
+**类型**: 可观测性 (Observability)
+
+**主要路径**: OpenAI SDK 追踪封装器
+
+**支持置信度**: 支持的 OpenAI 兼容追踪路径
+</Note>
 
 ## 安装
 
@@ -52,4 +59,4 @@ print(completion.choices[0].message.content)
 
 ## 端点说明
 
-这份设置只记录 OpenAI SDK 请求。其他 TokenLab API 需要为对应客户端单独配置 Opik。
+此设置用于追踪 OpenAI 兼容的 SDK 路径。如果您在 OpenAI SDK 之外使用 TokenLab 原生端点，请单独对该客户端或工作流进行插桩 (instrument)。

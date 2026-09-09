@@ -6,11 +6,11 @@ description: "Hubungkan sesi suara dan multimodal realtime melalui WebSocket"
 
 ## Ikhtisar
 
-Gunakan endpoint ini untuk sesi real-time seperti pengenalan ucapan streaming, sintesis ucapan, terjemahan ucapan, atau model multimodal real-time. Permintaan `GET` biasa mengembalikan metadata endpoint, sedangkan permintaan upgrade WebSocket membuka sesi real-time untuk model yang dipilih.
+Endpoint ini digunakan untuk pengenalan suara, sintesis suara, terjemahan suara, atau model multimodal realtime. Permintaan `GET` biasa mengembalikan metadata; upgrade WebSocket diproksikan ke sesi upstream realtime yang dirutekan.
 
 ## Permukaan yang didukung
 
-TokenLab menyediakan endpoint WebSocket realtime di `GET /v1/realtime` untuk pengecekan metadata dan upgrade WebSocket. Anggap endpoint ini sebagai WebSocket subset: endpoint meneruskan event model realtime yang didukung dan tidak mendukung permukaan helper REST OpenAI Realtime seperti pembuatan sesi, `client_secrets`, API kontrol panggilan `Calls`, atau legacy beta session APIs.
+Endpoint ini adalah proxy WebSocket realtime TokenLab. Endpoint ini mendukung pengecekan metadata `GET /v1/realtime` biasa dan upgrade WebSocket pada path yang sama. Endpoint ini tidak menyediakan endpoint helper REST OpenAI Realtime seperti `POST /v1/realtime/client_secrets`, `POST /v1/realtime/translations/client_secrets`, Realtime Calls (`accept`, `hangup`, `refer`, `reject`), atau pembuatan legacy beta REST session / transcription-session.
 
 Untuk aplikasi browser atau mobile, simpan API key jangka panjang di server Anda. Endpoint ini tidak menerbitkan Realtime client secret berumur pendek.
 
@@ -54,13 +54,13 @@ curl "https://api.tokenlab.sh/v1/realtime" \
 
 ## Pesan
 
-TokenLab meneruskan pesan WebSocket antara klien Anda dan model real-time yang dipilih. Gunakan format event yang didokumentasikan untuk model tersebut, dan sertakan `model` di query string alih-alih di setiap event.
+TokenLab meneruskan pesan WebSocket antara client dan penyedia realtime yang dirutekan. Pertahankan bentuk event resmi model yang dipilih dan kirim `model` di query string.
 
 ## Penagihan dan penutupan
 
-Sesi ditagih dari saldo kunci API Anda: TokenLab mencadangkan estimasi di awal, lalu menyelesaikan penggunaan sebenarnya di akhir dan mengembalikan selisihnya.
+Sesi realtime memakai saldo API key yang sama. TokenLab melakukan pre-deduct kecil saat socket dibuka, lalu melakukan settlement atau refund saat sesi ditutup.
 
-Tutup socket klien saat sesi selesai. Jika layanan menutup sesi terlebih dahulu, TokenLab mengirimkan event/kode penutupan yang aman ke klien Anda jika memungkinkan.
+Tutup socket client saat sesi selesai. Jika upstream menutup lebih dulu, TokenLab meneruskan close code bila memungkinkan.
 
 ## Contoh respons
 
@@ -80,4 +80,4 @@ Tutup socket klien saat sesi selesai. Jika layanan menutup sesi terlebih dahulu,
 ## Field penting
 
 <ResponseField name="type" type="string">Tipe event atau message yang dikembalikan API.</ResponseField>
-<ResponseField name="session.id" type="string">Identifier opak yang diterima melalui koneksi realtime. Sertakan di log dukungan untuk debugging; ini bukan REST session URL.</ResponseField>
+<ResponseField name="session.id" type="string">Identifier yang dikirim provider realtime; sertakan di log dukungan, bukan sebagai REST session URL.</ResponseField>

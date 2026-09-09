@@ -4,7 +4,9 @@ openapi: "POST /v1beta/models/{model}:generateContent"
 description: "Generates content using Google Gemini API format"
 ---
 
-This endpoint uses Gemini request and response formats. It does not convert requests to Chat Completions. Google ProtoJSON lowerCamelCase and proto `snake_case` field names are both accepted. Optional field support depends on the selected model.
+TokenLab supports the native Google Gemini API shape when the model details advertise Gemini requests and a same-protocol route is currently available. A model or provider name alone does not imply that this route is available, and native Gemini requests never fall back through Chat Completions.
+
+Google ProtoJSON accepts both lowerCamelCase JSON names and original proto `snake_case` field names. TokenLab preserves camelCase, snake_case, and mixed requests without normalizing them. If both spellings of one field are present, TokenLab forwards both without merging them or assigning a local precedence. Unknown fields are also forwarded best-effort; the selected upstream decides whether they are supported.
 
 ## Path Parameters
 
@@ -37,7 +39,7 @@ Gemini endpoints support multiple authentication methods:
     - inline media parts: `inlineData` / `inline_data`
     - URL-based file parts: `fileData` / `file_data`
 
-  File and Cache IDs created by TokenLab can be used only in their owning Workspace.
+  TokenLab does not lowercase roles, infer MIME types, rewrite Base64 data, inject image configuration, or apply a local Gemini tool whitelist. TokenLab-owned File and Cache resource IDs are the exception: they are ownership-checked, resolved to their upstream resource ID, and keep the request pinned to the original channel and credential.
 </ParamField>
 
 <ParamField body="systemInstruction" type="object">
@@ -51,8 +53,8 @@ Gemini endpoints support multiple authentication methods:
   - `topK` (integer): Top-K sampling
   - `maxOutputTokens` (integer): Maximum output tokens
   - `stopSequences` (array): Stop sequences
-  - `candidateCount` (integer): Requested candidate count; support depends on the model.
-  - `responseModalities` (array): Requested output modalities for compatible models.
+  - `candidateCount` (integer): Requested candidate count; support is determined by the selected upstream.
+  - `responseModalities` (array): Requested output modalities for compatible native routes.
   - `responseMimeType` (string): Output MIME type such as `text/plain` or `application/json`.
   - `responseSchema` (object): JSON schema for structured output when `responseMimeType` requests JSON.
   - `thinkingConfig` / `thinking_config` (object): Thinking budget options for compatible models.
@@ -64,9 +66,9 @@ Gemini endpoints support multiple authentication methods:
 
 Every lowerCamelCase field shown above may also use its official proto `snake_case` spelling, for example `system_instruction`, `generation_config`, `safety_settings`, `tool_config`, `cached_content`, `file_data.file_uri`, and `inline_data.mime_type`.
 
-## Supported Methods
+## Supported native methods
 
-The Gemini-compatible API includes model list/get, `generateContent`, `streamGenerateContent`, `countTokens`, `embedContent`, and `batchEmbedContents`. Gemini Interactions and Live are not available.
+The current legacy Gemini surface includes model list/get, `generateContent`, `streamGenerateContent`, `countTokens`, `embedContent`, and `batchEmbedContents`. Gemini Interactions and Live are not currently exposed.
 
 ## Response
 

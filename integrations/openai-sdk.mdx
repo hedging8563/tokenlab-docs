@@ -5,12 +5,23 @@ description: "Use TokenLab with official OpenAI SDKs and OpenAI-compatible clien
 
 ## Overview
 
-Point an OpenAI SDK client to `https://api.tokenlab.sh/v1` and use a TokenLab API key. Keep the API method your application already uses, and confirm the selected model supports it through `accepted_request_formats`.
+TokenLab works with the official OpenAI SDKs by pointing the client to `https://api.tokenlab.sh/v1`.
+
+For most new projects, prefer **Chat Completions** as the default OpenAI-compatible path. Use **Responses API** only when you explicitly need Responses-specific behavior.
+
+Responses-specific fields are not guaranteed to behave identically across every model and routed path.
 
 <Note>
 Python, JavaScript, and Go have official OpenAI SDKs. PHP works well with OpenAI-compatible community clients, but it is not an official OpenAI SDK.
 </Note>
 
+<Note>
+**Type**: Native SDK
+
+**Primary Path**: OpenAI-compatible / Chat Completions
+
+**Support Confidence**: Supported core path
+</Note>
 
 ## Installation
 
@@ -31,7 +42,7 @@ go get github.com/openai/openai-go/v3
 </CodeGroup>
 
 <Note>
-Use `POST /v1/responses` for Responses input items, tools, or continuation. Optional fields depend on the selected model.
+Use `POST /v1/responses` only when you explicitly need Responses-specific behavior. Some Responses-only fields can still depend on the selected model and routed path.
 </Note>
 
 ## Configure the Client
@@ -82,7 +93,7 @@ func main() {
 
 ```python Python
 response = client.chat.completions.create(
-    model="gpt-5.6-terra",
+    model="gpt-5.4",
     messages=[{"role": "user", "content": "Explain what TokenLab does in one sentence."}]
 )
 
@@ -91,7 +102,7 @@ print(response.choices[0].message.content)
 
 ```javascript JavaScript
 const response = await client.chat.completions.create({
-  model: 'gpt-5.6-terra',
+  model: 'gpt-5.4',
   messages: [{ role: 'user', content: 'Explain what TokenLab does in one sentence.' }],
 });
 
@@ -103,7 +114,7 @@ curl https://api.tokenlab.sh/v1/chat/completions \
   -H "Authorization: Bearer sk-your-tokenlab-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-5.6-terra",
+    "model": "gpt-5.4",
     "messages": [
       {"role": "user", "content": "Explain what TokenLab does in one sentence."}
     ]
@@ -122,7 +133,7 @@ Use this path only when your tool or workflow explicitly depends on OpenAI Respo
 
 ```python Python
 stream = client.responses.create(
-    model="gpt-5.6-terra",
+    model="gpt-5.4",
     input="Write a short poem about coding.",
     stream=True,
 )
@@ -134,7 +145,7 @@ for event in stream:
 
 ```javascript JavaScript
 const stream = await client.responses.create({
-  model: 'gpt-5.6-terra',
+  model: 'gpt-5.4',
   input: 'Write a short poem about coding.',
   stream: true,
 });
@@ -152,7 +163,7 @@ for await (const event of stream) {
 
 ```python
 response = client.responses.create(
-    model="gpt-5.6-terra",
+    model="gpt-5.4",
     input="What's the weather in Tokyo?",
     tools=[{
         "type": "function",
@@ -178,7 +189,7 @@ for item in response.output:
 
 ```python
 response = client.responses.create(
-    model="gpt-5.6-terra",
+    model="gpt-4o",
     input=[{
         "role": "user",
         "content": [
@@ -208,7 +219,7 @@ Chat Completions is the default OpenAI-compatible path for TokenLab:
 
 ```python
 response = client.chat.completions.create(
-    model="gpt-5.6-terra",
+    model="gpt-4o",
     messages=[
         {"role": "system", "content": "You are a helpful assistant."},
         {"role": "user", "content": "Hello!"}
@@ -224,7 +235,7 @@ print(response.choices[0].message.content)
   <Accordion title="Connection Error">
     - Verify the base URL is exactly `https://api.tokenlab.sh/v1`
     - Check for proxy interference or custom HTTP client overrides
-    - Confirm your SDK version supports the method and fields you are using
+    - Make sure your SDK version is current before debugging provider behavior
   </Accordion>
 
   <Accordion title="Authentication Failed">

@@ -1,52 +1,157 @@
 ---
-title: "モデルの取得"
+title: "モデルを取得"
 openapi: "GET /v1/models/{model}"
-description: "モデルの機能、価格、APIフォーマットを取得します"
+description: "モデルインスタンスを取得します"
 ---
 
 ## パスパラメータ
 
 <ParamField path="model" type="string" required>
-  `gpt-5.4` や `claude-sonnet-4-6` などのモデルID。
+  取得するモデルの ID（例: `gpt-5.4`, `claude-sonnet-4-6`）。
 </ParamField>
 
 ## レスポンス
 
-<ResponseField name="id" type="string">モデルID。</ResponseField>
-<ResponseField name="object" type="string">常に `model` となります。</ResponseField>
-<ResponseField name="owned_by" type="string">モデルの作成者。</ResponseField>
-<ResponseField name="tokenlab" type="object">
-  機能、価格、課金単位、コンテキスト制限、対応APIフォーマット、操作、ライフサイクルステータスを含むTokenLabモデル情報。
+<ResponseField name="id" type="string">
+  モデル識別子。
+`lifecycle`、`commercial`、`badges` も含まれ、非推奨/退役状態、ユーザー課金ポリシー、表示バッジを示します。
 </ResponseField>
 
-一般的な `tokenlab` フィールドには以下が含まれます：
+<ResponseField name="object" type="string">
+  常に `model`。
+</ResponseField>
 
-- `capabilities`: テキスト、画像、動画、音声、その他の機能。
-- `pricing`: 現在の公開価格。
-- `max_input_tokens` および `max_output_tokens`: コンテキストおよび出力の制限。
-- `accepted_request_formats`: サポートされているAPIフォーマット。
-- `supported_operations`: テキストから画像への変換や画像から動画への変換などの操作。
-- `lifecycle`: 可用性、リリース日、廃止日、または代替モデル。
+<ResponseField name="created" type="integer">
+  作成タイムスタンプ。
+</ResponseField>
 
-一部のメディアモデルには、推奨ステータスと更新時刻も含まれます。推奨事項は可用性やパフォーマンスに応じて変更される可能性があるため、順序をハードコードしないでください。
+<ResponseField name="owned_by" type="string">
+  モデルプロバイダー。
+</ResponseField>
 
-## 例
+<ResponseField name="tokenlab" type="object">
+  TokenLab 固有の公開メタデータです。詳細ルートでは、`category`、`pricing_unit`、`capability_flags`、`supported_operations`、`pricing_provenance`、`request_format_summary`、完全な `request_format_details`、そして非チャット推奨スナップショット用のシーン別 `agent_preferences` を含めることができます。
+</ResponseField>
 
-```bash
-curl "https://api.tokenlab.sh/v1/models/gpt-5.4"
+<RequestExample>
+```bash cURL
+curl "https://api.tokenlab.sh/v1/models/gpt-5.4" \
+  -H "Authorization: Bearer sk-your-api-key"
 ```
 
-```json
-{
-  "id": "gpt-5.6-terra",
-  "object": "model",
-  "owned_by": "openai",
-  "tokenlab": {
-    "category": "chat",
-    "capabilities": ["text"],
-    "accepted_request_formats": ["responses", "chat_completions"]
-  }
+```python Python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="sk-your-api-key",
+    base_url="https://api.tokenlab.sh/v1"
+)
+
+model = client.models.retrieve("gpt-5.4")
+print(f"Model: {model.id}, Provider: {model.owned_by}")
+```
+
+```javascript JavaScript
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  apiKey: 'sk-your-api-key',
+  baseURL: 'https://api.tokenlab.sh/v1'
+});
+
+const model = await client.models.retrieve('gpt-5.4');
+console.log(`Model: ${model.id}, Provider: ${model.owned_by}`);
+```
+
+```go Go
+package main
+
+import (
+    "encoding/json"
+    "fmt"
+    "net/http"
+)
+
+func main() {
+    req, _ := http.NewRequest("GET", "https://api.tokenlab.sh/v1/models/gpt-5.4", nil)
+    req.Header.Set("Authorization", "Bearer sk-your-api-key")
+
+    resp, _ := http.DefaultClient.Do(req)
+    defer resp.Body.Close()
+
+    var model map[string]interface{}
+    json.NewDecoder(resp.Body).Decode(&model)
+    fmt.Printf("Model: %s, Provider: %s\n", model["id"], model["owned_by"])
 }
 ```
 
-不明なモデルを指定した場合は `404 model_not_found` が返されます。
+```php PHP
+<?php
+$ch = curl_init('https://api.tokenlab.sh/v1/models/gpt-5.4');
+
+curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HTTPHEADER => [
+        'Authorization: Bearer sk-your-api-key'
+    ]
+]);
+
+$response = curl_exec($ch);
+curl_close($ch);
+
+$model = json_decode($response, true);
+echo "Model: {$model['id']}, Provider: {$model['owned_by']}\n";
+```
+</RequestExample>
+
+<ResponseExample>
+```json Response
+{
+  "id": "gpt-5.4",
+  "object": "model",
+  "created": 1706000000,
+  "owned_by": "openai"
+}
+```
+</ResponseExample>
+
+## 非チャット推奨メタデータ
+
+非チャットモデルの場合、詳細ルートは `tokenlab.agent_preferences.<scene>` も返します。
+
+確認できる項目:
+
+- `preferred_rank`
+- `success_rate_24h`
+- `sample_count_24h`
+- `status`
+- `updated_at`
+
+公開レスポンスは `basis.source` で推薦根拠を要約し、ルーティング識別子は公開しません。
+
+## 公開詳細メタデータ
+
+`GET /v1/models` と比べると、詳細ルートではさらに次を返せます:
+
+- `tokenlab.capability_flags`
+- `tokenlab.supported_operations`
+- `tokenlab.pricing_provenance`
+- `tokenlab.request_format_summary`
+- `tokenlab.request_format_details`
+
+## エラーハンドリング
+
+モデルが存在しない場合は、404 エラーが返されます:
+
+```json
+{
+  "error": {
+    "message": "Model 'invalid-model' not found",
+    "type": "invalid_request_error",
+    "code": "model_not_found"
+  }
+}
+```
+## モデル削除
+
+`DELETE /v1/models/{model}` はサポートされません。TokenLab のモデルは共有の公開カタログであり、ユーザー所有のファインチューニング済みモデルではありません。

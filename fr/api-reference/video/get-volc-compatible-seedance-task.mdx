@@ -1,75 +1,26 @@
 ---
-title: "Obtenir une tâche (Compatible Volc)"
+title: "Obtenir une tâche (compatible Volc)"
 openapi: "GET /api/v3/contents/generations/tasks/{id}"
-description: "Obtenez une tâche de compatibilité Seedance par son ID de tâche cgt."
+description: "Récupère une tâche compatible Seedance par son ID cgt."
 ---
 
 ## Aperçu
 
-Utilisez l'ID `cgt-...` renvoyé par la création. Interrogez l'API toutes les quelques secondes tant que la tâche est `queued` ou `running`. Arrêtez-vous lorsque la tâche est `succeeded`, `failed`, `cancelled` ou `expired`.
+Ces points de terminaison s’adressent aux équipes qui utilisent déjà la structure de tâche Seedance de style Volc. L’authentification utilise votre clé API TokenLab Bearer. L’ID de tâche retourné commence par `cgt-`; interrogez le statut jusqu’à ce que `status` devienne `succeeded`, `failed`, `cancelled` ou `expired`.
 
 <Warning>
-Ne réutilisez pas l'enum ou la structure de réponse de la tâche unifiée v1 ici. `/v1/tasks/{id}` utilise `pending`, `processing`, `completed` et `failed` ; ce point de terminaison v3 utilise l'enum officiel ci-dessus. Dans l'objet JSON v3, `duration` est une chaîne de caractères lorsqu'elle est présente et `error` est omis sauf si la tâche a échoué. Un client Go strict doit déclarer `Duration` en tant que `string` avec le tag JSON `duration,omitempty`, et s'arrêter sur chaque statut terminal v3.
+Ne réutilisez ni l’énumération ni la structure de réponse v1. `/v1/tasks/{id}` utilise `pending`, `processing`, `completed` et `failed` ; ce point de terminaison utilise l’énumération v3 ci-dessus. En v3, `duration` est une chaîne lorsqu’il est présent et `error` n’apparaît qu’en cas d’échec.
 </Warning>
 
-Voir aussi [Modèles vidéo Seedance 2.0](/guides/seedance-2-video) et [Génération de vidéo](/guides/video-generation).
+Voir aussi [Modèles vidéo Seedance 2.0](/fr/guides/seedance-2-video) et [Génération vidéo](/fr/guides/video-generation).
 
-## Valeurs de statut
+## Format de réponse
 
-- `queued` : acceptée et en attente d'exécution.
-- `running` : la génération est en cours.
-- `succeeded` : le résultat est prêt et `content.video_url` est présent.
-- `failed` : la génération a échoué ; inspectez `error.code` et `error.message`.
-- `cancelled` : la tâche a été annulée avant son achèvement.
-- `expired` : la tâche a expiré avant son achèvement.
-
-## Champs de réponse
-
-- `id` : ID de la tâche de compatibilité, commençant par `cgt-`.
-- `model` : identifiant du modèle renvoyé pour des raisons de compatibilité.
-- `status` : l'une des valeurs de statut ci-dessus.
-- `content.video_url` : URL finale de la vidéo en cas de succès.
-- `content.last_frame_url` : présent uniquement lorsqu'il est demandé et disponible.
-- `usage` : utilisation des tokens lorsqu'elle est disponible.
-- `created_at` et `updated_at` : horodatages de la tâche.
-- `error` : présent uniquement lorsque la tâche a échoué ; omis pour les tâches n'ayant pas échoué.
-
-La réponse n'ajoute jamais de champs TokenLab tels que `progress`, `return_last_frame`, `watermark`, `priority` ou `camera_fixed`.
+La réponse utilise `queued`, `running`, `succeeded`, `failed`, `cancelled` ou `expired`. Une tâche réussie retourne `content.video_url`; `content.last_frame_url`, les champs officiels de génération et `usage` peuvent aussi apparaître. `error` n’est présent qu’en cas d’échec. Aucun champ TokenLab tel que `progress`, `return_last_frame`, `watermark`, `priority` ou `camera_fixed` n’est ajouté.
 
 ## Exemple
 
 ```bash
 curl https://api.tokenlab.sh/api/v3/contents/generations/tasks/cgt-20260102030405-a1b2c \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
-```
-
-```json
-{
-  "id": "cgt-20260102030405-a1b2c",
-  "model": "doubao-seedance-2.0",
-  "status": "succeeded",
-  "content": {
-    "video_url": "https://example.com/result.mp4"
-  },
-  "usage": {
-    "completion_tokens": 123456
-  }
-}
-```
-
-```go Go
-type SeedanceTask struct {
-    ID       string `json:"id"`
-    Status   string `json:"status"`
-    Duration string `json:"duration,omitempty"`
-}
-
-func isTerminal(status string) bool {
-    switch status {
-    case "succeeded", "failed", "cancelled", "expired":
-        return true
-    default:
-        return false
-    }
-}
 ```

@@ -1,68 +1,272 @@
 ---
 title: "Modelleri Listele"
 openapi: "GET /v1/models"
-description: "TokenLab üzerinde mevcut olan modelleri listeler"
+description: "Mevcut tüm modelleri listeler"
 ---
-
-Model kataloğu herkese açıktır ve API anahtarı gerektirmez. Her öğe; mevcut yeteneklerin, fiyatların ve API formatlarının bir özetini içerir. Tam detaylara ihtiyaç duyduğunuzda tek bir modeli getirebilirsiniz.
-
-## Sorgu Parametreleri
-
-<ParamField query="category" type="string">
-  `chat`, `image`, `video`, `audio`, `tts`, `stt`, `music`, `3d`, `embedding`, `rerank` veya `translation` değerlerine göre filtreleme yapar.
-</ParamField>
-
-<ParamField query="recommended_for" type="string">
-  `image`, `video`, `music`, `3d`, `tts`, `stt`, `embedding`, `rerank` veya `translation` gibi bir görev için güncel önerileri döndürür.
-</ParamField>
-
-<ParamField query="provider" type="string">
-  `openai`, `anthropic`, `google` veya `deepseek` gibi model üreticisine göre filtreleme yapar.
-</ParamField>
-
-<ParamField query="tag" type="string">
-  `chat`, `image`, `video`, `embedding` veya `translation` gibi bir etikete göre filtreleme yapar.
-</ParamField>
 
 ## Yanıt
 
-<ResponseField name="object" type="string">Her zaman `list` değerini döndürür.</ResponseField>
-<ResponseField name="data" type="array">`id`, `owned_by` ve bir `tokenlab` özeti içeren modeller.</ResponseField>
+<ResponseField name="object" type="string">
+  Her zaman `list`.
+</ResponseField>
 
-`tokenlab` altındaki yaygın liste alanları şunlardır:
+<ResponseField name="data" type="array">
+  Model nesneleri dizisi.
 
-- `tokenlab.aliases`
-- `tokenlab.capabilities`
-- `tokenlab.pricing` ve `tokenlab.pricing_unit`
-- `tokenlab.max_input_tokens` ve `tokenlab.max_output_tokens`
-- `tokenlab.category`
-- `tokenlab.lifecycle`, `tokenlab.commercial` ve `tokenlab.badges`
-- `tokenlab.request_format_summary`
-- `recommended_for` kullanıldığında `tokenlab.agent_preferences`
+  Her model her zaman şunları içerir:
+  - `id` (string): Model tanımlayıcısı
+  - `object` (string): `model`
+  - `created` (integer): Oluşturma zaman damgası
+  - `owned_by` (string): Model sağlayıcısı
+  - `tokenlab.aliases` (array): Aynı model için genel alias değerleri
+  - `tokenlab.pricing` (object): Skaler genel fiyat özeti
+  - `tokenlab.capabilities` (array): Genel yetenek etiketleri
+  - `tokenlab.max_input_tokens` (number veya `null`): Varsa giriş bağlam limiti
+  - `tokenlab.max_output_tokens` (number veya `null`): Varsa çıkış limiti
+  - `tokenlab.category` (string): Genel model kategorisi
+  - `tokenlab.pricing_unit` (string): Genel fiyat birimi
+  - `tokenlab.has_complex_pricing` (boolean): Fiyatlandırmanın modele özel boyutları olup olmadığı
+  - `tokenlab.lifecycle` (object): lifecycle aşaması, yayın/deprecation tarihleri, yerine önerilen model ve latest badge kaynağı
+  - `tokenlab.commercial` (object): kullanıcı ücret politikası, ücretsiz olma nedeni ve isteğe bağlı free-until zamanı
+  - `tokenlab.badges` (array): lifecycle ve commercial metadata'dan türetilen görüntü badge'leri
 
-`recommended_for` kullanıldığında, sonuçlar ayrıca öneri durumunu ve güncelleme zamanını içerebilir. Sıralamayı sabitlemek yerine güncel yanıtı okuyun.
+  Koşullu liste metadata'sı:
+  - `tokenlab.providers` (array): Varsa genel sağlayıcılar
+  - `tokenlab.cache_pricing` (object veya `null`): Varsa prompt cache fiyatları
+  - `tokenlab.pricing_summary` (object veya `null`): Yalnızca karmaşık fiyatlı modeller için döner
+  - `tokenlab.request_format_summary` (object veya `null`): `public_operations`, `request_endpoint` ve `request_endpoint_by_operation` içeren hafif chat dışı discovery özeti
+  - `tokenlab.agent_preferences` (object): Yalnızca `recommended_for` mevcut olduğunda döner
 
-## Örnek
+  `tokenlab.capability_flags`, `tokenlab.supported_operations`, `tokenlab.pricing_provenance` ve `tokenlab.request_format_details` gibi yalnızca detay alanları yalnızca `GET /v1/models/{model}` tarafından döndürülür.
+</ResponseField>
 
-```bash
-curl "https://api.tokenlab.sh/v1/models?category=video"
+<Note>
+`GET /v1/models` keşif için optimize edilmiştir. `capability_flags`, `pricing_provenance` ve tam `request_format_details` gibi yalnızca detay sayfasına ait metadata `GET /v1/models/{model}` üzerinde bulunur.
+</Note>
+
+## Query Parametreleri
+
+<ParamField query="category" type="string">
+  İsteğe bağlı genel kategori filtresi. `chat`, `image`, `video`, `audio`, `tts`, `stt`, `music`, `3d`, `embedding`, `rerank` ve `translation` desteklenir.
+</ParamField>
+
+<ParamField query="recommended_for" type="string">
+  İsteğe bağlı chat dışı öneri senaryosu. `image`, `video`, `music`, `3d`, `tts`, `stt`, `embedding`, `rerank` ve `translation` desteklenir.
+</ParamField>
+
+<ParamField query="provider" type="string">
+  `openai`, `anthropic`, `google` veya `deepseek` gibi isteğe bağlı provider filtresi.
+</ParamField>
+
+<ParamField query="tag" type="string">
+  `chat`, `image`, `video`, `embedding` veya `translation` gibi isteğe bağlı model tag filtresi.
+</ParamField>
+
+<Note>
+`recommended_for` mevcut olduğunda, `/v1/models` chat dışı modelleri en son cache'lenmiş 24 saatlik başarı oranı snapshot'una göre sıralar. `status = "insufficient_samples"` olan modeller görünür kalır ancak puanlanmış modellerin arkasına yerleşir.
+</Note>
+
+<RequestExample>
+```bash cURL
+curl "https://api.tokenlab.sh/v1/models" \
+  -H "Authorization: Bearer sk-your-api-key"
 ```
 
-```json
+```python Python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="sk-your-api-key",
+    base_url="https://api.tokenlab.sh/v1"
+)
+
+models = client.models.list()
+
+for model in models.data:
+    print(f"{model.id} ({model.owned_by})")
+```
+
+```javascript JavaScript
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  apiKey: 'sk-your-api-key',
+  baseURL: 'https://api.tokenlab.sh/v1'
+});
+
+const models = await client.models.list();
+
+for (const model of models.data) {
+  console.log(`${model.id} (${model.owned_by})`);
+}
+```
+
+```go Go
+package main
+
+import (
+    "encoding/json"
+    "fmt"
+    "net/http"
+)
+
+func main() {
+    req, _ := http.NewRequest("GET", "https://api.tokenlab.sh/v1/models", nil)
+    req.Header.Set("Authorization", "Bearer sk-your-api-key")
+
+    resp, _ := http.DefaultClient.Do(req)
+    defer resp.Body.Close()
+
+    var payload struct {
+        Data []struct {
+            ID      string `json:"id"`
+            OwnedBy string `json:"owned_by"`
+        } `json:"data"`
+    }
+
+    json.NewDecoder(resp.Body).Decode(&payload)
+
+    for _, model := range payload.Data {
+        fmt.Printf("%s (%s)\n", model.ID, model.OwnedBy)
+    }
+}
+```
+
+```php PHP
+<?php
+$ch = curl_init('https://api.tokenlab.sh/v1/models');
+
+curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HTTPHEADER => [
+        'Authorization: Bearer sk-your-api-key'
+    ]
+]);
+
+$response = curl_exec($ch);
+curl_close($ch);
+
+$data = json_decode($response, true);
+foreach ($data['data'] as $model) {
+    echo "{$model['id']} ({$model['owned_by']})\n";
+}
+```
+</RequestExample>
+
+<ResponseExample>
+```json Response
 {
   "object": "list",
   "data": [
     {
-      "id": "veo3.1",
+      "id": "gpt-5.4",
       "object": "model",
+      "created": 1706000000,
+      "owned_by": "openai"
+    },
+    {
+      "id": "claude-sonnet-4-6",
+      "object": "model",
+      "created": 1706000000,
+      "owned_by": "anthropic"
+    },
+    {
+      "id": "gemini-3.5-flash",
+      "object": "model",
+      "created": 1706000000,
+      "owned_by": "google"
+    }
+  ]
+}
+```
+</ResponseExample>
+
+## Sağlayıcıya Göre Filtreleme
+
+```python
+# Get all OpenAI models
+openai_models = [m for m in models.data if m.owned_by == "openai"]
+
+# Get all Anthropic models
+anthropic_models = [m for m in models.data if m.owned_by == "anthropic"]
+```
+
+## Model Kategorileri
+
+| Sağlayıcı | Örnek Modeller |
+|----------|----------------|
+| `openai` | gpt-5.4, gpt-5.4-mini, gpt-5-mini, gpt-4o, gpt-image-2 |
+| `anthropic` | claude-opus-4-6, claude-sonnet-4-6, claude-haiku-4-5 |
+| `google` | gemini-3.1-pro-preview, gemini-3.5-flash, gemini-2.5-pro |
+| `deepseek` | deepseek-r1, deepseek-v3-2 |
+| `xai` | grok-4.1 |
+| `moonshot` | kimi-k2.5 |
+| `minimax` | minimax-m3 |
+| `meta` | llama-3.3-70b, llama-3.1-405b |
+
+## Ajan Öneri Örneği
+
+```json Response
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "gemini-2.5-flash-image",
+      "object": "model",
+      "created": 1706000000,
       "owned_by": "google",
       "tokenlab": {
-        "category": "video",
-        "capabilities": ["text-to-video", "image-to-video"]
+        "category": "image",
+        "pricing_unit": "per_request",
+        "agent_preferences": {
+          "image": {
+            "preferred_rank": 1,
+            "success_rate_24h": 0.98,
+            "sample_count_24h": 423,
+            "status": "ready",
+            "updated_at": "2026-03-28T12:00:00.000Z",
+            "basis": {
+              "source": "recent_activity_24h"
+            }
+          }
+        }
       }
     }
   ]
 }
 ```
 
-Tam detaylar için [Modeli Getir](/api-reference/models/get-model) bölümüne bakın.
+## Ajan Öneri Örneği
+
+```json Response
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "gemini-2.5-flash-image",
+      "object": "model",
+      "created": 1706000000,
+      "owned_by": "google",
+      "tokenlab": {
+        "category": "image",
+        "pricing_unit": "per_request",
+        "agent_preferences": {
+          "image": {
+            "preferred_rank": 1,
+            "success_rate_24h": 0.98,
+            "sample_count_24h": 423,
+            "status": "ready",
+            "updated_at": "2026-03-28T12:00:00.000Z",
+            "basis": {
+              "source": "recent_activity_24h"
+            }
+          }
+        }
+      }
+    }
+  ]
+}
+```
+## Model Silme
+
+`DELETE /v1/models/{model}` desteklenmez. TokenLab modelleri paylaşılan herkese açık bir katalogdur, kullanıcıya ait fine-tuned model kaynakları değildir.

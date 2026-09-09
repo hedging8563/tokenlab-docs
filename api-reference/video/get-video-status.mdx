@@ -1,37 +1,37 @@
 ---
 title: "Get Video Status"
 openapi: "GET /v1/tasks/{id}"
-description: "Get a video task's status and result"
+description: "Retrieves the status and result of a video generation task"
 ---
 
 ## Path Parameters
 
 <ParamField path="id" type="string" required>
-  The task ID returned by the create video request. `id` and `task_id` identify the same task.
+  The task ID returned from the create video request. Treat `id` and `task_id` as the same async identity.
 </ParamField>
 
 <Info>
-If the create response includes `poll_url`, call that URL directly.
+If a create response returns `poll_url`, call that exact URL. When it points to `/v1/tasks/{id}`, treat that as the canonical fixed status endpoint.
 
-If the task cannot be found, TokenLab returns `async_task_not_found` with the message `Task not found or no longer available.`
+If the task no longer exists or is no longer available in the public task record, TokenLab returns `async_task_not_found` with the message `Task not found or no longer available.`
 </Info>
 
 ## Response
 
 <ResponseField name="id" type="string">
-  Task ID.
+  Canonical async task identifier.
 </ResponseField>
 
 <ResponseField name="task_id" type="string">
-  Same task ID as `id`.
+  Async task identifier alias.
 </ResponseField>
 
 <ResponseField name="poll_url" type="string">
-  URL for checking status and retrieving the result.
+  Preferred polling URL when the create response supplies one.
 </ResponseField>
 
 <ResponseField name="billing_transaction_id" type="string">
-  Billing transaction ID after settlement. It is separate from the task ID.
+  TokenLab billing transaction ID when settlement already completed. This is the dashboard/accounting transaction identifier and is separate from the async `id` / `task_id`.
 </ResponseField>
 
 <ResponseField name="status" type="string">
@@ -47,11 +47,11 @@ If the task cannot be found, TokenLab returns `async_task_not_found` with the me
 </ResponseField>
 
 <ResponseField name="video" type="object">
-  Single video result with `url`, `duration`, `width`, and `height` when available.
+  Single video payload with `url`, `duration`, `width`, and `height` when available.
 </ResponseField>
 
 <ResponseField name="videos" type="array">
-  Multiple video results when the task returns more than one output.
+  Multiple video payloads when the generation task returns more than one output.
 </ResponseField>
 
 <ResponseField name="error" type="string">
@@ -252,12 +252,12 @@ while (true) {
 ```
 </ResponseExample>
 
-## Check Interval
+## Polling Best Practices
 
-- Check every 5–10 seconds.
-- Increase the interval for long-running tasks.
-- Set a maximum wait time for your application.
-- Stop when the status is `failed` and show the returned `error`.
+- Poll every 5-10 seconds
+- Implement exponential backoff for long tasks
+- Set a maximum timeout (e.g., 10 minutes)
+- Handle `failed` status gracefully
 
 ```python
 import time

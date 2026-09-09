@@ -39,7 +39,7 @@ description: "إنشاء مهمة لتوليد نموذج ثلاثي الأبع�
 </ParamField>
 
 <ParamField body="seed" type="integer">
-  بذرة (seed) عددية صحيحة لضمان توليد نتائج متطابقة. يجب أن تكون بين `0` و `4294967295`.
+  بذرة (seed) لضمان توليد نتائج متطابقة.
 </ParamField>
 
 <ParamField body="user" type="string">
@@ -182,8 +182,6 @@ echo "Task ID: " . $data['id'];
 ```json Response
 {
   "id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-  "task_id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-  "poll_url": "/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "status": "pending",
   "created": 1706000000,
   "model": "tripo-h3.1"

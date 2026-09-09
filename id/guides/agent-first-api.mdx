@@ -1,32 +1,34 @@
 ---
-title: "Error yang dapat ditindaklanjuti oleh agen"
-description: "Gunakan kode error, waktu tunggu percobaan ulang, dan saran model tanpa perlu memproses teks"
+title: "✨ Agent-First API"
+description: "Petunjuk kesalahan terstruktur agar agen AI dapat mengoreksi diri pada percobaan ulang pertama"
 ---
 
-Error TokenLab yang kompatibel dengan OpenAI dapat menyertakan petunjuk terstruktur untuk agen atau aplikasi. Gunakan kolom-kolom ini jika tersedia; jangan memproses `message` yang dapat dibaca manusia untuk memutuskan tindakan yang harus diambil.
+## Ikhtisar
 
-API Anthropic Messages dan Gemini tetap menggunakan format error asli mereka, sehingga ekstensi pada halaman ini hanya berlaku untuk error Chat Completions dan Responses yang kompatibel dengan OpenAI.
+Agent-First API TokenLab memperkaya respons kesalahan dengan petunjuk terstruktur yang dapat diurai dan ditindaklanjuti langsung oleh agen AI — tanpa pencarian web, tanpa mencari dokumentasi, tanpa tebak-tebakan.
 
-## Kolom error opsional
+Error gateway Chat Completions dan Responses yang kompatibel dengan OpenAI dapat menyertakan field opsional seperti `did_you_mean`, `suggestions`, `hint`, `retryable`, dan `retry_after` dalam objek `error`. Endpoint Anthropic Messages dan Gemini mempertahankan bentuk error native dan tidak menjanjikan ekstensi ini.
 
-Semua kolom di bawah ini muncul di dalam objek `error` dan mungkin tidak ada.
+## Bidang Petunjuk Kesalahan
 
-| Kolom | Tipe | Kegunaan |
-| --- | --- | --- |
-| `did_you_mean` | `string` | ID model terdekat yang tersedia |
-| `suggestions` | `array` | Model yang mungkin sesuai dengan permintaan |
-| `alternatives` | `array` | Model yang saat ini tersedia sebagai alternatif |
-| `hint` | `string` | Penjelasan singkat atau tindakan yang disarankan |
-| `retryable` | `boolean` | Apakah permintaan yang sama mungkin berhasil di kemudian hari |
-| `retry_after` | `number` | Detik untuk menunggu sebelum mencoba lagi |
-| `balance_usd` | `number` | Saldo saat ini dalam USD |
-| `estimated_cost_usd` | `number` | Estimasi biaya untuk permintaan yang ditolak |
+Untuk error gateway yang kompatibel dengan OpenAI, semua field petunjuk adalah ekstensi opsional di dalam objek `error`:
 
-Klien Anda tetap harus menangani setiap error berdasarkan status HTTP dan `code`-nya. Anggap kolom-kolom tambahan ini sebagai konteks yang berguna, bukan kolom wajib.
+| Bidang | Tipe | Deskripsi |
+|-------|------|-------------|
+| `did_you_mean` | `string` | Nama model yang paling mirip |
+| `suggestions` | `array` | Model yang direkomendasikan beserta metadata |
+| `alternatives` | `array` | Model alternatif yang saat ini tersedia |
+| `hint` | `string` | Panduan langkah selanjutnya yang dapat dibaca manusia/agen |
+| `retryable` | `boolean` | Apakah mengulang permintaan yang sama mungkin berhasil |
+| `retry_after` | `number` | Detik yang harus ditunggu sebelum mengulang |
+| `balance_usd` | `number` | Saldo akun saat ini dalam USD |
+| `estimated_cost_usd` | `number` | Estimasi biaya dari permintaan yang gagal |
 
-## Model tidak diketahui
+## Contoh Kode Kesalahan
 
-Model yang salah ketik atau tidak tersedia akan mengembalikan `400 model_not_found`. Jika `did_you_mean` tersedia, tampilkan kepada pengguna atau lakukan percobaan ulang hanya jika produk Anda sudah memiliki izin untuk mengubah model yang dipilih.
+### model_not_found (400)
+
+Ketika nama model tidak cocok dengan model aktif manapun:
 
 ```json
 {
@@ -35,19 +37,27 @@ Model yang salah ketik atau tidak tersedia akan mengembalikan `400 model_not_fou
     "type": "invalid_request_error",
     "param": "model",
     "code": "model_not_found",
-    "did_you_mean": "gpt-5.6-terra",
+    "did_you_mean": "gpt-5.4",
     "suggestions": [
-      {"id": "gpt-5.6-terra"},
-      {"id": "gpt-5.6-luna"}
+      {"id": "gpt-5.4"},
+      {"id": "gpt-5-mini"},
+      {"id": "claude-sonnet-4-6"}
     ],
-    "hint": "Did you mean 'gpt-5.6-terra'? Use GET https://api.tokenlab.sh/v1/models to list all available models."
+    "hint": "Did you mean 'gpt-5.4'? Use GET https://api.tokenlab.sh/v1/models to list all available models."
   }
 }
 ```
 
-## Saldo tidak mencukupi
+Resolusi `did_you_mean` menggunakan:
+1. Pemetaan alias statis (dari data kesalahan produksi)
+2. Pencocokan string ternormalisasi (menghapus tanda hubung, tidak sensitif huruf)
+3. Pencocokan jarak edit (ambang ≤ 3)
 
-`402 insufficient_balance` dapat menyertakan saldo saat ini dan estimasi jumlah yang diperlukan. Aplikasi Anda dapat menawarkan tautan isi ulang, model yang lebih murah, atau permintaan yang lebih kecil.
+Rute publik tidak mengekspos kode kesalahan terpisah untuk model yang tersembunyi, ditunda, atau non-publik. Perlakukan model publik yang tidak tersedia sama seperti kesalahan pencocokan: periksa `did_you_mean`, `suggestions`, dan `hint`, lalu coba ulang dengan model publik yang didukung.
+
+### insufficient_balance (402)
+
+Saat saldo akun terlalu rendah untuk estimasi biaya:
 
 ```json
 {
@@ -58,17 +68,19 @@ Model yang salah ketik atau tidak tersedia akan mengembalikan `400 model_not_fou
     "balance_usd": 0.12,
     "estimated_cost_usd": 0.35,
     "suggestions": [
-      {"id": "gpt-5.6-luna"},
+      {"id": "gpt-5-mini"},
       {"id": "deepseek-v3-2"}
     ],
-    "hint": "Try a cheaper model, or top up at https://tokenlab.sh/dashboard/billing."
+    "hint": "Insufficient balance: need ~$0.3500 for claude-sonnet-4-6, but balance is $0.1200. Try a cheaper model, or top up at https://tokenlab.sh/dashboard/billing."
   }
 }
 ```
 
-## Tidak tersedia untuk sementara
+`suggestions` berisi model yang lebih murah daripada estimasi biaya yang dapat dipilih oleh agen.
 
-Respons `503 all_channels_failed` berarti model yang diminta tidak tersedia untuk sementara. Patuhi `retry_after` saat `retryable` bernilai `true`, atau biarkan pengguna memilih item dari `alternatives`.
+### all_channels_failed (503)
+
+Ketika semua saluran hulu untuk sebuah model tidak tersedia:
 
 ```json
 {
@@ -78,17 +90,19 @@ Respons `503 all_channels_failed` berarti model yang diminta tidak tersedia untu
     "retryable": true,
     "retry_after": 30,
     "alternatives": [
-      {"id": "claude-sonnet-5", "status": "available", "tags": []},
-      {"id": "gpt-5.6-luna", "status": "available", "tags": []}
+      {"id": "claude-sonnet-4-6", "status": "available", "tags": []},
+      {"id": "gpt-5-mini", "status": "available", "tags": []}
     ],
-    "hint": "Retry in 30s or try an alternative model."
+    "hint": "All channels for 'claude-opus-4-6' are temporarily unavailable. Retry in 30s or try an alternative model."
   }
 }
 ```
 
-## Batas kecepatan (Rate limit)
+<Note>
+`retryable` bernilai `false` ketika alasannya adalah `no_channels` (tidak ada saluran yang dikonfigurasi untuk model ini). Nilainya `true` hanya untuk kegagalan sementara seperti trip circuit breaker atau kehabisan kuota.
+</Note>
 
-Untuk `429 rate_limit_exceeded`, tunggu selama `retry_after` detik atau gunakan header respons standar `Retry-After`.
+### rate_limit_exceeded (429)
 
 ```json
 {
@@ -98,14 +112,20 @@ Untuk `429 rate_limit_exceeded`, tunggu selama `retry_after` detik atau gunakan 
     "code": "rate_limit_exceeded",
     "retryable": true,
     "retry_after": 8,
-    "hint": "Retry after 8s."
+    "hint": "Rate limited. Retry after 8s. Current limit: 1000/min for user role."
   }
 }
 ```
 
-## Konteks terlalu panjang
+Nilai `retry_after` dihitung dari waktu reset jendela batas laju yang sebenarnya.
 
-`400 context_length_exceeded` tidak dapat diperbaiki dengan mengirimkan permintaan yang sama kembali. Persingkat input atau biarkan pengguna memilih model dengan jendela konteks yang lebih besar.
+<Note>
+Endpoint yang kompatibel dengan OpenAI menggunakan tipe kesalahan publik stabil TokenLab seperti `rate_limit_exceeded`, `upstream_error`, dan `all_channels_failed`. Endpoint yang kompatibel dengan Anthropic dan Gemini menggunakan bentuk respons asli mereka sendiri.
+</Note>
+
+### context_length_exceeded (400)
+
+Ketika input melebihi jendela konteks model (kesalahan hulu, diperkaya dengan petunjuk):
 
 ```json
 {
@@ -116,50 +136,127 @@ Untuk `429 rate_limit_exceeded`, tunggu selama `retry_after` detik atau gunakan 
     "retryable": false,
     "suggestions": [
       {"id": "gemini-2.5-pro"},
-      {"id": "claude-sonnet-5"}
+      {"id": "claude-sonnet-4-6"}
     ],
     "hint": "Reduce your input or switch to a model with a larger context window."
   }
 }
 ```
 
-## Menemukan format API yang tepat
+## Penemuan Endpoint Native
 
-Baca `tokenlab.accepted_request_formats` dari `GET /v1/models/{model}` sebelum menggunakan API khusus model.
+Jangan simpulkan ketersediaan protokol native dari nama model atau provider, maupun dari header respons Chat. Sebelum memilih endpoint native, baca `GET /v1/models/{model}` dan gunakan hanya format permintaan yang diiklankan oleh detail model serta didukung route dengan protokol yang sama.
 
-| Nilai | Endpoint |
-| --- | --- |
-| `chat_completions` | `/v1/chat/completions` |
-| `responses` | `/v1/responses` |
-| `messages` | `/v1/messages` |
-| `gemini` | `/v1beta/models/{model}:generateContent` |
+Field yang dibaca adalah `tokenlab.accepted_request_formats`.
 
-Format yang diterima mengonfirmasi endpoint tersebut. Alat dan kolom individual masih dapat bervariasi tergantung model; periksa halaman model sebelum mengandalkannya.
+| Format permintaan | Endpoint |
+|-------------------|----------|
+| Chat Completions | `/v1/chat/completions` |
+| Responses | `/v1/responses` |
+| Messages | `/v1/messages` |
+| Gemini | `/v1beta/models/{model}:generateContent` |
 
-## Menemukan model berdasarkan tugas
+Format yang diiklankan menentukan ketersediaan endpoint; dukungan field dan tool tertentu tetap bergantung pada upstream.
 
-API Models dapat mengembalikan daftar singkat saat ini untuk tugas non-chat:
+## Peningkatan /v1/models
 
-```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=image" \
-  -H "Authorization: Bearer sk-your-api-key"
+`/v1/models` sekarang membawa metadata rekomendasi non-chat yang dapat digunakan agen sebelum mereka memanggil endpoint image, video, music, 3D, TTS, STT, embedding, rerank, atau translation.
+
+```json
+{
+  "id": "gemini-2.5-flash-image",
+  "tokenlab": {
+    "category": "image",
+    "pricing_unit": "per_request",
+    "agent_preferences": {
+      "image": {
+        "preferred_rank": 1,
+        "success_rate_24h": 0.98,
+        "sample_count_24h": 423,
+        "status": "ready",
+        "updated_at": "2026-03-28T12:00:00.000Z",
+        "basis": {
+          "source": "recent_activity_24h"
+        }
+      }
+    }
+  }
+}
 ```
 
-Nilai `recommended_for` yang valid adalah `image`, `video`, `music`, `3d`, `tts`, `stt`, `embedding`, `rerank`, dan `translation`. Kirimkan ID model yang dipilih secara eksplisit dalam permintaan pembuatan. TokenLab tidak akan menggantinya secara diam-diam dengan model lain.
+| Bidang | Nilai | Deskripsi |
+|-------|--------|-------------|
+| `category` | `chat`, `image`, `video`, `audio`, `tts`, `stt`, `3d`, `embedding`, `rerank` | Jenis model |
+| `pricing_unit` | `per_token`, `per_image`, `per_second`, `per_request` | Cara model ditagihkan |
+| `cache_pricing` | object or `null` | Hanya dikembalikan saat model punya harga prompt cache upstream khusus model. |
+| `agent_preferences.<scene>` | object | Snapshot rekomendasi non-chat yang hanya dikembalikan pada `GET /v1/models?recommended_for=<scene>` |
 
-## Ringkasan yang dapat dibaca mesin
+Saat `recommended_for` ada, `agent_preferences` diturunkan dari snapshot tingkat keberhasilan 24 jam yang di-cache:
 
-Agen dapat membaca ringkasan API yang ringkas di:
+- Jendela: 24 jam
+- Cache snapshot: stale-while-revalidate
+- `status = "ready"` berarti model memiliki sampel terbaru yang cukup untuk berpartisipasi dalam perankingan
+- `status = "insufficient_samples"` berarti model tetap terlihat tetapi tidak diperingkat di atas model yang memiliki skor
 
-```text
+### Penyaringan Kategori
+
+```bash
+GET https://api.tokenlab.sh/v1/models?category=chat          # Chat models only
+GET https://api.tokenlab.sh/v1/models?category=image         # Image generation models
+GET https://api.tokenlab.sh/v1/models?tag=coding&category=chat  # Coding-optimized chat models
+```
+
+### Penemuan Rekomendasi
+
+Untuk alur kerja non-chat, agen harus mengambil daftar singkat rekomendasi saat ini terlebih dahulu:
+
+```bash
+GET https://api.tokenlab.sh/v1/models?recommended_for=image
+GET https://api.tokenlab.sh/v1/models?recommended_for=translation
+GET https://api.tokenlab.sh/v1/models?category=tts&recommended_for=tts
+```
+
+Nilai `recommended_for` yang valid adalah:
+
+- `image`
+- `video`
+- `music`
+- `3d`
+- `tts`
+- `stt`
+- `embedding`
+- `rerank`
+- `translation`
+
+Jika `category` dan `recommended_for` keduanya ada, keduanya harus cocok secara tepat.
+
+Alur agen yang direkomendasikan:
+
+1. `GET /v1/models?recommended_for=<scene>`
+2. Pilih model pertama dengan `agent_preferences.<scene>.status == "ready"`
+3. Panggil endpoint secara eksplisit dengan `model=<selected>`
+4. Untuk kesalahan sementara saja, coba ulang dengan model `ready` berikutnya
+
+## llms.txt
+
+Ringkasan API yang dapat dibaca mesin tersedia di:
+
+```
 GET https://api.tokenlab.sh/llms.txt
 ```
 
-Ringkasan ini mencakup permintaan pertama, endpoint umum, filter model, dan panduan penanganan error.
+Ini mencakup:
+- Template panggilan pertama dengan contoh yang bekerja
+- Nama model umum (dihasilkan secara dinamis dari data penggunaan)
+- Semua 12 endpoint API
+- Parameter filter untuk penemuan model
+- Panduan penanganan kesalahan
 
-## Contoh percobaan ulang yang aman
+Agen AI yang membaca `llms.txt` sebelum panggilan API pertama mereka biasanya dapat berhasil pada percobaan pertama.
 
-Contoh ini mengoreksi nama model hanya ketika API mengembalikan `did_you_mean`. Tambahkan konfirmasi pengguna jika mengubah model dapat memengaruhi kualitas, harga, atau penanganan data dalam produk Anda.
+## Penggunaan dalam Kode Agen
+
+### Python (OpenAI SDK)
 
 ```python
 from openai import OpenAI, BadRequestError
@@ -169,16 +266,59 @@ client = OpenAI(
     base_url="https://api.tokenlab.sh/v1"
 )
 
-def chat(messages, model):
+def smart_chat(messages, model="gpt-4o"):
     try:
-        return client.chat.completions.create(model=model, messages=messages)
-    except BadRequestError as exc:
-        error = exc.body.get("error", {}) if isinstance(exc.body, dict) else {}
-        suggested = error.get("did_you_mean")
-        if error.get("code") == "model_not_found" and suggested:
+        return client.chat.completions.create(
+            model=model, messages=messages
+        )
+    except BadRequestError as e:
+        error = e.body.get("error", {}) if isinstance(e.body, dict) else {}
+        # Use did_you_mean for auto-correction
+        if error.get("code") == "model_not_found" and error.get("did_you_mean"):
             return client.chat.completions.create(
-                model=suggested,
-                messages=messages,
+                model=error["did_you_mean"], messages=messages
             )
         raise
 ```
+
+### JavaScript (OpenAI SDK)
+
+```javascript
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  apiKey: 'sk-your-key',
+  baseURL: 'https://api.tokenlab.sh/v1'
+});
+
+async function smartChat(messages, model = 'gpt-4o') {
+  try {
+    return await client.chat.completions.create({ model, messages });
+  } catch (error) {
+    const err = error?.error;
+    if (err?.code === 'model_not_found' && err?.did_you_mean) {
+      return client.chat.completions.create({
+        model: err.did_you_mean, messages
+      });
+    }
+    throw error;
+  }
+}
+```
+
+## Prinsip Desain
+
+<CardGroup cols={2}>
+  <Card title="Gagal cepat, berikan informasi" icon="bolt">
+    Kesalahan dikembalikan segera dengan semua data yang dibutuhkan agen untuk mengoreksi diri.
+  </Card>
+  <Card title="Tanpa pengalihan otomatis" icon="route">
+    API tidak pernah diam-diam menggantikan model dengan model lain. Agen yang memutuskan.
+  </Card>
+  <Card title="Saran berbasis data" icon="database">
+    Semua rekomendasi berasal dari data produksi, bukan daftar yang dikodekan statis.
+  </Card>
+  <Card title="Kompatibel ke belakang" icon="plug">
+    Semua field petunjuk bersifat opsional. Klien yang ada tidak melihat perbedaan.
+  </Card>
+</CardGroup>

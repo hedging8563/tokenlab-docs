@@ -1,33 +1,43 @@
 ---
 title: "Flowise"
-description: "把 TokenLab 聊天模型添加到 Flowise"
+description: "在 Flowise 工作流中使用 TokenLab 聊天模型"
 ---
 
 ## 概述
 
-Flowise 有 TokenLab 聊天节点时可以直接使用；没有时，添加 OpenAI 兼容聊天模型节点并填写 TokenLab 地址。
+Flowise 既可以通过可用的 TokenLab 聊天节点调用 TokenLab，也可以通过指向 TokenLab 的 OpenAI 兼容聊天模型节点进行调用。
 
+<Note>
+**类型**: 工作流构建器
+
+**主要路径**: OpenAI 兼容的聊天补全 (Chat Completions)
+
+**支持置信度**: 在范围限制内支持
+</Note>
 
 ## TokenLab 节点
 
-如果你的 Flowise 构建版本包含 **TokenLab** 聊天模型节点：
+如果您的 Flowise 构建版本包含 **TokenLab** 聊天模型节点：
 
 1. 添加 **Chat Models** -> **TokenLab**
 2. 创建一个 TokenLab API 凭证
 3. 将 **Model Name** 设置为 `gpt-5.4-mini`
-4. 连接到所需的 Chain 或 Agent
-5. 发送一条消息确认配置生效。
+4. 将其连接到您的链 (chain)、代理 (agent) 或工作流
+5. 运行测试提示词 (test prompt)。
 
-## 使用 OpenAI 兼容节点
+## OpenAI 兼容回退方案
 
 如果 TokenLab 节点尚不可用，请使用 OpenAI 兼容的聊天模型节点，并配置如下：
 
 | 字段 | 值 |
 |-------|-------|
 | Base URL | `https://api.tokenlab.sh/v1` |
-| API 密钥 | `sk-your-tokenlab-key` |
+| API Key | `sk-your-tokenlab-key` |
 | Model | `gpt-5.4-mini` |
 
-## 选择模型
+## 推荐模型
 
-请从[模型页](https://tokenlab.sh/zh/models)复制当前聊天模型 ID。这个节点使用的模型必须支持 Chat Completions。
+- `gpt-5.4-mini`：适用于大多数工作流测试
+- `claude-sonnet-5`：适用于更强的写作和推理任务
+- `gemini-3.5-flash`：适用于快速的多模态友好型工作流
+- `deepseek-v4-flash`：适用于快速的代码或推理迭代

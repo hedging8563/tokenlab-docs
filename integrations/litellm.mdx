@@ -1,21 +1,28 @@
 ---
 title: "LiteLLM"
-description: "Connect LiteLLM to TokenLab"
+description: "Use TokenLab with LiteLLM as an OpenAI-compatible endpoint or as part of your team gateway"
 ---
 
 ## Overview
 
-LiteLLM can use TokenLab in two ways:
+LiteLLM fits TokenLab in two common ways:
 
 - use TokenLab as an **OpenAI-compatible endpoint** behind LiteLLM
-- use LiteLLM's gateway when your team also needs its virtual keys, aliases, or logs
+- put LiteLLM in front of TokenLab when your team wants team-managed virtual keys, model-selection policy, or centralized observability
 
-For Chat Completions, configure LiteLLM's **custom OpenAI / OpenAI-compatible** client with `https://api.tokenlab.sh/v1`.
+For TokenLab, the cleanest default is LiteLLM's **custom OpenAI / OpenAI-compatible** path pointed at `https://api.tokenlab.sh/v1`.
 
 <Note>
-If your application needs Claude Messages or Gemini fields, use an integration that keeps that API format.
+If you specifically need Claude-native or Gemini-native request shapes, prefer TokenLab's dedicated native integrations instead of forcing those workflows through LiteLLM's OpenAI-compatible abstraction.
 </Note>
 
+<Note>
+**Type**: Framework or Platform
+
+**Primary Path**: OpenAI-compatible endpoint
+
+**Support Confidence**: Supported path
+</Note>
 
 ## Install
 

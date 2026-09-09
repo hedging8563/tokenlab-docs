@@ -1,13 +1,13 @@
 ---
 title: "从火山迁移 Seedance"
-description: "保留火山请求格式，把 Seedance 切换到 TokenLab"
+description: "以最小请求改动把火山风格的 Seedance 任务和素材接入迁移到 TokenLab。"
 ---
 
-已有火山 Seedance 客户端可以继续使用原来的 REST 路径、`content[]` 请求体、响应字段、回调和 PascalCase 素材 Action。只需更换 API 地址，并把 AK/SK 签名换成 TokenLab API 密钥。
+如果你的应用已经发送火山风格的 Seedance 请求，请使用本指南。任务接口保留官方 REST 路径、`content[]` 请求体、响应字段、错误信封和 callback 生命周期；素材与真人验证接口继续保留 PascalCase Action 契约。必须修改的是主机和鉴权凭据。
 
 ## 需要修改的内容
 
-| 需要更换的部分 | 现有火山客户端 | TokenLab |
+| 项目 | 现有火山客户端 | TokenLab |
 | --- | --- | --- |
 | 基础 URL | `Volcengine API` | `https://api.tokenlab.sh/` |
 | 鉴权 | `AK/SK` | `Authorization: Bearer <TOKENLAB_API_KEY>` |
@@ -15,20 +15,20 @@ description: "保留火山请求格式，把 Seedance 切换到 TokenLab"
 | 素材/验证 Action | `Action`, `Version` | 保持不变 |
 | 任务请求体 | `content[]` | `content[]` |
 | 素材请求体 | `PascalCase` | `PascalCase` |
-| 异步结果 | `任务 ID` | `cgt-...` + 状态查询 + 可选 callback |
+| 异步结果 | `任务 ID` | `cgt-...` + 轮询 + 可选 callback |
 
-只带 AK/SK 的请求会返回 `401 AuthenticationError`。所有 TokenLab 请求都要使用 `Authorization: Bearer <TOKENLAB_API_KEY>`。
+仅带 AK/SK 的请求会返回官方四字段错误信封，其中错误码为 `401 AuthenticationError`。任务客户端使用 `/api/v3/contents/generations/tasks`；素材和真人验证 Action 客户端仍可使用 `POST /?Action=...&Version=2024-01-01` 或 `/api/v3` 前缀。
 
-## 选择接口
+## 请求形状与任务生命周期
 
-视频任务继续使用 `/api/v3/contents/generations/tasks`；素材和真人验证继续使用带 `Action` 与 `Version` 的请求。现有请求体无需改成 `/v1/videos/generations` 格式。全新的视频功能可以直接使用 TokenLab 的[视频生成 API](/zh/api-reference/video/create-video)。
+如果你的系统已经按火山风格组织 Seedance 请求，例如使用 `content[]`、REST 任务路径或 Action 名称，可以使用兼容入口，只替换域名和鉴权方式，不必先把请求体改成 `/v1/videos/generations` 的统一格式。新的跨模型视频接入仍建议优先使用 TokenLab 统一的 [`/v1/videos/generations`](/zh/api-reference/video/create-video)。
 
-### 需要改什么
+### 接入流程
 
 1. 使用 `Authorization: Bearer <TOKENLAB_API_KEY>` 鉴权。当前版本不接受火山 AK/SK 签名。
 2. REST 创建使用 `POST /api/v3/contents/generations/tasks`。任务 Action 别名只作为 TokenLab 旧版兼容入口保留，不属于一比一官方任务契约。
-3. 创建响应返回 `cgt-...` 任务 ID。通过查询任务 API 查看状态，直到变为 `succeeded`、`failed`、`cancelled` 或 `expired`。
-4. 可以传入公网 HTTP(S) `callback_url`。状态变化时，回调会发送与查询 API 相同的任务对象。`succeeded` 和 `failed` 回调如果五秒内没有成功，最多重试三次。即使使用回调，也应保留状态查询能力。
+3. 创建响应返回 `cgt-...` 任务 ID。用查询任务接口轮询，直到 `status` 变为 `succeeded`、`failed`、`cancelled` 或 `expired`。
+4. 可选传入公网 HTTP(S) `callback_url`。`queued`、`running`、`succeeded`、`failed`、`expired` 每次状态变化时都会发送与查询接口完全相同的任务对象；仅 `succeeded`、`failed` 按官方规则在五秒未成功时最多重试三次。请保留轮询作为兜底。
 
 ### 请求体要点
 
@@ -61,7 +61,7 @@ curl 'https://api.tokenlab.sh/api/v3/contents/generations/tasks' \
   -H "Idempotency-Key: $CLIENT_JOB_ID" \
   -H "Content-Type: application/json" \
   -d '{
-    "model":"seedance-2.5",
+    "model":"seedance-2.0",
     "content":[
       {"type":"text","text":"A cinematic product reveal"},
       {"type":"image_url","role":"reference_image","image_url":{"url":"https://example.com/reference.png"}}
@@ -79,11 +79,11 @@ curl 'https://api.tokenlab.sh/api/v3/contents/generations/tasks' \
 ## 迁移检查清单
 
 1. 把 API 主机替换为 `https://api.tokenlab.sh`。
-2. 把 AK/SK 签名替换为 TokenLab Bearer API 密钥。
+2. 把 AK/SK 签名替换为 TokenLab Bearer API Key。
 3. 任务请求保留官方 REST 方法、路径和请求体大小写；只有素材与验证操作继续保留 Action 和版本。
 4. 相关素材和真人验证请求使用相同的 `ProjectName`。
 5. 保存 TokenLab 返回的任务、素材组和素材 ID。
-6. 正式切换前，确认创建、状态查询、列表和错误响应都能正确处理。
+6. 迁移生产流量前验证创建、轮询、列表和错误响应。
 
 ## 不要混用 v1 与 v3 类型
 

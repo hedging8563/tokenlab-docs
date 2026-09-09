@@ -1,52 +1,157 @@
 ---
 title: "Modell abrufen"
 openapi: "GET /v1/models/{model}"
-description: "Rufen Sie die Fähigkeiten, Preise und API-Formate eines Modells ab"
+description: "Ruft eine Modellinstanz ab"
 ---
 
 ## Pfadparameter
 
 <ParamField path="model" type="string" required>
-  Modell-ID, wie z. B. `gpt-5.4` oder `claude-sonnet-4-6`.
+  Die ID des abzurufenden Modells (z. B. `gpt-5.4`, `claude-sonnet-4-6`).
 </ParamField>
 
 ## Antwort
 
-<ResponseField name="id" type="string">Modell-ID.</ResponseField>
-<ResponseField name="object" type="string">Immer `model`.</ResponseField>
-<ResponseField name="owned_by" type="string">Hersteller des Modells.</ResponseField>
-<ResponseField name="tokenlab" type="object">
-  TokenLab-Modellinformationen, einschließlich Fähigkeiten, Preisen, Abrechnungseinheiten, Kontextlimits, akzeptierten API-Formaten, Operationen und Lebenszyklusstatus.
+<ResponseField name="id" type="string">
+  Modellbezeichner.
+Es enthält außerdem `lifecycle`, `commercial` und `badges` für Deprecation-/Retirement-Status, Nutzer-Abrechnung und Anzeige-Badges.
 </ResponseField>
 
-Zu den gängigen `tokenlab`-Feldern gehören:
+<ResponseField name="object" type="string">
+  Immer `model`.
+</ResponseField>
 
-- `capabilities`: Text-, Bild-, Video-, Audio- und andere Fähigkeiten.
-- `pricing`: Aktuelle öffentliche Preise.
-- `max_input_tokens` und `max_output_tokens`: Kontext- und Ausgabelimits.
-- `accepted_request_formats`: Unterstützte API-Formate.
-- `supported_operations`: Operationen wie Text-zu-Bild oder Bild-zu-Video.
-- `lifecycle`: Verfügbarkeit, Veröffentlichungsdatum, Datum der Einstellung oder Ersatzmodell.
+<ResponseField name="created" type="integer">
+  Erstellungszeitstempel.
+</ResponseField>
 
-Einige Medienmodelle enthalten auch einen Empfehlungsstatus und eine Aktualisierungszeit. Empfehlungen können sich je nach Verfügbarkeit und Leistung ändern, daher sollten Sie deren Reihenfolge nicht fest im Code hinterlegen (hard-code).
+<ResponseField name="owned_by" type="string">
+  Modellanbieter.
+</ResponseField>
 
-## Beispiel
+<ResponseField name="tokenlab" type="object">
+  Öffentliche TokenLab-Metadaten. Die Detailroute kann `category`, `pricing_unit`, `capability_flags`, `supported_operations`, `pricing_provenance`, `request_format_summary`, das vollständige `request_format_details` sowie szenenbezogene `agent_preferences` für Nicht-Chat-Empfehlungssnapshots enthalten.
+</ResponseField>
 
-```bash
-curl "https://api.tokenlab.sh/v1/models/gpt-5.4"
+<RequestExample>
+```bash cURL
+curl "https://api.tokenlab.sh/v1/models/gpt-5.4" \
+  -H "Authorization: Bearer sk-your-api-key"
 ```
+
+```python Python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="sk-your-api-key",
+    base_url="https://api.tokenlab.sh/v1"
+)
+
+model = client.models.retrieve("gpt-5.4")
+print(f"Model: {model.id}, Provider: {model.owned_by}")
+```
+
+```javascript JavaScript
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  apiKey: 'sk-your-api-key',
+  baseURL: 'https://api.tokenlab.sh/v1'
+});
+
+const model = await client.models.retrieve('gpt-5.4');
+console.log(`Model: ${model.id}, Provider: ${model.owned_by}`);
+```
+
+```go Go
+package main
+
+import (
+    "encoding/json"
+    "fmt"
+    "net/http"
+)
+
+func main() {
+    req, _ := http.NewRequest("GET", "https://api.tokenlab.sh/v1/models/gpt-5.4", nil)
+    req.Header.Set("Authorization", "Bearer sk-your-api-key")
+
+    resp, _ := http.DefaultClient.Do(req)
+    defer resp.Body.Close()
+
+    var model map[string]interface{}
+    json.NewDecoder(resp.Body).Decode(&model)
+    fmt.Printf("Model: %s, Provider: %s\n", model["id"], model["owned_by"])
+}
+```
+
+```php PHP
+<?php
+$ch = curl_init('https://api.tokenlab.sh/v1/models/gpt-5.4');
+
+curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HTTPHEADER => [
+        'Authorization: Bearer sk-your-api-key'
+    ]
+]);
+
+$response = curl_exec($ch);
+curl_close($ch);
+
+$model = json_decode($response, true);
+echo "Model: {$model['id']}, Provider: {$model['owned_by']}\n";
+```
+</RequestExample>
+
+<ResponseExample>
+```json Response
+{
+  "id": "gpt-5.4",
+  "object": "model",
+  "created": 1706000000,
+  "owned_by": "openai"
+}
+```
+</ResponseExample>
+
+## Fehlerbehandlung
+
+Wenn das Modell nicht existiert, erhalten Sie einen 404-Fehler:
 
 ```json
 {
-  "id": "gpt-5.6-terra",
-  "object": "model",
-  "owned_by": "openai",
-  "tokenlab": {
-    "category": "chat",
-    "capabilities": ["text"],
-    "accepted_request_formats": ["responses", "chat_completions"]
+  "error": {
+    "message": "Model 'invalid-model' not found",
+    "type": "invalid_request_error",
+    "code": "model_not_found"
   }
 }
 ```
 
-Ein unbekanntes Modell gibt `404 model_not_found` zurück.
+## Nicht-Chat-Empfehlungsmetadaten
+
+Bei Nicht-Chat-Modellen gibt die Detailroute außerdem `tokenlab.agent_preferences.<scene>` zurück.
+
+Verwenden Sie das, um Folgendes zu prüfen:
+
+- `preferred_rank`
+- `success_rate_24h`
+- `sample_count_24h`
+- `status`
+- `updated_at`
+
+Die öffentliche Antwort fasst die Empfehlung über `basis.source` zusammen und legt keine Routing-Kennungen offen.
+
+## Öffentliche Detailmetadaten
+
+Im Vergleich zu `GET /v1/models` kann die Detailroute zusätzlich Folgendes zurückgeben:
+
+- `tokenlab.capability_flags`
+- `tokenlab.supported_operations`
+- `tokenlab.pricing_provenance`
+- `tokenlab.request_format_summary`
+- `tokenlab.request_format_details`
+## Modelllöschung
+
+`DELETE /v1/models/{model}` wird nicht unterstützt. TokenLab-Modelle sind ein gemeinsamer öffentlicher Katalog, keine nutzereigenen Fine-Tuning-Modellressourcen.

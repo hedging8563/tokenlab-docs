@@ -35,7 +35,7 @@ curl https://api.tokenlab.sh/v1/chat/completions \
 - [Images](https://docs.tokenlab.sh/api-reference/images/create-image): POST https://api.tokenlab.sh/v1/images/generations
 - [Video](https://docs.tokenlab.sh/api-reference/video/create-video): POST https://api.tokenlab.sh/v1/videos/generations
 - [Audio](https://docs.tokenlab.sh/api-reference/audio/create-speech): POST https://api.tokenlab.sh/v1/audio/speech
-- [Realtime](https://docs.tokenlab.sh/api-reference/realtime/connect): WS https://api.tokenlab.sh/v1/realtime?model={model} (WebSocket subset only; no Realtime REST client secrets or Calls)
+- [Realtime](https://docs.tokenlab.sh/api-reference/realtime/connect): WS https://api.tokenlab.sh/v1/realtime?model={model} (WebSocket proxy only; no Realtime REST client secrets or Calls)
 - [Translations](https://docs.tokenlab.sh/api-reference/translation/create-translation): POST https://api.tokenlab.sh/v1/translations
 - [Embeddings](https://docs.tokenlab.sh/api-reference/embeddings/create-embedding): POST https://api.tokenlab.sh/v1/embeddings
 - [Models](https://docs.tokenlab.sh/api-reference/models/list-models): GET https://api.tokenlab.sh/v1/models

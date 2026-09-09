@@ -1,73 +1,208 @@
 ---
 title: "列出模型"
 openapi: "GET /v1/models"
-description: "列出当前可用模型"
+description: "列出所有可用模型"
 ---
-
-模型目录是公开接口，不需要 API 密钥。每个模型都带有当前能力、价格和 API 格式摘要；需要完整信息时，再查询单个模型。
-
-## 查询参数
-
-<ParamField query="category" type="string">
-  按类别筛选：`chat`、`image`、`video`、`audio`、`tts`、`stt`、`music`、`3d`、`embedding`、`rerank` 或 `translation`。
-</ParamField>
-
-<ParamField query="recommended_for" type="string">
-  获取某类任务的当前推荐模型，例如 `image`、`video`、`music`、`3d`、`tts`、`stt`、`embedding`、`rerank` 或 `translation`。
-</ParamField>
-
-<ParamField query="provider" type="string">
-  按模型厂商筛选，例如 `openai`、`anthropic`、`google` 或 `deepseek`。
-</ParamField>
-
-<ParamField query="tag" type="string">
-  按标签筛选，例如 `chat`、`image`、`video`、`embedding` 或 `translation`。
-</ParamField>
 
 ## 响应
 
 <ResponseField name="object" type="string">
-  固定为 `list`。
+  始终为 `list`。
 </ResponseField>
 
 <ResponseField name="data" type="array">
-  模型列表。每项包含 `id`、`owned_by` 和 `tokenlab` 摘要。
+  模型对象数组。
+
+  每个模型始终包含：
+  - `id` (string): 模型标识符
+  - `object` (string): `model`
+  - `created` (integer): 创建时间戳
+  - `owned_by` (string): 模型提供方
+  - `tokenlab.aliases` (array): 同一模型的公开别名
+  - `tokenlab.pricing` (object): 公开基础价格摘要
+  - `tokenlab.capabilities` (array): 公开能力标签
+  - `tokenlab.max_input_tokens` (number or `null`): 可用时的输入上下文上限
+  - `tokenlab.max_output_tokens` (number or `null`): 可用时的输出上限
+  - `tokenlab.category` (string): 公开模型分类
+  - `tokenlab.pricing_unit` (string): 公开定价单位
+  - `tokenlab.has_complex_pricing` (boolean): 价格是否有模型专属维度
+  - `tokenlab.lifecycle`（object）：生命周期状态、发布日期/弃用日期、替代模型和 latest 标签来源
+  - `tokenlab.commercial`（object）：用户收费策略、免费原因和可选免费截止时间
+  - `tokenlab.badges`（array）：由生命周期和商业策略派生的展示标签
+
+  条件式列表元数据：
+  - `tokenlab.providers` (array): 可用时的公开提供方
+  - `tokenlab.cache_pricing` (object or `null`): 可用时的 prompt cache 价格
+  - `tokenlab.pricing_summary` (object or `null`): 仅在复杂价格模型上返回
+  - `tokenlab.request_format_summary` (object or `null`): 轻量级非聊天发现摘要，包含 `public_operations`、`request_endpoint` 和 `request_endpoint_by_operation`
+  - `tokenlab.agent_preferences` (object): 仅在存在 `recommended_for` 时返回
+
+  `tokenlab.capability_flags`、`tokenlab.supported_operations`、`tokenlab.pricing_provenance`、`tokenlab.request_format_details` 等仅详情可见的字段，只会由 `GET /v1/models/{model}` 返回。
 </ResponseField>
 
-`tokenlab` 中常用的列表字段包括：
+<Note>
+`GET /v1/models` 侧重于发现。像 `capability_flags`、`pricing_provenance` 和完整的 `request_format_details` 这类仅详情可见的元数据都在 `GET /v1/models/{model}` 中。
+</Note>
 
-- `tokenlab.aliases`：公开别名。
-- `tokenlab.capabilities`：模型能力。
-- `tokenlab.pricing` 与 `tokenlab.pricing_unit`：当前价格和计费单位。
-- `tokenlab.max_input_tokens` 与 `tokenlab.max_output_tokens`：上下文和输出上限。
-- `tokenlab.category`：模型类别。
-- `tokenlab.lifecycle`、`tokenlab.commercial` 与 `tokenlab.badges`：当前状态、收费方式和页面标签。
-- `tokenlab.request_format_summary`：适用的 API 地址和操作。
-- `tokenlab.agent_preferences`：使用 `recommended_for` 时返回的推荐信息。
+## 查询参数
 
-使用 `recommended_for` 时，响应还可能包含推荐状态和更新时间。推荐顺序会变化，请在使用时读取最新结果。
+<ParamField query="category" type="string">
+  可选的公开分类筛选。支持 `chat`、`image`、`video`、`audio`、`tts`、`stt`、`music`、`3d`、`embedding`、`rerank` 和 `translation`。
+</ParamField>
 
-## 示例
+<ParamField query="recommended_for" type="string">
+  可选的非聊天推荐场景。支持 `image`、`video`、`music`、`3d`、`tts`、`stt`、`embedding`、`rerank` 和 `translation`。
+</ParamField>
 
-```bash
-curl "https://api.tokenlab.sh/v1/models?category=video"
+<ParamField query="provider" type="string">
+  可选的提供方筛选，例如 `openai`、`anthropic`、`google` 或 `deepseek`。
+</ParamField>
+
+<ParamField query="tag" type="string">
+  可选的模型标签筛选，例如 `chat`、`image`、`video`、`embedding` 或 `translation`。
+</ParamField>
+
+<Note>
+当 `recommended_for` 存在时，`/v1/models` 会按照最近缓存的 24 小时成功率快照对非聊天模型排序。`status = "insufficient_samples"` 的模型仍会显示，但会排在已有评分的模型之后。
+</Note>
+
+<RequestExample>
+```bash cURL
+curl "https://api.tokenlab.sh/v1/models" \
+  -H "Authorization: Bearer sk-your-api-key"
 ```
 
-```json
+```python Python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="sk-your-api-key",
+    base_url="https://api.tokenlab.sh/v1"
+)
+
+models = client.models.list()
+
+for model in models.data:
+    print(f"{model.id} ({model.owned_by})")
+```
+
+```javascript JavaScript
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  apiKey: 'sk-your-api-key',
+  baseURL: 'https://api.tokenlab.sh/v1'
+});
+
+const models = await client.models.list();
+
+for (const model of models.data) {
+  console.log(`${model.id} (${model.owned_by})`);
+}
+```
+
+```go Go
+package main
+
+import (
+    "encoding/json"
+    "fmt"
+    "net/http"
+)
+
+func main() {
+    req, _ := http.NewRequest("GET", "https://api.tokenlab.sh/v1/models", nil)
+    req.Header.Set("Authorization", "Bearer sk-your-api-key")
+
+    resp, _ := http.DefaultClient.Do(req)
+    defer resp.Body.Close()
+
+    var payload struct {
+        Data []struct {
+            ID      string `json:"id"`
+            OwnedBy string `json:"owned_by"`
+        } `json:"data"`
+    }
+
+    json.NewDecoder(resp.Body).Decode(&payload)
+
+    for _, model := range payload.Data {
+        fmt.Printf("%s (%s)\n", model.ID, model.OwnedBy)
+    }
+}
+```
+
+```php PHP
+<?php
+$ch = curl_init('https://api.tokenlab.sh/v1/models');
+
+curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HTTPHEADER => [
+        'Authorization: Bearer sk-your-api-key'
+    ]
+]);
+
+$response = curl_exec($ch);
+curl_close($ch);
+
+$data = json_decode($response, true);
+foreach ($data['data'] as $model) {
+    echo "{$model['id']} ({$model['owned_by']})\n";
+}
+```
+</RequestExample>
+
+<ResponseExample>
+```json Response
 {
   "object": "list",
   "data": [
     {
-      "id": "veo3.1",
+      "id": "gpt-5.4",
       "object": "model",
-      "owned_by": "google",
-      "tokenlab": {
-        "category": "video",
-        "capabilities": ["text-to-video", "image-to-video"]
-      }
+      "created": 1706000000,
+      "owned_by": "openai"
+    },
+    {
+      "id": "claude-sonnet-4-6",
+      "object": "model",
+      "created": 1706000000,
+      "owned_by": "anthropic"
+    },
+    {
+      "id": "gemini-3.5-flash",
+      "object": "model",
+      "created": 1706000000,
+      "owned_by": "google"
     }
   ]
 }
 ```
+</ResponseExample>
 
-单个模型的完整字段见[获取模型](/zh/api-reference/models/get-model)。
+## 按提供方筛选
+
+```python
+# Get all OpenAI models
+openai_models = [m for m in models.data if m.owned_by == "openai"]
+
+# Get all Anthropic models
+anthropic_models = [m for m in models.data if m.owned_by == "anthropic"]
+```
+
+## 模型类别
+
+| 提供方 | 示例模型 |
+|----------|----------------|
+| `openai` | gpt-5.4, gpt-5.4-mini, gpt-5-mini, gpt-4o, gpt-image-2 |
+| `anthropic` | claude-opus-4-6, claude-sonnet-4-6, claude-haiku-4-5 |
+| `google` | gemini-3.1-pro-preview, gemini-3.5-flash, gemini-2.5-pro |
+| `deepseek` | deepseek-r1, deepseek-v3-2 |
+| `xai` | grok-4.1 |
+| `moonshot` | kimi-k2.5 |
+| `minimax` | minimax-m3 |
+| `meta` | llama-3.3-70b, llama-3.1-405b |
+## 模型删除
+
+`DELETE /v1/models/{model}` 不受支持。TokenLab 模型是共享公开目录，不是用户拥有的微调模型资源。

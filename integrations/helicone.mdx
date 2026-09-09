@@ -5,8 +5,15 @@ description: "Observe TokenLab requests through Helicone Gateway"
 
 ## Overview
 
-Helicone Gateway can forward OpenAI-compatible requests to TokenLab and record their traces.
+Helicone can proxy and observe TokenLab's OpenAI-compatible requests by routing them through Helicone Gateway and targeting TokenLab.
 
+<Note>
+**Type**: Observability Gateway
+
+**Primary Path**: OpenAI-compatible chat completions through Helicone Gateway
+
+**Support Confidence**: Supported observability path
+</Note>
 
 ## Environment
 
@@ -26,7 +33,7 @@ curl --request POST \
   --header "Helicone-Target-Provider: TokenLab" \
   --header "Content-Type: application/json" \
   --data '{
-    "model": "gpt-5.6-luna",
+    "model": "gpt-5.4-mini",
     "messages": [
       {
         "role": "user",
@@ -59,4 +66,4 @@ const response = await client.chat.completions.create({
 
 ## Scope
 
-This setup covers OpenAI-compatible `/v1` requests. Send Responses, Anthropic Messages, and Gemini through Helicone only when it supports that format; otherwise call TokenLab directly.
+This setup is for OpenAI-compatible `/v1` traffic. TokenLab also exposes native Responses, Anthropic Messages, and Gemini-compatible endpoints; use direct TokenLab routes for those native formats unless your observability proxy explicitly supports them.

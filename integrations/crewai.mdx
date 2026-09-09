@@ -7,6 +7,13 @@ description: "Use TokenLab models in CrewAI agents through OpenAI-compatible LLM
 
 CrewAI supports OpenAI-compatible LLMs by setting the model, API key, and base URL on environment variables or on the `LLM` class.
 
+<Note>
+**Type**: Agent Framework
+
+**Primary Path**: OpenAI-compatible chat completions
+
+**Support Confidence**: Supported custom endpoint path
+</Note>
 
 ## Environment Variables
 
@@ -37,8 +44,10 @@ agent = Agent(
 )
 ```
 
-Model IDs change over time. Choose a current model on the [Models page](https://tokenlab.sh/en/models), then compare quality, speed, and cost on your own CrewAI tasks.
+## Model Suggestions
+
+Use `gpt-5.4-mini` for routine crews, `claude-sonnet-5` or `gpt-5.4` for planning-heavy agents, and `deepseek-v4-flash` for faster low-cost iterations.
 
 ## Endpoint Notes
 
-This setup uses Chat Completions. To use Responses, Anthropic Messages, or Gemini, confirm that your CrewAI component supports that API format.
+CrewAI's OpenAI-compatible path is best for Chat Completions style agent calls. Use TokenLab native endpoints directly only when the tool or SDK you choose can speak those native protocols.

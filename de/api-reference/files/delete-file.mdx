@@ -1,20 +1,18 @@
 ---
 title: "Datei löschen"
 openapi: "DELETE /v1/files/{file_id}"
-description: "Löscht eine hochgeladene Datei, die der aktuellen Organisation gehört."
+description: "Löscht eine Batch-Datei, eine Bild-/Referenzdatei-Bindung oder eine Datei im Anthropic-Modus."
 ---
 
 ## Übersicht
 
-Löscht eine über `/v1/files` erstellte Datei. Batch-Dateien und von TokenLab erstellte Bildreferenzdateien geben ein OpenAI-kompatibles deleted-Objekt zurück.
-
-Wenn die Anfrage den Anthropic-Files-Kompatibilitätsmodus verwendet, löscht dieselbe Route die Anthropic-ähnliche Datei aus dem gebundenen Workspace.
+Löscht eine über `/v1/files` erstellte Datei. Ohne Anthropic-Header löscht die Route TokenLab-Batch-Dateien oder gebundene Bild-/Referenzdateien. Mit `anthropic-beta: files-api-2025-04-14` nutzt sie den Anthropic-Files-API-Modus für den gebundenen Workspace.
 
 ## Hinweise
 
-- Das Löschen einer Datei bricht Batch-Jobs, die sie bereits referenzieren, nicht ab.
-- Fehlende oder nicht autorisierte file ids geben einen öffentlichen not-found-Fehler zurück, ohne Routingstatus offenzulegen.
-- Löschen Sie Bildreferenzdateien erst, wenn keine ausstehende Bildbearbeitungsanfrage sie mehr benötigt.
+- Das Löschen einer Batch-Datei entfernt den gespeicherten Batch-Dateidatensatz und verhindert, dass künftige Batch-Jobs diese Datei-ID verwenden.
+- Beim Löschen einer Bild-/Referenzdatei bittet TokenLab den ausgewählten Anbieter um Löschung und entfernt danach die TokenLab-Dateibindung.
+- Der Anthropic-Files-API-Modus benötigt dieselben nativen Anthropic-Header wie Upload und Abruf.
 
 ## Beispiel
 
@@ -27,4 +25,21 @@ curl -X DELETE "https://api.tokenlab.sh/v1/files/file_abc123" \
 
 ## Anfrage / Antwort
 
-Verwenden Sie das interaktive OpenAPI-Panel oben für das genaue Schema.
+Nutze das interaktive OpenAPI-Panel oben für das genaue Schema.
+
+## Response-Beispiel
+
+<ResponseExample>
+```json 200 OK
+{
+  "id": "file_abc123",
+  "object": "file",
+  "deleted": true
+}
+```
+</ResponseExample>
+
+## Wichtige Felder
+
+<ResponseField name="id" type="string">Dateikennung, die gelöscht wurde.</ResponseField>
+<ResponseField name="deleted" type="boolean">Ob die Löschanfrage erfolgreich war.</ResponseField>

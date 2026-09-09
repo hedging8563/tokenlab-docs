@@ -1,16 +1,25 @@
 ---
 title: "LangChain"
-description: "Use TokenLab chat and embeddings with LangChain"
+description: "Integrate TokenLab with LangChain using standard OpenAI-compatible chat and embeddings"
 ---
 
 ## Overview
 
-LangChain's `ChatOpenAI` and `OpenAIEmbeddings` can use TokenLab through the OpenAI-compatible API.
+TokenLab works well with LangChain's `ChatOpenAI` and `OpenAIEmbeddings` integrations when you stay on the standard OpenAI-compatible chat and embeddings surface.
+
+This page intentionally covers the standard OpenAI-compatible LangChain surface, not provider-native LangChain features beyond that surface.
 
 <Note>
-`ChatOpenAI` handles OpenAI-compatible fields. If your application needs Claude Messages or Gemini-specific fields, use the matching LangChain integration instead.
+Current LangChain docs note that `ChatOpenAI` targets official OpenAI-compatible request/response shapes. If you need provider-specific, non-standard response fields, use a provider-specific LangChain integration instead of relying on `ChatOpenAI`.
 </Note>
 
+<Note>
+**Type**: Framework or Platform
+
+**Primary Path**: OpenAI-compatible standard surface
+
+**Support Confidence**: Supported standard surface
+</Note>
 
 ## Installation
 
@@ -24,7 +33,7 @@ pip install langchain langchain-openai langchain-community faiss-cpu
 from langchain_openai import ChatOpenAI
 
 llm = ChatOpenAI(
-    model="gpt-5.6-terra",
+    model="gpt-5.4",
     api_key="sk-your-tokenlab-key",
     base_url="https://api.tokenlab.sh/v1",
 )
@@ -39,13 +48,13 @@ print(response.content)
 from langchain_openai import ChatOpenAI
 
 gpt = ChatOpenAI(
-    model="gpt-5.6-terra",
+    model="gpt-5.4",
     api_key="sk-your-key",
     base_url="https://api.tokenlab.sh/v1",
 )
 
 claude = ChatOpenAI(
-    model="claude-sonnet-5",
+    model="claude-sonnet-4-6",
     api_key="sk-your-key",
     base_url="https://api.tokenlab.sh/v1",
 )
@@ -57,7 +66,7 @@ gemini = ChatOpenAI(
 )
 
 deepseek = ChatOpenAI(
-    model="deepseek-reasoner",
+    model="deepseek-r1",
     api_key="sk-your-key",
     base_url="https://api.tokenlab.sh/v1",
 )

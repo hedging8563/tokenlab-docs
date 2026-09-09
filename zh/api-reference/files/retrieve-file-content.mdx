@@ -1,10 +1,24 @@
 ---
 title: "获取文件内容"
 openapi: "GET /v1/files/{file_id}/content"
-description: "下载文件内容。"
+description: "下载上传文件的原始内容。"
 ---
 
-下载批处理输入、输出或错误文件。携带 Anthropic Files 请求头时，也可以下载当前工作区的 Anthropic 格式文件。
+## 概述
+
+此端点主要服务于 TokenLab 的 OpenAI 兼容 Batch API 文件内容检索。
+
+当请求选择 Anthropic Files 兼容模式时，同一路由也可以代理绑定工作区中存储的原始文件内容。
+
+
+不带 Anthropic 请求头时，此路由下载批量文件内容；如果提供商支持文件内容读取，也会代理已绑定图像/参考文件的内容。
+## 注意事项
+
+- 批处理输入文件必须使用 `purpose=batch`。
+- 使用 `purpose=batch_output` 以聚焦生成的输出文件。
+- `completion_window` 当前为 `24h`。
+- 输出顺序不保证；始终通过 `custom_id` 匹配。
+- 批处理项内不支持流式传输。
 
 ## 示例
 
@@ -16,14 +30,15 @@ curl -X GET "https://api.tokenlab.sh/v1/files/file_abc123/content" \
 ```
 </RequestExample>
 
-## 使用说明
+## 请求 / 响应
 
-- 使用 `custom_id` 把输出与输入记录一一对应。
-- 批处理完成后，响应才会出现 `output_file_id` 和 `error_file_id`。
+使用上面的交互式 OpenAPI 面板获取确切的模式。
 
-## 内容类型
+## 操作提示
 
-批处理文件以 JSONL 或纯文本返回；图片参考文件以二进制返回。
+- 使用 `custom_id` 进行幂等的下游对账。
+- 仅在工作者完成批处理后，期待 `output_file_id` 和 `error_file_id`。
+- 批处理定价可能与同步定价不同，因为适用 `isBatchRequest=true` 的折扣规则。
 
 ## 响应示例
 
@@ -36,5 +51,5 @@ curl -X GET "https://api.tokenlab.sh/v1/files/file_abc123/content" \
 
 ## 重要字段
 
-<ResponseField name="body" type="binary|string">文件内容。请根据 `Content-Type` 保存或解析。</ResponseField>
-<ResponseField name="custom_id" type="string">批处理输入和结果之间的对应 ID。</ResponseField>
+<ResponseField name="body" type="binary|string">原始响应体。应直接保存，不要按 JSON 解析。</ResponseField>
+<ResponseField name="custom_id" type="string">用于后续调用和支持排障的标识符。</ResponseField>

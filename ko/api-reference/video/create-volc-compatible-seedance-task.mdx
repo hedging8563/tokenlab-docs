@@ -1,77 +1,39 @@
 ---
-title: "작업 생성 (Volc 호환)"
+title: "작업 생성(Volc 호환)"
 openapi: "POST /api/v3/contents/generations/tasks"
-description: "Volc 호환 API를 사용하여 Seedance 2.0 작업을 생성합니다."
+description: "Volc 스타일 REST body 또는 Action 요청으로 Seedance 2.0 작업을 생성합니다."
 ---
 
 ## 개요
 
-기존 Volc 스타일의 Seedance 클라이언트는 API 주소와 키를 변경하여 TokenLab을 사용할 수 있습니다.
+이 엔드포인트는 Volc 스타일 Seedance 작업 구조를 이미 사용하는 팀을 위한 것입니다. 인증은 TokenLab Bearer API Key를 사용합니다. 반환되는 작업 ID는 `cgt-`로 시작하며, `status`가 `succeeded`, `failed`, `cancelled`, `expired` 중 하나가 될 때까지 폴링하세요.
 
-[Seedance 2.0 비디오 모델](/guides/seedance-2-video) 및 [비디오 생성](/guides/video-generation)을 참조하십시오.
+공식 작업 계약은 `/api/v3/contents/generations/tasks` 아래의 REST 경로를 사용합니다. 기존 Action 별칭은 이전 TokenLab 통합을 위해서만 유지되며 공식 와이어 호환 계약에는 포함되지 않습니다.
 
-## 인증 및 엔드포인트
+`callback_url`에는 공개 HTTP(S) 주소를 지정할 수 있습니다. `queued`, `running`, `succeeded`, `failed`, `expired`로 상태가 바뀔 때마다 조회 API와 동일한 객체를 TokenLab 전용 헤더 없이 보냅니다. `succeeded`와 `failed`는 5초 후 최대 세 번 재시도합니다.
 
-- `Authorization: Bearer <TOKENLAB_API_KEY>`를 사용하십시오.
-- Volc AK/SK 서명은 허용되지 않습니다. 요청에는 반드시 TokenLab Bearer 키가 포함되어야 합니다.
-- 공식 작업 경로인 `POST /api/v3/contents/generations/tasks`를 사용하십시오.
+<Note>
+연결이 끊긴 뒤 중복 없이 복구하려면 REST 생성 요청에 고유한 `Idempotency-Key`를 보내세요. 같은 body와 key로 재시도하면 같은 `cgt-...` ID를 반환하고, 같은 key를 다른 body에 사용하면 `409`를 반환합니다. 기존 Action 경로에는 적용되지 않습니다.
+</Note>
+
+같이 보기 [Seedance 2.0 비디오 모델](/ko/guides/seedance-2-video) 및 [비디오 생성](/ko/guides/video-generation).
 
 ## 콘텐츠 규칙
 
-- `type: "text"`는 프롬프트 텍스트입니다.
-- `role`이 없거나 `role: "first_frame"`인 `type: "image_url"`은 첫 번째 프레임으로 처리됩니다.
-- `role: "last_frame"`은 반드시 첫 번째 프레임과 쌍을 이루어야 합니다.
-- `role: "reference_image"`, `reference_video`, `reference_audio`는 참조용으로 사용됩니다.
-- `image_url.url`은 공개 이미지 URL 또는 `asset://asset-YYYYMMDDHHMMSS-xxxxx`와 같은 머티리얼 URI를 허용합니다. `role`은 해당 머티리얼이 첫 번째 프레임, 마지막 프레임 또는 참조 이미지인지 결정합니다.
-- 첫 번째/마지막 프레임 입력과 참조 미디어를 하나의 요청에 혼합하지 마십시오.
-- 요청 본문은 이 형식에서 지원하는 필드만 허용합니다. 최상위 `material_asset_id`, `material_asset_ids`, `priority`는 거부됩니다. 대신 `image_url.url` 내부에 TokenLab 머티리얼 URI를 넣으십시오.
+- 프롬프트 텍스트에는 `type=text`를 사용합니다.
+- `role` 없는 `type=image_url`은 첫 프레임으로 처리되며, `role=first_frame`을 명시할 수도 있습니다.
+- `role=last_frame`은 첫 프레임과 함께만 사용할 수 있습니다.
+- 참조 미디어에는 `role=reference_image`, `reference_video`, `reference_audio`를 사용합니다.
+- 하나의 요청에서 첫/마지막 프레임 입력과 참조 미디어를 섞지 마세요.
 
-## 매개변수 참고 사항
+## 파라미터 참고
 
-- `ratio`는 `16:9`, `4:3`, `1:1`, `3:4`, `9:16`, `21:9` 또는 `adaptive`를 허용합니다.
-- `duration`은 모델이 지원하는 자동 지속 시간 값을 포함한 비디오 길이(초 단위)입니다.
-- `resolution`은 `480p`, `720p` 또는 `1080p`를 허용합니다.
-- `generate_audio`의 기본값은 `false`입니다. 동기화된 오디오가 필요한 경우 `true`로 설정하십시오.
-- `watermark`, `return_last_frame`, `seed`, `execution_expires_after`, `safety_identifier`는 선택한 모델에서 유효한 경우 허용됩니다.
-- `callback_url`은 공개 HTTP(S) 엔드포인트를 가리킬 수 있습니다.
-
-## 콜백 전달
-
-`callback_url`이 제공되면, 작업 상태가 변경될 때 TokenLab이 HTTP `POST`를 전송합니다. 콜백 상태는 `queued`, `running`, `succeeded`, `failed`, `expired`입니다. JSON 본문은 get-task 응답과 일치합니다.
-
-`2xx` 응답은 전달 성공을 의미합니다. `succeeded` 및 `failed` 상태의 경우, 5초 이내에 전달이 성공하지 않으면 공식 동작과 동일하게 최대 3회까지 재시도합니다. 콜백에는 표준 JSON 콘텐츠 헤더만 포함되며 TokenLab 전용 전달 헤더는 없습니다. 리다이렉트는 따르지 않으며, 비공개 또는 예약된 네트워크 대상은 거부됩니다.
-
-작업 ID를 저장하십시오. 콜백이 전달되지 않더라도 get-task 엔드포인트를 통해 결과를 검색할 수 있습니다.
-
-## 이미지 준비
-
-`content[]`에 이미지 URL이 포함된 경우, TokenLab은 선택한 Seedance 모델에서 요구할 때 이를 재사용 가능한 머티리얼로 준비합니다. 60초 이내에 준비가 완료되지 않으면, 생성 요청은 불완전한 비디오 작업을 제출하는 대신 재시도 가능한 머티리얼 준비 오류를 반환합니다.
-
-기존 머티리얼의 경우, 다른 시스템에서 반환된 원본 에셋 ID 대신 공개 `asset-YYYYMMDDHHMMSS-xxxxx` ID를 사용하십시오. TokenLab은 생성 전에 머티리얼 소유권을 확인합니다.
-
-## 생성 응답
-
-```json
-{
-  "id": "cgt-20260102030405-a1b2c"
-}
-```
-
-생성 응답에는 작업 ID만 포함됩니다. 언제든지 상태와 결과를 검색할 수 있도록 이 ID를 저장하십시오.
-
-## 중복 작업 방지
-
-생성 요청 시 고유한 `Idempotency-Key`를 전송하십시오. 응답이 도착하기 전에 연결이 끊기면 동일한 API 키, 멱등성 키(idempotency key) 및 요청 본문으로 재시도하십시오.
-
-- 원래 작업이 생성된 경우, TokenLab은 동일한 `cgt-...` ID를 반환하고 `Idempotency-Replayed: true`를 추가합니다.
-- 원래 요청이 여전히 등록 중인 경우, TokenLab은 `Retry-After`와 함께 `409 IdempotencyRequestInProgress`를 반환합니다. 해당 지연 시간 이후에 동일한 키와 본문으로 재시도하십시오.
-- 다른 본문으로 키를 재사용하면 `409 IdempotencyConflict`가 반환되며 두 번째 작업은 생성되지 않습니다.
-
-멱등성은 공식 v3 REST 생성 경로에 적용됩니다. 이는 JSON 응답 형태를 변경하지 않으며, `X-Request-ID`나 키가 없는 동일한 요청 본문으로부터 추론되지 않습니다.
+- `ratio`는 `16:9`, `4:3`, `1:1`, `3:4`, `9:16`, `21:9`, `adaptive`를 허용합니다.
+- `generate_audio`의 공식 기본값은 `false`입니다. 동기화된 오디오가 필요하면 `true`를 전달하세요.
+- `service_tier=default`는 허용됩니다. Seedance 2.0 호환 작업은 `service_tier=flex`, `frames`, `camera_fixed=true`를 거부합니다.
+- 선택한 모델이 지원할 때 `tools`에는 `{ "type": "web_search" }` 같은 객체를 전달할 수 있습니다. 잘못된 tool 항목은 무시하지 않고 거부합니다.
 
 ## 예시
-
-### REST 생성
 
 ```bash
 curl https://api.tokenlab.sh/api/v3/contents/generations/tasks \
@@ -79,7 +41,7 @@ curl https://api.tokenlab.sh/api/v3/contents/generations/tasks \
   -H "Idempotency-Key: $CLIENT_JOB_ID" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "doubao-seedance-2.0",
+    "model": "doubao-seedance-2-0-260128",
     "content": [
       {"type": "text", "text": "A cinematic forest at sunset"},
       {"type": "image_url", "role": "reference_image", "image_url": {"url": "https://example.com/ref.png"}}
@@ -87,28 +49,6 @@ curl https://api.tokenlab.sh/api/v3/contents/generations/tasks \
     "ratio": "16:9",
     "duration": 5,
     "resolution": "720p",
-    "generate_audio": false,
-    "callback_url": "https://example.com/webhooks/seedance"
+    "generate_audio": false
   }'
 ```
-
-기존 머티리얼의 경우, 각 URI를 공식 `content[]` 항목에 넣고 역할을 선언하십시오.
-
-```json
-[
-  {
-    "type": "image_url",
-    "role": "first_frame",
-    "image_url": {"url": "asset://asset-20260720123458-start"}
-  },
-  {
-    "type": "image_url",
-    "role": "last_frame",
-    "image_url": {"url": "asset://asset-20260720123459-end01"}
-  }
-]
-```
-
-## 다음 단계
-
-작업이 최종 상태에 도달할 때까지 반환된 `cgt-...` ID를 사용하여 [작업 가져오기 (Volc 호환)](/api-reference/video/get-volc-compatible-seedance-task)를 수행하십시오.

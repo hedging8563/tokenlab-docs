@@ -248,7 +248,7 @@ Halaman ini sengaja dibuat lebih ringkas daripada matriks pemasaran:
 
 ```json
 {
-  "model": "claude-opus-5",
+  "model": "claude-opus-4-6",
   "thinking": {
     "type": "enabled",
     "budget_tokens": 10000
@@ -349,7 +349,7 @@ Endpoint generasi yang menyediakan `stream: true`, termasuk Chat Completions dan
 # Chat Completions
 curl https://api.tokenlab.sh/v1/chat/completions \
   -H "Authorization: Bearer sk-xxx" \
-  -d '{"model": "gpt-5.6-terra", "messages": [...], "stream": true}'
+  -d '{"model": "gpt-4o", "messages": [...], "stream": true}'
 
 # Chat Completions usage tracking
 -d '{"...", "stream_options": {"include_usage": true}}'
@@ -379,7 +379,7 @@ Lihat [Panduan Penanganan Kesalahan](/guides/error-handling) untuk detailnya.
   </Accordion>
 
   <Accordion title="Gunakan stream_options.include_usage hanya untuk Chat Completions">
-    Untuk streaming Chat Completions, aktifkan `stream_options.include_usage` untuk jumlah token yang akurat. Responses memiliki kontrak streaming sendiri dan tidak mengekspos opsi khusus Chat ini.
+    Untuk streaming Chat Completions, aktifkan `stream_options.include_usage` untuk jumlah token yang akurat. Responses memiliki kontrak streaming sendiri dan tidak menyediakan opsi khusus Chat ini.
   </Accordion>
 
   <Accordion title="Gunakan format tool_choice yang sesuai">

@@ -1,12 +1,19 @@
 ---
 title: "LangBot"
-description: "Connect a LangBot bot to TokenLab models"
+description: "Connect LangBot bot workflows to TokenLab models"
 ---
 
 ## Overview
 
-LangBot can call TokenLab through its OpenAI-compatible requester.
+LangBot can call TokenLab through an OpenAI-compatible LLM requester.
 
+<Note>
+**Type**: Bot Platform
+
+**Primary Path**: OpenAI-compatible chat completions
+
+**Support Confidence**: Supported with scope limits
+</Note>
 
 ## TokenLab Requester
 
@@ -18,7 +25,7 @@ If your LangBot build includes a **TokenLab** requester:
 4. Select or create a model such as `gpt-5.4-mini`.
 5. Attach the model to the pipeline or bot that should use it.
 
-## Use the OpenAI-compatible requester
+## OpenAI-Compatible Fallback
 
 If TokenLab is not listed yet, use the OpenAI-compatible requester:
 
@@ -29,6 +36,9 @@ If TokenLab is not listed yet, use the OpenAI-compatible requester:
 | API Key | `sk-your-tokenlab-key` |
 | Model | `gpt-5.4-mini` |
 
-## Choose a model
+## Recommended Models
 
-Copy a current chat model ID from the [Models page](https://tokenlab.sh/en/models). The LangBot component must use an API format accepted by that model.
+- `gpt-5.4-mini` for most bot interactions
+- `claude-sonnet-5` for longer writing and reasoning
+- `deepseek-v4-flash` for fast coding and reasoning loops
+- `gemini-3.5-flash` for fast general workflows

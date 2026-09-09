@@ -1,10 +1,10 @@
 ---
 title: "List Material Assets"
 openapi: "GET /v1/videos/assets"
-description: "List Seedance materials in the current Workspace."
+description: "Lists Seedance material assets owned by the current organization."
 ---
 
-List materials in the current Workspace. Filter by `library_type`, `group_id`, or `status`.
+List material assets owned by the authenticated organization. Filter by `library_type`, `group_id`, or `status` when you need to find assets for a specific generation workflow.
 
 Use only assets whose `status` is `ACTIVE`. Use the returned TokenLab material asset `id` when creating videos.
 

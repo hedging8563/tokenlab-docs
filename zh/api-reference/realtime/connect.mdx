@@ -4,15 +4,17 @@ openapi: "GET /v1/realtime"
 description: "通过 WebSocket 连接实时语音和多模态会话"
 ---
 
-通过 WebSocket 使用实时语音、翻译和多模态模型。普通 `GET` 请求返回接口信息；WebSocket 升级请求会开启实时会话。
+## 概览
+
+这个端点用于实时语音识别、语音合成、语音翻译或实时多模态模型等会话。普通 `GET` 请求会返回端点元信息；WebSocket 升级请求会代理到路由后的实时上游会话。
 
 ## 支持范围
 
-该接口支持实时模型的 WebSocket 事件，不提供 OpenAI Realtime 的 REST 辅助接口，例如 `client_secrets`、Calls API 或旧版 beta session API。
+这个端点是 TokenLab 的实时 WebSocket 代理。它支持普通 `GET /v1/realtime` 元信息检查，也支持在同一路径上发起 WebSocket 升级。它不提供 OpenAI Realtime 的 REST 辅助端点，例如 `POST /v1/realtime/client_secrets`、`POST /v1/realtime/translations/client_secrets`、Realtime Calls（`accept`、`hangup`、`refer`、`reject`），也不提供 legacy beta REST session / transcription-session 创建。
 
-不要把长期 API 密钥写进浏览器或移动端应用。该接口目前不签发短期 Realtime client secret。
+浏览器或移动端应用应把长期 API Key 保留在服务端。这个端点不会签发短期 Realtime client secret。
 
-<Note>通过 `/v1/models` 查询支持 realtime 的模型。</Note>
+<Note>Agent 应先通过 `/v1/models` 发现支持 realtime 的模型，再打开 socket。</Note>
 
 ## 连接
 
@@ -52,13 +54,13 @@ curl "https://api.tokenlab.sh/v1/realtime" \
 
 ## 消息
 
-事件格式以所选模型为准。`model` 放在连接 URL 的查询字符串中，不需要写进每条事件。
+TokenLab 会在客户端和路由后的实时提供方之间转发 WebSocket 消息。请保留所选模型的官方事件结构，并通过查询参数传入 `model`。
 
 ## 计费与关闭
 
-会话按实际用量计费，费用会计入所用 API 密钥。
+实时会话使用同一 API Key 余额。TokenLab 会在 socket 打开时预扣小额估算费用，并在会话关闭时结算或退款。
 
-会话结束后关闭连接。服务端结束会话时，客户端会收到关闭事件或状态码。
+会话完成后关闭客户端 socket。如果上游先关闭，TokenLab 会尽可能把关闭码转发给客户端。
 
 ## 响应示例
 
@@ -78,4 +80,4 @@ curl "https://api.tokenlab.sh/v1/realtime" \
 ## 重要字段
 
 <ResponseField name="type" type="string">API 返回的事件或消息类型。</ResponseField>
-<ResponseField name="session.id" type="string">实时会话 ID，可用于日志和问题排查。</ResponseField>
+<ResponseField name="session.id" type="string">实时提供方返回的标识符；可用于日志和支持排障，不是 REST session URL。</ResponseField>

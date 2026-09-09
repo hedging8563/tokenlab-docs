@@ -39,12 +39,6 @@ curl -X GET "https://api.tokenlab.sh/v1/files?purpose=batch&limit=20" \
 - 작업자가 배치를 최종화한 뒤에만 `output_file_id`와 `error_file_id`가 생깁니다.
 - 배치 가격은 `isBatchRequest=true` 할인 규칙 때문에 동기 가격과 다를 수 있습니다.
 
-## 필터
-
-- `limit`는 1부터 10000까지 허용되며 기본값은 10000입니다.
-- `purpose`는 `batch`, `batch_output`, `user_data`, `vision` 중 하나일 수 있습니다.
-- `user_data`와 `vision`은 사용 가능한 경우 TokenLab이 생성한 이미지 참조 파일을 반환합니다.
-
 ## 응답 예시
 
 <ResponseExample>

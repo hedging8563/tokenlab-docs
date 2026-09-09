@@ -5,8 +5,15 @@ description: "使用 Ragas 和 TokenLab 评估 LLM 应用"
 
 ## 概述
 
-把指向 TokenLab 的 `AsyncOpenAI` 客户端传给 `llm_factory`，Ragas 就能用它进行评测。
+Ragas 可以通过将兼容 OpenAI 的 `AsyncOpenAI` 客户端传入 `llm_factory` 来评估由 TokenLab 支持的应用程序。
 
+<Note>
+**类型**: 评估框架
+
+**主要路径**: 兼容 OpenAI 的 Chat Completions
+
+**支持置信度**: 支持兼容 OpenAI 的路径
+</Note>
 
 ## 环境
 
@@ -40,4 +47,4 @@ metric = DiscreteMetric(
 
 ## 端点说明
 
-这里的 Ragas 配置使用 OpenAI SDK。Responses、Anthropic Messages 和 Gemini 格式需要使用支持对应格式的评测工具。
+Ragas 在此处使用 OpenAI SDK 客户端路径。原生的 TokenLab Responses、Anthropic Messages 和 Gemini 路由最好通过直接支持这些请求格式的评估运行器（evaluation runners）来使用。

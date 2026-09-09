@@ -1,12 +1,24 @@
 ---
 title: "List Files"
 openapi: "GET /v1/files"
-description: "List uploaded batch and image-reference files."
+description: "Lists uploaded files for batch workflows and supported file-backed compatibility modes."
 ---
 
-List batch and image-reference files. Filter with `purpose=batch`, `purpose=batch_output`, `purpose=user_data`, or `purpose=vision`.
+## Overview
 
-With Anthropic Files headers, the same API lists Anthropic-format files in the current Workspace.
+This endpoint primarily serves TokenLab's OpenAI-compatible Batch API, including uploaded batch inputs and generated output or error files.
+
+When the request opts into Anthropic Files compatibility mode, the same route can also list Anthropic-style files available to the bound workspace.
+
+Without Anthropic headers, the list can include both batch files and TokenLab image/reference files. Use `purpose=batch`, `purpose=batch_output`, `purpose=user_data`, or `purpose=vision` to narrow the list.
+
+## Notes
+
+- Batch input files must use `purpose=batch`.
+- Use `purpose=batch_output` to focus on generated output files.
+- `completion_window` is currently `24h`.
+- Output ordering is not guaranteed; always match by `custom_id`.
+- Streaming is not supported inside batch items.
 
 ## Example
 
@@ -17,11 +29,15 @@ curl -X GET "https://api.tokenlab.sh/v1/files?purpose=batch&limit=20" \
 ```
 </RequestExample>
 
-## Filters
+## Request / Response
 
-- `limit` accepts values from 1 to 10000 and defaults to 10000.
-- `purpose` can be `batch`, `batch_output`, `user_data`, or `vision`.
-- `user_data` and `vision` return TokenLab-created image reference files when available.
+Use the interactive OpenAPI panel above for the exact schema.
+
+## Operational Tips
+
+- Use `custom_id` for idempotent downstream reconciliation.
+- Expect `output_file_id` and `error_file_id` only after the worker finalizes the batch.
+- Batch pricing may differ from synchronous pricing because `isBatchRequest=true` discount rules apply.
 
 ## Response example
 
@@ -36,5 +52,5 @@ curl -X GET "https://api.tokenlab.sh/v1/files?purpose=batch&limit=20" \
 
 ## Important fields
 
-<ResponseField name="object" type="string">Always `list`.</ResponseField>
-<ResponseField name="data" type="array">Files.</ResponseField>
+<ResponseField name="object" type="string">Response object type.</ResponseField>
+<ResponseField name="data" type="array">Returned list or payload for this response.</ResponseField>

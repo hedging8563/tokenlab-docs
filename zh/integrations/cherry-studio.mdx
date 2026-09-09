@@ -1,12 +1,19 @@
 ---
 title: "Cherry Studio"
-description: "把 Cherry Studio 连接到 TokenLab"
+description: "通过 OpenAI 兼容和原生端点选项将 Cherry Studio 连接到 TokenLab"
 ---
 
 ## 概述
 
-Cherry Studio 中已经出现 TokenLab 时直接选择；没有时，把它添加为自定义 OpenAI 兼容服务。
+Cherry Studio 可以通过自定义的 OpenAI 兼容提供商使用 TokenLab。如果您的 Cherry Studio 版本在提供商注册表中包含 TokenLab，请直接选择 TokenLab。
 
+<Note>
+**类型**: 聊天应用
+
+**主要路径**: OpenAI 兼容的聊天补全 (Chat Completions)
+
+**原生路径**: Responses, Anthropic Messages, 以及客户端暴露的 Gemini 兼容端点
+</Note>
 
 ## 配置为自定义提供商
 
@@ -15,13 +22,13 @@ Cherry Studio 中已经出现 TokenLab 时直接选择；没有时，把它添�
 3. 输入:
    - **Name**: TokenLab
    - **API Base URL**: `https://api.tokenlab.sh/v1`
-   - **API 密钥**: `sk-your-tokenlab-key`
+   - **API Key**: `sk-your-tokenlab-key`
 4. 添加一个模型，例如 `gpt-5.4-mini`
 5. 保存并测试该提供商。
 
-## 内置 TokenLab 选项
+## 提供商注册表路径
 
-Cherry Studio 已经内置 TokenLab 时，直接选择会自动带入对应 API 地址：
+当 TokenLab 作为内置提供商出现在 Cherry Studio 中时，请优先选择该选项。它可以携带以下端点的元数据：
 
 - OpenAI 兼容的聊天补全
 - OpenAI Responses

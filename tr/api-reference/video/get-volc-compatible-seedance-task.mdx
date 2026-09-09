@@ -1,75 +1,26 @@
 ---
-title: "Görevi Al (Volc Uyumlu)"
+title: "Görevi al (Volc uyumlu)"
 openapi: "GET /api/v3/contents/generations/tasks/{id}"
-description: "Bir Seedance uyumluluk görevini cgt görev kimliği ile alın."
+description: "cgt görev ID’siyle Seedance uyumlu görevi alır."
 ---
 
-## Genel Bakış
+## Genel bakış
 
-create tarafından döndürülen `cgt-...` kimliğini kullanın. Görev `queued` veya `running` durumundayken birkaç saniyede bir sorgulama (poll) yapın. Görev `succeeded`, `failed`, `cancelled` veya `expired` durumuna geldiğinde durun.
+Bu endpoint’ler, Volc tarzı Seedance görev şeklini zaten kullanan ekipler içindir. Kimlik doğrulama TokenLab Bearer API key ile yapılır. Dönen görev ID’si `cgt-` ile başlar; `status` `succeeded`, `failed`, `cancelled` veya `expired` olana kadar durumu sorgulayın.
 
 <Warning>
-Burada birleşik v1 görev enum veya yanıt yapısını yeniden kullanmayın. `/v1/tasks/{id}` uç noktası `pending`, `processing`, `completed` ve `failed` durumlarını kullanır; bu v3 uç noktası ise yukarıdaki resmi enum değerlerini kullanır. v3 JSON nesnesinde, `duration` mevcut olduğunda bir string'dir ve `error` alanı görev başarısız olmadıkça dahil edilmez. Katı bir Go istemcisi, `Duration` alanını `json:"duration,omitempty"` etiketiyle `string` olarak tanımlamalı ve her v3 terminal durumunda durmalıdır.
+v1 durum enum’unu veya yanıt struct’ını burada yeniden kullanmayın. `/v1/tasks/{id}` `pending`, `processing`, `completed` ve `failed` kullanır; bu endpoint yukarıdaki v3 enum’unu kullanır. v3’te `duration` bir string’dir ve `error` yalnızca başarısızlıkta görünür.
 </Warning>
 
-Ayrıca bkz. [Seedance 2.0 Video Modelleri](/guides/seedance-2-video) ve [Video Oluşturma](/guides/video-generation).
+Ayrıca bkz. [Seedance 2.0 Video Modelleri](/tr/guides/seedance-2-video) ve [Video Oluşturma](/tr/guides/video-generation).
 
-## Durum Değerleri
+## Yanıt şekli
 
-- `queued`: kabul edildi ve çalışmayı bekliyor.
-- `running`: oluşturma işlemi devam ediyor.
-- `succeeded`: sonuç hazır ve `content.video_url` mevcut.
-- `failed`: oluşturma başarısız oldu; `error.code` ve `error.message` alanlarını inceleyin.
-- `cancelled`: görev tamamlanmadan önce iptal edildi.
-- `expired`: görev tamamlanmadan önce zaman aşımına uğradı.
-
-## Yanıt Alanları
-
-- `id`: `cgt-` ile başlayan uyumluluk görev kimliği.
-- `model`: uyumluluk için yansıtılan model tanımlayıcısı.
-- `status`: yukarıdaki durum değerlerinden biri.
-- `content.video_url`: başarı durumunda nihai video URL'si.
-- `content.last_frame_url`: yalnızca talep edildiğinde ve mevcut olduğunda bulunur.
-- `usage`: mevcut olduğunda token kullanımı.
-- `created_at` ve `updated_at`: görev zaman damgaları.
-- `error`: yalnızca görev başarısız olduğunda bulunur; başarısız olmayan görevler için dahil edilmez.
-
-Yanıt, `progress`, `return_last_frame`, `watermark`, `priority` veya `camera_fixed` gibi TokenLab alanlarını asla eklemez.
+Görev yanıtı `queued`, `running`, `succeeded`, `failed`, `cancelled` veya `expired` kullanır. Başarılı görevler `content.video_url` döndürür; varsa `content.last_frame_url`, resmî üretim alanları ve `usage` da yer alır. `error` yalnızca başarısızlıkta eklenir. `progress`, `return_last_frame`, `watermark`, `priority` veya `camera_fixed` gibi TokenLab uzantıları eklenmez.
 
 ## Örnek
 
 ```bash
 curl https://api.tokenlab.sh/api/v3/contents/generations/tasks/cgt-20260102030405-a1b2c \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
-```
-
-```json
-{
-  "id": "cgt-20260102030405-a1b2c",
-  "model": "doubao-seedance-2.0",
-  "status": "succeeded",
-  "content": {
-    "video_url": "https://example.com/result.mp4"
-  },
-  "usage": {
-    "completion_tokens": 123456
-  }
-}
-```
-
-```go Go
-type SeedanceTask struct {
-    ID       string `json:"id"`
-    Status   string `json:"status"`
-    Duration string `json:"duration,omitempty"`
-}
-
-func isTerminal(status string) bool {
-    switch status {
-    case "succeeded", "failed", "cancelled", "expired":
-        return true
-    default:
-        return false
-    }
-}
 ```

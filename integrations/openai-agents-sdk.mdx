@@ -5,15 +5,22 @@ description: "Use TokenLab models with the OpenAI Agents SDK"
 
 ## Overview
 
-Create an OpenAI-compatible TokenLab client and pass it to `OpenAIChatCompletionsModel`.
+The OpenAI Agents SDK can use TokenLab through an OpenAI-compatible client and `OpenAIChatCompletionsModel`.
 
+<Note>
+**Type**: Python Agent SDK
+
+**Primary Path**: OpenAI-compatible chat completions
+
+**Support Confidence**: Supported chat-completions path
+</Note>
 
 ## Environment
 
 ```bash
 export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 export TOKENLAB_BASE_URL="https://api.tokenlab.sh/v1"
-export TOKENLAB_MODEL="gpt-5.6-luna"
+export TOKENLAB_MODEL="gpt-5.4-mini"
 ```
 
 ## Example
@@ -39,7 +46,7 @@ async def main():
         name="Assistant",
         instructions="You are concise and practical.",
         model=OpenAIChatCompletionsModel(
-            model=os.getenv("TOKENLAB_MODEL", "gpt-5.6-luna"),
+            model=os.getenv("TOKENLAB_MODEL", "gpt-5.4-mini"),
             openai_client=client,
         ),
     )

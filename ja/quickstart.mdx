@@ -54,7 +54,7 @@ curl https://api.tokenlab.sh/v1/chat/completions \
   -H "Authorization: Bearer sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-5.6-terra",
+    "model": "gpt-5.4",
     "messages": [
       {"role": "user", "content": "What is the capital of France?"}
     ]
@@ -70,7 +70,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="gpt-5.6-terra",
+    model="gpt-5.4",
     messages=[{"role": "user", "content": "What is the capital of France?"}]
 )
 
@@ -86,7 +86,7 @@ const client = new OpenAI({
 });
 
 const response = await client.chat.completions.create({
-  model: 'gpt-5.6-terra',
+  model: 'gpt-5.4',
   messages: [{ role: 'user', content: 'What is the capital of France?' }],
 });
 
@@ -108,18 +108,18 @@ Responses 固有の挙動が明示的に必要な場合に限り `POST /v1/respo
 TokenLab は300件以上のモデルをサポートしています。`model` フィールドだけを変更してください:
 
 ```python
-response = client.chat.completions.create(model="gpt-5.6-terra", messages=[{"role": "user", "content": "Hello"}])
-response = client.chat.completions.create(model="gpt-5.6-luna", messages=[{"role": "user", "content": "Hello"}])
-response = client.chat.completions.create(model="claude-sonnet-5", messages=[{"role": "user", "content": "Hello"}])
+response = client.chat.completions.create(model="gpt-5.4", messages=[{"role": "user", "content": "Hello"}])
+response = client.chat.completions.create(model="gpt-5-mini", messages=[{"role": "user", "content": "Hello"}])
+response = client.chat.completions.create(model="claude-sonnet-4-6", messages=[{"role": "user", "content": "Hello"}])
 response = client.chat.completions.create(model="gemini-3.5-flash", messages=[{"role": "user", "content": "Hello"}])
-response = client.chat.completions.create(model="deepseek-reasoner", messages=[{"role": "user", "content": "Hello"}])
+response = client.chat.completions.create(model="deepseek-r1", messages=[{"role": "user", "content": "Hello"}])
 ```
 
 ## ストリーミングを有効にする
 
 ```python
 stream = client.chat.completions.create(
-    model="gpt-5.6-terra",
+    model="gpt-5.4",
     messages=[{"role": "user", "content": "Tell me a short story."}],
     stream=True
 )

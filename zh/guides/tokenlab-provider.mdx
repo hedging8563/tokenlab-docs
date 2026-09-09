@@ -1,47 +1,49 @@
 ---
-title: "在 OpenClaw 中使用 TokenLab"
-description: "把自托管 OpenClaw 连接到 TokenLab"
+title: "TokenLab 提供者设置"
+description: "在 OpenClaw 中配置 TokenLab 为自定义提供者，支持 OpenAI、Responses、Anthropic 和与 Gemini 兼容的路由"
 ---
 
 <Note>
-本页适用于**自托管 OpenClaw**。安装 TokenLab 插件即可开始使用；只有需要指定 API 格式时，才需要手动配置。
+本指南面向希望将 TokenLab 连接为 AI 提供者的 **自托管 OpenClaw** 用户。
 </Note>
 
-## 安装插件
+## 推荐：安装插件
 
-安装 TokenLab 插件并填入 API 密钥：
+对于常规的 OpenClaw Agent 推理，直接安装 TokenLab 提供者插件：
 
 ```bash
 openclaw plugins install @tokenlabai/openclaw-provider
 openclaw onboard --tokenlab-api-key "$TOKENLAB_API_KEY"
 ```
 
-插件会读取 TokenLab 当前可用的聊天模型。在 OpenClaw 中，模型名写作 `tokenlab/<model-id>`。
+插件会读取 TokenLab 的实时聊天模型目录，并内置 18 个回退模型用于离线发现。模型使用 `tokenlab/<model-id>` 格式。
 
 [npm 包](https://www.npmjs.com/package/@tokenlabai/openclaw-provider) · [ClawHub 页面](https://clawhub.ai/tokenlabai/plugins/openclaw-provider) · [源代码](https://github.com/hedging8563/tokenlab-openclaw-provider)
 
-## 手动配置
+## 手动提供者配置
 
-OpenClaw 需要分别使用 Responses、Claude Messages、Gemini 或 MiniMax 格式时，可以在 `models.providers` 中手动添加。普通聊天只配置 `tokenlab` 即可。
+仅在明确需要独立的 **Responses API**、**Claude native**、**Gemini native** 或 **MiniMax native** 路由时，才使用下方的 `models.providers` 手动配置。
+
+如果你选择手动配置，仅配置 `tokenlab` 就足够了。仅在明确需要 **Responses API**、**Claude native**、**Gemini native** 或 **MiniMax native** 行为时才添加其他提供者。
 
 | 提供者 | OpenClaw `api` | 适用场景 | baseUrl |
 |----------|----------------|----------|---------|
 | `tokenlab` | `openai-completions` | GPT、DeepSeek、Qwen 以及大多数与 OpenAI 兼容的调用 | `https://api.tokenlab.sh/v1` |
-| `tokenlab-responses` | `openai-responses` | 使用 OpenAI Responses 格式 | `https://api.tokenlab.sh/v1` |
+| `tokenlab-responses` | `openai-responses` | 期望 `/v1/responses` 语义的 OpenAI Responses 工作流 | `https://api.tokenlab.sh/v1` |
 | `tokenlab-claude` | `anthropic-messages` | Claude 原生 Messages API | `https://api.tokenlab.sh` |
 | `tokenlab-gemini` | `google-generative-ai` | 原生 Gemini API 格式 | `https://api.tokenlab.sh` |
-| `tokenlab-minimax` | `anthropic-messages` | 使用 MiniMax Messages 格式 | `https://api.tokenlab.sh` |
+| `tokenlab-minimax` | `anthropic-messages` | MiniMax 原生路由 | `https://api.tokenlab.sh` |
 
 <Warning>
 仅对 `openai-completions` 和 `openai-responses` 使用 `/v1` 后缀。
 
-`anthropic-messages` 和 `google-generative-ai` 使用 `https://api.tokenlab.sh`（不带 `/v1`），否则 OpenClaw 会拼出错误的请求地址。
+像 `anthropic-messages` 和 `google-generative-ai` 这样的原生提供者应使用 `https://api.tokenlab.sh`（不带 `/v1`），否则 OpenClaw 可能构造错误的提供商路径。
 </Warning>
 
 ## 前提条件
 
 - 一个自托管的 OpenClaw 实例
-- 一枚 TokenLab API 密钥 — [打开 Console](https://tokenlab.sh/dashboard)
+- 一个 TokenLab API Key — [在此获取](https://tokenlab.sh/dashboard)
 
 ## 配置
 
@@ -68,8 +70,8 @@ OpenClaw 需要分别使用 Responses、Claude Messages、Gemini 或 MiniMax 格
         baseUrl: "https://api.tokenlab.sh/v1",
         apiKey: "sk-your-tokenlab-key",
         models: [
-          { id: "gpt-5.6-terra", name: "GPT-5.6 Terra" },
-          { id: "deepseek-reasoner", name: "DeepSeek Reasoner" },
+          { id: "gpt-4o", name: "GPT-4o" },
+          { id: "deepseek-r1", name: "DeepSeek R1" },
           { id: "qwen3-coder-flash", name: "Qwen 3 Coder Flash" }
         ]
       },
@@ -78,7 +80,7 @@ OpenClaw 需要分别使用 Responses、Claude Messages、Gemini 或 MiniMax 格
         baseUrl: "https://api.tokenlab.sh/v1",
         apiKey: "sk-your-tokenlab-key",
         models: [
-          { id: "gpt-5.6-terra", name: "GPT-5.6 Terra (Responses)" },
+          { id: "gpt-4o", name: "GPT-4o (Responses)" },
           { id: "gpt-5.2", name: "GPT-5.2 (Responses)" }
         ]
       },
@@ -87,8 +89,8 @@ OpenClaw 需要分别使用 Responses、Claude Messages、Gemini 或 MiniMax 格
         baseUrl: "https://api.tokenlab.sh",
         apiKey: "sk-your-tokenlab-key",
         models: [
-          { id: "claude-sonnet-5", name: "Claude Sonnet 5" },
-          { id: "claude-opus-5", name: "Claude Opus 5" }
+          { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6" },
+          { id: "claude-opus-4-6", name: "Claude Opus 4.6" }
         ]
       },
       "tokenlab-gemini": {
@@ -114,11 +116,11 @@ OpenClaw 需要分别使用 Responses、Claude Messages、Gemini 或 MiniMax 格
 ```
 
 <Info>
-五项配置都使用**同一枚 TokenLab API 密钥**。
+所有 5 个提供者使用 **相同的 API Key**。你只需要一个 TokenLab 帐户。
 </Info>
 
 <Info>
-上面的 `models` 只是示例。请从[模型页](https://tokenlab.sh/zh/models)选择当前可用的模型 ID。
+上面的 `models` 数组仅展示常见示例。根据需要向每个提供者添加更多模型 ID。
 </Info>
 
 ## 使用模型
@@ -139,26 +141,26 @@ OpenClaw 仍使用 `provider/model` 格式引用模型：
 
 ### 模型示例
 
-| 提供者 | 模型引用 | API 格式 |
+| 提供者 | 模型引用 | 描述 |
 |----------|-----------------|-------------|
-| `tokenlab` | `tokenlab/gpt-4o` | OpenAI 兼容 |
+| `tokenlab` | `tokenlab/gpt-4o` | OpenAI 兼容路由 |
 | `tokenlab` | `tokenlab/deepseek-r1` | DeepSeek 推理模型 |
-| `tokenlab-responses` | `tokenlab-responses/gpt-4o` | Responses |
-| `tokenlab-claude` | `tokenlab-claude/claude-sonnet-4-6` | Claude Messages |
-| `tokenlab-gemini` | `tokenlab-gemini/gemini-3.5-flash` | Gemini |
-| `tokenlab-minimax` | `tokenlab-minimax/minimax-m3` | MiniMax Messages |
+| `tokenlab-responses` | `tokenlab-responses/gpt-4o` | Responses API 路由 |
+| `tokenlab-claude` | `tokenlab-claude/claude-sonnet-4-6` | Claude 原生 Messages 路由 |
+| `tokenlab-gemini` | `tokenlab-gemini/gemini-3.5-flash` | 原生 Gemini 路由 |
+| `tokenlab-minimax` | `tokenlab-minimax/minimax-m3` | 原生 MiniMax 路由 |
 
 在 [tokenlab.sh/models](https://tokenlab.sh/zh/models) 浏览所有可用模型。
 
 ## 何时使用哪个提供者
 
-- `tokenlab`：适合大多数聊天和 Agent 功能。
-- `tokenlab-responses`：OpenClaw 功能依赖 OpenAI Responses 时使用。
-- `tokenlab-claude`：需要 Claude Messages 字段时使用。
-- `tokenlab-gemini`：已有 Gemini 格式配置，或需要 Gemini 字段时使用。
-- `tokenlab-minimax`：需要 MiniMax Messages 格式时使用。
+- `tokenlab`: 大多数通用代理和聊天用例的默认选择。
+- `tokenlab-responses`: 当你的 OpenClaw 工作流明确依赖 OpenAI Responses 语义时使用。
+- `tokenlab-claude`: 当你希望获得 Claude 的原生 Messages 行为时使用。
+- `tokenlab-gemini`: 当你需要 Gemini 原生的请求/响应格式或已有 Gemini 风格的集成时使用。
+- `tokenlab-minimax`: 当你希望通过 MiniMax 的原生路由时使用。
 
-不需要 Gemini 专属字段时，也可以通过 `tokenlab/gemini-*` 使用 OpenAI 兼容格式。
+如果你不需要 Gemini 原生行为，仍然可以通过 OpenAI 兼容路由使用 `tokenlab/gemini-*` 调用 Gemini 模型。
 
 ## 常见错误
 
@@ -173,17 +175,25 @@ OpenClaw 仍使用 `provider/model` 格式引用模型：
     `anthropic-messages` 和 `google-generative-ai` 应使用 `https://api.tokenlab.sh`（不带 `/v1`）。添加 `/v1` 会导致请求路径错误。
   </Accordion>
   <Accordion title="OpenClaw 仍然支持原生 Gemini 吗？">
-    可以。OpenClaw 支持使用 `api: "google-generative-ai"` 的自定义提供者，因此可以配置 `tokenlab-gemini`。
+    是的。目前的 OpenClaw 文档仍包含内置的 `google` 提供者，并且也支持使用 `api: "google-generative-ai"` 的自定义提供者。因此 `tokenlab-gemini` 对 OpenClaw 用户仍然是有效的原生 Gemini 路由。
   </Accordion>
 </AccordionGroup>
 
 ## 验证设置
 
-保存配置后，按你的部署方式重启 OpenClaw，并发送一条简单消息。能够收到回答即表示 API 密钥、地址和模型名已经生效。
+保存配置后，重启你的 OpenClaw 实例并用一条简单消息进行测试。如果你看到响应，则说明提供者配置正确。
 
-## 相关文档
+```bash
+# 自托管：重启服务
+systemctl --user restart openclaw    # Linux
+launchctl stop cc.tokenlab.openclaw && launchctl start cc.tokenlab.openclaw  # macOS
+```
 
-- [选择 API 格式](/zh/guides/api-formats)
-- [工具与 SDK 兼容性](/zh/guides/ide-sdk-compatibility)
-- [处理 API 错误](/zh/guides/error-handling)
-- [浏览模型](https://tokenlab.sh/zh/models)
+## 下一步
+
+一旦 OpenClaw 已连接，以下指南可以帮助你更有效地使用 TokenLab：
+
+- [API 格式](/guides/api-formats) — 了解 OpenAI、Responses、Anthropic 和 Gemini 路由之间的差异
+- [IDE / SDK Compatibility](/guides/ide-sdk-compatibility) — 了解何时使用 `/v1/responses` 更合适
+- [错误处理](/guides/error-handling) — 学习常见失败模式和恢复方案
+- [模型总览](https://tokenlab.sh/zh/models) — 在将模型接入 agents 之前浏览模型 ID

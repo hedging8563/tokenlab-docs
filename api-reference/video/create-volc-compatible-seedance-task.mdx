@@ -1,20 +1,21 @@
 ---
 title: "Create Task (Volc Compatible)"
 openapi: "POST /api/v3/contents/generations/tasks"
-description: "Create a Seedance 2.0 task with the Volc-compatible API."
+description: "Create a Seedance 2.0 task with the official Volc REST request and response shape."
 ---
 
 ## Overview
 
-Existing Volc-style Seedance clients can use TokenLab by changing the API address and key.
+These endpoints are for teams that already use the Volc-style Seedance task shape. They preserve the task-oriented request and response structure while using TokenLab authentication, billing, model availability, and task polling.
 
 See also [Seedance 2.0 Video Models](/guides/seedance-2-video) and [Video Generation](/guides/video-generation).
 
 ## Authentication And Endpoints
 
 - Use `Authorization: Bearer <TOKENLAB_API_KEY>`.
-- Volc AK/SK signing is not accepted. Requests must include a TokenLab Bearer key.
+- Volc AK/SK signing is not accepted in this version. Requests with only AK/SK signing return a Volc-style authentication error.
 - Use the official task path: `POST /api/v3/contents/generations/tasks`.
+- Existing TokenLab Action aliases are retained only for backward compatibility. They are not part of the official wire-compatible task contract.
 
 ## Content Rules
 
@@ -24,7 +25,7 @@ See also [Seedance 2.0 Video Models](/guides/seedance-2-video) and [Video Genera
 - `role: "reference_image"`, `reference_video`, and `reference_audio` are used as references.
 - `image_url.url` accepts a public image URL or a material URI such as `asset://asset-YYYYMMDDHHMMSS-xxxxx`. The `role` determines whether that material is a first frame, last frame, or reference image.
 - Do not mix first/last frame inputs with reference media in one request.
-- The request body accepts only fields supported by this format. Top-level `material_asset_id`, `material_asset_ids`, and `priority` are rejected. Put a TokenLab material URI inside `image_url.url` instead.
+- The REST body accepts only official top-level fields. TokenLab-specific fields such as top-level `material_asset_id`, `material_asset_ids`, and `priority` are rejected. Put a TokenLab material URI inside the official `image_url.url` object instead.
 
 ## Parameter Notes
 
@@ -33,15 +34,15 @@ See also [Seedance 2.0 Video Models](/guides/seedance-2-video) and [Video Genera
 - `resolution` accepts `480p`, `720p`, or `1080p`.
 - `generate_audio` defaults to `false`; set it to `true` when synchronized audio is required.
 - `watermark`, `return_last_frame`, `seed`, `execution_expires_after`, and `safety_identifier` are accepted when valid for the selected model.
-- `callback_url` may point to a public HTTP(S) endpoint.
+- `callback_url` may point to a public HTTP(S) endpoint. TokenLab validates and stores it without forwarding it to the provider handling the task.
 
 ## Callback Delivery
 
-When `callback_url` is present, TokenLab sends an HTTP `POST` when task status changes. Callback statuses are `queued`, `running`, `succeeded`, `failed`, and `expired`. The JSON body matches the get-task response.
+When `callback_url` is present, TokenLab sends an HTTP `POST` whenever task status changes. Callback statuses are `queued`, `running`, `succeeded`, `failed`, and `expired`. The JSON body is exactly the task object returned by the get-task endpoint, regardless of which provider handled the task.
 
 A `2xx` response acknowledges delivery. For `succeeded` and `failed`, a delivery that does not succeed within five seconds is retried up to three times, matching the official behavior. The callback has only the standard JSON content header and no TokenLab-specific delivery headers. Redirects are not followed, and private or reserved network targets are rejected.
 
-Save the task ID. If a callback is not delivered, you can still retrieve the result with the get-task endpoint.
+Callbacks are notifications. Keep polling available as a recovery path if your callback endpoint is unavailable for an extended period.
 
 ## Image Preparation
 
@@ -57,11 +58,11 @@ For existing materials, use the public `asset-YYYYMMDDHHMMSS-xxxxx` ID rather th
 }
 ```
 
-The create response contains only the task ID. Save it so you can retrieve status and results at any time.
+The create response contains only the compatibility task ID. Store it and poll the task endpoint, even when callback delivery is enabled, so you retain a recovery path.
 
-## Prevent Duplicate Tasks
+## Idempotent Retries And Lost Responses
 
-Send a unique `Idempotency-Key` with create requests. If the connection closes before the response arrives, retry with the same API key, idempotency key, and request body:
+For production creates, send a unique `Idempotency-Key` header and persist it with the exact JSON request body. If the connection closes before you receive the create response, retry the same REST request with the same TokenLab API credential, key, and unchanged body:
 
 - If the original task was created, TokenLab returns the same `cgt-...` ID and adds `Idempotency-Replayed: true`.
 - If the original request is still being registered, TokenLab returns `409 IdempotencyRequestInProgress` with `Retry-After`; retry the same key and body after that delay.
@@ -79,7 +80,7 @@ curl https://api.tokenlab.sh/api/v3/contents/generations/tasks \
   -H "Idempotency-Key: $CLIENT_JOB_ID" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "doubao-seedance-2.0",
+    "model": "doubao-seedance-2-0-260128",
     "content": [
       {"type": "text", "text": "A cinematic forest at sunset"},
       {"type": "image_url", "role": "reference_image", "image_url": {"url": "https://example.com/ref.png"}}

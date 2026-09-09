@@ -5,8 +5,15 @@ description: "通过 OpenAI 兼容的 base URL 将 DeepChat 连接到 TokenLab"
 
 ## 概述
 
-在 DeepChat 中添加 OpenAI 兼容服务，并填入 TokenLab 地址和密钥即可。
+DeepChat 通过标准的 OpenAI 兼容提供商配置与 TokenLab 协同工作。
 
+<Note>
+**类型**: 聊天应用
+
+**主要路径**: OpenAI 兼容的聊天补全 (chat completions)
+
+**支持置信度**: 支持的路径
+</Note>
 
 ## 配置 DeepChat
 
@@ -15,16 +22,16 @@ description: "通过 OpenAI 兼容的 base URL 将 DeepChat 连接到 TokenLab"
 3. 输入以下信息：
    - **Provider name**: TokenLab
    - **Base URL**: `https://api.tokenlab.sh/v1`
-   - **API 密钥**: `sk-your-tokenlab-key`
+   - **API Key**: `sk-your-tokenlab-key`
 4. 添加一个模型，例如 `gpt-5.4-mini`
 5. 保存并测试聊天功能。
 
-## 选择模型
+## 模型选择
 
-请从[模型页](https://tokenlab.sh/zh/models)复制当前聊天模型 ID。模型没有出现在 DeepChat 列表中时，可以手动添加。
+从 `gpt-5.4-mini` 开始，这是一个低门槛的默认选择。当对话需要更强的推理能力时，请使用 `claude-sonnet-5`、`gpt-5.4` 或 `deepseek-v4-pro`。
 
 ## 故障排除
 
 - 请使用 base URL，而不是完整的 `/chat/completions` 路径，除非 DeepChat 明确要求输入完整的端点 URL。
-- 请移除 API 密钥 末尾的空格。
+- 请移除 API Key 末尾的空格。
 - 如果模型未列出，请手动添加准确的 TokenLab 模型 ID。

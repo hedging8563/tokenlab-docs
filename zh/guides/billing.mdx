@@ -1,23 +1,22 @@
 ---
 title: "账单与定价"
-description: "费用预估、实际扣费、余额与限额说明"
+description: "了解 TokenLab 的按量计费定价"
 ---
 
-所有模型共用一份 TokenLab 余额。没有订阅，也没有最低消费；每笔费用都按模型价格和实际用量计算。
+## 概览
 
-## 一份结果，只扣一次费用
+TokenLab 采用**按量计费定价**。您只需为您使用的部分付费，无需订阅，也没有最低消费承诺。
 
-每个完成的请求只扣一次费用，价格取决于最终完成请求的交付方式：
+## 账单运作方式
 
-- `TokenLab Verified` 使用 TokenLab 公开价格。
-- `Official` 使用基于模型厂商公开价的 Official 价格层。
-- `Auto` 默认优先使用 TokenLab Verified，需要时改用 Official。只按最终完成请求的方式计费。
-
-需要确认的付费生成会在 Console 显示最高预估金额。完成后，Runs 和 Usage 会显示最终费用；未使用的预留金额会释放。
+1. **充值余额**到您的账户
+2. **使用 API** - 费用将按请求扣除
+3. 在您的控制面板中**监控用量**
+4. 余额不足时**充值**
 
 ## 定价模式
 
-模型价格可能变化。当前价格以 Console、模型页、`GET /v1/models/:model/pricing` 和 [Pricing API](/api-reference/pricing/get-pricing) 为准。
+实时价格会随供应商、路由和模型详情变化。请以 Dashboard、模型页、`GET /v1/models/:model/pricing` 和 [Pricing API](/api-reference/pricing/get-pricing) 为准。
 
 ### 按 Token 计费
 
@@ -30,12 +29,12 @@ description: "费用预估、实际扣费、余额与限额说明"
 | 按 token 计费的图像 | `gpt-image-2` | `GET /v1/models/gpt-image-2/pricing` |
 
 <Note>
-不要把复制下来的价格表写死在代码里。应用需要展示或比较费用时，读取当前价格。
+不要把静态价格表复制进生产逻辑。代码里只保存模型 ID，上线前再拉取或复核当前价格。
 </Note>
 
 ### 按请求和任务计费
 
-图片、视频、音乐、3D、音频和 World 模型可能按次、张、秒、分钟或任务计费。模型页会写明计费单位。
+图像、视频、音乐、3D、音频和 world 生成模型可能按请求、图片、秒/分钟、任务或供应商特定用量计费。生产使用前请检查所选模型详情。
 
 | 家族 | 示例 |
 |---|---|
@@ -45,15 +44,20 @@ description: "费用预估、实际扣费、余额与限额说明"
 | 3D | `tripo-h3.1` |
 | 音频 | `tts-1`, `whisper-1` |
 
-### 异步任务计费
+### 异步任务计费（视频/音乐/3D 及部分图像模型）
 
 <Note>
-  部分任务会在创建时预留预估费用。任务完成后只扣一次；任务失败时，待扣金额会释放或退回。
+  对于基于任务的生成，创建任务时可能会预留或预扣预估费用。最终结算只会在异步任务通过轮询或终态处理进入成功终态后完成。
 </Note>
 
-视频、音乐、3D 和异步图片生成会返回任务 ID 与 `poll_url`。任务变为 `completed` 或 `failed` 后记录最终金额。成功任务会在计费完成后返回 `billing_transaction_id`；失败任务不扣费。
+对于基于任务的生成流程（视频、音乐、3D 和部分图像模型）：
 
-任务结束后，如果 Usage 仍没有显示最终费用或释放金额，请把请求 ID 和任务 ID 发到 support@tokenlab.sh。
+1. 提交任务。TokenLab 可能会先做预估预扣或余额预留，用于校验余额和 API Key 消费限制。
+2. 按返回的 `poll_url` 轮询，或调用 `GET /v1/tasks/{id}`，直到任务进入终态。
+3. 任务成功完成时，系统完成最终结算并记录用量，任务响应会包含 `billing_transaction_id`。
+4. 如果创建失败或终态为失败，待处理的预扣金额会退款或释放，并将该请求标记为非计费。
+
+如果任务已经进入终态，但 dashboard 中没有看到对应结算或退款，请联系 support@tokenlab.sh 寻求帮助。
 
 ```python
 # 示例：视频生成计费
@@ -65,31 +69,49 @@ response = client.post("/v1/videos/generations", json={
 
 poll_url = response.json()["poll_url"]
 task_id = response.json()["task_id"]
-# 查询 poll_url；计费完成后会出现 billing_transaction_id。
+# 轮询 poll_url 查看状态；结算后会出现 billing_transaction_id。
 ```
 
-### `billing_transaction_id`
+### 账单交易 ID
 
-非流式 OpenAI 兼容响应如果在返回前完成结算，会带上 `billing_transaction_id`。同一个值也可能出现在 `X-Billing-Transaction-ID` 响应头中；Gemini 等原生格式可能只在响应头里提供。
+已完成结算的 OpenAI 兼容非流式 JSON 响应会返回 `billing_transaction_id`。同一个值也会通过 `X-Billing-Transaction-ID` 响应头暴露，便于浏览器和服务端集成读取。Gemini `/v1beta` 等原生兼容路由为了保持 provider 原生响应形状，可能只通过响应头暴露该值。对于异步媒体任务，请轮询创建响应返回的 `poll_url` 或 `GET /v1/tasks/{id}`；当结算完成后，任务响应会包含 `billing_transaction_id`。流式响应可能在流已经发送完成后才结算，因此如果响应头中没有该字段，请通过 dashboard 用量日志进行对账。
 
-异步任务完成结算后会返回 `billing_transaction_id`。流式响应可能早于结算结束；响应头里没有这个字段时，到 Usage 查询即可。
+## Token 计数
 
-## Token 数
+Token 是文本处理的基本单位：
 
-文字模型通常会在 `usage` 中返回输入、输出和总 token 数。不同模型、语言和媒体输入的分词方式不同，按字符数估算并不可靠。费用请以当前模型价格和最终 Usage 记录为准。
+- 约 4 个字符 = 1 token（英文）
+- 约 1-2 个字符 = 1 token（中文）
+- 1 张图像 = 根据尺寸和细节而定
 
-## 查询用量
+### 估算 Token
 
-打开 [Usage](https://tokenlab.sh/dashboard)，可以找到：
+```python
+# Rough estimation
+def estimate_tokens(text):
+    return len(text) / 4  # Approximate for English
+
+# Actual count (for OpenAI models)
+import tiktoken
+encoder = tiktoken.encoding_for_model("gpt-4o")
+tokens = encoder.encode("Your text here")
+print(f"Token count: {len(tokens)}")
+```
+
+## 用量追踪
+
+### 控制面板
+
+在 [控制面板](https://tokenlab.sh/dashboard) 中监控您的用量：
 
 - 实时余额
 - 按模型分类的使用历史
 - 费用明细
-- 每把 API 密钥的用量
+- API key 使用情况
 
 ### API 响应
 
-按 Token 计费的响应通常会包含用量信息：
+每个响应都包含用量信息：
 
 ```json
 {
@@ -101,14 +123,14 @@ task_id = response.json()["task_id"]
 }
 ```
 
-## 少花一点
+## 成本优化
 
 <AccordionGroup>
-  <Accordion title="比较当前模型价格">
-    用同一项真实任务测试少量模型，再到 Usage 比较最终费用。每 token 最便宜，不一定代表完成任务最省。
+  <Accordion title="使用合适的模型">
+    对于简单的任务，使用较小的模型（如 GPT-4o-mini, Gemini Flash）。
   </Accordion>
 
-  <Accordion title="只缓存适合复用的结果">
+  <Accordion title="实施缓存">
     对重复的相同请求缓存响应结果。
   </Accordion>
 
@@ -120,25 +142,44 @@ task_id = response.json()["task_id"]
     当不需要完整响应时，限制响应长度。
   </Accordion>
 
-  <Accordion title="长回答使用流式输出">
-    流式输出能让内容更早出现，但不会减少计费 token 数。
+  <Accordion title="对长响应使用流式传输">
+    流式传输不会增加额外费用，但能提高感知性能。
   </Accordion>
 </AccordionGroup>
 
-## 余额提醒
+## 余额不足提醒
 
-在 **Console → Settings** 设置余额阈值。余额低于阈值时，TokenLab 会发送邮件。
+配置余额下降时的提醒：
 
-## 充值
+1. 前往 **控制面板 → 设置 → 通知**
+2. 设置您的阈值金额
+3. 接收电子邮件通知
 
-打开 **Console → Billing**，选择金额和结账页显示的支付方式。支付平台确认成功后，余额会更新。
+## 充值余额
 
-## API 密钥限额
+### 支付方式
 
-在 **Console → API 密钥** 创建或编辑密钥时，可以设置单独的费用上限。
+- Stripe (Visa, Mastercard)
 
-达到上限后，使用这把密钥的请求会返回 `402 Payment Required`。
+### 步骤
 
-## 账单帮助
+1. 登录 [控制面板](https://tokenlab.sh/dashboard)
+2. 点击 **充值余额**
+3. 选择金额和支付方式
+4. 完成支付
+
+确认支付后，余额将立即到账。
+
+## API Key 限制
+
+您可以为单个 API key 设置支出限制：
+
+1. 前往 **控制面板 → API Keys**
+2. 点击某个 key 进行编辑
+3. 设置 **用量限制**
+
+达到限制后，使用该 key 的请求将返回 `402 Payment Required`。
+
+## 有疑问？
 
 如有账单咨询，请联系 support@tokenlab.sh。

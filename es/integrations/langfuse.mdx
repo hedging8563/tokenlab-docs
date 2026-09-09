@@ -7,6 +7,14 @@ description: "Rastrea solicitudes compatibles con OpenAI de TokenLab con Langfus
 
 Langfuse puede rastrear llamadas de TokenLab a través de su integración con OpenAI cuando el SDK de OpenAI está configurado con la URL base `/v1` de TokenLab.
 
+<Note>
+**Tipo**: Observabilidad
+
+**Ruta principal**: Rastreo del SDK de OpenAI
+
+**Nivel de soporte**: Ruta de rastreo compatible con OpenAI soportada
+</Note>
+
 ## Entorno
 
 ```bash
@@ -26,6 +34,7 @@ from langfuse.openai import openai
 
 openai.api_key = os.environ["TOKENLAB_API_KEY"]
 openai.base_url = "https://api.tokenlab.sh/v1"
+
 
 @observe()
 def story():

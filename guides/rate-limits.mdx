@@ -1,70 +1,154 @@
 ---
-title: "Rate limits"
-description: "Find your request limit and recover from a 429 response"
+title: "Rate Limits"
+description: "Understanding and handling rate limits"
 ---
 
-Your account tier determines how many API requests you can send each minute. When you reach the limit, the API returns `429 rate_limit_exceeded` and a `Retry-After` header.
+## Overview
 
-## Account limits
+TokenLab implements rate limits to ensure fair usage and platform stability. Limits vary by account tier.
 
-| Tier | Requests per minute |
-| --- | ---: |
-| **User** | 1,000 |
-| **Partner** | 10,000 |
-| **VIP** | 10,000 |
+## Rate Limit Tiers
 
-Need a different limit? Email support@tokenlab.sh with your account email, expected request volume, and use case.
+| Tier | Requests/min | Description |
+|------|-------------|-------------|
+| **User** | 1,000 | Default tier for all accounts |
+| **Partner** | 10,000 | For integration partners |
+| **VIP** | 10,000 | High-volume users |
 
-## 429 response
+<Note>
+  Rate limits are subject to change. Contact support@tokenlab.sh for custom limits.
+</Note>
+
+## Rate Limit Response
+
+When you exceed the rate limit, the API returns a `429` status code with a `Retry-After` header indicating how long to wait before retrying.
+
+## Rate Limit Exceeded
+
+When you exceed the limit, you'll receive a `429` response:
 
 ```json
 {
   "error": {
     "message": "Rate limit exceeded. Please retry later.",
     "type": "rate_limit_exceeded",
-    "code": "rate_limit_exceeded",
-    "retryable": true,
-    "retry_after": 8
+    "code": "rate_limit_exceeded"
   }
 }
 ```
 
-The standard response header gives the same wait time in seconds:
-
-```http
-Retry-After: 8
+The response includes a `Retry-After` header:
+```
+Retry-After: 60  # Seconds to wait before retrying
 ```
 
-## Retry after the server delay
+## Handling Rate Limits
 
-Use `Retry-After` when it is present. If it is missing, use exponential backoff with random jitter. Always set a retry limit so a busy queue cannot grow forever.
+### Exponential Backoff
+
+Implement exponential backoff for automatic retries:
 
 ```python
-import random
 import time
-from openai import RateLimitError
+from openai import OpenAI, RateLimitError
 
-def chat_with_rate_limit_retry(client, messages, attempts=4):
-    for attempt in range(attempts):
+client = OpenAI(
+    api_key="sk-your-api-key",
+    base_url="https://api.tokenlab.sh/v1"
+)
+
+def make_request_with_backoff(messages, max_retries=5):
+    for attempt in range(max_retries):
         try:
             return client.chat.completions.create(
-                model="gpt-5.6-luna",
-                messages=messages,
+                model="gpt-4o",
+                messages=messages
             )
-        except RateLimitError as exc:
-            if attempt == attempts - 1:
+        except RateLimitError as e:
+            if attempt == max_retries - 1:
                 raise
-            header = exc.response.headers.get("Retry-After")
-            wait = float(header) if header else min(30, 2 ** attempt + random.random())
-            time.sleep(wait)
+
+            wait_time = 2 ** attempt  # 1, 2, 4, 8, 16 seconds
+            print(f"Rate limited. Waiting {wait_time}s...")
+            time.sleep(wait_time)
 ```
 
-## Keep traffic below the limit
+### Request Queuing
 
-- Queue requests when your application can generate large bursts.
-- Limit concurrency as well as the average requests per minute.
-- Cache only results that are safe and useful to reuse.
-- Do not retry validation, authentication, balance, or permission errors.
-- Track repeated `429` responses by API key so one client cannot crowd out the rest of your application.
+For high-volume applications, implement a request queue:
 
-A faster model does not increase your account's request limit. Model speed, token limits, and account rate limits are separate constraints.
+```python
+import asyncio
+from collections import deque
+
+class RateLimitedClient:
+    def __init__(self, requests_per_minute=1000):
+        self.rpm = requests_per_minute
+        self.interval = 60 / requests_per_minute
+        self.last_request = 0
+
+    async def request(self, messages):
+        # Wait if needed to respect rate limit
+        now = asyncio.get_event_loop().time()
+        wait_time = max(0, self.last_request + self.interval - now)
+        if wait_time > 0:
+            await asyncio.sleep(wait_time)
+
+        self.last_request = asyncio.get_event_loop().time()
+        return await self.client.chat.completions.create(
+            model="gpt-4o",
+            messages=messages
+        )
+```
+
+### Batch Processing
+
+For bulk operations, process in batches with delays:
+
+```python
+def process_batch(items, batch_size=50, delay=1):
+    results = []
+    for i in range(0, len(items), batch_size):
+        batch = items[i:i + batch_size]
+        for item in batch:
+            result = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "user", "content": item}]
+            )
+            results.append(result)
+        time.sleep(delay)  # Pause between batches
+    return results
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Monitor your usage">
+    Track rate limit headers to stay under limits proactively.
+  </Accordion>
+
+  <Accordion title="Implement caching">
+    Cache responses for identical requests to reduce API calls.
+  </Accordion>
+
+  <Accordion title="Use appropriate models">
+    Faster models (like gpt-5-mini) allow more throughput.
+  </Accordion>
+
+  <Accordion title="Contact us for higher limits">
+    If you need higher limits, contact support@tokenlab.sh.
+  </Accordion>
+</AccordionGroup>
+
+## Upgrading Your Tier
+
+To request a tier upgrade:
+
+1. Log in to your [Dashboard](https://tokenlab.sh/dashboard)
+2. Go to **Settings → Account**
+3. Contact support with your use case
+
+Or email support@tokenlab.sh with:
+- Your account email
+- Expected request volume
+- Use case description

@@ -1,26 +1,38 @@
 ---
 title: "AI Chat Applications"
-description: "Connect popular chat applications to TokenLab"
+description: "Configure popular AI chat applications to use TokenLab's OpenAI-compatible API"
 ---
 
 ## Overview
 
-Most chat apps can connect through their OpenAI-compatible settings. Enter `https://api.tokenlab.sh/v1` as the Base URL, paste a TokenLab API key, and choose a current chat model ID.
+Most general AI chat apps connect to TokenLab through the standard OpenAI-compatible chat path.
+
+In practice that means:
+- use `https://api.tokenlab.sh/v1` as the base URL unless the app explicitly asks for a full endpoint URL
+- use your TokenLab API key as the OpenAI-style API key
+- pick models that the app can use in a standard chat workflow
 
 <Note>
-These settings use Chat Completions. Coding tools that require Responses or another API format have separate integration guides.
+General chat apps are usually **chat-completions oriented**, not Codex Responses WebSocket clients. For Codex CLI/App, Cursor, or other coding tools that need Responses-specific behavior, use the dedicated integration guides instead.
 </Note>
 
+<Note>
+**Type**: Chat App
+
+**Primary Path**: OpenAI-compatible chat-completions
+
+**Support Confidence**: Supported path
+</Note>
 
 ## Supported Applications
 
 | Application | Platform | Notes |
 |-------------|----------|-------|
-| Open WebUI | Web, Self-hosted | Supports OpenAI-compatible connections |
-| LibreChat | Web, Self-hosted | Supports custom OpenAI endpoints |
-| LobeChat | Web, Desktop, Self-hosted | Supports custom model providers |
-| Cherry Studio | Windows, macOS, Linux | Supports OpenAI-compatible providers |
-| Chatbox | Windows, macOS, Linux | Supports OpenAI-compatible settings |
+| Open WebUI | Web, Self-hosted | Popular self-hosted choice with OpenAI-compatible connections |
+| LibreChat | Web, Self-hosted | Multi-provider chat workspace with custom OpenAI endpoints |
+| LobeChat | Web, Desktop, Self-hosted | Strong custom-provider support |
+| Cherry Studio | Windows, macOS, Linux | Good OpenAI-compatible provider flow |
+| Chatbox | Windows, macOS, Linux | Simple OpenAI-compatible setup |
 | DeepChat | Windows, macOS, Linux | Desktop client with OpenAI-compatible provider settings |
 | Jan | Desktop, Self-hosted | Local-first app with remote OpenAI-compatible providers |
 | TypingMind | Web, Desktop | Uses a custom endpoint style |
@@ -72,7 +84,7 @@ If an app asks for a **full endpoint URL** instead of a base URL, use:
     3. Enter:
        - **API Host**: `https://api.tokenlab.sh/v1`
        - **API Key**: `sk-your-tokenlab-key`
-       - **Model**: a current chat model ID from TokenLab
+       - **Model**: `gpt-5.4-mini` or `claude-sonnet-5`
   </Tab>
 
   <Tab title="TypingMind">
@@ -99,7 +111,7 @@ If an app asks for a **full endpoint URL** instead of a base URL, use:
     3. Enter:
        - **Base URL**: `https://api.tokenlab.sh/v1`
        - **API Key**: `sk-your-tokenlab-key`
-       - **Model**: a current chat model ID from TokenLab
+       - **Model**: `gpt-5.4-mini`
     4. Save and run a test chat
   </Tab>
 
@@ -110,7 +122,7 @@ If an app asks for a **full endpoint URL** instead of a base URL, use:
        - **Provider name**: TokenLab
        - **Base URL**: `https://api.tokenlab.sh/v1`
        - **API Key**: `sk-your-tokenlab-key`
-    4. Select a current TokenLab chat model
+    4. Select `gpt-5.4-mini` or another TokenLab model
   </Tab>
 
   <Tab title="LibreChat">
@@ -122,15 +134,20 @@ If an app asks for a **full endpoint URL** instead of a base URL, use:
         apiKey: '${OPENAI_API_KEY}'
         baseURL: 'https://api.tokenlab.sh/v1'
         models:
-          default: ['your-tokenlab-model-id']
+          default: ['gpt-5.4-mini', 'gpt-5.4', 'claude-sonnet-5']
           fetch: false
     ```
   </Tab>
 </Tabs>
 
-## Choose a Model
+## Safer Model Defaults
 
-Copy a current chat model ID from the [Models page](https://tokenlab.sh/en/models). Capabilities, context limits, and prices can change, so do not keep a static model list in setup instructions.
+| Category | Suggested Models |
+|----------|------------------|
+| General default | `gpt-5.4-mini`, `gpt-5.4`, `gpt-5.5` |
+| Anthropic | `claude-sonnet-5`, `claude-opus-4-8`, `claude-fable-5` |
+| Google | `gemini-3.5-flash`, `gemini-3.1-flash-lite` |
+| DeepSeek | `deepseek-v4-flash`, `deepseek-v4-pro` |
 
 ## Tips
 
@@ -139,8 +156,8 @@ Copy a current chat model ID from the [Models page](https://tokenlab.sh/en/model
     Most apps are easier to configure and less fragile when you provide `https://api.tokenlab.sh/v1` as a base URL instead of a full endpoint URL.
   </Accordion>
 
-  <Accordion title="Test the model in your app">
-    Compare a few current models on the same conversations before choosing a default.
+  <Accordion title="Use smaller models first">
+    Start with `gpt-5.4-mini` or `deepseek-v4-flash` for everyday chat, then move heavier reasoning tasks to `gpt-5.4` or `claude-opus-4-8`.
   </Accordion>
 
   <Accordion title="Keep coding tools separate">
@@ -165,7 +182,7 @@ Copy a current chat model ID from the [Models page](https://tokenlab.sh/en/model
 
   <Accordion title="Model Not Available">
     - Verify the model name exactly
-    - Copy the exact model ID from the TokenLab Models page
-    - Check that the model supports Chat Completions
+    - Try a widely supported default like `gpt-5.4-mini`, `deepseek-v4-flash`, or `claude-sonnet-5`
+    - Check current availability in TokenLab docs or dashboard
   </Accordion>
 </AccordionGroup>

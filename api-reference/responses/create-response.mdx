@@ -4,7 +4,9 @@ openapi: "POST /v1/responses"
 description: "Creates a response using the OpenAI Responses API format"
 ---
 
-Use this endpoint when a model's `accepted_request_formats` includes `responses`. Requests and responses remain in Responses API format and are not converted to Chat Completions. Optional and future fields depend on the selected model.
+The Responses API is OpenAI's stateful response protocol. TokenLab exposes it only when the model details advertise the Responses request format and a same-protocol route is currently available; this is not inferred from a `gpt-*` name or provider. Native Responses requests stay on Responses endpoints and never fall back through Chat Completions.
+
+TokenLab preserves the request JSON shape, including unknown fields, explicit `null`, and empty arrays, and forwards it best-effort. Unknown or future fields remain subject to the selected upstream's support.
 
 ## Request Body
 
@@ -41,7 +43,7 @@ Use this endpoint when a model's `accepted_request_formats` includes `responses`
 </ParamField>
 
 <ParamField body="tools" type="array">
-  Tools the model may call. Supported types and combinations depend on the selected model.
+  A list of tools the model may call. TokenLab forwards native tool definitions without maintaining a local hosted-tool whitelist; the selected upstream decides which types and combinations are supported.
 </ParamField>
 
 <ParamField body="stream" type="boolean" default="false">
@@ -57,7 +59,7 @@ Use this endpoint when a model's `accepted_request_formats` includes `responses`
 </ParamField>
 
 <ParamField body="background" type="boolean" default="false">
-  Ask the model to run asynchronously. Use only with models that list background Responses support.
+  Whether to ask the selected native Responses upstream to run asynchronously. TokenLab does not infer support from the provider or model name: a clear upstream rejection is returned unchanged, while an accepted queued or in-progress response keeps its billing reservation and original route affinity until a terminal response is reconciled, even if the client never retrieves it.
 </ParamField>
 
 <ParamField body="prompt" type="object">
@@ -65,11 +67,11 @@ Use this endpoint when a model's `accepted_request_formats` includes `responses`
 </ParamField>
 
 <ParamField body="metadata" type="object">
-  Custom metadata stored with the response.
+  Metadata to attach to the response for tracking purposes.
 </ParamField>
 
 <ParamField body="text" type="object">
-  Text output settings. `text.format` support depends on the selected model.
+  Text generation configuration options. Behavior for `text.format` depends on the selected model and routed path; it is not guaranteed uniformly across every model.
 </ParamField>
 
 <ParamField body="parallel_tool_calls" type="boolean" default="true">
@@ -108,14 +110,14 @@ Use this endpoint when a model's `accepted_request_formats` includes `responses`
   Token usage statistics.
 </ResponseField>
 
-Valid states include `queued`, `in_progress`, `completed`, `incomplete`, `failed`, and `cancelled`. Check the response `status` even when the HTTP request succeeds.
+Valid response states include `queued`, `in_progress`, `completed`, `incomplete`, `failed`, and `cancelled`. An HTTP 200 response whose native status is `failed` or `incomplete` is returned as-is; it is not rewritten to a gateway 502.
 
-## Related Endpoints
+## Lifecycle boundaries
 
-- `GET /v1/responses/{id}` retrieves a stored response and supports `include`, `include_obfuscation`, `stream`, and `starting_after`.
+- `GET /v1/responses/{id}` retrieves the original same-protocol response using its stored route affinity and supports `include`, `include_obfuscation`, `stream`, and `starting_after`.
 - `DELETE /v1/responses/{id}` deletes a stored response. It is not a cancellation endpoint.
-- `POST /v1/responses/compact` returns a `response.compaction` object.
-- Cancel, input-items, and input-tokens endpoints are not currently available.
+- `POST /v1/responses/compact` returns the native `response.compaction` contract.
+- Public cancel, input-items, and input-tokens endpoints are not currently exposed.
 
 <RequestExample>
 ```bash cURL
@@ -123,7 +125,7 @@ curl -X POST "https://api.tokenlab.sh/v1/responses" \
   -H "Authorization: Bearer sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-5.6-terra",
+    "model": "gpt-4o",
     "input": [
       {"type": "message", "role": "user", "content": "Hello!"}
     ],
@@ -140,7 +142,7 @@ client = OpenAI(
 )
 
 response = client.responses.create(
-    model="gpt-5.6-terra",
+    model="gpt-4o",
     input=[
         {"type": "message", "role": "user", "content": "Hello!"}
     ],
@@ -159,7 +161,7 @@ const client = new OpenAI({
 });
 
 const response = await client.responses.create({
-  model: 'gpt-5.6-terra',
+  model: 'gpt-4o',
   input: [
     { type: 'message', role: 'user', content: 'Hello!' }
   ],
@@ -181,7 +183,7 @@ import (
 
 func main() {
     payload := map[string]interface{}{
-        "model": "gpt-5.6-terra",
+        "model": "gpt-4o",
         "input": []map[string]interface{}{
             {"type": "message", "role": "user", "content": "Hello!"},
         },
@@ -215,7 +217,7 @@ curl_setopt_array($ch, [
         'Authorization: Bearer sk-your-api-key'
     ],
     CURLOPT_POSTFIELDS => json_encode([
-        'model' => 'gpt-5.6-terra',
+        'model' => 'gpt-4o',
         'input' => [
             ['type' => 'message', 'role' => 'user', 'content' => 'Hello!']
         ],
@@ -235,7 +237,7 @@ Use image-capable models by placing images inside `message.content` as `input_im
 
 ```json
 {
-  "model": "gpt-5.6-terra",
+  "model": "gpt-5.4",
   "input": [
     {
       "type": "message",
@@ -257,7 +259,7 @@ Use image-capable models by placing images inside `message.content` as `input_im
 
 ```json
 {
-  "model": "gpt-5.6-terra",
+  "model": "gpt-5.4",
   "input": [
     {
       "type": "message",
@@ -285,7 +287,7 @@ Use image-capable models by placing images inside `message.content` as `input_im
   "id": "resp_abc123",
   "object": "response",
   "created": 1706000000,
-  "model": "gpt-5.6-terra",
+  "model": "gpt-4o",
   "output": [
     {
       "type": "message",

@@ -6,11 +6,11 @@ description: "透過 WebSocket 連線即時語音與多模態會話"
 
 ## 概覽
 
-此端點用於即時工作階段，例如串流語音辨識、語音合成、語音翻譯或即時多模態模型。一般 `GET` 請求會回傳端點中繼資料，而 WebSocket 升級請求則會為所選模型開啟一個即時工作階段。
+此端點用於即時語音辨識、語音合成、語音翻譯或即時多模態模型等會話。一般 `GET` 請求會回傳端點資訊；WebSocket 升級請求會代理到路由後的即時上游會話。
 
 ## 支援範圍
 
-TokenLab 在 `GET /v1/realtime` 提供即時 WebSocket 端點，可用於端點資訊檢查與 WebSocket 升級。請把它理解為 WebSocket 子集（WebSocket subset）：它只轉發受支援即時模型的事件，不支援 OpenAI Realtime 的 REST 輔助面，例如建立工作階段、`client_secrets`、`Calls` 通話控制 API 或 legacy beta session API。
+此端點是 TokenLab 的即時 WebSocket 代理。它支援一般 `GET /v1/realtime` 端點資訊檢查，也支援在同一路徑發起 WebSocket 升級。它不提供 OpenAI Realtime 的 REST 輔助端點，例如 `POST /v1/realtime/client_secrets`、`POST /v1/realtime/translations/client_secrets`、Realtime Calls（`accept`、`hangup`、`refer`、`reject`），也不提供 legacy beta REST session / transcription-session 建立。
 
 瀏覽器或行動端應把長期 API Key 保留在服務端。此端點不會簽發短期 Realtime client secret。
 
@@ -54,13 +54,13 @@ curl "https://api.tokenlab.sh/v1/realtime" \
 
 ## 訊息
 
-TokenLab 會在你的用戶端與所選即時模型之間轉發 WebSocket 訊息。請使用該模型文件中說明的事件格式，並將 `model` 放在查詢字串中，而非放進每個事件裡。
+TokenLab 會在用戶端與路由後的即時提供方之間轉發 WebSocket 訊息。請保留所選模型的官方事件格式，並透過查詢參數傳入 `model`。
 
 ## 計費與關閉
 
-工作階段會以 API 金鑰餘額計費：TokenLab 會在開始時預估並預留額度，結束後依實際用量結算並退還差額。
+即時會話使用同一 API Key 餘額。TokenLab 會在 socket 開啟時預扣小額估算費用，並在會話關閉時計費或退款。
 
-工作階段完成後請關閉用戶端連線。若服務端先關閉工作階段，TokenLab 會在可能的情況下向你的用戶端傳送一個安全的關閉事件/代碼。
+會話完成後關閉用戶端 socket。若上游先關閉，TokenLab 會盡可能把關閉碼轉發給用戶端。
 
 ## 回應範例
 
@@ -80,4 +80,4 @@ TokenLab 會在你的用戶端與所選即時模型之間轉發 WebSocket 訊息
 ## 重要欄位
 
 <ResponseField name="type" type="string">API 返回的事件或訊息類型。</ResponseField>
-<ResponseField name="session.id" type="string">透過 realtime 連線收到的不透明標識符。請放入支援日誌以便排障；它不是 REST session URL。</ResponseField>
+<ResponseField name="session.id" type="string">即時提供方回傳的標識符；可用於日誌和支援排障，不是 REST session URL。</ResponseField>

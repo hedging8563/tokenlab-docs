@@ -7,12 +7,19 @@ description: "Use TokenLab with Anthropic's Claude Code CLI"
 
 
 
+<Note>
+**Type**: Coding Tool
 
-[Claude Code](https://docs.anthropic.com/en/docs/claude-code) can use a TokenLab API key and the TokenLab Messages API for Claude models.
+**Primary Path**: Anthropic-native
+
+**Support Confidence**: Strong native path
+</Note>
+
+[Claude Code](https://docs.anthropic.com/en/docs/claude-code) is Anthropic's official CLI tool for AI-assisted coding. You can configure it to use TokenLab as the API provider.
 
 ## Installation
 
-Anthropic now recommends the native installer. The npm package still works, but Anthropic has deprecated that installation method.
+Anthropic now recommends the native installer. npm installation still exists for compatibility, but it is deprecated upstream.
 
 ```bash
 curl -fsSL https://claude.ai/install.sh | bash
@@ -80,15 +87,25 @@ claude --version
 claude doctor
 ```
 
-## Choose a model
+## Available Models
 
-Copy a current Claude model ID from the [Models page](https://tokenlab.sh/en/models), then pass it with `--model`:
+TokenLab supports all Claude models:
+
+| Model | Description |
+|-------|-------------|
+| `claude-opus-4-6` | Most capable, complex reasoning |
+| `claude-sonnet-4-6` | Balanced performance, excellent for coding |
+| `claude-haiku-4-5` | Fastest, cost-effective |
+
+## Model Selection
+
+Specify a model with the `--model` flag:
 
 ```bash
 claude --model claude-sonnet-4-6 "Review this PR"
 ```
 
-You can also set a default in your configuration:
+Or set a default in your configuration:
 
 ```json
 {
@@ -96,7 +113,7 @@ You can also set a default in your configuration:
     "ANTHROPIC_API_KEY": "sk-your-tokenlab-key",
     "ANTHROPIC_BASE_URL": "https://api.tokenlab.sh"
   },
-  "model": "claude-sonnet-5"
+  "model": "claude-sonnet-4-6"
 }
 ```
 

@@ -16,6 +16,14 @@ En la práctica, esto significa:
 Las aplicaciones de chat generales suelen estar **orientadas a chat-completions**, no a clientes WebSocket de Codex Responses. Para Codex CLI/App, Cursor u otras herramientas de programación que requieran un comportamiento específico de Responses, utilice las guías de integración dedicadas en su lugar.
 </Note>
 
+<Note>
+**Tipo**: Aplicación de chat
+
+**Ruta principal**: chat-completions compatible con OpenAI
+
+**Nivel de soporte**: Ruta soportada
+</Note>
+
 ## Aplicaciones compatibles
 
 | Aplicación | Plataforma | Notas |
@@ -126,7 +134,7 @@ Si una aplicación solicita una **URL de endpoint completa** en lugar de una URL
         apiKey: '${OPENAI_API_KEY}'
         baseURL: 'https://api.tokenlab.sh/v1'
         models:
-          default: ['gpt-5.6-luna', 'gpt-5.6-terra', 'claude-sonnet-5']
+          default: ['gpt-5.4-mini', 'gpt-5.4', 'claude-sonnet-5']
           fetch: false
     ```
   </Tab>

@@ -11,6 +11,14 @@ TokenLab は、標準の OpenAI 互換 chat および embeddings インターフ
 現在の LangChain ドキュメントでは、`ChatOpenAI` は公式の OpenAI 互換のリクエスト/レスポンス形式を対象としていると記載されています。プロバイダー固有の非標準レスポンスフィールドが必要な場合は、`ChatOpenAI` に依存するのではなく、プロバイダー固有の LangChain 統合を使用してください。
 </Note>
 
+<Note>
+**種類**: フレームワーク / プラットフォーム
+
+**主要パス**: OpenAI互換の標準 surface
+
+**サポートレベル**: 標準 surface をサポート
+</Note>
+
 このページは、標準的な OpenAI 互換 LangChain インターフェースのみを対象としており、それを超えるプロバイダー固有の LangChain 機能までは扱いません。
 
 ## インストール
@@ -25,7 +33,7 @@ pip install langchain langchain-openai langchain-community faiss-cpu
 from langchain_openai import ChatOpenAI
 
 llm = ChatOpenAI(
-    model="gpt-5.6-terra",
+    model="gpt-5.4",
     api_key="sk-your-tokenlab-key",
     base_url="https://api.tokenlab.sh/v1",
 )
@@ -40,13 +48,13 @@ print(response.content)
 from langchain_openai import ChatOpenAI
 
 gpt = ChatOpenAI(
-    model="gpt-5.6-terra",
+    model="gpt-5.4",
     api_key="sk-your-key",
     base_url="https://api.tokenlab.sh/v1",
 )
 
 claude = ChatOpenAI(
-    model="claude-sonnet-5",
+    model="claude-sonnet-4-6",
     api_key="sk-your-key",
     base_url="https://api.tokenlab.sh/v1",
 )
@@ -58,7 +66,7 @@ gemini = ChatOpenAI(
 )
 
 deepseek = ChatOpenAI(
-    model="deepseek-reasoner",
+    model="deepseek-r1",
     api_key="sk-your-key",
     base_url="https://api.tokenlab.sh/v1",
 )

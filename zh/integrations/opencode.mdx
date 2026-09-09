@@ -7,8 +7,15 @@ description: "配置 OpenCode 以使用 TokenLab API"
 
 
 
+<Note>
+**类型**: 编码工具
 
-在 OpenCode 中添加自定义 OpenAI 兼容服务，填入 TokenLab API 密钥、Base URL 和当前模型 ID 即可。
+**主要路径**: OpenAI 兼容
+
+**支持级别**: 支持路径
+</Note>
+
+OpenCode 是一个在终端中运行的开源 AI 编码助手。它支持多个 LLM 提供方，并且可以配置为使用 TokenLab 的 API，以访问数百个模型。
 
 ## 安装
 
@@ -72,10 +79,10 @@ OpenCode 当前文档建议通过 `opencode.json` 或 `opencode.jsonc` 配置提
         "apiKey": "{env:OPENAI_API_KEY}"
       },
       "models": {
-        "gpt-5.6-terra": {
+        "gpt-5.4": {
           "name": "GPT-5.4"
         },
-        "gpt-5.6-luna": {
+        "gpt-5-mini": {
           "name": "GPT-5 Mini"
         }
       }
@@ -168,7 +175,7 @@ opencode "Fix the TypeScript errors in this project"
     - 验证是否已设置 `OPENAI_API_KEY` 环境变量
     - 验证 `options.apiKey` 是否引用了 `{env:OPENAI_API_KEY}` 或其他有效的 secret 来源
     - 检查 key 是否以 `sk-` 开头
-    - 确保该 key 在 TokenLab Console中处于激活状态
+    - 确保该 key 在 TokenLab 控制台中处于激活状态
   </Accordion>
 
   <Accordion title="未找到模型">
@@ -177,7 +184,7 @@ opencode "Fix the TypeScript errors in this project"
   </Accordion>
 </AccordionGroup>
 
-## 配置建议
+## 最佳实践
 
 <AccordionGroup>
   <Accordion title="使用项目上下文">

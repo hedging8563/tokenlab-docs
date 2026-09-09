@@ -1,12 +1,19 @@
 ---
 title: "Portkey Gateway"
-description: "Connect Portkey Gateway to TokenLab"
+description: "Use TokenLab as an upstream provider in Portkey Gateway"
 ---
 
 ## Overview
 
-Add TokenLab as a Portkey provider for OpenAI-compatible Chat Completions. Use Responses only when your Portkey version supports a custom Responses endpoint.
+Portkey Gateway can route requests to TokenLab as an upstream provider. The safest default is OpenAI-compatible chat completions; use Responses when your Portkey version exposes that path for TokenLab.
 
+<Note>
+**Type**: AI Gateway
+
+**Primary Paths**: OpenAI-compatible chat completions and Responses
+
+**Support Confidence**: Supported path
+</Note>
 
 ## Provider Values
 
@@ -15,7 +22,7 @@ Add TokenLab as a Portkey provider for OpenAI-compatible Chat Completions. Use R
 | Provider | `tokenlab` |
 | Base URL | `https://api.tokenlab.sh/v1` |
 | API key | `sk-your-tokenlab-key` |
-| Model | A current TokenLab model ID |
+| Default model | `gpt-5.4-mini` |
 
 ## Chat Completions
 
@@ -27,15 +34,15 @@ curl https://your-portkey-gateway.example/v1/chat/completions \
   -H "x-portkey-provider: tokenlab" \
   -H "Authorization: Bearer sk-your-tokenlab-key" \
   -d '{
-    "model": "gpt-5.6-luna",
+    "model": "gpt-5.4-mini",
     "messages": [{"role": "user", "content": "Say hello from TokenLab."}]
   }'
 ```
 
 ## Responses
 
-If your Portkey version supports a custom Responses URL, choose a current Responses-capable model from the [Models page](https://tokenlab.sh/en/models) and use `/v1/responses`.
+If your Portkey build routes TokenLab Responses, use `gpt-5.5`, `gpt-5.4`, or `gpt-5.4-mini` with `/v1/responses`.
 
-## Other API Formats
+## Native Endpoint Note
 
-Anthropic Messages and Gemini can be used through Portkey only if your Portkey version supports custom URLs for those formats.
+TokenLab also exposes Anthropic Messages and Gemini-compatible endpoints directly. Whether those can be used through Portkey depends on the Portkey provider and endpoint support in your deployed version.

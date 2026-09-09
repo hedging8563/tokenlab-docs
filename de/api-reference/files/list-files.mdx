@@ -39,12 +39,6 @@ Verwenden Sie das interaktive OpenAPI-Panel oben für das genaue Schema.
 - Erwarten Sie `output_file_id` und `error_file_id` erst, nachdem der Worker den Batch abgeschlossen hat.
 - Die Preise für Batches können von den Preisen für synchrone Anfragen abweichen, da die Rabattregeln für `isBatchRequest=true` gelten.
 
-## Filter
-
-- `limit` akzeptiert Werte von 1 bis 10000 und ist standardmäßig 10000.
-- `purpose` kann `batch`, `batch_output`, `user_data` oder `vision` sein.
-- `user_data` und `vision` geben verfügbare von TokenLab erstellte Bildreferenzdateien zurück.
-
 ## Antwortbeispiel
 
 <ResponseExample>

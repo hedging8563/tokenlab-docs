@@ -5,8 +5,15 @@ description: "在 VoltAgent 智能体中使用 TokenLab 模型"
 
 ## 概述
 
-在 VoltAgent 使用的 AI SDK provider 中填写 TokenLab `/v1` 地址，再把选定模型交给 Agent。
+VoltAgent 直接支持 AI SDK 语言模型。配置一个兼容 OpenAI 的 AI SDK 提供程序，并将 TokenLab 的 `/v1` 基础 URL 传入，即可将所选模型应用于您的智能体。
 
+<Note>
+**类型**: TypeScript 智能体框架
+
+**主要路径**: 通过 AI SDK 使用兼容 OpenAI 的 Chat Completions
+
+**支持置信度**: 支持兼容 OpenAI 的路径
+</Note>
 
 ## 环境配置
 
@@ -32,9 +39,9 @@ const agent = new Agent({
 });
 ```
 
-## 选择 API 格式
+## 模型路由路径
 
-如果你的 VoltAgent 注册表快照包含来自 `models.dev` 的 TokenLab 提供程序条目，请配置：
+如果您的 VoltAgent 注册表快照包含来自 `models.dev` 的 TokenLab 提供程序条目，请配置：
 
 ```bash
 export TOKENLAB_API_KEY="sk-your-tokenlab-key"
@@ -45,4 +52,4 @@ export TOKENLAB_BASE_URL="https://api.tokenlab.sh/v1"
 
 ## 端点说明
 
-直接使用 AI SDK 路径是最明确的设置方式。仅当你选择的 AI SDK 提供程序/客户端配置为相应协议时，才使用 TokenLab 原生 Responses、Anthropic Messages 或 Gemini 端点。
+直接使用 AI SDK 路径是最明确的设置方式。仅当您选择的 AI SDK 提供程序/客户端配置为相应协议时，才使用 TokenLab 原生 Responses、Anthropic Messages 或 Gemini 端点。

@@ -131,10 +131,10 @@ if (data.status === 'completed') {
 ```
 </ResponseExample>
 
-## Check Interval
+## Polling Best Practices
 
 <Tip>
-Check every 3–5 seconds and stop when the task reaches a final status.
+**Recommended polling interval**: 3-5 seconds. Most image generation tasks complete within 30-120 seconds depending on the model and routed provider path.
 </Tip>
 
 ```python

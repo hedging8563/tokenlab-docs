@@ -1,47 +1,47 @@
 ---
-title: "图片生成"
-description: "生成或编辑图片，并处理直接结果与异步任务"
+title: "图像生成"
+description: "选择正确的 TokenLab 图像端点，发送模型感知请求，并安全处理同步或异步图像结果。"
 ---
 
-TokenLab 支持文生图、图生图和图片编辑。不同模型的参数不一样，发送请求前请查看所选模型支持的字段。
+TokenLab 支持通过公共图像端点进行文本到图像、图像到图像和图像编辑。图像模型不共享一个通用的参数集，因此生产客户端应首先选择端点，然后选择模型，然后仅发送该模型支持的字段。
 
-## 选择 API
+## 何时使用每个端点
 
-| 想做什么 | API | 适合 | 不适合 |
+| 用户工作流程 | 端点 | 使用时机 | 避免时机 |
 |---------------|----------|----------|------------|
-| 文生图 | `POST /v1/images/generations` | 只从文字开始生成 | 编辑已有的 GPT Image 图片 |
-| 图生图 | `POST /v1/images/generations` | 模型接受 `operation: "image-to-image"` 和图片 URL | 必须使用 multipart 图片的编辑模型 |
-| 图片编辑 | `POST /v1/images/edits` | 用支持编辑的模型修改已有图片 | Nano Banana 一类的参考图生成 |
-| 图片变体 | `POST /v1/images/variations` | 已有功能就在使用 Variations API | 新建参考图功能 |
-| 查询状态 | `GET /v1/tasks/{id}` | 创建响应带有 `task_id`、`pending` 或 `poll_url` | 响应已经返回最终 `data[]` |
+| 文本到图像 | `POST /v1/images/generations` | 用户仅从提示开始 | 需要官方的 GPT 图像编辑流程 |
+| 图像到图像 | `POST /v1/images/generations` | 模型文档通过 `operation: "image-to-image"` 以及 `image_url`、`image_urls` 或 `reference_image_urls` 引用图像 | 模型期望多部分编辑输入 |
+| 图像编辑 | `POST /v1/images/edits` | 您正在使用支持的编辑模型（如 GPT 图像系列模型）编辑现有图像 | 您正在使用 Nano Banana 风格的图像到图像生成 |
+| 变体 | `POST /v1/images/variations` | 您维护一个遗留的变体兼容集成 | 您正在构建新的参考图像工作流程 |
+| 状态 | `GET /v1/tasks/{id}` | 创建响应返回 `task_id`、`status: "pending"` 或 `poll_url` | 创建响应已经包含最终的 `data[]` |
 
-请求中必须包含 `model`，图片端点没有默认模型。
+始终发送 `model`。图像端点故意不依赖于历史隐式默认模型来处理生产流量。
 
 ## 选择模型
 
-用下面的请求查找当前图片模型：
+从模型发现开始，然后检查所选模型的 TokenLab 契约：
 
 ```bash
 curl "https://api.tokenlab.sh/v1/models?recommended_for=image" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 
-打开所选模型详情，确认：
+对于非聊天模型，列表响应可能包括 `GET /v1/models`。模型详细页面可能会暴露更完整的 `GET /v1/models/{model}`。使用这些字段进行确认：
 
-- 支持哪些生成类型，例如 `text-to-image`、`image-to-image` 或 `image-edit`。
-- 应该使用哪个 API。
-- 参考图应该放在 `image_url`、`image_urls`、`reference_image_urls`、multipart `image` 还是 JSON `images[]`。
+- 支持的操作，例如 `text-to-image`、`image-to-image` 或 `image-edit`。
+- 模型期望的请求端点。
+- 用于引用的形状，例如 `image_url`、`image_urls`、`reference_image_urls`、多部分 `image` 或 JSON `images[]`。
 - 模型是否接受 `size`、`aspect_ratio`、`resolution`、`quality`、`background`、`output_format` 或 `response_format`。
 
-## 不同模型使用不同字段
+## 请求形状规则
 
-- `gpt-image-2` 一类请求使用 OpenAI 风格的 `size`、`quality` 和编辑字段。生成和编辑时，`background` 可以是 `auto` 或 `opaque`，暂不支持 `transparent`。需要自动默认值时，省略对应字段即可。
+- `gpt-image-2` 风格的请求使用类似 OpenAI 的 `size`、`quality` 和编辑字段。生成和编辑请求中的 `background` 接受 `auto` 或 `opaque`，不支持 `transparent`。当您希望模型或 TokenLab 使用自动默认值时，请省略可选字段。
 - Gemini 和 Nano Banana 图像系列通常使用 `aspect_ratio`；仅在模型详情暴露时发送 `resolution`。
 - Nano Banana 图像到图像应在 `/v1/images/generations` 上，带有 `operation: "image-to-image"` 和参考图像 URL。
-- `/v1/images/generations` 不接受顶层 `images[]` 或 `file_id`；这些字段用于图片编辑。
-- 远程图片必须能通过 `http` 或 `https` 访问。不要使用内网地址、带凭据的地址、URL fragment，或即将过期的签名 URL。
+- `/v1/images/generations` 不接受顶级 `images[]` 或 `file_id`；这些是编辑流程形状。
+- 远程图像引用必须是公共的 `http` 或 `https` URL。请勿发送私有网络 URL、嵌入凭据、URL 片段或可能在处理开始之前过期的签名 URL。
 
-## 文生图示例
+## 文本到图像示例
 
 ```bash
 curl https://api.tokenlab.sh/v1/images/generations \
@@ -55,7 +55,7 @@ curl https://api.tokenlab.sh/v1/images/generations \
   }'
 ```
 
-## 参考图示例
+## 参考图像示例
 
 ```bash
 curl https://api.tokenlab.sh/v1/images/generations \
@@ -70,45 +70,45 @@ curl https://api.tokenlab.sh/v1/images/generations \
   }'
 ```
 
-## 获取图片
+## 处理结果
 
-图片可能直接返回，也可能先返回任务：
+图像响应可以是同步或异步的：
 
-- 直接完成时，`data[]` 中会有 `url` 或 `b64_json`。
-- 异步生成会返回 `id`、`task_id`、`status`，通常还有 `poll_url`。
-- 有 `poll_url` 时直接使用；需要固定地址时调用 `GET /v1/tasks/{id}`。
-- 需要 `b64_json` 时请使用同步请求，异步图片结果通过 URL 提供。
+- 同步响应返回最终的 `data[]`，其中包含 `url` 或 `b64_json`。
+- 异步响应返回 `id`、`task_id`、`status`，通常还有 `poll_url`。
+- 当 `poll_url` 存在时优先使用。如果您需要固定路由，请轮询 `GET /v1/tasks/{id}`。
+- 当您特别需要 `b64_json` 时使用同步请求；异步图像结果是以 URL 为导向的。
 
 ```bash
 curl "https://api.tokenlab.sh/v1/tasks/$TASK_ID" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 
-保存图片 URL、任务 ID、模型，以及你自己的用户或任务 ID。状态已经是 `completed` 或 `failed` 后不再继续查询。
+保存返回的图像 URL、任务 ID、模型和您自己的用户/作业 ID。在终端状态后请勿继续轮询。
 
-## 上线前检查
+## 生产检查清单
 
-- 检查提示词长度、图片数量、URL 是否可访问，以及文件类型。
-- 高分辨率同步请求需要更长超时；模型支持异步时，耗时任务可以使用异步模式。
-- 保存 `request_id`、`task_id`、`poll_url`、模型、API 地址和请求字段名。
-- 客户端超时后，确认没有创建任务再重新提交。
-- 最终费用以 Usage 和 `billing_transaction_id` 为准。
+- 在调用 TokenLab 之前验证用户输入：提示长度、图像数量、URL 可达性和文件类型。
+- 将 HTTP 超时设置得足够高，以便进行同步高分辨率请求。在可用的情况下使用异步模式以处理长时间工作。
+- 存储 `request_id`、`task_id`、`poll_url`、模型、端点和清理后的请求形状以供支持。
+- 在客户端超时的情况下，检查任务是否已创建，然后再重试创建请求。
+- 在存在时与使用记录和 `billing_transaction_id` 对账，而不是与供应商任务 ID 对账。
 
 ## 常见错误
 
 | 症状 | 可能原因 | 修复 |
 |---------|--------------|-----|
 | `400` 和 `param: "model"` | 缺少显式模型 | 查询 `/v1/models?recommended_for=image` 并发送 `model` |
-| 不支持的字段 | 所选模型没有这个字段 | 删除字段，或换成明确支持它的模型和 API |
-| 异步结果中没有 `b64_json` | 异步图片通过 URL 返回 | 需要 base64 时使用同步模式 |
-| 参考图被拒绝 | API 不对，或 URL 无法访问/已经过期 | 按模型文档填写参考图，并使用可访问的 URL |
+| 不支持的字段 | 字段不在该模型的公共契约中 | 删除该字段或选择文档中包含该字段的模型/端点 |
+| 异步结果中没有 `b64_json` | 异步图像任务返回以 URL 为导向的结果 | 使用同步模式以获取 base64 输出 |
+| 参考图像被拒绝 | 错误的端点或私有/过期的 URL | 匹配模型文档中的参考形状并使用可达的 URL |
 
 ## API 参考
 
 | 主题 | 参考 |
 |-------|-----------|
-| 生成图片 | [生成图片](/zh/api-reference/images/create-image) |
-| 编辑图片 | [编辑图片](/zh/api-reference/images/edit-image) |
-| 创建图片变体 | [创建图片变体](/zh/api-reference/images/create-variation) |
-| 获取图片状态 | [获取图片状态](/zh/api-reference/images/get-image-status) |
+| 创建图像 | [创建图像](/zh/api-reference/images/create-image) |
+| 编辑图像 | [编辑图像](/zh/api-reference/images/edit-image) |
+| 创建图像变体 | [创建图像变体](/zh/api-reference/images/create-variation) |
+| 获取图像状态 | [获取图像状态](/zh/api-reference/images/get-image-status) |
 | 获取任务状态 | [获取任务状态](/zh/api-reference/tasks/get-task-status) |

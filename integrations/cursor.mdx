@@ -7,6 +7,13 @@ description: "Use TokenLab with Cursor AI code editor"
 
 
 
+<Note>
+**Type**: Coding Tool
+
+**Primary Path**: OpenAI-compatible
+
+**Support Confidence**: Supported with limits
+</Note>
 
 [Cursor](https://cursor.sh) supports bring-your-own-key (BYOK) providers, but custom API keys only work with standard chat models. Use TokenLab here as an OpenAI-compatible endpoint for chat-style editor workflows, not as a full replacement for every Cursor model feature.
 
@@ -31,9 +38,16 @@ Cursor custom API keys only apply to standard chat models. Tab Completion and ot
 Cursor’s custom API key flow only applies to standard chat models. Features that require specialized Cursor-managed models, such as Tab Completion and some reasoning-specific flows, will continue using Cursor’s built-in providers. Cursor also notes that requests still pass through its backend for final prompt assembly.
 </Warning>
 
-## Choose a model
+## Model Selection
 
-Use a current chat model ID from the [Models page](https://tokenlab.sh/en/models). Cursor's BYOK settings do not make every Cursor-managed feature available through a custom API key.
+After configuration, prefer standard chat models exposed through TokenLab:
+
+### Recommended Models for Coding
+
+| Model | Best For |
+|-------|----------|
+| `gpt-5.4` | General coding, debugging, chat |
+| `gpt-5-mini` | Fast edits and lightweight prompts |
 
 ## What Works Best
 
@@ -62,7 +76,7 @@ These features do not reliably switch to your TokenLab endpoint:
   </Accordion>
 
   <Accordion title="Model unsupported in BYOK mode">
-    Custom API keys only work with standard chat models. Choose a current chat model from the TokenLab Models page.
+    Custom API keys only work with standard chat models. If a model uses specialized Cursor infrastructure, switch to a standard chat model such as `gpt-5.4`.
   </Accordion>
 
   <Accordion title="Authentication errors">
@@ -74,4 +88,13 @@ These features do not reliably switch to your TokenLab endpoint:
   </Accordion>
 </AccordionGroup>
 
-Model IDs and prices change. Choose a current chat model from the [Models page](https://tokenlab.sh/en/models), then compare it on your own project.
+## Tips
+
+<CardGroup cols={2}>
+  <Card title="Use appropriate models" icon="gauge-high">
+    Use `gpt-5-mini` for quick chat-style tasks and `gpt-5.4` for heavier coding work.
+  </Card>
+  <Card title="Check your balance" icon="wallet">
+    Monitor usage in your TokenLab dashboard.
+  </Card>
+</CardGroup>

@@ -5,8 +5,15 @@ description: "在 Agno 智能体中使用 TokenLab 模型"
 
 ## 概述
 
-Agno Agent 可以通过 OpenAI 兼容模型客户端调用 TokenLab。
+Agno 可以将 TokenLab 作为 OpenAI 兼容的模型提供商，用于智能体和工作流。
 
+<Note>
+**类型**: 智能体框架
+
+**主要路径**: OpenAI 兼容的聊天补全 (chat completions)
+
+**支持置信度**: 已支持路径
+</Note>
 
 ## 环境配置
 
@@ -14,15 +21,15 @@ Agno Agent 可以通过 OpenAI 兼容模型客户端调用 TokenLab。
 export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 ```
 
-## TokenLab 模型类
+## TokenLab 模型包装器
 
-如果当前 Agno 版本包含 TokenLab 模型类，可以直接使用：
+如果你的 Agno 版本包含 TokenLab 模型包装器：
 
 ```python
 from agno.agent import Agent
 from agno.models.tokenlab import TokenLab
 
-agent = Agent(model=TokenLab(id="gpt-5.6-luna"))
+agent = Agent(model=TokenLab(id="gpt-5.4-mini"))
 agent.print_response("Give me a concise project risk checklist.")
 ```
 
@@ -32,12 +39,14 @@ agent.print_response("Give me a concise project risk checklist.")
 agent = Agent(model="tokenlab:gpt-5.4-mini")
 ```
 
-## 使用 OpenAI 兼容配置
+## OpenAI 兼容回退方案
 
 如果你的版本尚未包含 TokenLab，请使用 Agno 的 OpenAI 兼容模型路径，配置如下：
 
 - Base URL: `https://api.tokenlab.sh/v1`
-- API 密钥: `TOKENLAB_API_KEY`
+- API key: `TOKENLAB_API_KEY`
 - Model: `gpt-5.4-mini`
 
-模型 ID 会更新。请从[模型页](https://tokenlab.sh/zh/models)选择当前模型，并在自己的任务上比较效果、速度和费用。
+## 模型建议
+
+对于默认智能体，请使用 `gpt-5.4-mini`；对于更深度的推理，请使用 `gpt-5.4` 或 `claude-sonnet-5`；对于更快的循环处理，请使用 `deepseek-v4-flash`。

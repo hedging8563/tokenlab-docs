@@ -454,7 +454,7 @@ An advertised request format controls endpoint availability; support for individ
 
 | Field | Values | Description |
 |-------|--------|-------------|
-| `category` | `chat`, `image`, `video`, `audio`, `tts`, `stt`, `3d`, `music`, `embedding`, `translation`, `rerank` | Model type |
+| `category` | `chat`, `image`, `video`, `audio`, `tts`, `stt`, `3d`, `embedding`, `rerank` | Model type |
 | `pricing_unit` | `per_token`, `per_image`, `per_second`, `per_request` | How the model is billed |
 | `cache_pricing` | object or `null` | Model-specific upstream prompt cache prices. |
 | `agent_preferences.` | object | Non-chat recommendation snapshot for that scene, only on `GET /v1/models?recommended_for=` |
@@ -2662,7 +2662,7 @@ curl -X POST "https://api.tokenlab.sh/v1/audio/speech" \
 
 Open a WebSocket with the model in the query string and the API key in the Authorization header. Keep the event format documented for the selected realtime model, and close the socket when the session is complete.
 
-This guide covers the WebSocket subset only. TokenLab does not currently provide OpenAI Realtime REST client secret, translation client secret, Calls, or legacy beta session management endpoints.
+This guide covers the WebSocket proxy only. TokenLab does not currently provide OpenAI Realtime REST client secret, translation client secret, Calls, or legacy beta session management endpoints.
 
 ```javascript
 import WebSocket from 'ws';
@@ -3514,16 +3514,30 @@ All responses follow a consistent format:
 
 ### Routing Transparency
 
-TokenLab does not expose provider, channel, policy, or credential details in public response bodies. Do not rely on `_routing` or other internal routing fields as part of the public API contract.
+All responses include a `_routing` field with channel information:
 
-Use public response headers for debugging and support when they are present:
+```json
+{
+  "id": "chatcmpl-abc123",
+  ...,
+  "_routing": {
+    "channel": {
+      "id": "ch_xxx",
+      "name": "channel-name",
+      "provider": "openai"
+    },
+    "cached": false,
+    "retryCount": 0
+  }
+}
+```
 
-| Header | Description |
+| Field | Description |
 |-------|-------------|
-| `X-Routing-Time-MS` | Route selection time, when available |
-| `X-Request-ID` | Request identifier for support and debugging, when available |
-| `X-Task-ID` | Public async task identifier for task-based responses, when available |
-| `X-Billing-Transaction-ID` | Billing transaction identifier after final billing, when available |
+| `channel.id` | Channel identifier used |
+| `channel.provider` | Upstream provider (openai, anthropic, etc.) |
+| `cached` | Whether response was served from cache |
+| `retryCount` | Number of retry attempts (if any) |
 
 ### Error Response
 
@@ -4021,7 +4035,7 @@ This same `/v1/files` route also supports the Anthropic Files API path.
 
 - Add `anthropic-beta: files-api-2025-04-14` to switch the route into Anthropic mode.
 - In Anthropic mode, upload the original file directly and do not send `purpose=batch`.
-- The returned `file_id` is bound to the same Anthropic-compatible workspace and should be reused from `/v1/messages` requests.
+- The returned `file_id` is bound to the same official Anthropic channel/workspace and should be reused from `/v1/messages` requests.
 - If you plan to reference the uploaded file from Anthropic message content, keep using Anthropic-native headers (`x-api-key`, `anthropic-version`, and the beta header when required).
 
 ## Response example
@@ -4064,12 +4078,6 @@ Use the interactive OpenAPI panel above for the exact schema.
 - Expect `output_file_id` and `error_file_id` only after the worker finalizes the batch.
 - Batch pricing may differ from synchronous pricing because `isBatchRequest=true` discount rules apply.
 
-## Filters
-
-- `limit` accepts values from 1 to 10000 and defaults to 10000.
-- `purpose` can be `batch`, `batch_output`, `user_data`, or `vision`.
-- `user_data` and `vision` return TokenLab-created image reference files when available.
-
 ## Response example
 
 ## Important fields
@@ -4108,10 +4116,6 @@ Use the interactive OpenAPI panel above for the exact schema.
 - Use `custom_id` for idempotent downstream reconciliation.
 - Expect `output_file_id` and `error_file_id` only after the worker finalizes the batch.
 - Batch pricing may differ from synchronous pricing because `isBatchRequest=true` discount rules apply.
-
-## Image Reference Files
-
-This endpoint can also return metadata for TokenLab-created image reference files. The `status` field is optional and may be absent for file families that do not provide one.
 
 ## Response example
 
@@ -4152,10 +4156,6 @@ Use the interactive OpenAPI panel above for the exact schema.
 - Expect `output_file_id` and `error_file_id` only after the worker finalizes the batch.
 - Batch pricing may differ from synchronous pricing because `isBatchRequest=true` discount rules apply.
 
-## Content Types
-
-Batch file content is returned as JSONL or plain text. TokenLab-created image reference content can be proxied as binary content when the backing file provider supports content retrieval.
-
 ## Response example
 
 ## Important fields
@@ -4164,27 +4164,29 @@ Batch file content is returned as JSONL or plain text. TokenLab-created image re
 
 ### Delete File
 
-> Deletes an uploaded file owned by the current organization.
+> Deletes a batch file, image/reference file binding, or Anthropic-mode file.
 
 URL: https://docs.tokenlab.sh/api-reference/files/delete-file
 
 ## Overview
 
-Deletes a file created through `/v1/files`. Batch files and TokenLab-created image reference files return an OpenAI-compatible deleted object.
-
-When the request opts into Anthropic Files compatibility mode, the same route deletes the Anthropic-style file from the bound workspace.
+Deletes a file created through `/v1/files`. Without Anthropic headers, the route deletes TokenLab batch files or bound image/reference file bindings. With `anthropic-beta: files-api-2025-04-14`, it uses Anthropic Files API mode for the bound workspace.
 
 ## Notes
 
-- Deleting a file does not cancel batch jobs that already reference it.
-- Missing or unauthorized file ids return a public not-found error without exposing routing state.
-- Delete image reference files only after no pending image edit request needs them.
+- Batch file deletion removes the stored batch file record and prevents future batch jobs from using that file ID.
+- Image/reference file deletion asks the selected provider to delete the file, then removes the TokenLab file binding after the provider accepts the deletion.
+- Anthropic Files API mode requires the same Anthropic-native headers used for upload and retrieval.
 
 ## Example
 
 ## Request / Response
 
 Use the interactive OpenAPI panel above for the exact schema.
+
+## Response example
+
+## Important fields
 
 ---
 
@@ -4677,11 +4679,11 @@ URL: https://docs.tokenlab.sh/api-reference/realtime/connect
 
 ## Overview
 
-Use this endpoint for realtime sessions such as streaming speech recognition, speech synthesis, speech translation, or realtime multimodal models. A standard `GET` request returns endpoint metadata, while a WebSocket upgrade request opens a realtime session for the selected model.
+Use this endpoint for realtime sessions such as streaming speech recognition, speech synthesis, speech translation, or realtime multimodal models. Non-WebSocket `GET` requests return endpoint metadata; WebSocket upgrade requests proxy the realtime upstream session.
 
 ## Supported surface
 
-TokenLab exposes a realtime WebSocket endpoint at `GET /v1/realtime` for metadata checks and WebSocket upgrades. Treat it as a WebSocket subset: it forwards supported realtime model events, and it does not support OpenAI Realtime REST helper surfaces such as session creation, `client_secrets`, `Calls` call-control APIs, or legacy beta session APIs.
+This endpoint is TokenLab's realtime WebSocket proxy. It supports a plain `GET /v1/realtime` metadata check and WebSocket upgrades on the same path. It does not expose OpenAI Realtime REST helper endpoints such as `POST /v1/realtime/client_secrets`, `POST /v1/realtime/translations/client_secrets`, Realtime Calls (`accept`, `hangup`, `refer`, `reject`), or legacy beta REST session / transcription-session creation.
 
 For browser or mobile apps, keep long-lived API keys on your server. This endpoint does not issue short-lived Realtime client secrets.
 
@@ -4691,13 +4693,13 @@ For browser or mobile apps, keep long-lived API keys on your server. This endpoi
 
 ## Messages
 
-TokenLab relays WebSocket messages between your client and the selected realtime model. Use the event format documented for that model, and include `model` in the query string rather than in each event.
+TokenLab forwards WebSocket messages between your client and the routed realtime provider. Keep provider-specific event shapes for the selected realtime model, and include `model` in the query string rather than in each event.
 
 ## Billing and closing
 
-Sessions are billed against your API key balance: TokenLab reserves an estimate at the start, then settles the actual usage at the end and refunds any difference.
+Realtime sessions use the same API key balance as other endpoints. TokenLab pre-deducts a small estimate when the socket opens, then settles or refunds when the session closes.
 
-Close the client socket when the session is complete. If the service closes the session first, TokenLab sends a safe close event/code to your client when possible.
+Close the client socket when the session is complete. If the upstream closes first, TokenLab relays that close code to your client when possible.
 
 ## Response example
 
@@ -7790,7 +7792,7 @@ Use these values in any client that supports local stdio MCP servers. Add each a
 
 | Field | Value | Notes |
 |---|---|---|
-| Server name | `tokenlab` | Any unique name works. |
+| Server name | `tokenlab-model-catalog` | Any unique name works. |
 | Transport | `stdio` | TokenLab MCP runs as a local child process. |
 | Startup command | `npx` | Starts the published npm package. |
 | Arguments | `-y`, then `@tokenlabai/mcp-server` | Use `@tokenlabai/mcp-server@0.6.17` to pin the currently verified release. |

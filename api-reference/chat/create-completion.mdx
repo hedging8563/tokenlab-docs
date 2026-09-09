@@ -23,7 +23,7 @@ description: "Creates a completion for the chat message"
   - video: `{ "type": "video_url", "video_url": { "url": "https://..." } }`
   - audio: `{ "type": "audio_url", "audio_url": { "url": "https://..." } }`
 
-  For multimodal input, use publicly reachable `https` URLs. Supported media types depend on the selected model.
+  For multimodal production traffic, prefer public `https` URLs. TokenLab will translate these media blocks into the provider-specific request shape required by the selected model.
 </ParamField>
 
 <ParamField body="temperature" type="number" default="1">
@@ -99,7 +99,7 @@ description: "Creates a completion for the chat message"
 </ParamField>
 
 <ParamField body="response_format" type="object">
-  Response format. Use `{"type": "json_object"}` for JSON mode. `json_schema` support depends on the selected model.
+  Response format specification. Use `{"type": "json_object"}` for JSON mode. Treat `{"type": "json_schema", "json_schema": {...}}` as a best-effort path that depends on the selected model and routed behavior.
 </ParamField>
 
 <ParamField body="logit_bias" type="object">
@@ -152,7 +152,7 @@ curl -X POST "https://api.tokenlab.sh/v1/chat/completions" \
   -H "Authorization: Bearer sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-5.6-terra",
+    "model": "gpt-4o",
     "messages": [
       {"role": "system", "content": "You are a helpful assistant."},
       {"role": "user", "content": "Hello!"}
@@ -171,7 +171,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="gpt-5.6-terra",
+    model="gpt-4o",
     messages=[
         {"role": "system", "content": "You are a helpful assistant."},
         {"role": "user", "content": "Hello!"}
@@ -192,7 +192,7 @@ const client = new OpenAI({
 });
 
 const response = await client.chat.completions.create({
-  model: 'gpt-5.6-terra',
+  model: 'gpt-4o',
   messages: [
     { role: 'system', content: 'You are a helpful assistant.' },
     { role: 'user', content: 'Hello!' }
@@ -216,7 +216,7 @@ curl_setopt_array($ch, [
         'Authorization: Bearer sk-your-api-key'
     ],
     CURLOPT_POSTFIELDS => json_encode([
-        'model' => 'gpt-5.6-terra',
+        'model' => 'gpt-4o',
         'messages' => [
             ['role' => 'system', 'content' => 'You are a helpful assistant.'],
             ['role' => 'user', 'content' => 'Hello!']
@@ -258,7 +258,7 @@ echo $data['choices'][0]['message']['content'];
   "id": "chatcmpl-abc123",
   "object": "chat.completion",
   "created": 1706000000,
-  "model": "gpt-5.6-terra",
+  "model": "gpt-4o",
   "choices": [
     {
       "index": 0,

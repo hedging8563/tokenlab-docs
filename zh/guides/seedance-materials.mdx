@@ -1,63 +1,65 @@
 ---
 title: "Seedance 素材与真人验证"
-description: "在 Seedance 中复用图片、视频、音频或经过验证的真人"
+description: "创建可复用的 Seedance 素材、验证真人，并在视频生成中使用已激活的资产。"
 ---
 
-Seedance 素材可以反复用于视频生成，不必每次重新导入。商品、风格和虚拟人物可以直接建立素材；真人素材必须取得本人同意并完成人脸验证。
+Seedance 素材是组织范围内可复用的图片、视频或音频引用。请先选择工作流：普通虚拟人素材与经过验证的真人素材不能使用同一条创建路径。
 
-## 选择素材类型
+## 选择素材工作流
 
-| 想复用的内容 | 怎么做 |
+| 目标 | 必需流程 |
 | --- | --- |
-| 只用一次的图片 | 在视频请求中直接传入 URL；兼容的 Seedance 模型会自动准备 |
+| 使用一次性图片 URL | 直接在视频请求中传入 URL；兼容的 Seedance 模型会自动准备素材 |
 | 复用虚拟人、商品或风格 | 创建 `aigc_avatar` 组，创建素材，等待 `ACTIVE`，再使用素材 ID |
 | 复用真人 | 完成视觉验证，取得 `GroupId`，在该组中创建素材，等待 `ACTIVE`，再使用素材 ID |
-| 迁移火山素材客户端 | 保留 Action 字段，使用[素材 Action（火山兼容）](/zh/api-reference/video/volc-compatible-material-actions) |
+| 迁移火山素材客户端 | 保留 Action 请求形状并使用火山兼容素材参考: [素材 Action（火山兼容）](/zh/api-reference/video/volc-compatible-material-actions) |
 
-## 素材组与素材
+## 素材概念
 
-| 对象 | 字段 | 含义 |
+Seedance 素材是可复用的、组织范围内的引用，可在后续视频生成过程中进行选择。
+
+| 概念 | 公共字段 | 含义 |
 |---------|--------------|---------------|
-| 素材组 | `group_id` | 把同一人物、商品或风格的素材放在一起。 |
-| 素材 | `id` | 一张图片、一段视频或一段音频。变为 `ACTIVE` 后，用这个 ID 生成视频。 |
+| 素材组 | `group_id` | 拥有相关 Seedance 素材的 TokenLab 组。在上传或列出素材时使用。 |
+| 素材资产 | `id` | 单个上传的图像、视频或音频文件。资产变为 `ACTIVE` 后，请将此值用作 `material_asset_id`。 |
 | 虚拟人像素材组 | `library_type: "aigc_avatar"` | 用于虚拟人像、产品、风格及其他无需真人验证的可复用引用。 |
 | 真人素材组 | `library_type: "liveness_face"` | 通过真人验证创建。一个组代表一个已验证的真人。 |
 
-`group_id` 只用来整理素材，生成视频时要传素材本身的 `id`。如果返回 `Seedance material asset not found or not accessible`，请确认 ID 没有填错、素材仍然存在、属于当前账户，并且状态为 `ACTIVE`。
+请区分 `group_id` 和素材资产 `id`。`group_id` 用于组织上传；素材资产 `id` 用于视频生成。如果视频请求返回 `Seedance material asset not found or not accessible`，请确认您传入的是素材资产 `id` 而非 `group_id`，并确保该资产属于同一组织、未被删除且状态为 `status: "ACTIVE"`。
 
 ## 自动图片素材
 
-所选 Seedance 模型支持素材库时，可以在 `image`、`image_url`、`image_urls`、`reference_images`、`start_image` 或 `end_image` 中直接传入图片 URL 或支持的内联 data URL。TokenLab 会把图片保存到当前账户的默认素材组，并保留它是首帧、尾帧还是参考图。
+当所选 Seedance 模型可使用 TokenLab 素材库时，您可以直接在 `image`、`image_url`、`image_urls`、`reference_images`、`start_image` 或 `end_image` 中传入图片 URL 或受支持的内联 data URL。TokenLab 会把这些图片导入组织默认的虚拟人像素材组，并保留其首帧、尾帧或参考图角色。
 
-素材在 60 秒内变为 `ACTIVE` 时，视频会继续生成。仍在准备时，API 返回 `409 seedance_material_preparing` 和 `auto_material_asset_ids`。等这些素材变为 `ACTIVE` 后，用 `material_asset_id` 或 `material_asset_ids` 重新提交。已经存在的素材 ID 不会重复导入。
+如果素材在 60 秒内变为 `ACTIVE`，同一个请求会继续进入生成。如果尚未准备完成，API 会返回 `409 seedance_material_preparing` 和 `auto_material_asset_ids`；请查询这些素材直到它们变为 `ACTIVE`，再使用 `material_asset_id` 或 `material_asset_ids` 重试。如果所选模型暂不可使用素材库，普通图片 URL 或 data URL 会继续走常规图片路径；显式素材 ID 会返回素材可用性错误。已有虚拟人像素材 ID 和真人素材 ID 会原样使用，不会重复导入。
 
 ## 真人验证
 
-真人会被反复用于 Seedance 生成时，产品必须取得本人同意并完成人脸验证。
+当您的产品在使用真人作为可复用的 Seedance 引用前需要获得同意并进行人脸验证时，请使用真人验证流程。
 
 1. 调用 [创建视觉验证会话](/zh/api-reference/video/create-visual-validation-session)，传入 `CallbackURL`，并保存返回的 `Result.BytedToken`。
 2. 为待验证人员打开 `Result.H5Link`。如需指定语言，请在 H5 链接后追加 `lng`。
-3. 验证完成后，浏览器会打开 `Result.CallbackURL`，并带上 `bytedToken`、`resultCode` 等查询参数。
-4. 使用 `BytedToken` 查询[视觉验证结果](/zh/api-reference/video/get-visual-validation-result)，直到返回 `Result.GroupId`。
+3. H5 流程完成后，浏览器会打开 `Result.CallbackURL`，并携带 `bytedToken`、`resultCode` 等官方查询参数。
+4. 使用 `BytedToken` 轮询 [获取视觉验证结果](/zh/api-reference/video/get-visual-validation-result)，直到返回 `Result.GroupId`。
 5. 保存 `GroupId`；创建 `liveness_face` 素材时将其作为 `group_id`。
 
 `BytedToken` 的有效期为 30 分钟。两次 Action 请求必须使用相同的 `ProjectName`。认证使用 `Authorization: Bearer <TOKENLAB_API_KEY>`，不接受火山引擎 AK/SK 签名。
 
-也可以在 [Seedance 素材](https://tokenlab.sh/dashboard/seedance-assets) 页面检查请求、回调、素材组和验证记录。正式功能仍应直接调用 API。
+可选：使用 [测试控制台](https://tokenlab.sh/dashboard/seedance-assets) 来验证您的请求和回调流程、检查素材组并查看验证历史。您的生产环境集成应直接调用 API。
 
 ## 创建素材组
 
-使用[创建素材组](/zh/api-reference/video/create-material-asset-group)新建 `aigc_avatar` 组。真人组会在验证成功后创建，不能手动伪造成已验证真人。
+使用 [创建素材组](/zh/api-reference/video/create-material-asset-group) 创建 `aigc_avatar` 组。新的真人组通过验证流程创建，以便将已验证的个人与素材组关联。
 
 使用 [列出素材组](/zh/api-reference/video/list-material-asset-groups)、[获取素材组](/zh/api-reference/video/get-material-asset-group)、[更新素材组](/zh/api-reference/video/update-material-asset-group) 和 [删除素材组](/zh/api-reference/video/delete-material-asset-group) 管理已有素材组。
 
-删除素材组也会删除其中所有素材，而且无法恢复。没有删除权限时，API 会返回权限错误。
+删除素材组也会删除其中包含的 TokenLab 素材，且该操作不可撤销。如果 TokenLab 素材库因当前授权状态不允许而无法完成删除，TokenLab 将返回一个中性的素材库错误。
 
 ## 上传素材
 
-使用[创建素材](/zh/api-reference/video/create-material-asset)导入一个可从互联网访问的 URL。
+使用 [创建素材](/zh/api-reference/video/create-material-asset) 每次导入一个可公开访问的源 URL。
 
-`aigc_avatar` 可以省略 `group_id`，TokenLab 会使用当前账户的默认组。`liveness_face` 必须传入 `group_id`，并且这个 ID 必须来自[视觉验证结果](/zh/api-reference/video/get-visual-validation-result)。
+对于 `aigc_avatar`，`group_id` 是可选的；TokenLab 将使用或创建组织默认的虚拟人像组。对于 `liveness_face`，`group_id` 是必需的，且必须是 [获取视觉验证结果](/zh/api-reference/video/get-visual-validation-result) 返回的组 ID。
 
 | 类型 | 支持的输入 |
 |------|-----------------|
@@ -65,27 +67,29 @@ Seedance 素材可以反复用于视频生成，不必每次重新导入。商�
 | 视频 | `mp4`, `mov`；`480p`, `720p` 或 `1080p`；2-15 秒；宽高比 `[0.4, 2.5]`；宽和高 `[300, 6000]` px；总像素在 409600 到 2068676 之间；最大 200 MB；24-60 FPS。 |
 | 音频 | `aac`, `wav`, `mp3`；2-15 秒；最大 15 MB。 |
 
-TokenLab 会检查 URL、媒体格式和文件大小。宽高、比例、时长、分辨率、总像素和 FPS 是否合格，还取决于所选模型。
+TokenLab 会校验源 URL、声明或探测到的媒体格式以及文件大小上限。宽高、宽高比、时长、分辨率、总像素和 FPS 采用 best effort 透传，最终由所选视频服务判断素材是否合格。
 
-素材需要一些时间处理。请查询[获取素材](/zh/api-reference/video/get-material-asset)，直到 `status` 变为 `ACTIVE`。HTTP 请求成功只表示已经开始处理；状态变为 `FAILED` 时，请根据 `error_message` 修改源文件并重新创建。
+素材导入是异步的。请轮询 [获取素材](/zh/api-reference/video/get-material-asset) 直到 `status` 变为 `ACTIVE`。成功的 HTTP 响应仅表示请求已被接受；请务必读取业务状态。如果状态为 `FAILED`，请检查 `error_message`，修复源素材并创建新素材。
 
-`asset_url` 只是素材的导入地址。TokenLab 会返回素材 `id`，以后生成视频请使用这个 ID。
+在创建素材请求中，`asset_url` 只表示导入来源。TokenLab 会返回素材资产 `id`；生成视频时请使用这个 `id`，不要继续使用原始 URL。
 
-素材 ID 类似 `asset-20260720123456-qn7wr`，素材组 ID 类似 `group-20260720123456-vrt01`。素材会保留在当前账户中，直到你删除素材或整个素材组。
+素材与素材组 ID 使用火山兼容外观，例如 `asset-20260720123456-qn7wr` 和 `group-20260720123456-vrt01`，但它们仍是 TokenLab 自有映射 ID。
 
-一个真人素材组只对应一个人。上传内容会与已经验证的人脸比对；出现多张脸或人物不一致时可能失败。建议准备一张正面全身照和一张清晰的正脸特写。
+TokenLab 会将素材保留在您的组织素材库中，直到您删除该素材或其所在素材组。
+
+对于真人素材组，一个组对应一个真人。上传内容会与已验证的人脸进行比对。包含多个人脸或人脸与已验证个人不匹配的资产可能会失败。为获得最佳效果，请同时上传一张全身正面参考图和一张人脸清晰的正面特写图。
 
 ## 在视频生成中使用素材
 
-素材变为 `ACTIVE` 后，调用[创建视频](/zh/api-reference/video/create-video)时，把它的 `id` 传给 `material_asset_id`，多份素材则放进 `material_asset_ids`。这些素材都会计入 Seedance 的参考数量上限。
+资产变为 `ACTIVE` 后，在调用 [创建视频](/zh/api-reference/video/create-video) 时，将返回的 TokenLab 资产 `id` 作为 `material_asset_id` 传入，或将其包含在 `material_asset_ids` 中。素材资产计入 Seedance 参考限制。
 
 ## REST 还是火山 Action
 
-新接入使用 snake_case 的 `/v1/videos/assets*` REST API。已有火山客户端可以保留 PascalCase 请求体，改用[火山兼容素材 Action](/zh/api-reference/video/volc-compatible-material-actions)。两种 API 访问的是当前账户与 `ProjectName` 下的同一份素材。
+TokenLab 原生接入可以继续使用 snake_case 的 `/v1/videos/assets*` REST 接口。已有火山客户端可以保留 PascalCase 请求体并使用[火山兼容素材 Action](/zh/api-reference/video/volc-compatible-material-actions)。两套接口操作同一份组织和项目范围内的素材数据。
 
 ## API 示例
 
-下面的示例创建虚拟人像素材组并上传一张图片。素材变为 `ACTIVE` 后，就可以把返回的素材 ID 用于视频请求。
+创建一个虚拟人像组，上传一张图像，轮询直到其处于激活状态，然后在视频请求中使用该素材资产 ID。
 
 ```bash
 curl https://api.tokenlab.sh/v1/videos/assets/groups \
@@ -102,7 +106,7 @@ curl https://api.tokenlab.sh/v1/videos/assets/asset-20260720123457-def45 \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```
 
-真人素材必须完成视觉验证并取得 `GroupId` 后才能上传。
+对于真人素材组，请先创建视觉验证会话并获取验证结果，再上传素材。
 
 ```bash
 curl 'https://api.tokenlab.sh/api/v3?Action=CreateVisualValidateSession&Version=2024-01-01' \
@@ -116,7 +120,7 @@ curl 'https://api.tokenlab.sh/api/v3?Action=GetVisualValidateResult&Version=2024
   -d '{"BytedToken":"ZXhhbXBsZS10b2tlbg","ProjectName":"default"}'
 ```
 
-## 使用 Action 上传真人素材
+## 完整的真人 Action 流程
 
 取得验证结果返回的 `GroupId` 后，将它传给 `CreateAsset`：
 
@@ -133,4 +137,4 @@ curl 'https://api.tokenlab.sh/?Action=CreateAsset&Version=2024-01-01' \
   }'
 ```
 
-通过 `GetAsset` 查询，状态变为 `Active` 后即可在视频生成中使用素材 ID。
+轮询 `GetAsset`，直到状态变为 `Active`，然后在视频生成中使用返回的素材 ID。

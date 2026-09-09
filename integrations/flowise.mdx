@@ -7,6 +7,13 @@ description: "Use TokenLab chat models in Flowise workflows"
 
 Flowise can call TokenLab through a TokenLab chat node when available, or through an OpenAI-compatible chat model node pointed at TokenLab.
 
+<Note>
+**Type**: Workflow Builder
+
+**Primary Path**: OpenAI-compatible chat completions
+
+**Support Confidence**: Supported with scope limits
+</Note>
 
 ## TokenLab Node
 
@@ -28,6 +35,9 @@ If the TokenLab node is not available yet, use an OpenAI-compatible chat model n
 | API Key | `sk-your-tokenlab-key` |
 | Model | `gpt-5.4-mini` |
 
-## Choose a model
+## Recommended Models
 
-Copy a current chat model ID from the [Models page](https://tokenlab.sh/en/models). The model must support Chat Completions for this node.
+- `gpt-5.4-mini` for most workflow tests
+- `claude-sonnet-5` for stronger writing and reasoning
+- `gemini-3.5-flash` for fast multimodal-friendly workflows
+- `deepseek-v4-flash` for fast code or reasoning iterations

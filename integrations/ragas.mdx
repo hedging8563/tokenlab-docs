@@ -7,6 +7,13 @@ description: "Evaluate LLM apps with Ragas and TokenLab"
 
 Ragas can evaluate TokenLab-backed applications by passing an OpenAI-compatible `AsyncOpenAI` client into `llm_factory`.
 
+<Note>
+**Type**: Evaluation framework
+
+**Primary Path**: OpenAI-compatible Chat Completions
+
+**Support Confidence**: Supported OpenAI-compatible path
+</Note>
 
 ## Environment
 
@@ -40,4 +47,4 @@ Use `llm` in Ragas metrics and testsets the same way you would use an OpenAI SDK
 
 ## Endpoint Notes
 
-This Ragas setup uses the OpenAI SDK. Responses, Anthropic Messages, and Gemini require an evaluation client that supports the corresponding format.
+Ragas uses the OpenAI SDK client path here. Native TokenLab Responses, Anthropic Messages, and Gemini routes are best used through evaluation runners that support those request shapes directly.

@@ -5,8 +5,15 @@ description: "在 WorkBuddy 中添加 TokenLab 自定义模型"
 
 ## 概述
 
+<Note>
+**类型**：桌面编码与任务代理
 
-[WorkBuddy](https://www.workbuddy.ai/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model) 可以通过可视化的自定义模型编辑器添加 TokenLab。
+**主要路径**：OpenAI 兼容 Chat Completions
+
+**支持级别**：官方自定义模型路径
+</Note>
+
+[WorkBuddy](https://www.workbuddy.ai/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model) 提供可视化的 OpenAI 兼容自定义模型编辑器，无需手动编辑本地模型文件。
 
 ## 配置 TokenLab
 
@@ -17,8 +24,8 @@ description: "在 WorkBuddy 中添加 TokenLab 自定义模型"
 | 字段 | 值 |
 |---|---|
 | 接口地址 | `https://api.tokenlab.sh/v1` |
-| API 密钥 | 你的 TokenLab API 密钥 |
-| 模型名称 | 当前 TokenLab 聊天模型 ID |
+| API Key | 你的 TokenLab API Key |
+| 模型名称 | `kimi-k3` |
 | 自定义协议 | **关闭** |
 
 <Warning>
@@ -37,8 +44,8 @@ description: "在 WorkBuddy 中添加 TokenLab 自定义模型"
 | 输入上限 | `1048576` |
 | 输出上限 | `131072` |
 
-保存后，在 WorkBuddy 选择刚添加的模型并发送一条简单消息。出现 404 时，确认接口地址为 `/v1`，并且“自定义协议”处于关闭状态。
+保存后，从 WorkBuddy 模型选择器中选择 `kimi-k3`，先执行一个只读目录检查。若出现 404，请再次确认接口为 `/v1` 且“自定义协议”处于关闭状态。
 
 <Warning>
-分享模型设置截图前请遮盖 API 密钥 和私有端点；已经暴露的 Key 应立即轮换。
+分享模型设置截图前请遮盖 API Key 和私有端点；已经暴露的 Key 应立即轮换。
 </Warning>

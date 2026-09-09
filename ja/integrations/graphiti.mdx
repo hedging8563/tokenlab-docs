@@ -7,6 +7,14 @@ description: "TokenLabをOpenAI互換のGraphiti LLMプロバイダーとして�
 
 Graphitiは、`OpenAIGenericClient`を通じてOpenAI互換の `/v1` エンドポイントをサポートしています。そのクライアントをTokenLabに向け、TokenLabのモデルを選択してください。
 
+<Note>
+**タイプ**: ナレッジグラフメモリフレームワーク
+
+**主要パス**: OpenAI互換のChat Completions
+
+**サポート信頼度**: サポートされているOpenAI互換パス
+</Note>
+
 ## 環境設定
 
 ```bash
@@ -24,7 +32,7 @@ from graphiti_core.llm_client.openai_generic_client import OpenAIGenericClient
 llm_config = LLMConfig(
     api_key=os.environ["TOKENLAB_API_KEY"],
     model="claude-sonnet-5",
-    small_model="gpt-5.6-luna",
+    small_model="gpt-5.4-mini",
     base_url="https://api.tokenlab.sh/v1",
 )
 

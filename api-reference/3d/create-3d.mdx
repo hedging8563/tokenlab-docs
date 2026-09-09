@@ -5,7 +5,7 @@ description: "Creates a 3D model generation task"
 ---
 
 <Note>
-Use `GET /v1/models?recommended_for=3d` to get current 3D models.
+For coding agents, discover the current recommended 3D shortlist first with `GET /v1/models?recommended_for=3d`, then send the selected `model` explicitly to this endpoint.
 </Note>
 
 Generate 3D models from text or images using Tripo3D and other providers. This is an asynchronous API. Create responses return a task identity, and may also return a preferred `poll_url` for status checks.
@@ -43,7 +43,7 @@ Public 3D operations are inferred from the request shape: prompt-only requests r
 </ParamField>
 
 <ParamField body="seed" type="integer">
-  Integer seed for reproducible generation. Must be between `0` and `4294967295`.
+  Seed for reproducible generation.
 </ParamField>
 
 <ParamField body="user" type="string">

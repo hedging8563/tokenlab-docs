@@ -1,28 +1,28 @@
 ---
 title: "Seedance Materials and Real-Person Verification"
-description: "Reuse images, video, audio, or a verified person in Seedance"
+description: "Create reusable Seedance materials, verify real people, and use active assets in video generation."
 ---
 
-Seedance materials let you reuse an image, video, or audio file without importing it for every generation. References to a real person require consent and visual verification; other people, products, and styles do not.
+Seedance materials are organization-scoped image, video, or audio references that can be reused across video tasks. Choose the workflow first; virtual-avatar materials and verified real-person materials do not have the same creation path.
 
-## Choose a material type
+## Choose A Material Workflow
 
-| What you want to reuse | What to do |
+| Goal | Required flow |
 |------|---------------|
-| One image used once | Send its URL in the video request; compatible Seedance models prepare it automatically |
+| Use a one-off image URL | Send the URL in the video request; compatible Seedance models prepare it automatically |
 | Reuse a virtual person, product, or style | Create an `aigc_avatar` group, create an asset, wait for `ACTIVE`, then use the asset ID |
 | Reuse a real person | Complete visual validation, receive its `GroupId`, create an asset in that group, wait for `ACTIVE`, then use the asset ID |
 | Migrate an existing Volcengine material client | Keep the Action request shape and use the [Volc-compatible material reference](/api-reference/video/volc-compatible-material-actions) |
 
-## Groups and materials
+## Material Concepts
 
-| Item | REST field | Action field | What it means |
+| Concept | REST field | Action field | What it means |
 |---------|------------|--------------|---------------|
-| Material group | `group_id` | `GroupId` | Keeps related materials together |
-| Material | `id` | `Id` | One imported image, video, or audio file; use this ID after it becomes active |
+| Material group | `group_id` | `GroupId` | Owns related Seedance materials; use it when creating or filtering assets |
+| Material asset | `id` | `Id` | One imported image, video, or audio file; use it for generation after it becomes active |
 | Virtual-avatar group | `library_type: "aigc_avatar"` | `GroupType: "AIGC"` | Does not require real-person verification |
 | Real-person group | `library_type: "liveness_face"` | `GroupType: "LivenessFace"` | Created only by a successful visual-validation flow |
-| Project name | `project_name` | `ProjectName` | Keeps materials from different projects separate; defaults to `default` |
+| Project boundary | `project_name` | `ProjectName` | Isolates groups and assets inside the authenticated organization; defaults to `default` |
 
 Keep group IDs and asset IDs separate. A group organizes uploads; an asset ID is the reference used by video generation. Public IDs look like `group-20260720123456-vrt01` and `asset-20260720123457-def45`.
 

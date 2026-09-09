@@ -4,7 +4,20 @@ openapi: "GET /v1/files/{file_id}"
 description: "Retrieves metadata for a single uploaded file."
 ---
 
-Return a file's name, size, purpose, and creation time. Without Anthropic headers, this covers batch and image-reference files. With Anthropic Files headers, it covers Anthropic-format files.
+## Overview
+
+This endpoint primarily serves TokenLab's OpenAI-compatible Batch API file objects.
+
+When the request opts into Anthropic Files compatibility mode, the same route can also return Anthropic-style file metadata for the bound workspace.
+
+Without Anthropic headers, this route can return either a batch file object or a TokenLab image/reference file object.
+
+## Notes
+
+- Batch input files must use `purpose=batch`.
+- `completion_window` is currently `24h`.
+- Output ordering is not guaranteed; always match by `custom_id`.
+- Streaming is not supported inside batch items.
 
 ## Example
 
@@ -15,9 +28,15 @@ curl -X GET "https://api.tokenlab.sh/v1/files/file_abc123" \
 ```
 </RequestExample>
 
-## Image Reference Files
+## Request / Response
 
-This endpoint can also return metadata for TokenLab-created image reference files. The `status` field is optional and may be absent for file families that do not provide one.
+Use the interactive OpenAPI panel above for the exact schema.
+
+## Operational Tips
+
+- Use `custom_id` for idempotent downstream reconciliation.
+- Expect `output_file_id` and `error_file_id` only after the worker finalizes the batch.
+- Batch pricing may differ from synchronous pricing because `isBatchRequest=true` discount rules apply.
 
 ## Response example
 
@@ -36,6 +55,6 @@ This endpoint can also return metadata for TokenLab-created image reference file
 
 ## Important fields
 
-<ResponseField name="id" type="string">File ID.</ResponseField>
+<ResponseField name="id" type="string">File identifier used by related APIs.</ResponseField>
 <ResponseField name="filename" type="string">Original or generated file name.</ResponseField>
-<ResponseField name="purpose" type="string">File purpose, such as `batch`, `batch_output`, `user_data`, or `vision`.</ResponseField>
+<ResponseField name="purpose" type="string">File purpose used by the owning workflow, such as `batch`, `batch_output`, `user_data`, or `vision`.</ResponseField>

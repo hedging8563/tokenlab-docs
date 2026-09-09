@@ -1,12 +1,12 @@
 ---
-title: "列出素材"
+title: "列出素材资产"
 openapi: "GET /v1/videos/assets"
-description: "列出当前工作区的 Seedance 素材。"
+description: "列出当前组织拥有的 Seedance 素材资产。"
 ---
 
-列出当前工作区的素材。可用 `library_type`、`group_id` 或 `status` 筛选。
+列出经过身份验证的组织所拥有的素材资产。当您需要为特定的生成工作流查找资产时，可以通过 `library_type`、`group_id` 或 `status` 进行筛选。
 
-只有 `status` 为 `ACTIVE` 的素材可以用于视频生成。
+请仅使用 `status` 为 `ACTIVE` 的资产。创建视频时请使用返回的 TokenLab 素材资产 `id`。
 
 ## 示例请求
 

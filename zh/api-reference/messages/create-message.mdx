@@ -4,9 +4,12 @@ openapi: "POST /v1/messages"
 description: "使用 Anthropic Messages API 格式创建消息"
 ---
 
-该接口使用 Anthropic Messages 请求和响应格式，适合 Claude 的文本、图片、工具和扩展思考功能。
+## 概述
 
-`messages` 只接受 `user` 和 `assistant`；系统指令放在顶层 `system`，并且必须提供 `max_tokens`。如果消息中使用 OpenAI 的 `system`、`developer` 或 `tool` role，请改用 `/v1/chat/completions`。
+此端点提供原生的 Anthropic Messages API 兼容性。对于具备扩展思考等功能的 Claude 模型，请使用此接口。
+
+
+此端点保持 Anthropic 原生契约。`messages` 必须是 `user` / `assistant` 消息数组，`system` 应放在顶层 `system` 字段，且 `max_tokens` 必填。如果 payload 在 `messages` 中使用 OpenAI 的 `system`、`developer` 或 `tool` role，请改发 `/v1/chat/completions`。
 <Note>
 Anthropic SDK 的 Base URL：`https://api.tokenlab.sh`（不带 `/v1` 后缀）
 </Note>
@@ -14,7 +17,7 @@ Anthropic SDK 的 Base URL：`https://api.tokenlab.sh`（不带 `/v1` 后缀）
 ## 请求头
 
 <ParamField header="x-api-key" type="string" required>
-  TokenLab API 密钥，也可以改用 Bearer 认证。
+  你的 TokenLab API key。可替代 Bearer token。
 </ParamField>
 
 <ParamField header="anthropic-version" type="string" required>
@@ -55,7 +58,7 @@ Anthropic SDK 的 Base URL：`https://api.tokenlab.sh`（不带 `/v1` 后缀）
 </ParamField>
 
 <ParamField body="thinking" type="object">
-  扩展思考设置，仅适用于支持该功能的 Claude 模型。
+  扩展思考配置（Claude Opus 4.5）。
 
   - `type`（string）：设为 `"enabled"` 以启用
   - `budget_tokens`（integer）：用于思考的 token 预算
@@ -70,7 +73,7 @@ Anthropic SDK 的 Base URL：`https://api.tokenlab.sh`（不带 `/v1` 后缀）
 </ParamField>
 
 <ParamField body="top_p" type="number">
-  Top P 采样参数。建议只调整 `temperature` 或 `top_p` 其中一个。
+  Nucleus sampling 参数。请使用 temperature 或 top_p 其中之一，不要同时使用。
 </ParamField>
 
 <ParamField body="top_k" type="integer">
@@ -82,7 +85,7 @@ Anthropic SDK 的 Base URL：`https://api.tokenlab.sh`（不带 `/v1` 后缀）
 </ParamField>
 
 <ParamField body="metadata" type="object">
-  与请求一起保存的自定义信息。
+  附加到请求中的元数据，用于跟踪目的。
 </ParamField>
 
 ## 响应
@@ -122,7 +125,7 @@ curl -X POST "https://api.tokenlab.sh/v1/messages" \
   -H "anthropic-version: 2023-06-01" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "claude-sonnet-5",
+    "model": "claude-sonnet-4-6",
     "max_tokens": 1024,
     "system": "You are a helpful assistant.",
     "messages": [
@@ -140,7 +143,7 @@ client = Anthropic(
 )
 
 message = client.messages.create(
-    model="claude-sonnet-5",
+    model="claude-sonnet-4-6",
     max_tokens=1024,
     system="You are a helpful assistant.",
     messages=[
@@ -160,7 +163,7 @@ const client = new Anthropic({
 });
 
 const message = await client.messages.create({
-  model: 'claude-sonnet-5',
+  model: 'claude-sonnet-4-6',
   max_tokens: 1024,
   system: 'You are a helpful assistant.',
   messages: [
@@ -184,7 +187,7 @@ import (
 
 func main() {
     payload := map[string]interface{}{
-        "model":      "claude-sonnet-5",
+        "model":      "claude-sonnet-4-6",
         "max_tokens": 1024,
         "system":     "You are a helpful assistant.",
         "messages": []map[string]string{
@@ -210,7 +213,7 @@ func main() {
 ```php PHP
 <?php
 $payload = [
-    'model' => 'claude-sonnet-5',
+    'model' => 'claude-sonnet-4-6',
     'max_tokens' => 1024,
     'system' => 'You are a helpful assistant.',
     'messages' => [
@@ -251,7 +254,7 @@ echo $data['content'][0]['text'];
       "text": "Hello! How can I help you today?"
     }
   ],
-  "model": "claude-sonnet-5",
+  "model": "claude-sonnet-4-6",
   "stop_reason": "end_turn",
   "usage": {
     "input_tokens": 15,
@@ -267,7 +270,7 @@ echo $data['content'][0]['text'];
 
 ```json
 {
-  "model": "claude-sonnet-5",
+  "model": "claude-sonnet-4-6",
   "max_tokens": 1024,
   "messages": [
     {
@@ -292,7 +295,7 @@ echo $data['content'][0]['text'];
 
 ```json
 {
-  "model": "claude-sonnet-5",
+  "model": "claude-sonnet-4-6",
   "max_tokens": 1024,
   "messages": [
     {
@@ -321,7 +324,7 @@ echo $data['content'][0]['text'];
 
 ```python
 message = client.messages.create(
-    model="claude-opus-5",
+    model="claude-opus-4-6",
     max_tokens=16000,
     thinking={
         "type": "enabled",
@@ -337,11 +340,11 @@ for block in message.content:
         print(f"Response: {block.text}")
 ```
 
-## Anthropic Message Batches
+## Anthropic 消息批处理
 
-TokenLab 也支持 Anthropic Message Batches API。
+TokenLab 现在在 `/v1/messages` 之外也提供原生 Anthropic Message Batches 流程。
 
-可用接口：
+可用路由：
 
 - `POST /v1/messages/batches`
 - `GET /v1/messages/batches`
@@ -352,6 +355,6 @@ TokenLab 也支持 Anthropic Message Batches API。
 
 使用说明：
 
-- 使用同一枚 TokenLab API 密钥和 Anthropic 请求头。
+- 使用同一个 TokenLab API key 和 Anthropic 原生请求头。
 - 如果 batch item 引用了 `file_id`，还需要加上 `anthropic-beta: files-api-2025-04-14`。
-- 请求与响应保持 Anthropic Message Batches 格式，费用可以在 TokenLab Usage 中查询。
+- Batch job 会保持 Anthropic 原生请求/响应形状，同时 TokenLab 会跟踪其内部结算生命周期。

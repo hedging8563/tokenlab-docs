@@ -1,21 +1,21 @@
 ---
-title: "获取 World 素材"
+title: "获取媒体资产"
 openapi: "GET /v1/worlds/media-assets/{id}"
-description: "获取 World 素材信息"
+description: "获取通过 TokenLab 准备的 World Labs 媒体资产"
 ---
 
-获取 World 素材的文件名、类型和自定义信息。只有创建它的工作区可以访问。
+获取通过 TokenLab 准备的媒体资产元数据。访问权限限制为创建该资产的组织。
 
 ## 路径参数
 
 <ParamField path="id" type="string" required>
-  World Labs 素材 ID。
+  World Labs 媒体资产 ID。
 </ParamField>
 
 ## 响应
 
 <ResponseField name="media_asset_id" type="string">
-  World Labs 素材 ID。
+  World Labs 媒体资产 ID。
 </ResponseField>
 
 <ResponseField name="file_name" type="string">
@@ -27,7 +27,7 @@ description: "获取 World 素材信息"
 </ResponseField>
 
 <ResponseField name="metadata" type="object">
-  与素材一起保存的自定义信息。
+  随上游媒体资产保存的可选元数据对象。
 </ResponseField>
 
 <RequestExample>

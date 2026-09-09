@@ -1,37 +1,37 @@
 ---
 title: "获取视频状态"
 openapi: "GET /v1/tasks/{id}"
-description: "获取视频生成任务的状态和结果"
+description: "检索视频生成任务的状态和结果"
 ---
 
 ## 路径参数
 
 <ParamField path="id" type="string" required>
-  创建视频时返回的任务 ID。`id` 和 `task_id` 指向同一个任务。
+  从创建视频请求返回的任务 ID。将 `id` 和 `task_id` 视为相同的异步标识。
 </ParamField>
 
 <Info>
-如果创建响应中包含 `poll_url`，直接请求这个地址即可。
+如果创建响应返回 `poll_url`，请调用该精确 URL。当它指向 `/v1/tasks/{id}` 时，将其视为规范的固定状态端点。
 
-找不到任务时，TokenLab 会返回 `async_task_not_found` 和消息 `Task not found or no longer available.`
+如果该任务已不存在或无法再从公开任务记录中查询到，TokenLab 会返回 `async_task_not_found`，并附带消息 `Task not found or no longer available.`
 </Info>
 
 ## 响应
 
 <ResponseField name="id" type="string">
-  任务 ID。
+  规范的异步任务标识符。
 </ResponseField>
 
 <ResponseField name="task_id" type="string">
-  与 `id` 相同的任务 ID。
+  异步任务标识符别名。
 </ResponseField>
 
 <ResponseField name="poll_url" type="string">
-  查询任务状态和结果的地址。
+  当创建响应提供时的首选轮询 URL。
 </ResponseField>
 
 <ResponseField name="billing_transaction_id" type="string">
-  结算完成后返回的账单交易 ID，与任务 ID 不同。
+  当结算已经完成时返回 TokenLab 账单交易 ID。它对应 dashboard / 对账使用的交易标识，与异步 `id` / `task_id` 不同。
 </ResponseField>
 
 <ResponseField name="status" type="string">
@@ -47,11 +47,11 @@ description: "获取视频生成任务的状态和结果"
 </ResponseField>
 
 <ResponseField name="video" type="object">
-  单个视频结果，可能包含 `url`、`duration`、`width` 和 `height`。
+  单个视频负载，在可用时包含 `url`、`duration`、`width` 和 `height`。
 </ResponseField>
 
 <ResponseField name="videos" type="array">
-  任务生成的多个视频结果。
+  当生成任务返回多个输出时的多个视频负载。
 </ResponseField>
 
 <ResponseField name="error" type="string">
@@ -252,12 +252,12 @@ while (true) {
 ```
 </ResponseExample>
 
-## 查询建议
+## 轮询最佳实践
 
-- 每 5–10 秒查询一次即可。
-- 等待时间较长时，可以逐步延长查询间隔。
-- 为你的应用设置最长等待时间。
-- 收到 `failed` 时停止查询，并向用户显示 `error`。
+- 每 5-10 秒轮询一次
+- 为长期任务实现指数退避
+- 设置最大超时（例如 10 分钟）
+- 优雅地处理 `failed` 状态
 
 ```python
 import time

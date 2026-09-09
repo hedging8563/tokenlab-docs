@@ -1,21 +1,28 @@
 ---
 title: "LiteLLM"
-description: "把 LiteLLM 连接到 TokenLab"
+description: "将 TokenLab 与 LiteLLM 结合使用，可作为 OpenAI 兼容端点或团队网关的一部分"
 ---
 
 ## 概述
 
-LiteLLM 可以通过两种方式使用 TokenLab：
+LiteLLM 与 TokenLab 常见有两种结合方式：
 
-- 把 TokenLab 添加为 **OpenAI 兼容服务**
-- 团队还需要 LiteLLM 的虚拟密钥、别名或日志时，使用 LiteLLM Gateway
+- 把 TokenLab 作为 LiteLLM 背后的 **OpenAI 兼容端点**
+- 在 TokenLab 前面再放一层 LiteLLM，统一做虚拟 key、模型选择策略或额外观测
 
-使用 Chat Completions 时，在 LiteLLM 的 **custom OpenAI / OpenAI 兼容**配置中把 `api_base` 设为 `https://api.tokenlab.sh/v1`。
+对 TokenLab 而言，最干净的默认路径是使用 LiteLLM 的 **custom OpenAI / OpenAI 兼容** 配置，并把 `api_base` 指向 `https://api.tokenlab.sh/v1`。
 
 <Note>
-应用需要 Claude Messages 或 Gemini 字段时，请使用能够保留对应 API 格式的集成。
+如果你明确需要 Claude-native 或 Gemini-native 请求形状，优先使用 TokenLab 自己的原生集成页，而不是强行经由 LiteLLM 的 OpenAI 兼容 抽象。
 </Note>
 
+<Note>
+**类型**: 框架或平台
+
+**主要路径**: OpenAI 兼容端点
+
+**支持级别**: 支持路径
+</Note>
 
 ## 安装
 
@@ -82,7 +89,7 @@ response = litellm.completion(
 )
 ```
 
-## 配置建议
+## 最佳实践
 
 <AccordionGroup>
   <Accordion title="对 TokenLab 优先使用 custom_openai">

@@ -1,10 +1,10 @@
 ---
-title: "删除素材"
+title: "删除素材资源"
 openapi: "DELETE /v1/videos/assets/{assetId}"
-description: "删除当前工作区的 Seedance 素材。"
+description: "删除当前组织拥有的 Seedance 素材资源。"
 ---
 
-删除素材不会影响所属素材组。删除后，这个 ID 不能再用于视频生成。
+删除一个素材资源。此操作不会删除其所属的素材组。删除后，该资源 ID 将无法再作为 `material_asset_id` 使用。
 
 ## 请求示例
 

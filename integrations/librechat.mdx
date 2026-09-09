@@ -5,8 +5,15 @@ description: "Configure LibreChat to use TokenLab as a custom OpenAI-compatible 
 
 ## Overview
 
-Add TokenLab to LibreChat as a custom OpenAI-compatible endpoint.
+LibreChat works well with TokenLab through a custom OpenAI-compatible endpoint.
 
+<Note>
+**Type**: Chat App
+
+**Primary Path**: OpenAI-compatible chat completions
+
+**Support Confidence**: Supported path
+</Note>
 
 ## Environment
 
@@ -26,8 +33,8 @@ customEndpoints:
     models:
       default:
         - 'gpt-5.5'
-        - 'gpt-5.6-terra'
-        - 'gpt-5.6-luna'
+        - 'gpt-5.4'
+        - 'gpt-5.4-mini'
         - 'claude-opus-4-8'
         - 'claude-sonnet-5'
         - 'gemini-3.5-flash'
@@ -35,7 +42,7 @@ customEndpoints:
         - 'deepseek-v4-flash'
       fetch: true
     titleConvo: true
-    titleModel: 'gpt-5.6-luna'
+    titleModel: 'gpt-5.4-mini'
     modelDisplayLabel: 'TokenLab'
 ```
 

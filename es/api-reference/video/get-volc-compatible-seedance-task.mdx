@@ -1,75 +1,26 @@
 ---
-title: "Obtener tarea (Compatible con Volc)"
+title: "Obtener tarea (compatible con Volc)"
 openapi: "GET /api/v3/contents/generations/tasks/{id}"
-description: "Obtenga una tarea de compatibilidad de Seedance mediante su ID de tarea cgt."
+description: "Obtiene una tarea compatible Seedance por su ID cgt."
 ---
 
-## Descripción general
+## Resumen
 
-Utilice el ID `cgt-...` devuelto por create. Realice consultas cada pocos segundos mientras la tarea esté en estado `queued` o `running`. Deténgase cuando la tarea esté en estado `succeeded`, `failed`, `cancelled` o `expired`.
+Estos endpoints son para equipos que ya usan la forma de tarea Seedance estilo Volc. La autenticación usa tu API key Bearer de TokenLab. El ID devuelto empieza con `cgt-`; consulta el estado hasta que `status` sea `succeeded`, `failed`, `cancelled` o `expired`.
 
 <Warning>
-No reutilice el enum de tarea unificado v1 ni la estructura de respuesta aquí. `/v1/tasks/{id}` utiliza `pending`, `processing`, `completed` y `failed`; este endpoint v3 utiliza el enum oficial anterior. En el objeto JSON v3, `duration` es una cadena cuando está presente y `error` se omite a menos que la tarea haya fallado. Un cliente Go estricto debe declarar `Duration` como `string` con la etiqueta JSON `duration,omitempty`, y detenerse en cada estado terminal v3.
+No reutilices el enum ni el struct de respuesta de v1. `/v1/tasks/{id}` usa `pending`, `processing`, `completed` y `failed`; este endpoint usa el enum v3 indicado arriba. En v3, `duration` es una cadena cuando aparece y `error` solo aparece si la tarea falla.
 </Warning>
 
-Consulte también [Modelos de video Seedance 2.0](/guides/seedance-2-video) y [Generación de video](/guides/video-generation).
+Ver también [Modelos de video Seedance 2.0](/es/guides/seedance-2-video) y [Generación de video](/es/guides/video-generation).
 
-## Valores de estado
+## Forma de respuesta
 
-- `queued`: aceptada y esperando para ejecutarse.
-- `running`: la generación está en progreso.
-- `succeeded`: el resultado está listo y `content.video_url` está presente.
-- `failed`: la generación falló; inspeccione `error.code` y `error.message`.
-- `cancelled`: la tarea fue cancelada antes de completarse.
-- `expired`: la tarea expiró antes de completarse.
-
-## Campos de respuesta
-
-- `id`: ID de la tarea de compatibilidad, que comienza con `cgt-`.
-- `model`: identificador del modelo repetido para compatibilidad.
-- `status`: uno de los valores de estado anteriores.
-- `content.video_url`: URL final del video en caso de éxito.
-- `content.last_frame_url`: presente solo cuando se solicita y está disponible.
-- `usage`: uso de tokens cuando está disponible.
-- `created_at` y `updated_at`: marcas de tiempo de la tarea.
-- `error`: presente solo cuando la tarea falló; omitido para tareas que no fallaron.
-
-La respuesta nunca añade campos de TokenLab como `progress`, `return_last_frame`, `watermark`, `priority` o `camera_fixed`.
+La respuesta usa `queued`, `running`, `succeeded`, `failed`, `cancelled` o `expired`. Las tareas exitosas devuelven `content.video_url`; opcionalmente aparecen `content.last_frame_url`, campos oficiales de generación y `usage`. `error` solo se incluye al fallar. No se añaden campos TokenLab como `progress`, `return_last_frame`, `watermark`, `priority` o `camera_fixed`.
 
 ## Ejemplo
 
 ```bash
 curl https://api.tokenlab.sh/api/v3/contents/generations/tasks/cgt-20260102030405-a1b2c \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
-```
-
-```json
-{
-  "id": "cgt-20260102030405-a1b2c",
-  "model": "doubao-seedance-2.0",
-  "status": "succeeded",
-  "content": {
-    "video_url": "https://example.com/result.mp4"
-  },
-  "usage": {
-    "completion_tokens": 123456
-  }
-}
-```
-
-```go Go
-type SeedanceTask struct {
-    ID       string `json:"id"`
-    Status   string `json:"status"`
-    Duration string `json:"duration,omitempty"`
-}
-
-func isTerminal(status string) bool {
-    switch status {
-    case "succeeded", "failed", "cancelled", "expired":
-        return true
-    default:
-        return false
-    }
-}
 ```

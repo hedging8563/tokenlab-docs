@@ -1,107 +1,278 @@
 ---
-title: "Menangani error API"
-description: "Baca kode error, lakukan retry hanya jika berguna, dan simpan Request ID"
+title: "Penanganan Kesalahan"
+description: "Menangani kesalahan API dengan baik"
 ---
 
-Tangani error berdasarkan status HTTP dan `code`. `message` ditulis untuk manusia dan dapat berubah sewaktu-waktu tanpa pemberitahuan.
+## Format Respon Kesalahan
 
-Chat Completions dan Responses menggunakan objek `error` bergaya OpenAI. Anthropic Messages dan Gemini memiliki format error tersendiri, jadi jangan gunakan satu parser untuk setiap API TokenLab.
-
+Chat Completions, Responses, Messages, dan Gemini adalah batas protokol publik, bukan API Web. Error protokol native tidak dibungkus dengan envelope Web `{ success, data, error }`. Contoh berikut berlaku untuk error gateway kompatibel OpenAI pada Chat dan Responses:
 ```json
 {
   "error": {
-    "message": "Human-readable description",
+    "message": "Human-readable error description",
     "type": "error_type",
     "code": "error_code",
     "param": "parameter_name",
+    "did_you_mean": "suggested_model",
+    "suggestions": [{"id": "model-id"}],
+    "hint": "Next step guidance",
     "retryable": true,
     "retry_after": 30
   }
 }
 ```
 
-Hanya `message` dan `type` yang selalu ada dalam error yang kompatibel dengan OpenAI yang dibuat oleh TokenLab. Bidang lainnya muncul jika relevan.
+Pada error gateway kompatibel OpenAI, `message` dan `type` tersedia; `code`, `param`, dan ekstensi petunjuk bersifat opsional. Messages dan Gemini memakai keluarga error native masing-masing. Error validasi upstream dipertahankan jika aman untuk dikembalikan; 400/422 deterministik tidak mengganti channel dan tidak ada retry setelah byte pertama dikirim.
+## Kode Status HTTP
 
-## Kode status
+| Kode | Deskripsi |
+|------|-----------|
+| 400 | Bad Request - Parameter tidak valid |
+| 401 | Unauthorized - API key tidak valid atau hilang |
+| 402 | Payment Required - Saldo tidak mencukupi |
+| 403 | Forbidden - Akses ditolak atau model tidak diizinkan |
+| 404 | Not Found - Model atau sumber daya tidak ditemukan |
+| 413 | Muatan terlalu besar - Ukuran input atau file melebihi batas |
+| 429 | Too Many Requests - Batas laju terlampaui |
+| 500 | Kesalahan Server Internal |
+| 502 | Bad Gateway - Kesalahan penyedia upstream |
+| 503 | Service Unavailable - Layanan sementara tidak tersedia |
+| 504 | Gateway Timeout - Permintaan melebihi waktu tunggu |
 
-| Status | Arti | Tindakan umum |
-| --- | --- | --- |
-| `400` | Bidang, ID model, atau input tidak valid | Perbaiki permintaan; jangan ulangi tanpa perubahan |
-| `401` | API key hilang, tidak valid, kedaluwarsa, atau dicabut | Ganti key |
-| `402` | Saldo atau batas API-key terlalu rendah | Isi ulang, naikkan batas, atau kurangi permintaan |
-| `403` | Key ini tidak dapat menggunakan sumber daya atau model tersebut | Ubah izin key atau model |
-| `404` | Sumber daya tidak ada atau tidak lagi tersedia | Periksa ID dan API key yang membuatnya |
-| `413` | Permintaan atau file yang diunggah terlalu besar | Kurangi input ke batas model atau endpoint yang didokumentasikan |
-| `429` | Batas permintaan tercapai | Tunggu sesuai `Retry-After` |
-| `500`–`504` | Kegagalan layanan atau jaringan sementara | Lakukan retry dengan batas dan backoff jika permintaan aman untuk diulangi |
+## Jenis Kesalahan
 
-## Kode error umum
+### Kesalahan Otentikasi (401)
 
-| Kode | Apa artinya | Apa yang harus diubah |
-| --- | --- | --- |
-| `invalid_api_key` | API key hilang atau tidak valid | Periksa header Authorization dan nilai key |
-| `expired_api_key` | Key telah kedaluwarsa atau dicabut | Buat atau pilih key yang aktif |
-| `insufficient_balance` | Saldo akun tidak mencukupi untuk permintaan tersebut | Tambahkan dana, kurangi permintaan, atau pilih model dengan harga lebih rendah |
-| `quota_exceeded` | API key mencapai batasnya sendiri | Tingkatkan batas key tersebut atau gunakan key resmi lainnya |
-| `model_not_allowed` | Key tidak dapat menggunakan model yang diminta | Perbarui daftar model key atau pilih model yang diizinkan |
-| `model_not_found` | ID model tidak diketahui atau tidak tersedia | Baca `/v1/models` dan gunakan ID model saat ini |
-| `context_length_exceeded` | Input lebih panjang dari yang diterima model | Hapus riwayat atau pilih model dengan jendela konteks yang lebih besar |
-| `rate_limit_exceeded` | Terlalu banyak permintaan dikirim dalam jendela saat ini | Tunggu sesuai `Retry-After` |
-| `payload_too_large` | Body permintaan atau file melebihi batas endpoint | Kurangi atau kompres input |
-| `all_channels_failed` | Model yang dipilih untuk sementara tidak tersedia | Tunggu sesuai `retry_after` atau biarkan pengguna memilih alternatif |
-| `timeout_error` | Permintaan tidak selesai tepat waktu | Lakukan retry hanya jika operasi aman untuk diulangi |
-
-Beberapa error yang kompatibel dengan OpenAI menyertakan bidang opsional `did_you_mean`, `suggestions`, `alternatives`, `hint`, `retryable`, atau `retry_after`. Lihat [Error yang dapat ditindaklanjuti oleh agen](/guides/agent-first-api).
-
-## Keputusan retry
-
-| Error | Ulangi permintaan yang sama? |
-| --- | --- |
-| `400`, `401`, `402`, `403`, `404`, `413` | Tidak. Ubah permintaan, kredensial, saldo, izin, atau input. |
-| `429` | Ya, setelah penundaan yang diberikan server. |
-| `500`–`504` | Terkadang. Gunakan exponential backoff dan batas retry yang ketat. |
-| Koneksi terputus sebelum ada respons | Terkadang. Untuk operasi pembuatan, periksa apakah tugas atau efek samping sudah ada. |
-| Stream terputus setelah output tiba | Jangan anggap sebagai respons lengkap. Mengulangi mungkin menghasilkan output yang berbeda atau tagihan kedua. |
-
-Untuk pembuatan gambar, video, musik, 3D, dan Worlds, simpan ID tugas segera setelah dikembalikan. Jika permintaan pembuatan mengalami timeout, periksa catatan tugas sebelum mengirim permintaan pembuatan lainnya.
-
-## Contoh Python
+| Tipe | Kode | Deskripsi |
+|------|------|-----------|
+| `invalid_api_key` | `invalid_api_key` | API key hilang atau tidak valid |
+| `expired_api_key` | `expired_api_key` | API key telah dicabut |
 
 ```python
-import random
-import time
-from openai import OpenAI, APIConnectionError, APIStatusError, RateLimitError
+from openai import OpenAI, AuthenticationError
+
+try:
+    response = client.chat.completions.create(...)
+except AuthenticationError as e:
+    print(f"Authentication failed: {e.message}")
+```
+
+### Kesalahan Pembayaran (402)
+
+| Tipe | Kode | Deskripsi |
+|------|------|-----------|
+| `insufficient_balance` | `insufficient_balance` | Saldo akun terlalu rendah |
+| `quota_exceeded` | `quota_exceeded` | Batas penggunaan API key tercapai |
+
+```python
+from openai import OpenAI, APIStatusError
+
+try:
+    response = client.chat.completions.create(...)
+except APIStatusError as e:
+    if e.status_code == 402:
+        print("Please top up your account balance")
+```
+
+### Kesalahan Akses (403)
+
+| Tipe | Kode | Deskripsi |
+|------|------|-----------|
+| `access_denied` | `access_denied` | Akses ke sumber daya ditolak |
+| `access_denied` | `model_not_allowed` | Model tidak diizinkan untuk API key ini |
+
+```json
+{
+  "error": {
+    "message": "You don't have permission to access this model",
+    "type": "access_denied",
+    "code": "model_not_allowed"
+  }
+}
+```
+
+### Kesalahan Validasi (400)
+
+| Tipe | Deskripsi |
+|------|-----------|
+| `invalid_request_error` | Parameter permintaan tidak valid |
+| `context_length_exceeded` | Input terlalu panjang untuk model |
+| `model_not_found` | Model yang diminta tidak tersedia dalam detail model saat ini |
+
+```json
+{
+  "error": {
+    "message": "Model not found: please check the model name",
+    "type": "invalid_request_error",
+    "param": "model",
+    "code": "model_not_found",
+    "did_you_mean": "gpt-5.4",
+    "suggestions": [{"id": "gpt-5.4"}, {"id": "gpt-5-mini"}],
+    "hint": "Did you mean 'gpt-5.4'? Use GET https://api.tokenlab.sh/v1/models to list all available models."
+  }
+}
+```
+
+Rute publik tidak membedakan keadaan model yang salah ketik, tersembunyi, ditunda, atau tidak publik dalam badan respons. Jika sebuah model saat ini tidak tersedia melalui detail model, TokenLab mengembalikan `model_not_found`.
+
+### Kesalahan Batas Laju (429)
+
+Ketika Anda melewati batas laju:
+
+```json
+{
+  "error": {
+    "message": "Rate limit: 1000 rpm exceeded",
+    "type": "rate_limit_exceeded",
+    "code": "rate_limit_exceeded",
+    "retryable": true,
+    "retry_after": 8,
+    "hint": "Rate limited. Retry after 8s. Current limit: 1000/min for user role."
+  }
+}
+```
+
+**Header yang disertakan:**
+
+```
+Retry-After: 8
+```
+
+Header `Retry-After` dan field `retry_after` keduanya menunjukkan jumlah detik yang tepat untuk menunggu sebelum mencoba lagi.
+
+### Payload Terlalu Besar (413)
+
+Ketika ukuran input atau file melebihi batas:
+
+```json
+{
+  "error": {
+    "message": "Input size exceeds maximum allowed",
+    "type": "invalid_request_error",
+    "code": "payload_too_large"
+  }
+}
+```
+
+Penyebab umum:
+- File gambar terlalu besar (max 20MB)
+- File audio terlalu besar (max 25MB)
+- Teks input melebihi panjang konteks model
+
+### Kesalahan Upstream (502, 503)
+
+| Tipe | Deskripsi |
+|------|-----------|
+| `upstream_error` | Penyedia mengembalikan kesalahan |
+| `all_channels_failed` | Tidak ada penyedia yang tersedia |
+| `timeout_error` | Permintaan melebihi waktu tunggu |
+
+Ketika semua kanal gagal, respons menyertakan model alternatif:
+
+```json
+{
+  "error": {
+    "message": "Model claude-opus-4-6 temporarily unavailable",
+    "code": "all_channels_failed",
+    "retryable": true,
+    "retry_after": 30,
+    "alternatives": [
+      {"id": "claude-sonnet-4-6", "status": "available", "tags": []},
+      {"id": "gpt-5-mini", "status": "available", "tags": []}
+    ],
+    "hint": "Retry in 30s or switch to an available model."
+  }
+}
+```
+
+## Menangani Kesalahan di Python
+
+```python
+from openai import OpenAI, APIError, RateLimitError, APIConnectionError
 
 client = OpenAI(
     api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1",
+    base_url="https://api.tokenlab.sh/v1"
 )
 
-def chat(messages, model="gpt-5.6-luna", attempts=3):
-    for attempt in range(attempts):
+def chat_with_retry(messages, max_retries=3):
+    for attempt in range(max_retries):
         try:
             return client.chat.completions.create(
-                model=model,
-                messages=messages,
+                model="gpt-4o",
+                messages=messages
             )
-        except RateLimitError as exc:
-            if attempt == attempts - 1:
-                raise
-            retry_after = exc.response.headers.get("Retry-After")
-            wait = float(retry_after) if retry_after else (2 ** attempt + random.random())
-            time.sleep(wait)
-        except APIStatusError as exc:
-            if exc.status_code < 500 or attempt == attempts - 1:
-                raise
-            time.sleep(2 ** attempt + random.random())
-        except APIConnectionError:
-            if attempt == attempts - 1:
-                raise
-            time.sleep(2 ** attempt + random.random())
+        except RateLimitError as e:
+            if attempt < max_retries - 1:
+                import time
+                time.sleep(2 ** attempt)  # Exponential backoff
+                continue
+            raise
+        except APIConnectionError as e:
+            print(f"Connection error: {e}")
+            raise
+        except APIError as e:
+            print(f"API error: {e.status_code} - {e.message}")
+            raise
 ```
 
-## Simpan Request ID
+## Menangani Kesalahan di JavaScript
 
-Header respons menyertakan Request ID untuk pelacakan. Simpan ID tersebut bersama endpoint, model, waktu, serta ID pengguna atau pekerjaan Anda sendiri. Untuk pekerjaan asinkron, simpan juga `task_id` dan `billing_transaction_id` jika ada.
+```javascript
+import OpenAI from 'openai';
 
-Saat menghubungi dukungan, sertakan ID tersebut dan contoh yang telah disunting. Jangan pernah mengirim API key, token manajemen, media pribadi, signed URL, atau prompt pribadi yang lengkap.
+const client = new OpenAI({
+  apiKey: 'sk-your-api-key',
+  baseURL: 'https://api.tokenlab.sh/v1'
+});
+
+async function chatWithRetry(messages, maxRetries = 3) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await client.chat.completions.create({
+        model: 'gpt-4o',
+        messages
+      });
+    } catch (error) {
+      if (error instanceof OpenAI.RateLimitError) {
+        if (attempt < maxRetries - 1) {
+          await new Promise(r => setTimeout(r, 2 ** attempt * 1000));
+          continue;
+        }
+      }
+      throw error;
+    }
+  }
+}
+```
+
+## Praktik Terbaik
+
+<AccordionGroup>
+  <Accordion title="Terapkan penundaan eksponensial">
+    Saat dibatasi oleh laju, tunggu semakin lama antara percobaan ulang:
+    ```python
+    wait_time = 2 ** attempt  # 1s, 2s, 4s, 8s...
+    ```
+  </Accordion>
+
+  <Accordion title="Tetapkan batas waktu">
+    Selalu tetapkan batas waktu yang wajar untuk menghindari permintaan yang menggantung:
+    ```python
+    client = OpenAI(timeout=60.0)  # 60 second timeout
+    ```
+  </Accordion>
+
+  <Accordion title="Catat kesalahan untuk debugging">
+    Catat respons kesalahan lengkap termasuk ID permintaan untuk dukungan:
+    ```python
+    except APIError as e:
+        logger.error(f"API Error: {e.status_code} - {e.message}")
+    ```
+  </Accordion>
+
+  <Accordion title="Tangani kesalahan spesifik model">
+    Beberapa model memiliki persyaratan khusus (mis. max tokens, format gambar).
+    Validasi input sebelum membuat permintaan.
+  </Accordion>
+</AccordionGroup>

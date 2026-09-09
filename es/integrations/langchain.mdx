@@ -25,7 +25,7 @@ pip install langchain langchain-openai langchain-community faiss-cpu
 from langchain_openai import ChatOpenAI
 
 llm = ChatOpenAI(
-    model="gpt-5.6-terra",
+    model="gpt-5.4",
     api_key="sk-your-tokenlab-key",
     base_url="https://api.tokenlab.sh/v1",
 )
@@ -40,13 +40,13 @@ print(response.content)
 from langchain_openai import ChatOpenAI
 
 gpt = ChatOpenAI(
-    model="gpt-5.6-terra",
+    model="gpt-5.4",
     api_key="sk-your-key",
     base_url="https://api.tokenlab.sh/v1",
 )
 
 claude = ChatOpenAI(
-    model="claude-sonnet-5",
+    model="claude-sonnet-4-6",
     api_key="sk-your-key",
     base_url="https://api.tokenlab.sh/v1",
 )
@@ -58,7 +58,7 @@ gemini = ChatOpenAI(
 )
 
 deepseek = ChatOpenAI(
-    model="deepseek-reasoner",
+    model="deepseek-r1",
     api_key="sk-your-key",
     base_url="https://api.tokenlab.sh/v1",
 )

@@ -151,7 +151,7 @@ Tüm yanıtlar tutarlı bir format izler:
   "id": "chatcmpl-abc123",
   "object": "chat.completion",
   "created": 1234567890,
-  "model": "gpt-5.6-terra",
+  "model": "gpt-4o",
   "choices": [...],
   "usage": {
     "prompt_tokens": 10,
@@ -163,16 +163,30 @@ Tüm yanıtlar tutarlı bir format izler:
 
 ### Yönlendirme Şeffaflığı
 
-TokenLab, herkese açık yanıt gövdelerinde sağlayıcı, kanal, ilke veya kimlik bilgisi ayrıntılarını göstermez. `_routing` veya diğer dahili yönlendirme alanlarına herkese açık API sözleşmesinin bir parçası olarak güvenmeyin.
+Tüm yanıtlar kanal bilgilerini içeren bir `_routing` alanı içerir:
 
-Hata ayıklama ve destek için, mevcut olduklarında herkese açık yanıt başlıklarını kullanın:
+```json
+{
+  "id": "chatcmpl-abc123",
+  ...,
+  "_routing": {
+    "channel": {
+      "id": "ch_xxx",
+      "name": "channel-name",
+      "provider": "openai"
+    },
+    "cached": false,
+    "retryCount": 0
+  }
+}
+```
 
-| Başlık | Açıklama |
+| Alan | Açıklama |
 |-------|-------------|
-| `X-Routing-Time-MS` | Rota seçimi süresi, mevcutsa |
-| `X-Request-ID` | Destek ve hata ayıklama için istek tanımlayıcısı, mevcutsa |
-| `X-Task-ID` | Görev tabanlı yanıtlar için herkese açık asenkron görev tanımlayıcısı, mevcutsa |
-| `X-Billing-Transaction-ID` | Nihai faturalandırmadan sonra faturalandırma işlem tanımlayıcısı, mevcutsa |
+| `channel.id` | Kullanılan kanal tanımlayıcısı |
+| `channel.provider` | Üst akış sağlayıcısı (openai, anthropic, vb.) |
+| `cached` | Yanıtın önbellekten servis edilip edilmediği |
+| `retryCount` | Yeniden deneme sayısı (varsa) |
 
 ### Hata Yanıtı
 

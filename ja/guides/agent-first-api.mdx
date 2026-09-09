@@ -1,32 +1,34 @@
 ---
-title: "エージェントが対応可能なエラー"
-description: "エラーコード、リトライタイミング、モデルの提案を活用し、プロセスの解析を回避する"
+title: "✨ エージェントファーストAPI"
+description: "AIエージェントが最初の再試行で自己修正できるようにする構造化されたエラー・ヒント"
 ---
 
-OpenAI互換のTokenLabエラーには、エージェントやアプリケーション向けの構造化されたヒントが含まれる場合があります。これらのフィールドが存在する場合はそれを使用し、人間が読むための `message` を解析して動作を決定しないでください。
+## 概要
 
-Anthropic Messages APIおよびGemini APIは独自のネイティブなエラー形式を維持しているため、このページで説明する拡張機能はOpenAI互換のChat CompletionsおよびResponsesエラーにのみ適用されます。
+TokenLab の Agent-First API は、エラー応答を AI エージェントが即座に解析して対処できる構造化ヒントで拡張します — ウェブ検索もドキュメント参照も推測も不要です。
 
-## オプションのエラーフィールド
+OpenAI 互換の Chat Completions と Responses の gateway エラーでは、`error` オブジェクト内に `did_you_mean`、`suggestions`、`hint`、`retryable`、`retry_after` などの任意フィールドを含める場合があります。Anthropic Messages と Gemini はネイティブのエラー形状を保持し、これらの拡張を保証しません。
 
-以下のすべてのフィールドは `error` オブジェクト内に含まれ、存在しない場合もあります。
+## エラー・ヒントフィールド
 
-| フィールド | 型 | 用途 |
-| --- | --- | --- |
-| `did_you_mean` | `string` | 最も近い利用可能なモデルID |
-| `suggestions` | `array` | リクエストに適している可能性のあるモデル |
-| `alternatives` | `array` | 現在代替として利用可能なモデル |
-| `hint` | `string` | 短い説明または推奨されるアクション |
-| `retryable` | `boolean` | 同じリクエストが後で成功する可能性があるかどうか |
-| `retry_after` | `number` | 再試行までに待機すべき秒数 |
-| `balance_usd` | `number` | 現在の残高（USD） |
-| `estimated_cost_usd` | `number` | 拒否されたリクエストの推定コスト（USD） |
+OpenAI 互換 gateway エラーでは、すべてのヒントフィールドは `error` オブジェクト内の任意拡張です:
 
-クライアントは引き続きHTTPステータスと `code` に基づいてすべてのエラーを処理する必要があります。これらの追加フィールドは必須項目ではなく、有用なコンテキストとして扱ってください。
+| フィールド | 型 | 説明 |
+|-------|------|-------------|
+| `did_you_mean` | `string` | 最も近い一致のモデル名 |
+| `suggestions` | `array` | メタデータ付きの推奨モデル |
+| `alternatives` | `array` | 現在利用可能な代替モデル |
+| `hint` | `string` | 人間／エージェントが読める次の手順ガイダンス |
+| `retryable` | `boolean` | 同一リクエストの再試行で成功する可能性があるか |
+| `retry_after` | `number` | 再試行までの待機秒数 |
+| `balance_usd` | `number` | 現在の口座残高（USD） |
+| `estimated_cost_usd` | `number` | 失敗したリクエストの推定コスト（USD） |
 
-## 不明なモデル
+## エラーコード例
 
-スペルミスや利用不可能なモデルを指定すると `400 model_not_found` が返されます。 `did_you_mean` が存在する場合は、ユーザーに提示するか、製品側で選択されたモデルを変更する権限が既にある場合にのみ再試行してください。
+### model_not_found (400)
+
+モデル名がアクティブなモデルに一致しない場合:
 
 ```json
 {
@@ -35,19 +37,27 @@ Anthropic Messages APIおよびGemini APIは独自のネイティブなエラー
     "type": "invalid_request_error",
     "param": "model",
     "code": "model_not_found",
-    "did_you_mean": "gpt-5.6-terra",
+    "did_you_mean": "gpt-5.4",
     "suggestions": [
-      {"id": "gpt-5.6-terra"},
-      {"id": "gpt-5.6-luna"}
+      {"id": "gpt-5.4"},
+      {"id": "gpt-5-mini"},
+      {"id": "claude-sonnet-4-6"}
     ],
-    "hint": "Did you mean 'gpt-5.6-terra'? Use GET https://api.tokenlab.sh/v1/models to list all available models."
+    "hint": "Did you mean 'gpt-5.4'? Use GET https://api.tokenlab.sh/v1/models to list all available models."
   }
 }
 ```
 
-## 残高不足
+`did_you_mean` の解決には以下を使用します:
+1. 本番エラーデータに基づく静的エイリアスマッピング
+2. 正規化された文字列マッチ（ハイフンを削除、大小文字を区別しない）
+3. 編集距離マッチ（閾値 ≤ 3）
 
-`402 insufficient_balance` には、現在の残高と必要な推定金額が含まれる場合があります。アプリケーション側でチャージ用リンクの提示、より安価なモデルへの変更、またはリクエストの縮小を提案できます。
+公開ルートは、非公開・遅延・隠蔽モデルに対して別個のエラーコードを公開しません。公開されていないモデルはミスと同様に扱ってください: `did_you_mean`、`suggestions`、`hint` を確認し、サポートされている公開モデルで再試行してください。
+
+### insufficient_balance (402)
+
+口座残高が推定コストに対して不足している場合:
 
 ```json
 {
@@ -58,17 +68,19 @@ Anthropic Messages APIおよびGemini APIは独自のネイティブなエラー
     "balance_usd": 0.12,
     "estimated_cost_usd": 0.35,
     "suggestions": [
-      {"id": "gpt-5.6-luna"},
+      {"id": "gpt-5-mini"},
       {"id": "deepseek-v3-2"}
     ],
-    "hint": "Try a cheaper model, or top up at https://tokenlab.sh/dashboard/billing."
+    "hint": "Insufficient balance: need ~$0.3500 for claude-sonnet-4-6, but balance is $0.1200. Try a cheaper model, or top up at https://tokenlab.sh/dashboard/billing."
   }
 }
 ```
 
-## 一時的に利用不可
+`suggestions` には、推定コストより安価でエージェントが切り替え可能なモデルが含まれます。
 
-`503 all_channels_failed` レスポンスは、要求されたモデルが一時的に利用できないことを意味します。 `retryable` が `true` の場合は `retry_after` に従うか、 `alternatives` からユーザーに選択肢を提示してください。
+### all_channels_failed (503)
+
+あるモデルの全てのアップストリームチャネルが利用不可の場合:
 
 ```json
 {
@@ -78,17 +90,19 @@ Anthropic Messages APIおよびGemini APIは独自のネイティブなエラー
     "retryable": true,
     "retry_after": 30,
     "alternatives": [
-      {"id": "claude-sonnet-5", "status": "available", "tags": []},
-      {"id": "gpt-5.6-luna", "status": "available", "tags": []}
+      {"id": "claude-sonnet-4-6", "status": "available", "tags": []},
+      {"id": "gpt-5-mini", "status": "available", "tags": []}
     ],
-    "hint": "Retry in 30s or try an alternative model."
+    "hint": "All channels for 'claude-opus-4-6' are temporarily unavailable. Retry in 30s or try an alternative model."
   }
 }
 ```
 
-## レート制限
+<Note>
+`retryable` は理由が `no_channels`（このモデルにチャネルが設定されていない） の場合は `false` になります。サーキットブレーカーの発動やクォータ枯渇のような一時的な障害の場合にのみ `true` になります。
+</Note>
 
-`429 rate_limit_exceeded` の場合は、 `retry_after` 秒間待機するか、標準の `Retry-After` レスポンスヘッダーを使用してください。
+### rate_limit_exceeded (429)
 
 ```json
 {
@@ -98,14 +112,20 @@ Anthropic Messages APIおよびGemini APIは独自のネイティブなエラー
     "code": "rate_limit_exceeded",
     "retryable": true,
     "retry_after": 8,
-    "hint": "Retry after 8s."
+    "hint": "Rate limited. Retry after 8s. Current limit: 1000/min for user role."
   }
 }
 ```
 
-## コンテキストが長すぎる
+`retry_after` の値は、実際のレート制限ウィンドウのリセット時間から算出されます。
 
-`400 context_length_exceeded` は、同じリクエストを再送しても解決しません。入力を短縮するか、より大きなコンテキストウィンドウを持つモデルをユーザーに選択させてください。
+<Note>
+OpenAI 互換 endpoints は `rate_limit_exceeded`、`upstream_error`、`all_channels_failed` などの TokenLab の安定した公開エラータイプを使用します。Anthropic-compatible および Gemini-compatible エンドポイントはそれぞれのネイティブなレスポンス形式を使用します。
+</Note>
+
+### context_length_exceeded (400)
+
+入力がモデルのコンテキストウィンドウを超えた場合（アップストリームエラー、ヒントを付与）:
 
 ```json
 {
@@ -116,50 +136,127 @@ Anthropic Messages APIおよびGemini APIは独自のネイティブなエラー
     "retryable": false,
     "suggestions": [
       {"id": "gemini-2.5-pro"},
-      {"id": "claude-sonnet-5"}
+      {"id": "claude-sonnet-4-6"}
     ],
     "hint": "Reduce your input or switch to a model with a larger context window."
   }
 }
 ```
 
-## 正しいAPI形式の確認
+## ネイティブエンドポイントの検出
 
-モデル固有のAPIを使用する前に、 `GET /v1/models/{model}` から `tokenlab.accepted_request_formats` を読み取ってください。
+モデル名やプロバイダー名、Chat レスポンスヘッダーからネイティブプロトコルの利用可否を推測しないでください。ネイティブエンドポイントを選ぶ前に `GET /v1/models/{model}` を確認し、モデル詳細で公開され、かつ同一プロトコルのルートがあるリクエスト形式だけを使用します。
 
-| 値 | エンドポイント |
-| --- | --- |
-| `chat_completions` | `/v1/chat/completions` |
-| `responses` | `/v1/responses` |
-| `messages` | `/v1/messages` |
-| `gemini` | `/v1beta/models/{model}:generateContent` |
+確認するフィールドは `tokenlab.accepted_request_formats` です。
 
-受け入れられた形式によってエンドポイントが確定します。個別のツールやフィールドはモデルによって異なる可能性があるため、依存する前にモデルページを確認してください。
+| リクエスト形式 | エンドポイント |
+|----------------|----------------|
+| Chat Completions | `/v1/chat/completions` |
+| Responses | `/v1/responses` |
+| Messages | `/v1/messages` |
+| Gemini | `/v1beta/models/{model}:generateContent` |
 
-## タスクによるモデル検索
+公開されたリクエスト形式はエンドポイントの利用可否を示します。個々のフィールドやツールへの対応は upstream ごとに異なります。
 
-Models APIは、チャット以外のタスクに対する現在の推奨リストを返すことができます。
+## /v1/models の拡張
 
-```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=image" \
-  -H "Authorization: Bearer sk-your-api-key"
+`/v1/models` は、エージェントが画像、ビデオ、音楽、3D、TTS、STT、embedding、rerank、翻訳エンドポイントを呼ぶ前に利用できる非チャットの推奨メタデータを持つようになりました。
+
+```json
+{
+  "id": "gemini-2.5-flash-image",
+  "tokenlab": {
+    "category": "image",
+    "pricing_unit": "per_request",
+    "agent_preferences": {
+      "image": {
+        "preferred_rank": 1,
+        "success_rate_24h": 0.98,
+        "sample_count_24h": 423,
+        "status": "ready",
+        "updated_at": "2026-03-28T12:00:00.000Z",
+        "basis": {
+          "source": "recent_activity_24h"
+        }
+      }
+    }
+  }
+}
 ```
 
-有効な `recommended_for` の値は `image`、 `video`、 `music`、 `3d`、 `tts`、 `stt`、 `embedding`、 `rerank`、 `translation` です。選択したモデルIDは、作成リクエストで明示的に送信してください。TokenLabが自動的に別のモデルに置き換えることはありません。
+| フィールド | 値 | 説明 |
+|-------|--------|-------------|
+| `category` | `chat`, `image`, `video`, `audio`, `tts`, `stt`, `3d`, `embedding`, `rerank` | モデルの種類 |
+| `pricing_unit` | `per_token`, `per_image`, `per_second`, `per_request` | モデルの課金単位 |
+| `cache_pricing` | object or `null` | モデル固有のアップストリーム prompt cache 料金がある場合のみ返されます。 |
+| `agent_preferences.<scene>` | object | `GET /v1/models?recommended_for=<scene>` のときだけ返される非チャット推奨スナップショット |
 
-## 機械可読な概要
+`recommended_for` がある場合、`agent_preferences` は 24 時間の成功率スナップショットのキャッシュから派生します:
 
-エージェントは、以下の場所からコンパクトなAPI概要を読み取ることができます。
+- ウィンドウ: 24 時間
+- スナップショットキャッシュ: stale-while-revalidate
+- `status = "ready"` はモデルが最近のサンプルを十分に持ち、ランキングに参加できることを意味します
+- `status = "insufficient_samples"` はモデルが表示はされるが、スコア付きモデルよりも優先されないことを意味します
 
-```text
+### カテゴリフィルタリング
+
+```bash
+GET https://api.tokenlab.sh/v1/models?category=chat          # Chat models only
+GET https://api.tokenlab.sh/v1/models?category=image         # Image generation models
+GET https://api.tokenlab.sh/v1/models?tag=coding&category=chat  # Coding-optimized chat models
+```
+
+### 推奨の発見フロー
+
+非チャットのワークフローでは、エージェントはまず現在の推奨ショートリストを取得するべきです:
+
+```bash
+GET https://api.tokenlab.sh/v1/models?recommended_for=image
+GET https://api.tokenlab.sh/v1/models?recommended_for=translation
+GET https://api.tokenlab.sh/v1/models?category=tts&recommended_for=tts
+```
+
+有効な `recommended_for` の値は次のとおりです:
+
+- `image`
+- `video`
+- `music`
+- `3d`
+- `tts`
+- `stt`
+- `embedding`
+- `rerank`
+- `translation`
+
+`category` と `recommended_for` の両方が存在する場合、それらは完全に一致する必要があります。
+
+推奨されるエージェントのフロー:
+
+1. `GET /v1/models?recommended_for=<scene>`
+2. 最初の `agent_preferences.<scene>.status == "ready"` のモデルを選択する
+3. 明示的に `model=<selected>` でエンドポイントを呼び出す
+4. 一時的なエラーに限り、次の `ready` モデルで再試行する
+
+## llms.txt
+
+機械可読の API 概要は次で取得できます:
+
+```
 GET https://api.tokenlab.sh/llms.txt
 ```
 
-これには、最初のリクエスト、一般的なエンドポイント、モデルフィルター、およびエラーハンドリングのガイダンスが含まれています。
+これには以下が含まれます:
+- 最初の呼び出しテンプレートと動作する例
+- 一般的なモデル名（使用データから動的生成）
+- 全12の API エンドポイント
+- モデル発見のためのフィルタパラメータ
+- エラーハンドリングのガイダンス
 
-## 安全なリトライの例
+最初の API 呼び出しの前に `llms.txt` を参照するエージェントは、通常、最初の試行で成功できます。
 
-この例では、APIが `did_you_mean` を返した場合にのみモデル名を修正します。モデルの変更によって製品の品質、価格、またはデータ処理に影響が出る可能性がある場合は、ユーザーの確認を追加してください。
+## エージェントコードでの使用例
+
+### Python (OpenAI SDK)
 
 ```python
 from openai import OpenAI, BadRequestError
@@ -169,16 +266,59 @@ client = OpenAI(
     base_url="https://api.tokenlab.sh/v1"
 )
 
-def chat(messages, model):
+def smart_chat(messages, model="gpt-4o"):
     try:
-        return client.chat.completions.create(model=model, messages=messages)
-    except BadRequestError as exc:
-        error = exc.body.get("error", {}) if isinstance(exc.body, dict) else {}
-        suggested = error.get("did_you_mean")
-        if error.get("code") == "model_not_found" and suggested:
+        return client.chat.completions.create(
+            model=model, messages=messages
+        )
+    except BadRequestError as e:
+        error = e.body.get("error", {}) if isinstance(e.body, dict) else {}
+        # Use did_you_mean for auto-correction
+        if error.get("code") == "model_not_found" and error.get("did_you_mean"):
             return client.chat.completions.create(
-                model=suggested,
-                messages=messages,
+                model=error["did_you_mean"], messages=messages
             )
         raise
 ```
+
+### JavaScript (OpenAI SDK)
+
+```javascript
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  apiKey: 'sk-your-key',
+  baseURL: 'https://api.tokenlab.sh/v1'
+});
+
+async function smartChat(messages, model = 'gpt-4o') {
+  try {
+    return await client.chat.completions.create({ model, messages });
+  } catch (error) {
+    const err = error?.error;
+    if (err?.code === 'model_not_found' && err?.did_you_mean) {
+      return client.chat.completions.create({
+        model: err.did_you_mean, messages
+      });
+    }
+    throw error;
+  }
+}
+```
+
+## 設計原則
+
+<CardGroup cols={2}>
+  <Card title="早く失敗し、情報を明確に返す" icon="bolt">
+    エラーはエージェントが自己修正するために必要なすべてのデータを即座に返します。
+  </Card>
+  <Card title="自動ルーティングなし" icon="route">
+    API は別のモデルを黙って代替することは決してしません。エージェント自身が決定します。
+  </Card>
+  <Card title="データに基づく提案" icon="database">
+    すべての推奨はハードコードされたリストではなく、本番データに基づきます。
+  </Card>
+  <Card title="後方互換" icon="plug">
+    すべてのヒントフィールドは任意です。既存のクライアントには違いが見えません。
+  </Card>
+</CardGroup>

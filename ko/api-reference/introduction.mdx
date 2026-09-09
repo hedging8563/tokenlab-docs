@@ -151,7 +151,7 @@ Gemini 엔드포인트는 표준 Bearer 토큰 외에 `?key=` 쿼리 파라미�
   "id": "chatcmpl-abc123",
   "object": "chat.completion",
   "created": 1234567890,
-  "model": "gpt-5.6-terra",
+  "model": "gpt-4o",
   "choices": [...],
   "usage": {
     "prompt_tokens": 10,
@@ -163,16 +163,30 @@ Gemini 엔드포인트는 표준 Bearer 토큰 외에 `?key=` 쿼리 파라미�
 
 ### 라우팅 투명성
 
-TokenLab은 공개 응답 본문에 제공자, 채널, 정책 또는 자격 증명 세부 정보를 노출하지 않습니다. `_routing` 또는 기타 내부 라우팅 필드를 공개 API 계약의 일부로 의존하지 마세요.
+모든 응답에는 채널 정보가 포함된 `_routing` 필드가 포함됩니다:
 
-디버깅 및 지원에는 응답에 실제로 포함된 경우 다음 공개 응답 헤더를 사용할 수 있습니다.
+```json
+{
+  "id": "chatcmpl-abc123",
+  ...,
+  "_routing": {
+    "channel": {
+      "id": "ch_xxx",
+      "name": "channel-name",
+      "provider": "openai"
+    },
+    "cached": false,
+    "retryCount": 0
+  }
+}
+```
 
-| 헤더 | 설명 |
+| 필드 | 설명 |
 |-------|-------------|
-| `X-Routing-Time-MS` | 라우트 선택 시간(사용 가능한 경우) |
-| `X-Request-ID` | 지원 및 디버깅용 요청 식별자(사용 가능한 경우) |
-| `X-Task-ID` | 태스크 기반 응답의 공개 비동기 태스크 식별자(사용 가능한 경우) |
-| `X-Billing-Transaction-ID` | 최종 과금 후의 과금 트랜잭션 식별자(사용 가능한 경우) |
+| `channel.id` | 사용된 채널 식별자 |
+| `channel.provider` | 업스트림 프로바이더 (openai, anthropic 등) |
+| `cached` | 응답이 캐시에서 제공되었는지 여부 |
+| `retryCount` | 재시도 횟수 (있는 경우) |
 
 ### 오류 응답
 

@@ -1,12 +1,19 @@
 ---
 title: "Cancel Batch"
 openapi: "POST /v1/batches/{batch_id}/cancel"
-description: "Cancel a batch that has not finished."
+description: "Cancels a queued or running batch job."
 ---
 
 ## Overview
 
-You can request cancellation while a batch is queued or running. After the response changes to `cancelling`, retrieve the batch to get its final status.
+This endpoint is part of TokenLab's OpenAI-compatible Batch API. Batch jobs use uploaded JSONL files, run asynchronously, and can return output/error files later.
+
+## Notes
+
+- Batch input files must use `purpose=batch`.
+- `completion_window` is currently `24h`.
+- Output ordering is not guaranteed; always match by `custom_id`.
+- Streaming is not supported inside batch items.
 
 ## Example
 
@@ -16,6 +23,16 @@ curl -X POST "https://api.tokenlab.sh/v1/batches/batch_abc123/cancel" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 </RequestExample>
+
+## Request / Response
+
+Use the interactive OpenAPI panel above for the exact schema.
+
+## Operational Tips
+
+- Use `custom_id` for idempotent downstream reconciliation.
+- Expect `output_file_id` and `error_file_id` only after the worker finalizes the batch.
+- Batch pricing may differ from synchronous pricing because `isBatchRequest=true` discount rules apply.
 
 ## Response example
 
@@ -32,5 +49,5 @@ curl -X POST "https://api.tokenlab.sh/v1/batches/batch_abc123/cancel" \
 
 ## Important fields
 
-<ResponseField name="id" type="string">Batch ID.</ResponseField>
-<ResponseField name="status" type="string">`cancelling` after the request is accepted.</ResponseField>
+<ResponseField name="id" type="string">Identifier used for follow-up calls and support.</ResponseField>
+<ResponseField name="status" type="string">Current lifecycle state for this resource.</ResponseField>

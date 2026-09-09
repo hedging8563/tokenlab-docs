@@ -1,24 +1,33 @@
 ---
 title: "Pi Coding Agent"
-description: "Connect Pi Coding Agent to TokenLab"
+description: "Use TokenLab with Pi, a minimal terminal coding harness that supports OpenAI, Anthropic, and Google-style providers"
 ---
 
 ## Overview
 
 
 
+<Note>
+**Type**: Coding Tool
 
-[Pi](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent) is a terminal coding tool that can also be embedded in another application. It supports:
+**Primary Path**: OpenAI-compatible
 
-- interactive terminal coding
+**Support Confidence**: Supported path
+</Note>
+
+[Pi](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent) is a minimal terminal coding harness. In the TokenLab docs IA, it belongs under **Coding Tools**, not under native SDKs.
+
+Pi is interesting because it sits between a classic CLI tool and an embeddable runtime:
+
+- interactive terminal coding workflow
 - JSON / RPC modes for process integration
 - SDK-style embedding into your own applications
 
-Use Pi's **OpenAI-compatible** settings for Chat Completions. Choose Anthropic or Google settings only when your Pi configuration needs fields from those formats.
+For TokenLab, Pi is usually easiest to configure through an **OpenAI-compatible** provider path, unless you intentionally want Anthropic-native or Google-native behavior.
 
-## OpenAI-compatible setup
+## Recommended TokenLab Path
 
-Set the TokenLab API key and Base URL:
+Use TokenLab as an OpenAI-compatible endpoint:
 
 ```bash
 export OPENAI_API_KEY="sk-your-tokenlab-key"
@@ -44,11 +53,11 @@ That is why this page focuses on the practical TokenLab connection path rather t
 
 <AccordionGroup>
   <Accordion title="OpenAI-compatible default">
-    Use `https://api.tokenlab.sh/v1` for OpenAI-compatible requests. Choose a different setup only when Pi needs the Anthropic or Gemini API format.
+    Start with TokenLab's `https://api.tokenlab.sh/v1` path unless your Pi workflow explicitly depends on a native provider protocol.
   </Accordion>
 
-  <Accordion title="Anthropic and Gemini use different settings">
-    Test Claude or Gemini with the matching Pi settings. Do not reuse the OpenAI-compatible configuration for those API formats.
+  <Accordion title="Native-provider setups are separate">
+    Claude-native or Gemini-native Pi setups should be documented and tested as separate provider-specific paths, not assumed to be identical to the OpenAI-compatible route.
   </Accordion>
 
   <Accordion title="Keep tool/runtime expectations realistic">
@@ -62,11 +71,11 @@ That is why this page focuses on the practical TokenLab connection path rather t
   <Accordion title="Connection errors">
     - Verify the configured OpenAI-style base URL is exactly `https://api.tokenlab.sh/v1`
     - Verify the key starts with `sk-`
-    - Verify that the selected Pi settings match the API format you intend to use
+    - Verify the selected Pi provider path matches the protocol you intend to use
   </Accordion>
 
   <Accordion title="Model mismatch">
     - Keep the TokenLab model id separate from any Pi-local aliasing
-    - For Anthropic or Gemini formats, confirm that Pi is using the matching settings
+    - If you are testing provider-native behavior, confirm the Pi provider is really using that native path
   </Accordion>
 </AccordionGroup>

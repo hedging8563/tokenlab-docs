@@ -1,107 +1,277 @@
 ---
-title: "处理 API 错误"
-description: "根据错误码判断问题，只在有用时重试，并保留请求 ID"
+title: "错误处理"
+description: "优雅地处理 API 错误"
 ---
 
-程序应根据 HTTP 状态和 `code` 处理错误。`message` 是写给人看的，文案可能调整，不适合用来做程序判断。
+## 错误响应格式
 
-Chat Completions 和 Responses 使用 OpenAI 风格的 `error` 对象。Anthropic Messages 与 Gemini 保留各自的错误格式，不能用同一个解析器处理所有 TokenLab API。
-
+Chat Completions、Responses、Messages 和 Gemini 是公开协议边界，不是 Web API。原生协议错误不会包装成 Web 的 `{ success, data, error }` envelope。下面示例只适用于 Chat 和 Responses 的 OpenAI 兼容 gateway 错误：
 ```json
 {
   "error": {
-    "message": "Human-readable description",
+    "message": "Human-readable error description",
     "type": "error_type",
     "code": "error_code",
     "param": "parameter_name",
+    "did_you_mean": "suggested_model",
+    "suggestions": [{"id": "model-id"}],
+    "hint": "Next step guidance",
     "retryable": true,
     "retry_after": 30
   }
 }
 ```
 
-TokenLab 返回的 OpenAI 兼容错误一定包含 `message` 和 `type`，其他字段只在有对应信息时出现。
+OpenAI 兼容 gateway 错误会包含 `message` 和 `type`；`code`、`param` 和提示扩展是可选项。Messages 和 Gemini 使用各自的原生错误格式。可以安全返回的 upstream validation 错误会原样保留；确定性的 400/422 不切换 channel，交付第一个 byte 后也不重试。
+## HTTP 状态码
 
-## HTTP 状态
+| 代码 | 描述 |
+|------|-------------|
+| 400 | 错误请求 - 参数无效 |
+| 401 | 未授权 - API key 无效或缺失 |
+| 402 | 需要付款 - 余额不足 |
+| 403 | 禁止 - 访问被拒或模型不允许 |
+| 404 | 未找到 - 模型或资源未找到 |
+| 413 | 负载过大 - 输入或文件大小超限 |
+| 429 | 请求过多 - 超出速率限制 |
+| 500 | 服务器内部错误 |
+| 502 | 错误网关 - 上游提供商错误 |
+| 503 | 服务不可用 - 服务暂时不可用 |
+| 504 | 网关超时 - 请求超时 |
 
-| 状态 | 含义 | 通常怎么处理 |
-| --- | --- | --- |
-| `400` | 字段、模型 ID 或输入不正确 | 修改请求，不要原样重发 |
-| `401` | API 密钥缺失、无效、过期或已撤销 | 更换密钥 |
-| `402` | 余额不足，或 API 密钥已达到限额 | 充值、提高限额或缩小请求 |
-| `403` | 当前密钥不能使用这个资源或模型 | 修改密钥权限或更换模型 |
-| `404` | 资源不存在或已经失效 | 检查 ID，以及创建资源时使用的 API 密钥 |
-| `413` | 请求或上传文件过大 | 缩小到模型或 API 文档注明的限制内 |
-| `429` | 已达到请求限额 | 按 `Retry-After` 等待 |
-| `500`–`504` | 暂时的服务或网络故障 | 请求可以安全重复时，有限重试并使用退避 |
+## 错误类型
 
-## 常见错误码
+### 认证错误 (401)
 
-| 错误码 | 含义 | 需要修改什么 |
-| --- | --- | --- |
-| `invalid_api_key` | API 密钥缺失或无效 | 检查 Authorization 请求头和密钥内容 |
-| `expired_api_key` | API 密钥已过期或撤销 | 创建或选择一枚有效密钥 |
-| `insufficient_balance` | 余额无法支付这次请求 | 充值、缩小请求或选择价格更低的模型 |
-| `quota_exceeded` | 这枚 API 密钥达到自身限额 | 提高限额，或使用另一枚有权限的密钥 |
-| `model_not_allowed` | 这枚密钥不能使用所选模型 | 修改模型范围，或改用已开放模型 |
-| `model_not_found` | 模型 ID 不存在或当前不可用 | 从 `/v1/models` 选择当前模型 ID |
-| `context_length_exceeded` | 输入超过模型上下文长度 | 删除无关历史，或更换上下文更长的模型 |
-| `rate_limit_exceeded` | 当前时间窗口内请求过多 | 按 `Retry-After` 等待 |
-| `payload_too_large` | 请求体或文件超过 API 限制 | 缩小或压缩输入 |
-| `all_channels_failed` | 所选模型暂时不可用 | 按 `retry_after` 等待，或让用户选择其他模型 |
-| `timeout_error` | 请求未在规定时间内完成 | 只在操作可以安全重复时重试 |
-
-部分 OpenAI 兼容错误还会带有 `did_you_mean`、`suggestions`、`alternatives`、`hint`、`retryable` 或 `retry_after`。具体用法见[让 Agent 读懂 API 错误](/zh/guides/agent-first-api)。
-
-## 什么时候可以重试
-
-| 错误 | 能否原样重发 |
-| --- | --- |
-| `400`、`401`、`402`、`403`、`404`、`413` | 不能。需要修改请求、凭据、余额、权限或输入。 |
-| `429` | 可以，但必须等待服务端给出的时间。 |
-| `500`–`504` | 视情况。使用指数退避，并严格限制次数。 |
-| 收到任何响应前连接中断 | 视情况。创建类请求要确认是否已经产生任务或其他结果。 |
-| 流式输出已经开始后中断 | 不能把残缺内容标成完成；重发可能得到不同结果或产生第二次费用。 |
-
-创建图片、视频、音乐、3D 或 Worlds 任务时，收到任务 ID 就立即保存。创建请求超时后，请确认没有任务记录再重新提交。
-
-## Python 示例
+| 类型 | 代码 | 描述 |
+|------|------|-------------|
+| `invalid_api_key` | `invalid_api_key` | API key 缺失或无效 |
+| `expired_api_key` | `expired_api_key` | API key 已被撤销 |
 
 ```python
-import random
-import time
-from openai import OpenAI, APIConnectionError, APIStatusError, RateLimitError
+from openai import OpenAI, AuthenticationError
+
+try:
+    response = client.chat.completions.create(...)
+except AuthenticationError as e:
+    print(f"Authentication failed: {e.message}")
+```
+
+### 支付错误 (402)
+
+| 类型 | 代码 | 描述 |
+|------|------|-------------|
+| `insufficient_balance` | `insufficient_balance` | 账户余额过低 |
+| `quota_exceeded` | `quota_exceeded` | API key 使用限额已达 |
+
+```python
+from openai import OpenAI, APIStatusError
+
+try:
+    response = client.chat.completions.create(...)
+except APIStatusError as e:
+    if e.status_code == 402:
+        print("Please top up your account balance")
+```
+
+### 访问错误 (403)
+
+| 类型 | 代码 | 描述 |
+|------|------|-------------|
+| `access_denied` | `access_denied` | 访问资源被拒绝 |
+| `access_denied` | `model_not_allowed` | 该 API key 不允许使用此模型 |
+
+```json
+{
+  "error": {
+    "message": "You don't have permission to access this model",
+    "type": "access_denied",
+    "code": "model_not_allowed"
+  }
+}
+```
+
+### 验证错误 (400)
+
+| 类型 | 描述 |
+|------|-------------|
+| `invalid_request_error` | 请求参数无效 |
+| `context_length_exceeded` | 输入超出模型的上下文长度 |
+| `model_not_found` | 请求的模型在当前公共合约中不可用 |
+
+```json
+{
+  "error": {
+    "message": "Model not found: please check the model name",
+    "type": "invalid_request_error",
+    "param": "model",
+    "code": "model_not_found",
+    "did_you_mean": "gpt-5.4",
+    "suggestions": [{"id": "gpt-5.4"}, {"id": "gpt-5-mini"}],
+    "hint": "Did you mean 'gpt-5.4'? Use GET https://api.tokenlab.sh/v1/models to list all available models."
+  }
+}
+```
+
+公共路由不会在响应体中区分拼写错误、隐藏、延迟或非公开的模型状态。如果模型当前无法通过公共合约访问，TokenLab 会返回 `model_not_found`。
+
+### 速率限制错误 (429)
+
+当超过速率限制时：
+
+```json
+{
+  "error": {
+    "message": "Rate limit: 1000 rpm exceeded",
+    "type": "rate_limit_exceeded",
+    "code": "rate_limit_exceeded",
+    "retryable": true,
+    "retry_after": 8,
+    "hint": "Rate limited. Retry after 8s. Current limit: 1000/min for user role."
+  }
+}
+```
+
+**包含的头部：**
+
+```
+Retry-After: 8
+```
+
+`Retry-After` 头和 `retry_after` 字段都指示在重试前应等待的确切秒数。
+
+### 负载过大 (413)
+
+当输入或文件大小超过限制时：
+
+```json
+{
+  "error": {
+    "message": "Input size exceeds maximum allowed",
+    "type": "invalid_request_error",
+    "code": "payload_too_large"
+  }
+}
+```
+
+常见原因：
+- 图像文件过大（最大 20MB）
+- 音频文件过大（最大 25MB）
+- 输入文本超过模型上下文长度
+
+### 上游错误 (502, 503)
+
+| 类型 | 描述 |
+|------|-------------|
+| `upstream_error` | 提供方返回错误 |
+| `all_channels_failed` | 没有可用的提供方 |
+| `timeout_error` | 请求超时 |
+
+当所有通道都失败时，响应会包含备选模型：
+
+```json
+{
+  "error": {
+    "message": "Model claude-opus-4-6 temporarily unavailable",
+    "code": "all_channels_failed",
+    "retryable": true,
+    "retry_after": 30,
+    "alternatives": [
+      {"id": "claude-sonnet-4-6", "status": "available", "tags": []},
+      {"id": "gpt-5-mini", "status": "available", "tags": []}
+    ],
+    "hint": "Retry in 30s or switch to an available model."
+  }
+}
+```
+
+## 在 Python 中处理错误
+
+```python
+from openai import OpenAI, APIError, RateLimitError, APIConnectionError
 
 client = OpenAI(
     api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1",
+    base_url="https://api.tokenlab.sh/v1"
 )
 
-def chat(messages, model="gpt-5.6-luna", attempts=3):
-    for attempt in range(attempts):
+def chat_with_retry(messages, max_retries=3):
+    for attempt in range(max_retries):
         try:
             return client.chat.completions.create(
-                model=model,
-                messages=messages,
+                model="gpt-4o",
+                messages=messages
             )
-        except RateLimitError as exc:
-            if attempt == attempts - 1:
-                raise
-            retry_after = exc.response.headers.get("Retry-After")
-            wait = float(retry_after) if retry_after else (2 ** attempt + random.random())
-            time.sleep(wait)
-        except APIStatusError as exc:
-            if exc.status_code < 500 or attempt == attempts - 1:
-                raise
-            time.sleep(2 ** attempt + random.random())
-        except APIConnectionError:
-            if attempt == attempts - 1:
-                raise
-            time.sleep(2 ** attempt + random.random())
+        except RateLimitError as e:
+            if attempt < max_retries - 1:
+                import time
+                time.sleep(2 ** attempt)  # Exponential backoff
+                continue
+            raise
+        except APIConnectionError as e:
+            print(f"Connection error: {e}")
+            raise
+        except APIError as e:
+            print(f"API error: {e.status_code} - {e.message}")
+            raise
 ```
 
-## 保存请求 ID
+## 在 JavaScript 中处理错误
 
-响应头会提供请求 ID，用于查询这次请求。请同时记录 API 地址、模型、时间，以及你自己的用户或任务 ID。异步任务还应保存 `task_id` 和返回时的 `billing_transaction_id`。
+```javascript
+import OpenAI from 'openai';
 
-联系支持时请附上这些 ID 和脱敏示例。不要发送 API 密钥、管理令牌、私密媒体、签名 URL 或完整的私密提示词。
+const client = new OpenAI({
+  apiKey: 'sk-your-api-key',
+  baseURL: 'https://api.tokenlab.sh/v1'
+});
+
+async function chatWithRetry(messages, maxRetries = 3) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await client.chat.completions.create({
+        model: 'gpt-4o',
+        messages
+      });
+    } catch (error) {
+      if (error instanceof OpenAI.RateLimitError) {
+        if (attempt < maxRetries - 1) {
+          await new Promise(r => setTimeout(r, 2 ** attempt * 1000));
+          continue;
+        }
+      }
+      throw error;
+    }
+  }
+}
+```
+
+## 最佳实践
+
+<AccordionGroup>
+  <Accordion title="实现指数退避">
+    当受到速率限制时，在重试之间逐步延长等待时间：
+    ```python
+    wait_time = 2 ** attempt  # 1s, 2s, 4s, 8s...
+    ```
+  </Accordion>
+
+  <Accordion title="设置超时">
+    始终设置合理的超时时间以避免请求挂起：
+    ```python
+    client = OpenAI(timeout=60.0)  # 60 second timeout
+    ```
+  </Accordion>
+
+  <Accordion title="记录错误以便调试">
+    记录完整的错误响应，包括请求 ID 以便支持：
+    ```python
+    except APIError as e:
+        logger.error(f"API Error: {e.status_code} - {e.message}")
+    ```
+  </Accordion>
+
+  <Accordion title="处理模型特定错误">
+    一些模型有特定要求（例如，最大 tokens、图像格式）。在发起请求前验证输入。
+  </Accordion>
+</AccordionGroup>

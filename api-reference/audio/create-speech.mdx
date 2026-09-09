@@ -5,14 +5,14 @@ description: "Generates audio from the input text"
 ---
 
 <Note>
-Use `GET /v1/models?recommended_for=tts` to get current speech models.
+For coding agents, discover the current recommended TTS shortlist first with `GET /v1/models?recommended_for=tts`, then send the selected `model` explicitly to this endpoint.
 </Note>
 
 ## Request Body
 
-This endpoint returns after the audio is ready. For longer input, set your HTTP client timeout to at least `120s`.
+**Synchronous request timeout:** This non-chat endpoint waits for the routed model to finish. Large inputs, long audio, or large batches can exceed common 30s client defaults, so set your HTTP client timeout to at least `120s`.
 
-Optional fields vary by model. OpenAI TTS supports `voice`, `instructions`, `response_format`, `stream_format`, and `speed`. MiniMax speech can also use `voice_id`. Gemini TTS can use `prompt`, `language_code`, and `temperature`. Unsupported fields return `400 unsupported_parameter`.
+Supported optional fields vary by model family. TokenLab validates this field matrix before routing: OpenAI TTS accepts `voice`, `instructions`, `response_format`, `stream_format`, and `speed`; MiniMax speech accepts `voice`, `voice_id`, `response_format`, `stream_format`, and `speed`; Gemini TTS accepts `prompt`, `language_code`, `voice`, `response_format`, `stream_format`, `speed`, and `temperature`; narrower Vidu/Kling-style TTS routes may accept only `input` and `stream_format`. Unknown top-level fields, including `user`, return `400 unsupported_parameter` instead of being ignored.
 
 <ParamField body="model" type="string" default="tts-1">
   TTS model. Examples include `tts-1`, `gpt-4o-mini-tts`, `speech-02-hd`, and `gemini-2.5-flash-tts`. Query `GET /v1/models?recommended_for=tts` for the current shortlist.
@@ -39,7 +39,7 @@ Optional fields vary by model. OpenAI TTS supports `voice`, `instructions`, `res
 </ParamField>
 
 <ParamField body="language_code" type="string">
-  Language code, such as `en-US`, for models that support it.
+  Optional language code, for example `en-US`, for Gemini, xAI, and compatible TTS routes.
 </ParamField>
 
 <ParamField body="response_format" type="string">
@@ -55,7 +55,7 @@ Optional fields vary by model. OpenAI TTS supports `voice`, `instructions`, `res
 </ParamField>
 
 <ParamField body="temperature" type="number">
-  Sampling temperature for Gemini TTS, from 0 to 2.
+  Sampling temperature for Gemini-compatible TTS routes (0 to 2).
 </ParamField>
 
 ## Response

@@ -5,7 +5,7 @@ description: "Creates a music generation task using Suno"
 ---
 
 <Note>
-Use `GET /v1/models?recommended_for=music` to get current music models.
+For coding agents, discover the current recommended music shortlist first with `GET /v1/models?recommended_for=music`, then send the selected `model` explicitly to this endpoint.
 </Note>
 
 Generate music and lyrics using AI. This is an asynchronous API. Create responses return a task identity, and may also return a preferred `poll_url` for status checks.

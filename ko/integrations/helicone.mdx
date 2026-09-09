@@ -7,6 +7,14 @@ description: "Helicone Gateway를 통해 TokenLab 요청 관찰하기"
 
 Helicone은 TokenLab의 OpenAI 호환 요청을 Helicone Gateway를 통해 라우팅하고 TokenLab을 대상으로 지정함으로써 해당 요청을 프록시하고 관찰할 수 있습니다.
 
+<Note>
+**유형**: 관찰 가능성(Observability) 게이트웨이
+
+**기본 경로**: Helicone Gateway를 통한 OpenAI 호환 채팅 완성(chat completions)
+
+**지원 신뢰도**: 지원되는 관찰 가능성 경로
+</Note>
+
 ## 환경 설정
 
 ```bash
@@ -25,7 +33,7 @@ curl --request POST \
   --header "Helicone-Target-Provider: TokenLab" \
   --header "Content-Type: application/json" \
   --data '{
-    "model": "gpt-5.6-luna",
+    "model": "gpt-5.4-mini",
     "messages": [
       {
         "role": "user",

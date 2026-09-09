@@ -5,8 +5,15 @@ description: "使用 OpenLLMetry 追踪 TokenLab 兼容 OpenAI 的请求"
 
 ## 概述
 
-把 OpenAI SDK Base URL 改为 TokenLab `/v1`，OpenLLMetry 就能记录这些 SDK 调用。
+OpenLLMetry 的 OpenAI 插桩（instrumentation）功能可以追踪通过官方 OpenAI SDK 发起的调用。请使用 TokenLab 的 `/v1` 基础 URL 配置该 SDK。
 
+<Note>
+**类型**: 可观测性
+
+**主要路径**: OpenAI SDK 插桩
+
+**支持置信度**: 支持兼容 OpenAI 的可观测性路径
+</Note>
 
 ## 安装
 

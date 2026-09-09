@@ -7,6 +7,14 @@ description: "TokenLabのOpenAI互換リクエストをLangfuseでトレース�
 
 Langfuseは、OpenAI SDKがTokenLabの `/v1` ベースURLで設定されている場合、そのOpenAI統合を通じてTokenLabの呼び出しをトレースできます。
 
+<Note>
+**タイプ**: 可観測性 (Observability)
+
+**主要パス**: OpenAI SDKトレース
+
+**サポート信頼度**: サポートされているOpenAI互換トレースパス
+</Note>
+
 ## 環境変数
 
 ```bash
@@ -26,6 +34,7 @@ from langfuse.openai import openai
 
 openai.api_key = os.environ["TOKENLAB_API_KEY"]
 openai.base_url = "https://api.tokenlab.sh/v1"
+
 
 @observe()
 def story():

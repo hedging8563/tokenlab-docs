@@ -1,52 +1,157 @@
 ---
 title: "Modeli Getir"
 openapi: "GET /v1/models/{model}"
-description: "Bir modelin yeteneklerini, fiyatlandırmasını ve API formatlarını getir"
+description: "Bir model örneğini getirir"
 ---
 
-## Yol Parametresi
+## Yol Parametreleri
 
 <ParamField path="model" type="string" required>
-  `gpt-5.4` veya `claude-sonnet-4-6` gibi Model ID.
+  Getirilecek modelin ID'si (örneğin `gpt-5.4`, `claude-sonnet-4-6`).
 </ParamField>
 
 ## Yanıt
 
-<ResponseField name="id" type="string">Model kimliği.</ResponseField>
-<ResponseField name="object" type="string">Her zaman `model`.</ResponseField>
-<ResponseField name="owned_by" type="string">Model üreticisi.</ResponseField>
-<ResponseField name="tokenlab" type="object">
-  Yetenekler, fiyatlar, faturalandırma birimleri, bağlam sınırları, kabul edilen API formatları, işlemler ve yaşam döngüsü durumu dahil olmak üzere TokenLab model bilgileri.
+<ResponseField name="id" type="string">
+  Model tanımlayıcısı.
+Ayrıca kullanım dışı/retired durumu, kullanıcı ücret politikası ve rozetler için `lifecycle`, `commercial` ve `badges` içerir.
 </ResponseField>
 
-Yaygın `tokenlab` alanları şunlardır:
+<ResponseField name="object" type="string">
+  Her zaman `model`.
+</ResponseField>
 
-- `capabilities`: metin, görsel, video, ses ve diğer yetenekler.
-- `pricing`: güncel halka açık fiyatlar.
-- `max_input_tokens` ve `max_output_tokens`: bağlam ve çıktı sınırları.
-- `accepted_request_formats`: desteklenen API formatları.
-- `supported_operations`: metinden görsele veya görselden videoya gibi işlemler.
-- `lifecycle`: kullanılabilirlik, yayınlanma tarihi, kullanımdan kaldırılma tarihi veya yedek model.
+<ResponseField name="created" type="integer">
+  Oluşturulma zaman damgası.
+</ResponseField>
 
-Bazı medya modelleri ayrıca bir öneri durumu ve güncelleme zamanı içerir. Öneriler, kullanılabilirlik ve performansa göre değişebilir, bu nedenle sıralamalarını kodunuza sabit (hard-code) olarak yazmayın.
+<ResponseField name="owned_by" type="string">
+  Model sağlayıcısı.
+</ResponseField>
 
-## Örnek
+<ResponseField name="tokenlab" type="object">
+  TokenLab'ya özgü herkese açık metadata. Detay route'u `category`, `pricing_unit`, `capability_flags`, `supported_operations`, `pricing_provenance`, `request_format_summary`, tam `request_format_details` ve chat dışı öneri snapshot'ları için sahne düzeyinde `agent_preferences` içerebilir.
+</ResponseField>
 
-```bash
-curl "https://api.tokenlab.sh/v1/models/gpt-5.4"
+<RequestExample>
+```bash cURL
+curl "https://api.tokenlab.sh/v1/models/gpt-5.4" \
+  -H "Authorization: Bearer sk-your-api-key"
 ```
+
+```python Python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="sk-your-api-key",
+    base_url="https://api.tokenlab.sh/v1"
+)
+
+model = client.models.retrieve("gpt-5.4")
+print(f"Model: {model.id}, Provider: {model.owned_by}")
+```
+
+```javascript JavaScript
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  apiKey: 'sk-your-api-key',
+  baseURL: 'https://api.tokenlab.sh/v1'
+});
+
+const model = await client.models.retrieve('gpt-5.4');
+console.log(`Model: ${model.id}, Provider: ${model.owned_by}`);
+```
+
+```go Go
+package main
+
+import (
+    "encoding/json"
+    "fmt"
+    "net/http"
+)
+
+func main() {
+    req, _ := http.NewRequest("GET", "https://api.tokenlab.sh/v1/models/gpt-5.4", nil)
+    req.Header.Set("Authorization", "Bearer sk-your-api-key")
+
+    resp, _ := http.DefaultClient.Do(req)
+    defer resp.Body.Close()
+
+    var model map[string]interface{}
+    json.NewDecoder(resp.Body).Decode(&model)
+    fmt.Printf("Model: %s, Provider: %s\n", model["id"], model["owned_by"])
+}
+```
+
+```php PHP
+<?php
+$ch = curl_init('https://api.tokenlab.sh/v1/models/gpt-5.4');
+
+curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HTTPHEADER => [
+        'Authorization: Bearer sk-your-api-key'
+    ]
+]);
+
+$response = curl_exec($ch);
+curl_close($ch);
+
+$model = json_decode($response, true);
+echo "Model: {$model['id']}, Provider: {$model['owned_by']}\n";
+```
+</RequestExample>
+
+<ResponseExample>
+```json Response
+{
+  "id": "gpt-5.4",
+  "object": "model",
+  "created": 1706000000,
+  "owned_by": "openai"
+}
+```
+</ResponseExample>
+
+## Hata İşleme
+
+Model yoksa 404 hatası alırsınız:
 
 ```json
 {
-  "id": "gpt-5.6-terra",
-  "object": "model",
-  "owned_by": "openai",
-  "tokenlab": {
-    "category": "chat",
-    "capabilities": ["text"],
-    "accepted_request_formats": ["responses", "chat_completions"]
+  "error": {
+    "message": "Model 'invalid-model' not found",
+    "type": "invalid_request_error",
+    "code": "model_not_found"
   }
 }
 ```
 
-Bilinmeyen bir model `404 model_not_found` hatası döndürür.
+## Chat Dışı Öneri Metadata'sı
+
+Chat dışı modeller için detay route'u ayrıca `tokenlab.agent_preferences.<scene>` döndürür.
+
+Bunu şunları incelemek için kullanın:
+
+- `preferred_rank`
+- `success_rate_24h`
+- `sample_count_24h`
+- `status`
+- `updated_at`
+
+Public yanıt, öneri kaynağını `basis.source` ile özetler ve routing identifier göstermez.
+
+## Herkese Açık Detay Metadata'sı
+
+`GET /v1/models` ile karşılaştırıldığında, detay route'u ayrıca şunları döndürebilir:
+
+- `tokenlab.capability_flags`
+- `tokenlab.supported_operations`
+- `tokenlab.pricing_provenance`
+- `tokenlab.request_format_summary`
+- `tokenlab.request_format_details`
+## Model Silme
+
+`DELETE /v1/models/{model}` desteklenmez. TokenLab modelleri paylaşılan herkese açık bir katalogdur, kullanıcıya ait fine-tuned model kaynakları değildir.

@@ -4,7 +4,7 @@ openapi: "GET /v1/worlds/media-assets/{id}"
 description: "Retrieves a World Labs media asset prepared through TokenLab"
 ---
 
-Retrieve a World asset's name, type, and metadata. Only the Workspace that created it can access it.
+Retrieve metadata for a media asset prepared through TokenLab. Access is limited to the organization that created the asset.
 
 ## Path Parameters
 
@@ -27,7 +27,7 @@ Retrieve a World asset's name, type, and metadata. Only the Workspace that creat
 </ResponseField>
 
 <ResponseField name="metadata" type="object">
-  Custom metadata stored with the asset.
+  Optional metadata object stored with the upstream media asset.
 </ResponseField>
 
 <RequestExample>

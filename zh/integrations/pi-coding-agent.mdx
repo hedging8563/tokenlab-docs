@@ -1,22 +1,31 @@
 ---
 title: "Pi Coding Agent"
-description: "把 Pi Coding Agent 连接到 TokenLab"
+description: "将 TokenLab 与 Pi 结合使用。Pi 是一个极简终端编码代理工具，同时支持 OpenAI、Anthropic 和 Google 风格的接入配置"
 ---
 
 ## 概述
 
+<Note>
+**类型**: 编码工具
 
-[Pi](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent) 既可以作为终端编程工具使用，也能嵌入其他应用。它支持：
+**主要路径**: OpenAI 兼容
 
-- 交互式终端编程
+**支持级别**: 支持路径
+</Note>
+
+[Pi](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent) 是一个极简终端编码代理工具。在 TokenLab 的文档信息架构里，它更适合归类到 **Coding Tools**，而不是原生 SDK。
+
+Pi 的特殊点在于它介于经典 CLI 工具和可嵌入运行时之间：
+
+- 可交互的终端编码工作流
 - 用于进程集成的 JSON / RPC 模式
-- 嵌入自己的应用
+- 可嵌入你自己应用里的 SDK 风格能力
 
-使用 Chat Completions 时，配置 Pi 的 **OpenAI 兼容**服务即可。只有需要 Anthropic 或 Google 专属字段时，才改用对应格式。
+对 TokenLab 来说，Pi 通常最适合先走 **OpenAI 兼容** 路径，除非你明确要用 Anthropic-native 或 Google-native 行为。
 
-## OpenAI 兼容配置
+## 推荐的 TokenLab 路径
 
-设置 TokenLab API 密钥和 Base URL：
+将 TokenLab 作为 OpenAI 兼容 端点 使用：
 
 ```bash
 export OPENAI_API_KEY="sk-your-tokenlab-key"
@@ -36,13 +45,13 @@ Pi 不只是“另一个 SDK”。
 - 如果你把 Pi 当作终端代理使用，它更像 **coding tool**
 - 如果你把 Pi 嵌入自己的应用里，它又更像 **代理运行时 / 执行框架**
 
-下面分别给出终端用法和嵌入应用时的配置。
+因此这页更关注 TokenLab 的实际接入路径，而不是把 Pi 简化成纯 SDK。
 
 ## 实用配置说明
 
 <AccordionGroup>
   <Accordion title="默认先走 OpenAI 兼容">
-    Pi 使用 Chat Completions 时，Base URL 填写 `https://api.tokenlab.sh/v1`。
+    除非你的 Pi 工作流明确依赖原生协议，否则优先从 TokenLab 的 `https://api.tokenlab.sh/v1` 路径开始。
   </Accordion>
 
   <Accordion title="原生接入配置应单独看待">
@@ -60,7 +69,7 @@ Pi 不只是“另一个 SDK”。
   <Accordion title="连接错误">
     - 确认配置的 OpenAI 风格 base URL 完全等于 `https://api.tokenlab.sh/v1`
     - 确认 key 以 `sk-` 开头
-    - 确认 Pi 使用的 API 格式与所选模型一致
+    - 确认 Pi 当前走的接入路径和你预期的协议一致
   </Accordion>
 
   <Accordion title="模型不匹配">

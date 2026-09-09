@@ -1,107 +1,278 @@
 ---
-title: "API-Fehler behandeln"
-description: "Fehlercodes lesen, nur bei Bedarf wiederholen und die Request ID speichern"
+title: "Fehlerbehandlung"
+description: "API-Fehler elegant behandeln"
 ---
 
-Behandeln Sie Fehler anhand des HTTP-Status und des `code`. Die `message` ist für Menschen geschrieben und kann sich ohne Vorankündigung ändern.
+## Fehler-Antwortformat
 
-Chat Completions und Responses verwenden ein `error`-Objekt im OpenAI-Stil. Anthropic Messages und Gemini verwenden ihre eigenen Fehlerformate; verwenden Sie daher nicht denselben Parser für jede TokenLab API.
-
+Chat Completions, Responses, Messages und Gemini sind öffentliche Protokollgrenzen und keine Web-APIs. Native Protokollfehler werden nicht in das Web-Envelope `{ success, data, error }` verpackt. Das folgende Beispiel gilt für OpenAI-kompatible Gatewayfehler in Chat und Responses:
 ```json
 {
   "error": {
-    "message": "Human-readable description",
+    "message": "Human-readable error description",
     "type": "error_type",
     "code": "error_code",
     "param": "parameter_name",
+    "did_you_mean": "suggested_model",
+    "suggestions": [{"id": "model-id"}],
+    "hint": "Next step guidance",
     "retryable": true,
     "retry_after": 30
   }
 }
 ```
 
-Nur `message` und `type` sind in OpenAI-kompatiblen Fehlern, die von TokenLab erstellt wurden, immer vorhanden. Andere Felder erscheinen, wenn sie relevant sind.
+Bei OpenAI-kompatiblen Gatewayfehlern sind `message` und `type` vorhanden; `code`, `param` und Hinweiserweiterungen sind optional. Messages und Gemini verwenden ihre nativen Fehlerfamilien. Upstream-Validierungsfehler bleiben erhalten, wenn sie sicher zurückgegeben werden können; ein deterministisches 400/422 wechselt den Kanal nicht, und nach dem ersten ausgelieferten Byte wird nicht erneut versucht.
+## HTTP-Statuscodes
 
-## Statuscodes
+| Code | Beschreibung |
+|------|--------------|
+| 400 | Bad Request - Ungültige Parameter |
+| 401 | Unauthorized - Ungültiger oder fehlender API-Schlüssel |
+| 402 | Payment Required - Unzureichendes Guthaben |
+| 403 | Forbidden - Zugriff verweigert oder Modell nicht erlaubt |
+| 404 | Not Found - Modell oder Ressource nicht gefunden |
+| 413 | Nutzlast zu groß - Eingabe- oder Dateigröße überschritten |
+| 429 | Too Many Requests - Ratenlimit überschritten |
+| 500 | Interner Serverfehler |
+| 502 | Bad Gateway - Fehler des Upstream-Providers |
+| 503 | Service Unavailable - Dienst vorübergehend nicht verfügbar |
+| 504 | Gateway Timeout - Anfrage hat zu lange gedauert |
 
-| Status | Bedeutung | Typische Maßnahme |
-| --- | --- | --- |
-| `400` | Ein Feld, eine Modell-ID oder eine Eingabe ist ungültig | Anfrage korrigieren; nicht unverändert wiederholen |
-| `401` | API-Key fehlt, ist ungültig, abgelaufen oder wurde widerrufen | Key ersetzen |
-| `402` | Guthaben oder API-Key-Limit ist zu niedrig | Aufladen, Limit erhöhen oder Anfrage reduzieren |
-| `403` | Dieser Key kann die Ressource oder das Modell nicht verwenden | Berechtigungen des Keys oder Modell ändern |
-| `404` | Ressource existiert nicht oder ist nicht mehr verfügbar | ID und den API-Key, der sie erstellt hat, überprüfen |
-| `413` | Anfrage oder hochgeladene Datei ist zu groß | Eingabe auf das dokumentierte Modell- oder Endpunkt-Limit reduzieren |
-| `429` | Anfrage-Limit erreicht | Auf `Retry-After` warten |
-| `500`–`504` | Vorübergehender Dienst- oder Netzwerkausfall | Mit Limit und Backoff wiederholen, wenn die Anfrage sicher wiederholt werden kann |
+## Fehlertypen
 
-## Häufige Fehlercodes
+### Authentifizierungsfehler (401)
 
-| Code | Bedeutung | Was zu ändern ist |
-| --- | --- | --- |
-| `invalid_api_key` | Der API-Key fehlt oder ist nicht gültig | Authorization-Header und Key-Wert überprüfen |
-| `expired_api_key` | Der Key ist abgelaufen oder wurde widerrufen | Aktiven Key erstellen oder auswählen |
-| `insufficient_balance` | Das Kontoguthaben deckt die Anfrage nicht ab | Guthaben aufladen, Anfrage reduzieren oder günstigeres Modell wählen |
-| `quota_exceeded` | Der API-Key hat sein eigenes Limit erreicht | Limit des Keys erhöhen oder anderen autorisierten Key verwenden |
-| `model_not_allowed` | Der Key kann das angeforderte Modell nicht verwenden | Modellliste des Keys aktualisieren oder erlaubtes Modell wählen |
-| `model_not_found` | Die Modell-ID ist unbekannt oder nicht verfügbar | `/v1/models` lesen und eine aktuelle Modell-ID verwenden |
-| `context_length_exceeded` | Eingabe ist länger, als das Modell akzeptiert | Verlauf entfernen oder Modell mit größerem Kontextfenster wählen |
-| `rate_limit_exceeded` | Zu viele Anfragen im aktuellen Zeitfenster gesendet | Auf `Retry-After` warten |
-| `payload_too_large` | Request-Body oder Datei überschreitet das Endpunkt-Limit | Eingabe reduzieren oder komprimieren |
-| `all_channels_failed` | Das ausgewählte Modell ist vorübergehend nicht verfügbar | Auf `retry_after` warten oder den Benutzer eine Alternative wählen lassen |
-| `timeout_error` | Die Anfrage wurde nicht rechtzeitig abgeschlossen | Nur wiederholen, wenn der Vorgang sicher wiederholt werden kann |
-
-Einige OpenAI-kompatible Fehler enthalten optionale Felder wie `did_you_mean`, `suggestions`, `alternatives`, `hint`, `retryable` oder `retry_after`. Siehe [Fehler, auf die Agenten reagieren können](/guides/agent-first-api).
-
-## Entscheidungen zur Wiederholung (Retry)
-
-| Fehler | Dieselbe Anfrage wiederholen? |
-| --- | --- |
-| `400`, `401`, `402`, `403`, `404`, `413` | Nein. Ändern Sie die Anfrage, Anmeldedaten, das Guthaben, Berechtigungen oder die Eingabe. |
-| `429` | Ja, nach der vom Server bereitgestellten Verzögerung. |
-| `500`–`504` | Manchmal. Verwenden Sie exponentielles Backoff und ein striktes Wiederholungslimit. |
-| Verbindung vor Antwort geschlossen | Manchmal. Überprüfen Sie bei Erstellungsoperationen, ob bereits eine Aufgabe oder ein Seiteneffekt existiert. |
-| Stream nach Ausgabe unterbrochen | Nicht als vollständige Antwort werten. Eine Wiederholung kann eine andere Ausgabe oder eine zweite Abrechnung verursachen. |
-
-Speichern Sie bei der Erstellung von Bildern, Videos, Musik, 3D-Inhalten und Welten die Task-ID, sobald sie zurückgegeben wird. Wenn eine Erstellungsanfrage ein Timeout hat, überprüfen Sie den Aufgabenverlauf, bevor Sie eine weitere Erstellungsanfrage senden.
-
-## Python-Beispiel
+| Typ | Code | Beschreibung |
+|------|------|--------------|
+| `invalid_api_key` | `invalid_api_key` | API-Schlüssel fehlt oder ist ungültig |
+| `expired_api_key` | `expired_api_key` | API-Schlüssel wurde widerrufen |
 
 ```python
-import random
-import time
-from openai import OpenAI, APIConnectionError, APIStatusError, RateLimitError
+from openai import OpenAI, AuthenticationError
+
+try:
+    response = client.chat.completions.create(...)
+except AuthenticationError as e:
+    print(f"Authentication failed: {e.message}")
+```
+
+### Zahlungsfehler (402)
+
+| Typ | Code | Beschreibung |
+|------|------|--------------|
+| `insufficient_balance` | `insufficient_balance` | Kontostand ist zu niedrig |
+| `quota_exceeded` | `quota_exceeded` | Nutzungslimit des API-Schlüssels erreicht |
+
+```python
+from openai import OpenAI, APIStatusError
+
+try:
+    response = client.chat.completions.create(...)
+except APIStatusError as e:
+    if e.status_code == 402:
+        print("Please top up your account balance")
+```
+
+### Zugriffsfehler (403)
+
+| Typ | Code | Beschreibung |
+|------|------|--------------|
+| `access_denied` | `access_denied` | Zugriff auf die Ressource verweigert |
+| `access_denied` | `model_not_allowed` | Modell für diesen API-Schlüssel nicht erlaubt |
+
+```json
+{
+  "error": {
+    "message": "You don't have permission to access this model",
+    "type": "access_denied",
+    "code": "model_not_allowed"
+  }
+}
+```
+
+### Validierungsfehler (400)
+
+| Typ | Beschreibung |
+|------|--------------|
+| `invalid_request_error` | Anfrageparameter sind ungültig |
+| `context_length_exceeded` | Eingabe ist zu lang für das Modell |
+| `model_not_found` | Angefordertes Modell ist im aktuellen Modelldetails nicht verfügbar |
+
+```json
+{
+  "error": {
+    "message": "Model not found: please check the model name",
+    "type": "invalid_request_error",
+    "param": "model",
+    "code": "model_not_found",
+    "did_you_mean": "gpt-5.4",
+    "suggestions": [{"id": "gpt-5.4"}, {"id": "gpt-5-mini"}],
+    "hint": "Did you mean 'gpt-5.4'? Use GET https://api.tokenlab.sh/v1/models to list all available models."
+  }
+}
+```
+
+Öffentliche Routen unterscheiden im Antwortkörper nicht zwischen Tippfehlern, versteckten, zurückgestellten oder nicht-öffentlichen Modellzuständen. Wenn ein Modell derzeit nicht über den Modelldetails verfügbar ist, gibt TokenLab `model_not_found` zurück.
+
+### Rate-Limit-Fehler (429)
+
+Wenn Sie die Ratenbegrenzungen überschreiten:
+
+```json
+{
+  "error": {
+    "message": "Rate limit: 1000 rpm exceeded",
+    "type": "rate_limit_exceeded",
+    "code": "rate_limit_exceeded",
+    "retryable": true,
+    "retry_after": 8,
+    "hint": "Rate limited. Retry after 8s. Current limit: 1000/min for user role."
+  }
+}
+```
+
+**Enthaltene Header:**
+
+```
+Retry-After: 8
+```
+
+Der `Retry-After`-Header und das Feld `retry_after` geben beide die exakte Anzahl an Sekunden an, die vor einem erneuten Versuch gewartet werden soll.
+
+### Payload zu groß (413)
+
+Wenn Eingabe oder Dateigröße die Grenzwerte überschreitet:
+
+```json
+{
+  "error": {
+    "message": "Input size exceeds maximum allowed",
+    "type": "invalid_request_error",
+    "code": "payload_too_large"
+  }
+}
+```
+
+Häufige Ursachen:
+- Bilddatei zu groß (max 20MB)
+- Audiodatei zu groß (max 25MB)
+- Eingabetext überschreitet die Kontextlänge des Modells
+
+### Upstream-Fehler (502, 503)
+
+| Typ | Beschreibung |
+|------|--------------|
+| `upstream_error` | Provider hat einen Fehler zurückgegeben |
+| `all_channels_failed` | Keine verfügbaren Provider |
+| `timeout_error` | Anfrage ist zeitlich überschritten |
+
+Wenn alle Kanäle fehlschlagen, enthält die Antwort alternative Modelle:
+
+```json
+{
+  "error": {
+    "message": "Model claude-opus-4-6 temporarily unavailable",
+    "code": "all_channels_failed",
+    "retryable": true,
+    "retry_after": 30,
+    "alternatives": [
+      {"id": "claude-sonnet-4-6", "status": "available", "tags": []},
+      {"id": "gpt-5-mini", "status": "available", "tags": []}
+    ],
+    "hint": "Retry in 30s or switch to an available model."
+  }
+}
+```
+
+## Fehlerbehandlung in Python
+
+```python
+from openai import OpenAI, APIError, RateLimitError, APIConnectionError
 
 client = OpenAI(
     api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1",
+    base_url="https://api.tokenlab.sh/v1"
 )
 
-def chat(messages, model="gpt-5.6-luna", attempts=3):
-    for attempt in range(attempts):
+def chat_with_retry(messages, max_retries=3):
+    for attempt in range(max_retries):
         try:
             return client.chat.completions.create(
-                model=model,
-                messages=messages,
+                model="gpt-4o",
+                messages=messages
             )
-        except RateLimitError as exc:
-            if attempt == attempts - 1:
-                raise
-            retry_after = exc.response.headers.get("Retry-After")
-            wait = float(retry_after) if retry_after else (2 ** attempt + random.random())
-            time.sleep(wait)
-        except APIStatusError as exc:
-            if exc.status_code < 500 or attempt == attempts - 1:
-                raise
-            time.sleep(2 ** attempt + random.random())
-        except APIConnectionError:
-            if attempt == attempts - 1:
-                raise
-            time.sleep(2 ** attempt + random.random())
+        except RateLimitError as e:
+            if attempt < max_retries - 1:
+                import time
+                time.sleep(2 ** attempt)  # Exponential backoff
+                continue
+            raise
+        except APIConnectionError as e:
+            print(f"Connection error: {e}")
+            raise
+        except APIError as e:
+            print(f"API error: {e.status_code} - {e.message}")
+            raise
 ```
 
-## Die Request ID beibehalten
+## Fehlerbehandlung in JavaScript
 
-Antwort-Header enthalten eine Request ID zur Nachverfolgung. Speichern Sie diese zusammen mit dem Endpunkt, dem Modell, der Zeit und Ihrer eigenen Benutzer- oder Job-ID. Speichern Sie bei asynchronen Arbeiten auch `task_id` und `billing_transaction_id`, sofern vorhanden.
+```javascript
+import OpenAI from 'openai';
 
-Wenn Sie den Support kontaktieren, fügen Sie diese IDs und ein redigiertes Beispiel bei. Senden Sie niemals API-Keys, Management-Token, private Medien, signierte URLs oder vollständige private Prompts.
+const client = new OpenAI({
+  apiKey: 'sk-your-api-key',
+  baseURL: 'https://api.tokenlab.sh/v1'
+});
+
+async function chatWithRetry(messages, maxRetries = 3) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await client.chat.completions.create({
+        model: 'gpt-4o',
+        messages
+      });
+    } catch (error) {
+      if (error instanceof OpenAI.RateLimitError) {
+        if (attempt < maxRetries - 1) {
+          await new Promise(r => setTimeout(r, 2 ** attempt * 1000));
+          continue;
+        }
+      }
+      throw error;
+    }
+  }
+}
+```
+
+## Beste Vorgehensweisen
+
+<AccordionGroup>
+  <Accordion title="Exponentielles Backoff implementieren">
+    Wenn Sie rate-limited sind, warten Sie bei erneuten Versuchen schrittweise länger:
+    ```python
+    wait_time = 2 ** attempt  # 1s, 2s, 4s, 8s...
+    ```
+  </Accordion>
+
+  <Accordion title="Timeouts setzen">
+    Setzen Sie immer vernünftige Timeouts, um hängende Anfragen zu vermeiden:
+    ```python
+    client = OpenAI(timeout=60.0)  # 60 second timeout
+    ```
+  </Accordion>
+
+  <Accordion title="Fehler zum Debugging protokollieren">
+    Protokollieren Sie die vollständige Fehlerantwort inklusive Request-ID für den Support:
+    ```python
+    except APIError as e:
+        logger.error(f"API Error: {e.status_code} - {e.message}")
+    ```
+  </Accordion>
+
+  <Accordion title="Modellspezifische Fehler behandeln">
+    Einige Modelle haben spezifische Anforderungen (z. B. maximale Tokens, Bildformate).
+    Validieren Sie Eingaben, bevor Sie Anfragen stellen.
+  </Accordion>
+</AccordionGroup>

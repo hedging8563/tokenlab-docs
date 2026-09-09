@@ -1,27 +1,31 @@
 ---
-title: "3D generation"
-description: "Create downloadable 3D models from text or images"
+title: "3D Generation"
+description: "Create text-to-3D or image-to-3D tasks, poll for completed assets, and handle downloadable model files."
 ---
 
 3D generation is asynchronous. `POST /v1/3d/generations` creates a TokenLab task; completed status responses return downloadable model assets such as `model_url` and, when available, format-specific URLs.
 
-## Choose the input type
+## Choose The Input Type
 
-| Input | Required | Optional fields | Notes |
+| Workflow | Required input | Optional fields | Notes |
 |----------|----------------|-----------------|-------|
 | Text-to-3D | `model`, `prompt` | `format`, `quality`, `style`, `seed` | Best for generating a new asset from a description |
 | Image-to-3D | `model`, `prompt`, `image` or `image_url` | `format`, `quality`, `style`, `seed` | Use only when the selected model supports image input |
 
-This API does not use an `operation` field. A model with `text-to-3d` accepts prompts; a model with `image-to-3d` accepts image input.
+Query the model catalog before deciding which options to expose:
+
+Use the input type rather than an `operation` field for this endpoint. Model metadata reports 3D capabilities as `text-to-3d` and/or `image-to-3d`; `3d-generation` is not a public request operation.
 
 ```bash
 curl "https://api.tokenlab.sh/v1/models?recommended_for=3d" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 
+Current Tripo examples include `tripo-h3.1` for high-quality text/image-to-3D workflows and `tripo-p1.0` for production-style 3D asset generation. Use the Models API to confirm the selected model supports your input type and output format.
+
 Do not assume every 3D model supports both input types or every output format. Check the selected model details before sending `image`, `image_url`, `format`, `quality`, `style`, or `seed`.
 
-## Create a 3D task
+## Create A 3D Task
 
 ```bash
 curl https://api.tokenlab.sh/v1/3d/generations \
@@ -35,19 +39,19 @@ curl https://api.tokenlab.sh/v1/3d/generations \
   }'
 ```
 
-For image-to-3D, use an `https` URL when the source can be fetched from the internet. Use inline base64 `image` when the source must stay private and your server can accept the larger request body.
+For image-to-3D, use a public `image_url` when possible. Use inline/base64 `image` only when your client intentionally sends private media and your backend is prepared for larger request bodies.
 
-## Output formats
+## Output Format Choices
 
-- `glb` works well for web previews.
+- `glb` is usually the safest default for web previews.
 - `fbx` and `obj` are useful for DCC pipelines when the selected model supports them.
 - `usdz` is useful for Apple AR workflows when exposed by the model.
-- Higher `quality` values can increase wait time and cost. Show that choice to the user.
-- `seed` affects repeatability only on models that support it.
+- Higher `quality` values can increase latency and cost. Expose them as explicit user choices, not hidden defaults.
+- `seed` is useful for reproducibility only when the model honors it.
 
-## Get the finished model
+## Poll And Store Assets
 
-Use the returned `poll_url`. If your client needs a fixed URL, use `GET /v1/tasks/{id}`.
+Use the returned `poll_url` first. If your client needs a fixed route, use `GET /v1/tasks/{id}`.
 
 ```bash
 curl "https://api.tokenlab.sh/v1/tasks/$TASK_ID" \
@@ -56,7 +60,7 @@ curl "https://api.tokenlab.sh/v1/tasks/$TASK_ID" \
 
 Completed tasks return `model_url` and may include `glb_url`, `fbx_url`, `obj_url`, or `usdz_url`. Download or cache the selected asset in your own product if users need repeat access, version history, or long-lived downloads.
 
-## Keep the result available
+## Production Checklist
 
 - Persist `task_id`, `poll_url`, model, requested format, and your own asset record ID.
 - Resume polling after page refresh rather than creating a duplicate task.

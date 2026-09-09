@@ -1,75 +1,26 @@
 ---
-title: "Mendapatkan Task (Kompatibel dengan Volc)"
+title: "Ambil tugas (kompatibel Volc)"
 openapi: "GET /api/v3/contents/generations/tasks/{id}"
-description: "Mendapatkan task kompatibilitas Seedance berdasarkan ID task cgt-nya."
+description: "Ambil tugas kompatibel Seedance berdasarkan ID cgt."
 ---
 
-## Gambaran Umum
+## Ringkasan
 
-Gunakan ID `cgt-...` yang dikembalikan oleh create. Lakukan polling setiap beberapa detik selama task berstatus `queued` atau `running`. Berhentilah ketika task berstatus `succeeded`, `failed`, `cancelled`, atau `expired`.
+Endpoint ini ditujukan untuk tim yang sudah memakai bentuk tugas Seedance bergaya Volc. Autentikasi memakai TokenLab Bearer API key. ID tugas yang dikembalikan diawali `cgt-`; polling status sampai `status` menjadi `succeeded`, `failed`, `cancelled`, atau `expired`.
 
 <Warning>
-Jangan gunakan kembali enum task atau struct respons v1 yang terpadu di sini. `/v1/tasks/{id}` menggunakan `pending`, `processing`, `completed`, dan `failed`; endpoint v3 ini menggunakan enum resmi di atas. Dalam objek JSON v3, `duration` adalah string jika ada dan `error` dihilangkan kecuali jika task gagal. Klien Go yang ketat harus mendeklarasikan `Duration` sebagai `string` dengan tag JSON `duration,omitempty`, dan berhenti pada setiap status terminal v3.
+Jangan gunakan kembali enum atau struct respons v1. `/v1/tasks/{id}` memakai `pending`, `processing`, `completed`, dan `failed`; endpoint ini memakai enum v3 di atas. Pada v3, `duration` berupa string saat ada dan `error` hanya muncul ketika gagal.
 </Warning>
 
-Lihat juga [Model Video Seedance 2.0](/guides/seedance-2-video) dan [Pembuatan Video](/guides/video-generation).
+Lihat juga [Model Video Seedance 2.0](/id/guides/seedance-2-video) dan [Pembuatan Video](/id/guides/video-generation).
 
-## Nilai Status
+## Bentuk respons
 
-- `queued`: diterima dan menunggu untuk dijalankan.
-- `running`: pembuatan sedang berlangsung.
-- `succeeded`: hasil sudah siap dan `content.video_url` tersedia.
-- `failed`: pembuatan gagal; periksa `error.code` dan `error.message`.
-- `cancelled`: task dibatalkan sebelum selesai.
-- `expired`: task kedaluwarsa sebelum selesai.
-
-## Bidang Respons
-
-- `id`: ID task kompatibilitas, dimulai dengan `cgt-`.
-- `model`: pengenal model yang ditampilkan kembali untuk kompatibilitas.
-- `status`: salah satu nilai status di atas.
-- `content.video_url`: URL video akhir jika berhasil.
-- `content.last_frame_url`: hanya ada jika diminta dan tersedia.
-- `usage`: penggunaan token jika tersedia.
-- `created_at` dan `updated_at`: stempel waktu task.
-- `error`: hanya ada jika task gagal; dihilangkan untuk task yang tidak gagal.
-
-Respons tidak pernah menambahkan bidang TokenLab seperti `progress`, `return_last_frame`, `watermark`, `priority`, atau `camera_fixed`.
+Respons tugas menggunakan `queued`, `running`, `succeeded`, `failed`, `cancelled`, atau `expired`. Tugas berhasil mengembalikan `content.video_url`; `content.last_frame_url`, field generasi resmi, dan `usage` dapat muncul bila tersedia. `error` hanya disertakan saat gagal. Field TokenLab seperti `progress`, `return_last_frame`, `watermark`, `priority`, atau `camera_fixed` tidak ditambahkan.
 
 ## Contoh
 
 ```bash
 curl https://api.tokenlab.sh/api/v3/contents/generations/tasks/cgt-20260102030405-a1b2c \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
-```
-
-```json
-{
-  "id": "cgt-20260102030405-a1b2c",
-  "model": "doubao-seedance-2.0",
-  "status": "succeeded",
-  "content": {
-    "video_url": "https://example.com/result.mp4"
-  },
-  "usage": {
-    "completion_tokens": 123456
-  }
-}
-```
-
-```go Go
-type SeedanceTask struct {
-    ID       string `json:"id"`
-    Status   string `json:"status"`
-    Duration string `json:"duration,omitempty"`
-}
-
-func isTerminal(status string) bool {
-    switch status {
-    case "succeeded", "failed", "cancelled", "expired":
-        return true
-    default:
-        return false
-    }
-}
 ```

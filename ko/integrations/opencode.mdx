@@ -5,6 +5,14 @@ description: "TokenLab API를 사용하도록 OpenCode 구성하기"
 
 ## 개요
 
+<Note>
+**유형**: 코딩 도구
+
+**주요 경로**: OpenAI 호환
+
+**지원 수준**: 지원 경로
+</Note>
+
 OpenCode는 터미널에서 실행되는 오픈소스 AI 코딩 도우미입니다. 여러 LLM 제공자를 지원하며, 수백 개의 모델에 접근할 수 있도록 TokenLab API를 사용하도록 구성할 수 있습니다.
 
 ## 설치
@@ -69,10 +77,10 @@ OpenCode의 현재 문서는 `opencode.json` 또는 `opencode.jsonc`를 통해 �
         "apiKey": "{env:OPENAI_API_KEY}"
       },
       "models": {
-        "gpt-5.6-terra": {
+        "gpt-5.4": {
           "name": "GPT-5.4"
         },
-        "gpt-5.6-luna": {
+        "gpt-5-mini": {
           "name": "GPT-5 Mini"
         }
       }

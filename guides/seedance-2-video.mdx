@@ -1,27 +1,27 @@
 ---
 title: "Seedance 2.0 Video Models"
-description: "Choose a Seedance 2.0 model and start generating video"
+description: "Choose a Seedance 2.0 model and the right TokenLab integration path."
 ---
 
-This page helps you choose a Seedance 2.0 model and API. Separate guides cover Volcengine migration, reusable materials, and real-person verification.
+Start here if you are adding Seedance 2.0 to an application. This page covers model and workflow selection; migration, reusable materials, and real-person verification have their own guides.
 
-## Choose an API
+## Choose Your Integration Path
 
-| What you are building | Use | Guide |
+| Goal | Use | Continue with |
 |------|-----|---------------|
 | Build a new TokenLab video integration | Unified `POST /v1/videos/generations` API | [Video Generation](/guides/video-generation) |
 | Move an existing Volcengine Seedance client | Volc-compatible REST or Action endpoints | [Migrate Seedance from Volcengine](/guides/seedance-volcengine-migration) |
 | Reuse virtual-avatar, product, style, or real-person references | TokenLab material library | [Seedance Materials and Real-Person Verification](/guides/seedance-materials) |
 
-Every option uses `Authorization: Bearer <TOKENLAB_API_KEY>`. Volc-compatible requests keep the Volcengine fields but use a TokenLab key instead of AK/SK signing.
+All three paths use `Authorization: Bearer <TOKENLAB_API_KEY>`. The Volc-compatible paths preserve the Volcengine request shape, but do not accept AK/SK signing.
 
 ## Model Choice
 
-| Model | Supported resolutions |
-| --- | --- |
-| `seedance-2.0` | `480p`, `720p`, `1080p`, `4k` |
-| `seedance-2.0-fast` | `480p`, `720p` |
-| `seedance-2.0-mini` | `480p`, `720p` |
+| Model | Best for | Supported resolutions |
+|-------|----------|-----------------------|
+| `seedance-2.0` | Highest quality and 4K output | `480p`, `720p`, `1080p`, `4k` |
+| `seedance-2.0-fast` | Faster, lower-cost output | `480p`, `720p` |
+| `seedance-2.0-mini` | Lowest-cost output | `480p`, `720p` |
 
 `seedance-2.0-fast` and `seedance-2.0-mini` reject `1080p` and `4k` requests. Query the [Models API](/api-reference/models/list-models) when model availability must be decided at runtime.
 
@@ -36,9 +36,9 @@ Every option uses `Authorization: Bearer <TOKENLAB_API_KEY>`. Volc-compatible re
 | `video-to-video` | `prompt`, `video_url` or a compatible video input |
 | `video-extension` | `task_id` or model-specific continuation input |
 
-Set `operation` explicitly so the API can validate the fields for that generation type.
+Use an explicit `operation` in production. TokenLab can infer some operations from the supplied media, but an explicit value makes validation and retries predictable.
 
-`seedance-2.0` and `seedance-2.0-fast` accept up to 9 reference images, 3 reference videos, and 3 reference audio files where reference generation is supported. Audio by itself, or text plus audio without an image or video reference, is not supported.
+For `seedance-2.0` and `seedance-2.0-fast`, reference workflows currently support up to 9 reference images, 3 reference videos, and 3 reference audios. Audio is available only in supported reference workflows; audio-only and text-plus-audio-only Seedance requests are not supported.
 
 ## Results And Pricing
 

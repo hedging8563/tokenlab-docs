@@ -1,16 +1,27 @@
 ---
 title: "Vercel AI SDK"
-description: "在 Vercel AI SDK 中使用 TokenLab 模型"
+description: "使用 OpenAI 兼容或 Responses 原生提供程序将 TokenLab 集成到 Vercel AI SDK 中"
 ---
 
 ## 概述
 
+<Note>
+**类型**: 框架或平台
 
-Chat Completions 使用 **OpenAI-compatible provider**。所选模型和应用需要 Responses 时，改用 OpenAI provider，TokenLab Base URL 不变。
+**主要路径**: OpenAI 兼容默认值
+
+**支持置信度**: 推荐的集成模式
+</Note>
+
+对于 TokenLab 而言，Vercel AI SDK 中最稳定的默认选择是 **OpenAI 兼容提供程序 (OpenAI-compatible provider)**。
+
+如果您明确需要 **Responses 原生 (Responses-native)** 行为，可以切换到 OpenAI 提供程序并保持相同的 TokenLab 基础 URL。
+
+请将此页面视为推荐的集成模式，而非保证 Vercel AI SDK 中的每个辅助功能都受 TokenLab 支持。
 
 ## TokenLab 提供程序包
 
-TokenLab 也提供一个简单的 Vercel AI SDK 封装：
+TokenLab 还为 Vercel AI SDK 维护了一个轻量级的提供程序包装器：
 
 ```bash
 npm install ai @tokenlabai/ai-sdk-provider
@@ -21,7 +32,7 @@ import { generateText } from 'ai';
 import { tokenlab } from '@tokenlabai/ai-sdk-provider';
 
 const { text } = await generateText({
-  model: tokenlab.chatModel('gpt-5.6-terra'),
+  model: tokenlab.chatModel('gpt-5.4'),
   prompt: 'Explain TokenLab in one sentence.',
 });
 
@@ -51,7 +62,7 @@ import { generateText } from 'ai';
 import { tokenlab } from './tokenlab';
 
 const { text } = await generateText({
-  model: tokenlab.chatModel('gpt-5.6-terra'),
+  model: tokenlab.chatModel('gpt-5.4'),
   prompt: 'Explain TokenLab in one sentence.',
 });
 
@@ -65,7 +76,7 @@ import { streamText } from 'ai';
 import { tokenlab } from './tokenlab';
 
 const result = await streamText({
-  model: tokenlab.chatModel('gpt-5.6-terra'),
+  model: tokenlab.chatModel('gpt-5.4'),
   prompt: 'Write a short poem about coding.',
 });
 
@@ -82,7 +93,7 @@ import { z } from 'zod';
 import { tokenlab } from './tokenlab';
 
 const result = await generateText({
-  model: tokenlab.chatModel('gpt-5.6-terra'),
+  model: tokenlab.chatModel('gpt-5.4'),
   prompt: 'What is the weather in San Francisco?',
   tools: {
     weather: tool({
@@ -110,7 +121,7 @@ import { z } from 'zod';
 import { tokenlab } from './tokenlab';
 
 const { object } = await generateObject({
-  model: tokenlab.chatModel('gpt-5.6-terra'),
+  model: tokenlab.chatModel('gpt-5.4'),
   schema: z.object({
     name: z.string(),
     role: z.string(),
@@ -121,7 +132,7 @@ const { object } = await generateObject({
 console.log(object);
 ```
 
-## 如果你明确需要 Responses 原生行为
+## 如果您明确需要 Responses 原生行为
 
 ```bash
 npm install ai @ai-sdk/openai
@@ -141,13 +152,13 @@ import { generateText } from 'ai';
 import { tokenlabResponses } from './tokenlab-responses';
 
 const { text } = await generateText({
-  model: tokenlabResponses('gpt-5.6-terra'),
+  model: tokenlabResponses('gpt-5.4'),
   prompt: 'Explain TokenLab in one sentence.',
 });
 ```
 
 <Note>
-Chat Completions 使用 `@ai-sdk/openai-compatible`；需要 `/v1/responses` 时使用 `@ai-sdk/openai`。
+对于代理式集成，请使用 `@ai-sdk/openai-compatible` 作为安全默认值。仅当您明确需要基于 `/v1/responses` 构建的提供程序路径时，才切换到 `@ai-sdk/openai`。
 </Note>
 
 ## 环境变量
@@ -157,18 +168,18 @@ Chat Completions 使用 `@ai-sdk/openai-compatible`；需要 `/v1/responses` 时
 TOKENLAB_API_KEY=sk-your-tokenlab-key
 ```
 
-## 选择包
+## 最佳实践
 
 <AccordionGroup>
-  <Accordion title="Chat Completions">
-    使用 Chat Completions 时，配置 `@ai-sdk/openai-compatible` 并填写 TokenLab Base URL。
+  <Accordion title="优先选择 openai-compatible">
+    对于第三方网关和代理后端，`@ai-sdk/openai-compatible` 通常是最稳妥的起点。
   </Accordion>
 
   <Accordion title="仅在需要时切换到 Responses">
-    只有请求依赖 `/v1/responses` 时才换用 `@ai-sdk/openai`。不要在同一个客户端中混用两种包。
+    如果您需要绑定到 `/v1/responses` 的提供程序行为，请谨慎切换提供程序包，而不是在同一个客户端中混合使用两种模式。
   </Accordion>
 
   <Accordion title="在服务器端保留密钥">
-    不要在客户端代码中暴露 TokenLab API 密钥。把配置放在服务器文件或 API 路由中。
+    切勿在客户端代码中暴露您的 TokenLab API 密钥。请将提供程序设置放在服务器文件或 API 路由中。
   </Accordion>
 </AccordionGroup>

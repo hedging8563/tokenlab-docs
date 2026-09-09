@@ -1,36 +1,40 @@
 ---
-title: "创建 Embedding 向量"
+title: "创建 Embedding"
 openapi: "POST /v1/embeddings"
-description: "把文本转换为 Embedding 向量"
+description: "创建一个表示输入文本的 embedding 向量"
 ---
 
 ## 请求体
 
-该接口会在向量生成完成后返回。批量文本较多时，请将 HTTP 客户端超时设为至少 `120s`。
+**同步请求超时：** 这个非聊天端点会等待路由到的模型完成处理。大输入、长音频或大批量请求可能超过常见的 30s 客户端默认超时，因此请将 HTTP 客户端超时设置为至少 `120s`。
 
 <ParamField body="model" type="string" required>
-  Embedding 模型 ID，例如 `text-embedding-3-small`。
+  要使用的 embedding 模型的 ID（例如：`text-embedding-3-small`）。
 </ParamField>
 
 <ParamField body="input" type="string | array" required>
-  要转换的文本，可以是单个字符串或字符串数组。
+  要进行 embedding 的输入文本。可以是字符串或字符串数组。
 </ParamField>
 
 <ParamField body="encoding_format" type="string" default="float">
-  向量格式：`float` 或 `base64`。
+  embeddings 的格式：`float` 或 `base64`。
 </ParamField>
 
 <ParamField body="dimensions" type="integer">
-  输出维度，支持范围取决于模型。
+  输出的维度数量（取决于具体模型）。
 </ParamField>
 
 <ParamField body="user" type="string">
-  终端用户标识，可用于安全与滥用防护。
+  表示你的终端用户的唯一标识符，用于滥用监控。
 </ParamField>
 
 ## 可用模型
 
-通过 `GET /v1/models?recommended_for=embedding` 获取当前模型及维度信息。
+| 模型 | 维度 | 描述 |
+|-------|------------|-------------|
+| `text-embedding-3-large` | 3072 | 最佳质量 |
+| `text-embedding-3-small` | 1536 | 平衡 |
+| `text-embedding-ada-002` | 1536 | 旧版 |
 
 ## 响应
 
@@ -39,12 +43,12 @@ description: "把文本转换为 Embedding 向量"
 </ResponseField>
 
 <ResponseField name="data" type="array">
-  Embedding 结果数组。
+  embedding 对象数组。
 
   每个对象包含：
   - `object`（string）：`embedding`
   - `index`（integer）：在输入数组中的索引
-  - `embedding`（array）：向量值
+  - `embedding`（array）：embedding 向量
 </ResponseField>
 
 <ResponseField name="model" type="string">

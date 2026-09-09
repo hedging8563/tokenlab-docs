@@ -11,12 +11,12 @@ description: "获取异步图像生成任务的状态和结果"
 </ParamField>
 
 <Info>
-创建响应中有 `poll_url` 时，直接使用这个地址查询。它可能指向 `/v1/tasks/{id}`，也可能是图片专用状态地址。
+如果创建响应中包含 `poll_url`，建议优先调用该特定 URL 进行轮询。某些图像任务可能会在 `/v1/tasks/{id}` 下显示 `poll_url`，而不是图像特定的状态路径。
 
-`ldtask_...` 图片任务也可以通过 `/v1/images/{id}` 查询；这个兼容地址与 `/v1/images/generations/{id}` 返回相同格式。
+你也可以用 `/v1/images/{id}` 轮询 `ldtask_...` 这类公开图片任务 ID。这个兼容 alias 会复用与 `/v1/images/generations/{id}` 完全相同的鉴权、ownership 检查、计费 header、终态快照和响应形状。
 
 
-任务不存在、已过期或当前 API 密钥无权访问时，会返回 `async_task_not_found`。
+如果该任务已不存在或无法再从公开任务记录中查询到，TokenLab 会返回 `async_task_not_found`，并附带消息 `Task not found or no longer available.`
 </Info>
 
 ## 响应
@@ -131,10 +131,10 @@ if (data.status === 'completed') {
 ```
 </ResponseExample>
 
-## 查询间隔
+## 轮询最佳实践
 
 <Tip>
-图片生成时每 3–5 秒查询一次通常足够。状态变为 `completed` 或 `failed` 后停止。
+**建议轮询间隔**：3-5 秒。大多数图像生成任务在 30-120 秒内完成，具体取决于模型和路由的提供商路径。
 </Tip>
 
 ```python

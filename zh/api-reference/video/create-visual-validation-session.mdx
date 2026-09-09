@@ -1,10 +1,10 @@
 ---
 title: "创建视觉验证会话"
 openapi: "POST /api/v3"
-description: "创建真人视觉验证会话。"
+description: "创建与火山引擎格式兼容的真人视觉验证会话。"
 ---
 
-上传可复用的 `liveness_face` 素材需要完成人脸验证。该接口兼容火山引擎 Action API 的请求格式，使用 TokenLab Bearer 认证。
+在上传可复用的 `liveness_face` 素材前，先创建真人视觉验证会话。TokenLab 使用火山引擎 Action API 的请求格式，并使用 TokenLab Bearer 认证。
 
 ## 接口与认证
 
@@ -16,16 +16,16 @@ Content-Type: application/json
 
 不接受火山引擎 AK/SK 签名。`CallbackURL` 为必填项，且必须是公开的 HTTPS URL。`ProjectName` 可选，默认值为 `default`。
 
-## 完成验证
+## 流程
 
 1. 保存 `Result.BytedToken`，并为待验证人员打开 `Result.H5Link`。
 2. 如需指定 H5 语言，请在 `H5Link` 后追加 `lng`，例如 `&lng=en`。语言不是请求体字段。
-3. 验证完成后，浏览器会打开 `Result.CallbackURL`。回调查询参数可能包含 `bytedToken`、`resultCode`、`algorithmBaseRespCode`、`reqMeasureInfoValue` 和 `verify_type`。
-4. 使用保存的 `BytedToken` 查询 [视觉验证结果](/zh/api-reference/video/get-visual-validation-result)，直到返回 `Result.GroupId`。
+3. H5 流程完成后，浏览器会打开 `Result.CallbackURL`。回调查询参数可能包含 `bytedToken`、`resultCode`、`algorithmBaseRespCode`、`reqMeasureInfoValue` 和 `verify_type`。
+4. 使用保存的 `BytedToken` 轮询 [获取视觉验证结果](/zh/api-reference/video/get-visual-validation-result)，直到返回 `Result.GroupId`。
 
-`BytedToken` 的有效期为 30 分钟，并与当前工作区和 `ProjectName` 绑定。H5 链接只能完成一次验证，使用后即失效。
+`BytedToken` 的有效期为 30 分钟，并与已认证的组织和 `ProjectName` 绑定。H5 链接仅支持完成一次认证，使用后即失效。
 
-请直接在浏览器顶层页面打开 `Result.H5Link`，不要解析、改写或嵌入该地址。
+请将 `Result.H5Link` 视为不透明的浏览器 URL：以顶层页面打开，不要解析、解码、改写或嵌入。浏览器交接和回调桥接由 TokenLab 负责。
 
 ## 请求示例
 
@@ -55,4 +55,4 @@ curl 'https://api.tokenlab.sh/api/v3?Action=CreateVisualValidateSession&Version=
 }
 ```
 
-失败时，错误码和错误信息分别位于 `ResponseMetadata.Error.Code` 和 `ResponseMetadata.Error.Message`。
+错误也使用相同的顶层结构。请读取 `ResponseMetadata.Error.Code` 和 `ResponseMetadata.Error.Message`，不要按 TokenLab 其他 `/v1` API 的错误字段处理。

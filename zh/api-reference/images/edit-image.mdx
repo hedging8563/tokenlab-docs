@@ -1,22 +1,22 @@
 ---
-title: "编辑图片"
+title: "编辑图像"
 openapi: "POST /v1/images/edits"
-description: "根据提示词和源图片生成编辑结果"
+description: "根据提示词和源图像编辑图像"
 ---
 
 ## 概述
 
-根据原图和提示词修改或扩展图片。
+根据原始图像和提示词创建编辑或扩展的图像。
 
 此端点同时支持：
 
-- OpenAI 兼容的 `multipart/form-data` 文件上传
+- 下方文档中的 OpenAI 兼容 `multipart/form-data` 上传流程
 - 为支持的图像到图像模型提供 `image_url`、`image_urls` 或官方 `images` 引用的 JSON 请求
 
 <Note>
-`gpt-image-2` 支持 multipart `image`、JSON `image_url` / `image_urls` 和 `images[]`（其中可用 `image_url` 或 `file_id`），最多 16 张源图。`file_id` 需要先通过 `/v1/files` 创建。设置 `async: true` 时先返回任务。
+`gpt-image-2` 已支持此端点。它支持 multipart `image` 上传、JSON `image_url` / `image_urls`，以及官方 `images[]` 引用（`image_url` 或 `file_id`），最多 16 张源图。`file_id` 需先通过 `/v1/files` 创建。设置 `async: true` 会先返回任务；官方 FLUX/BFL 编辑模型也使用同一套任务轮询流程。
 
-`gpt-image-2` 编辑不接受 `resolution`，输出尺寸使用 `size`。`background` 可以是 `auto` 或 `opaque`，暂不支持 `transparent`。多图或耗时较长时可以设置 `async: true`，再通过返回地址查询。
+`gpt-image-2` 编辑不接受 `resolution`；输出尺寸请使用 `size`。`background` 接受 `auto` 或 `opaque`，不支持 `transparent`。多图或高延迟编辑建议设置 `async: true` 并轮询返回任务。
 
 Nano Banana 参考图请求（`nano-banana`、`nano-banana-2` 和 `nano-banana-pro`）公开在 `/v1/images/generations`，应使用 `operation: "image-to-image"` 和 `image_urls`，不要发送到本 `/v1/images/edits` 端点。
 
@@ -27,9 +27,9 @@ xAI Grok Imagine 图像编辑模型（`grok-imagine-image`、`grok-imagine-image
 
 ## 请求体
 
-**请求超时：** 同步图片编辑可能需要较长时间，建议把 HTTP 超时设为至少 `120s`。响应包含 `pending`、`task_id` 或 `poll_url` 时，通过 `poll_url` 查询结果。
+**同步请求超时：** 某些图片请求会以内联方式返回最终图片，并等待生成完成。高分辨率或高质量请求可能接近一分钟甚至更久，因此请将 HTTP 客户端超时设置为至少 `120s`。如果创建响应包含 `status: "pending"`、`task_id` 或 `poll_url`，请改为跟随返回的 `poll_url` 轮询。
 
-远程图片必须使用公网 `http` / `https` URL，不能包含用户名密码或 fragment，也不能指向 localhost、内网或保留 IP。图片必须是 PNG、JPEG 或 WebP。单张不超过 `50MB`，单次请求中的远程图片合计不超过 `200MB`；读取超时为 `10s`，最多跟随 `3` 次重定向。
+远程图片 URL：当需要 multipart 输入时，TokenLab 会拉取 JSON `image_url`、`image_urls` 或 `images[].image_url`，并把图片字节作为 multipart `image` 文件发送。URL 必须是公网 `http`/`https`，不能包含用户名密码或 fragment，不能解析到 localhost、内网或保留 IP；每次重定向后的目标也会重新校验。拉取到的内容必须是真实 PNG、JPEG 或 WebP 图片。限制为单图 `50MB`、单次请求 URL 拉取图片总计 `200MB`、拉取超时 `10s`、最多 `3` 次重定向。
 
 <ParamField body="image" type="file">
   multipart 源图片。需要多张 GPT Image 源图时，可以重复发送 `image` 字段。文件必须是 PNG、JPEG 或 WebP，最多 16 张源图，每张不超过 `50MB`。xAI Grok Imagine 编辑模型使用相同输入字段，但源图最多 3 张。
@@ -60,7 +60,7 @@ xAI Grok Imagine 图像编辑模型（`grok-imagine-image`、`grok-imagine-image
 <ParamField body="response_format" type="string" default="url">
   返回生成图像的格式。必须是 `url` 或 `b64_json`，默认 `url`。
 
-  请求 `url` 时，结果位于 `data[].url`；请求 `b64_json` 时，结果直接返回 Base64。URL 生成失败时不会自动改成 Base64。
+  对于 Azure Official 或 Azure-compatible 的 `gpt-image-2` 请求，TokenLab 会以 `b64_json` 接收图片数据。请求 `url` 时，TokenLab 会把每张图上传到 CDN 并返回 `data[].url`。如果 CDN 存储不可用或上传失败，请求会失败，而不是改为 Base64 响应；请求 `b64_json` 时直接返回原始 Base64。
 </ParamField>
 
 <ParamField body="async" type="boolean" default="false">
@@ -85,9 +85,9 @@ xAI Grok Imagine 图像编辑模型（`grok-imagine-image`、`grok-imagine-image
   - `b64_json` (string): Base64 编码的图像（如果 response_format 是 `b64_json`）
 </ResponseField>
 
-### 异步任务
+### 异步任务响应
 
-支持异步编辑的模型设置 `async: true` 后，会先返回 `pending`、`task_id` 和 `poll_url`。通过 `poll_url` 查询，直到状态变为 `completed` 或 `failed`。
+对 `gpt-image-2` 或官方 FLUX/BFL 编辑模型设置 `async: true` 后，请求会先创建任务，而不是等待编辑后的图片完成。响应包含 `status: "pending"`、`task_id` 和 `poll_url`。请轮询 `/v1/tasks/{task_id}`，直到任务进入 `completed` 或 `failed`。
 
 异步编辑任务最终只返回图片 URL。如果你需要原始 `b64_json` 图片数据，请使用同步请求。
 

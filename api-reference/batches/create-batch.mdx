@@ -1,20 +1,20 @@
 ---
 title: "Create Batch"
 openapi: "POST /v1/batches"
-description: "Create a batch from an uploaded JSONL file."
+description: "Creates an OpenAI-compatible batch job from an uploaded input file."
 ---
 
 ## Overview
 
-Upload a JSONL file with `purpose=batch`, then use its ID as `input_file_id`. Completed batches return output and error file IDs.
+This endpoint is part of TokenLab's OpenAI-compatible Batch API. Batch jobs use uploaded JSONL files, run asynchronously, and can return output/error files later.
 
 ## Notes
 
 - Batch input files must use `purpose=batch`.
 - `completion_window` is currently `24h`.
-- Output order may differ from input order. Match each result by `custom_id`.
+- Output ordering is not guaranteed; always match by `custom_id`.
 - Streaming is not supported inside batch items.
-- Supported item endpoints are `/v1/chat/completions` and `/v1/embeddings`. `/v1/responses` is not supported.
+- Supported batch item endpoints are currently `/v1/chat/completions` and `/v1/embeddings`; `/v1/responses` batch jobs are rejected until a native Responses batch executor is available.
 
 ## Example
 
@@ -31,7 +31,15 @@ curl -X POST "https://api.tokenlab.sh/v1/batches" \
 ```
 </RequestExample>
 
-Batch prices may differ from synchronous requests. Use the price shown when creating the batch and the final bill.
+## Request / Response
+
+Use the interactive OpenAPI panel above for the exact schema.
+
+## Operational Tips
+
+- Use `custom_id` for idempotent downstream reconciliation.
+- Expect `output_file_id` and `error_file_id` only after the worker finalizes the batch.
+- Batch pricing may differ from synchronous pricing because `isBatchRequest=true` discount rules apply.
 
 ## Response example
 
@@ -53,6 +61,6 @@ Batch prices may differ from synchronous requests. Use the price shown when crea
 
 ## Important fields
 
-<ResponseField name="id" type="string">Batch ID.</ResponseField>
-<ResponseField name="status" type="string">Batch status.</ResponseField>
-<ResponseField name="output_file_id" type="string|null">Output file ID after completion.</ResponseField>
+<ResponseField name="id" type="string">Identifier used for follow-up calls and support.</ResponseField>
+<ResponseField name="status" type="string">Current lifecycle state for this resource.</ResponseField>
+<ResponseField name="output_file_id" type="string|null">File identifier used by related APIs.</ResponseField>

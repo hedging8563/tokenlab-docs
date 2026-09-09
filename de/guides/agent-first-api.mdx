@@ -1,32 +1,34 @@
 ---
-title: "Fehler, auf die Agenten reagieren können"
-description: "Nutzen Sie Fehlercodes, Wiederholungszeitpunkte und Modellvorschläge, ohne Prosa zu parsen"
+title: "✨ Agent-First API"
+description: "Strukturierte Fehlermeldungs-Hinweise, damit KI-Agenten beim ersten Retry selbst korrigieren können"
 ---
 
-OpenAI-kompatible TokenLab-Fehler können strukturierte Hinweise für einen Agenten oder eine Anwendung enthalten. Verwenden Sie diese Felder, wenn sie vorhanden sind; parsen Sie nicht die für Menschen lesbare `message`, um zu entscheiden, was zu tun ist.
+## Übersicht
 
-Anthropic Messages- und Gemini-APIs behalten ihre nativen Fehlerformate bei, daher gelten die Erweiterungen auf dieser Seite nur für OpenAI-kompatible Chat Completions- und Responses-Fehler.
+Die Agent-First API von TokenLab ergänzt Fehlermeldungen um strukturierte Hinweise, die KI-Agenten sofort parsen und umsetzen können — keine Websuchen, keine Dokumentationsrecherche, kein Rätselraten.
 
-## Optionale Fehlerfelder
+OpenAI-kompatible Gateway-Fehler von Chat Completions und Responses können optionale Felder wie `did_you_mean`, `suggestions`, `hint`, `retryable` und `retry_after` im `error`-Objekt enthalten. Anthropic Messages und Gemini behalten ihre nativen Fehlerformen und versprechen diese Erweiterungen nicht.
 
-Alle unten aufgeführten Felder erscheinen innerhalb des `error`-Objekts und können fehlen.
+## Felder für Fehlerhinweise
 
-| Feld | Typ | Verwendung |
-| --- | --- | --- |
-| `did_you_mean` | `string` | Nächstgelegene verfügbare Modell-ID |
-| `suggestions` | `array` | Modelle, die zur Anfrage passen könnten |
-| `alternatives` | `array` | Derzeit als Alternativen verfügbare Modelle |
-| `hint` | `string` | Eine kurze Erklärung oder vorgeschlagene Aktion |
-| `retryable` | `boolean` | Ob die gleiche Anfrage später erfolgreich sein könnte |
-| `retry_after` | `number` | Sekunden, die vor einem erneuten Versuch gewartet werden sollten |
-| `balance_usd` | `number` | Aktuelles Guthaben in USD |
-| `estimated_cost_usd` | `number` | Geschätzte Kosten der abgelehnten Anfrage |
+Bei OpenAI-kompatiblen Gateway-Fehlern sind alle Hinweisfelder optionale Erweiterungen innerhalb des `error`-Objekts:
 
-Ihr Client sollte weiterhin jeden Fehler anhand seines HTTP-Status und des `code` behandeln. Betrachten Sie diese zusätzlichen Felder als nützlichen Kontext, nicht als erforderliche Felder.
+| Feld | Typ | Beschreibung |
+|------|-----|--------------|
+| `did_you_mean` | `string` | Am nächsten liegender Modellname |
+| `suggestions` | `array` | Empfohlene Modelle mit Metadaten |
+| `alternatives` | `array` | Derzeit verfügbare alternative Modelle |
+| `hint` | `string` | Für Menschen/Agenten lesbare nächste Handlungsempfehlung |
+| `retryable` | `boolean` | Ob ein erneuter Versuch derselben Anfrage Erfolg haben könnte |
+| `retry_after` | `number` | Sekunden, die vor einem Retry gewartet werden sollten |
+| `balance_usd` | `number` | Aktuelles Kontoguthaben in USD |
+| `estimated_cost_usd` | `number` | Geschätzte Kosten der fehlgeschlagenen Anfrage |
 
-## Unbekanntes Modell
+## Beispiele für Fehlercodes
 
-Ein falsch geschriebenes oder nicht verfügbares Modell gibt `400 model_not_found` zurück. Wenn `did_you_mean` vorhanden ist, zeigen Sie es dem Benutzer an oder führen Sie den Vorgang nur dann erneut aus, wenn Ihr Produkt bereits die Berechtigung hat, das ausgewählte Modell zu ändern.
+### model_not_found (400)
+
+Wenn ein Modellname keinem aktiven Modell entspricht:
 
 ```json
 {
@@ -35,19 +37,27 @@ Ein falsch geschriebenes oder nicht verfügbares Modell gibt `400 model_not_foun
     "type": "invalid_request_error",
     "param": "model",
     "code": "model_not_found",
-    "did_you_mean": "gpt-5.6-terra",
+    "did_you_mean": "gpt-5.4",
     "suggestions": [
-      {"id": "gpt-5.6-terra"},
-      {"id": "gpt-5.6-luna"}
+      {"id": "gpt-5.4"},
+      {"id": "gpt-5-mini"},
+      {"id": "claude-sonnet-4-6"}
     ],
-    "hint": "Did you mean 'gpt-5.6-terra'? Use GET https://api.tokenlab.sh/v1/models to list all available models."
+    "hint": "Did you mean 'gpt-5.4'? Use GET https://api.tokenlab.sh/v1/models to list all available models."
   }
 }
 ```
 
-## Unzureichendes Guthaben
+Die Auflösung für `did_you_mean` verwendet:
+1. Statische Aliaszuordnung (aus produktiven Fehlerdaten)
+2. Normalisierte String-Übereinstimmung (entfernt Bindestriche, Groß-/Kleinschreibung wird ignoriert)
+3. Edit-Distanz-Abgleich (Schwelle ≤ 3)
 
-`402 insufficient_balance` kann das aktuelle Guthaben und den geschätzten erforderlichen Betrag enthalten. Ihre Anwendung kann einen Link zum Aufladen, ein kostengünstigeres Modell oder eine kleinere Anfrage anbieten.
+Öffentliche Routen geben keine separaten Fehlercodes für versteckte, verzögerte oder nicht-öffentliche Modelle preis. Behandle nicht verfügbare öffentliche Modelle wie einen Tippfehler: Prüfe `did_you_mean`, `suggestions` und `hint` und versuche es dann mit einem unterstützten öffentlichen Modell erneut.
+
+### insufficient_balance (402)
+
+Wenn das Kontoguthaben für die geschätzten Kosten zu niedrig ist:
 
 ```json
 {
@@ -58,17 +68,19 @@ Ein falsch geschriebenes oder nicht verfügbares Modell gibt `400 model_not_foun
     "balance_usd": 0.12,
     "estimated_cost_usd": 0.35,
     "suggestions": [
-      {"id": "gpt-5.6-luna"},
+      {"id": "gpt-5-mini"},
       {"id": "deepseek-v3-2"}
     ],
-    "hint": "Try a cheaper model, or top up at https://tokenlab.sh/dashboard/billing."
+    "hint": "Insufficient balance: need ~$0.3500 for claude-sonnet-4-6, but balance is $0.1200. Try a cheaper model, or top up at https://tokenlab.sh/dashboard/billing."
   }
 }
 ```
 
-## Vorübergehend nicht verfügbar
+`suggestions` enthält Modelle, die günstiger sind als die geschätzten Kosten und auf die der Agent wechseln kann.
 
-Eine `503 all_channels_failed`-Antwort bedeutet, dass das angeforderte Modell vorübergehend nicht verfügbar ist. Respektieren Sie `retry_after`, wenn `retryable` auf `true` gesetzt ist, oder lassen Sie den Benutzer ein Element aus `alternatives` auswählen.
+### all_channels_failed (503)
+
+Wenn alle Upstream-Kanäle für ein Modell nicht verfügbar sind:
 
 ```json
 {
@@ -78,17 +90,19 @@ Eine `503 all_channels_failed`-Antwort bedeutet, dass das angeforderte Modell vo
     "retryable": true,
     "retry_after": 30,
     "alternatives": [
-      {"id": "claude-sonnet-5", "status": "available", "tags": []},
-      {"id": "gpt-5.6-luna", "status": "available", "tags": []}
+      {"id": "claude-sonnet-4-6", "status": "available", "tags": []},
+      {"id": "gpt-5-mini", "status": "available", "tags": []}
     ],
-    "hint": "Retry in 30s or try an alternative model."
+    "hint": "All channels for 'claude-opus-4-6' are temporarily unavailable. Retry in 30s or try an alternative model."
   }
 }
 ```
 
-## Ratenbegrenzung
+<Note>
+`retryable` ist `false`, wenn der Grund `no_channels` ist (keine Kanäle für dieses Modell konfiguriert). Es ist nur bei transienten Fehlern wie Circuit-Breaker-Auslösungen oder erschöpfter Quote auf `true` gesetzt.
+</Note>
 
-Warten Sie bei `429 rate_limit_exceeded` die in `retry_after` angegebenen Sekunden ab oder verwenden Sie den Standard-Antwort-Header `Retry-After`.
+### rate_limit_exceeded (429)
 
 ```json
 {
@@ -98,14 +112,20 @@ Warten Sie bei `429 rate_limit_exceeded` die in `retry_after` angegebenen Sekund
     "code": "rate_limit_exceeded",
     "retryable": true,
     "retry_after": 8,
-    "hint": "Retry after 8s."
+    "hint": "Rate limited. Retry after 8s. Current limit: 1000/min for user role."
   }
 }
 ```
 
-## Kontext zu lang
+Der Wert von `retry_after` wird aus dem tatsächlichen Reset-Zeitpunkt des Rate-Limit-Fensters berechnet.
 
-`400 context_length_exceeded` wird nicht durch erneutes Senden derselben Anfrage behoben. Kürzen Sie die Eingabe oder lassen Sie den Benutzer ein Modell mit einem größeren Kontextfenster wählen.
+<Note>
+OpenAI-kompatible Endpunkte verwenden TokenLab's stabile öffentliche Fehlertypen wie `rate_limit_exceeded`, `upstream_error` und `all_channels_failed`. Anthropic-kompatible und Gemini-kompatible Endpunkte verwenden ihre eigenen nativen Antwortformen.
+</Note>
+
+### context_length_exceeded (400)
+
+Wenn die Eingabe das Kontextfenster des Modells überschreitet (Upstream-Fehler, mit Hinweisen angereichert):
 
 ```json
 {
@@ -116,50 +136,127 @@ Warten Sie bei `429 rate_limit_exceeded` die in `retry_after` angegebenen Sekund
     "retryable": false,
     "suggestions": [
       {"id": "gemini-2.5-pro"},
-      {"id": "claude-sonnet-5"}
+      {"id": "claude-sonnet-4-6"}
     ],
     "hint": "Reduce your input or switch to a model with a larger context window."
   }
 }
 ```
 
-## Das richtige API-Format finden
+## Erkennung nativer Endpoints
 
-Lesen Sie `tokenlab.accepted_request_formats` von `GET /v1/models/{model}`, bevor Sie eine modellspezifische API verwenden.
+Leiten Sie die Verfügbarkeit eines nativen Protokolls weder aus dem Modell- oder Anbieternamen noch aus Chat-Antwort-Headern ab. Lesen Sie vor der Wahl eines nativen Endpoints `GET /v1/models/{model}` und verwenden Sie nur ein Anfrageformat, das in den Modelldetails ausgewiesen ist und über eine Route mit demselben Protokoll verfügt.
 
-| Wert | Endpunkt |
-| --- | --- |
-| `chat_completions` | `/v1/chat/completions` |
-| `responses` | `/v1/responses` |
-| `messages` | `/v1/messages` |
-| `gemini` | `/v1beta/models/{model}:generateContent` |
+Das maßgebliche Feld ist `tokenlab.accepted_request_formats`.
 
-Ein akzeptiertes Format bestätigt den Endpunkt. Einzelne Tools und Felder können je nach Modell variieren; überprüfen Sie die Modellseite, bevor Sie sich auf diese verlassen.
+| Anfrageformat | Endpoint |
+|---------------|----------|
+| Chat Completions | `/v1/chat/completions` |
+| Responses | `/v1/responses` |
+| Messages | `/v1/messages` |
+| Gemini | `/v1beta/models/{model}:generateContent` |
 
-## Modell nach Aufgabe finden
+Ein ausgewiesenes Anfrageformat bestimmt die Verfügbarkeit des Endpoints; die Unterstützung einzelner Felder und Tools bleibt vom Upstream abhängig.
 
-Die Models API kann eine aktuelle Auswahlliste für Nicht-Chat-Aufgaben zurückgeben:
+## Verbesserungen bei /v1/models
 
-```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=image" \
-  -H "Authorization: Bearer sk-your-api-key"
+`/v1/models` enthält jetzt nicht-chatbezogene Empfehlung-Metadaten, die Agenten vor dem Aufruf von Bild-, Video-, Musik-, 3D-, TTS-, STT-, Embedding-, Rerank- oder Übersetzungsendpunkten nutzen können.
+
+```json
+{
+  "id": "gemini-2.5-flash-image",
+  "tokenlab": {
+    "category": "image",
+    "pricing_unit": "per_request",
+    "agent_preferences": {
+      "image": {
+        "preferred_rank": 1,
+        "success_rate_24h": 0.98,
+        "sample_count_24h": 423,
+        "status": "ready",
+        "updated_at": "2026-03-28T12:00:00.000Z",
+        "basis": {
+          "source": "recent_activity_24h"
+        }
+      }
+    }
+  }
+}
 ```
 
-Gültige `recommended_for`-Werte sind `image`, `video`, `music`, `3d`, `tts`, `stt`, `embedding`, `rerank` und `translation`. Senden Sie die gewählte Modell-ID explizit in der Erstellungsanfrage. TokenLab ersetzt sie nicht stillschweigend durch ein anderes Modell.
+| Feld | Werte | Beschreibung |
+|------|-------|--------------|
+| `category` | `chat`, `image`, `video`, `audio`, `tts`, `stt`, `3d`, `embedding`, `rerank` | Modelltyp |
+| `pricing_unit` | `per_token`, `per_image`, `per_second`, `per_request` | Wie das Modell abgerechnet wird |
+| `cache_pricing` | object or `null` | Wird nur zurückgegeben, wenn das Modell eigene Upstream-Prompt-Cache-Preise hat. |
+| `agent_preferences.<scene>` | object | Nicht-Chat-Empfehlungs-Snapshot, der nur bei `GET /v1/models?recommended_for=<scene>` zurückgegeben wird |
 
-## Maschinenlesbare Übersicht
+Wenn `recommended_for` vorhanden ist, wird `agent_preferences` aus einem zwischengespeicherten 24-Stunden-Erfolgsraten-Snapshot abgeleitet:
 
-Agenten können eine kompakte API-Übersicht hier lesen:
+- Fenster: 24 Stunden
+- Snapshot-Cache: stale-while-revalidate
+- `status = "ready"` bedeutet, dass das Modell genügend jüngere Samples hat, um an der Rangfolge teilzunehmen
+- `status = "insufficient_samples"` bedeutet, dass das Modell sichtbar bleibt, aber nicht vor bewerteten Modellen platziert wird
 
-```text
+### Kategoriefilterung
+
+```bash
+GET https://api.tokenlab.sh/v1/models?category=chat          # Chat-Modelle only
+GET https://api.tokenlab.sh/v1/models?category=image         # Modelle zur Bildgenerierung
+GET https://api.tokenlab.sh/v1/models?tag=coding&category=chat  # Auf Programmierung optimierte Chat-Modelle
+```
+
+### Empfehlungserkennung
+
+Für Nicht-Chat-Workflows sollten Agenten zuerst die aktuelle empfohlene Shortlist abrufen:
+
+```bash
+GET https://api.tokenlab.sh/v1/models?recommended_for=image
+GET https://api.tokenlab.sh/v1/models?recommended_for=translation
+GET https://api.tokenlab.sh/v1/models?category=tts&recommended_for=tts
+```
+
+Gültige Werte für `recommended_for` sind:
+
+- `image`
+- `video`
+- `music`
+- `3d`
+- `tts`
+- `stt`
+- `embedding`
+- `rerank`
+- `translation`
+
+Wenn sowohl `category` als auch `recommended_for` vorhanden sind, müssen sie genau übereinstimmen.
+
+Empfohlener Agentenablauf:
+
+1. `GET /v1/models?recommended_for=<scene>`
+2. Wähle das erste Modell mit `agent_preferences.<scene>.status == "ready"`
+3. Rufe den Endpunkt explizit mit `model=<selected>` auf
+4. Bei ausschließlich transienten Fehlern: erneuter Versuch mit dem nächsten `ready`-Modell
+
+## llms.txt
+
+Eine maschinenlesbare API-Übersicht ist verfügbar unter:
+
+```
 GET https://api.tokenlab.sh/llms.txt
 ```
 
-Sie enthält eine erste Anfrage, gängige Endpunkte, Modellfilter und Anleitungen zur Fehlerbehandlung.
+Sie enthält:
+- Erstaufruf-Vorlage mit einem funktionierenden Beispiel
+- Häufige Modellnamen (dynamisch aus Nutzungsdaten generiert)
+- Alle 12 API-Endpunkte
+- Filterparameter zur Modellerkennung
+- Hinweise zur Fehlerbehandlung
 
-## Beispiel für sichere Wiederholung
+KI-Agenten, die `llms.txt` vor ihrem ersten API-Aufruf lesen, können in der Regel beim ersten Versuch erfolgreich sein.
 
-Dieses Beispiel korrigiert einen Modellnamen nur dann, wenn die API `did_you_mean` zurückgibt. Fügen Sie eine Benutzerbestätigung hinzu, wenn das Ändern von Modellen die Qualität, den Preis oder die Datenverarbeitung in Ihrem Produkt beeinflussen kann.
+## Verwendung im Agenten-Code
+
+### Python (OpenAI SDK)
 
 ```python
 from openai import OpenAI, BadRequestError
@@ -169,16 +266,59 @@ client = OpenAI(
     base_url="https://api.tokenlab.sh/v1"
 )
 
-def chat(messages, model):
+def smart_chat(messages, model="gpt-4o"):
     try:
-        return client.chat.completions.create(model=model, messages=messages)
-    except BadRequestError as exc:
-        error = exc.body.get("error", {}) if isinstance(exc.body, dict) else {}
-        suggested = error.get("did_you_mean")
-        if error.get("code") == "model_not_found" and suggested:
+        return client.chat.completions.create(
+            model=model, messages=messages
+        )
+    except BadRequestError as e:
+        error = e.body.get("error", {}) if isinstance(e.body, dict) else {}
+        # Use did_you_mean for auto-correction
+        if error.get("code") == "model_not_found" and error.get("did_you_mean"):
             return client.chat.completions.create(
-                model=suggested,
-                messages=messages,
+                model=error["did_you_mean"], messages=messages
             )
         raise
 ```
+
+### JavaScript (OpenAI SDK)
+
+```javascript
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  apiKey: 'sk-your-key',
+  baseURL: 'https://api.tokenlab.sh/v1'
+});
+
+async function smartChat(messages, model = 'gpt-4o') {
+  try {
+    return await client.chat.completions.create({ model, messages });
+  } catch (error) {
+    const err = error?.error;
+    if (err?.code === 'model_not_found' && err?.did_you_mean) {
+      return client.chat.completions.create({
+        model: err.did_you_mean, messages
+      });
+    }
+    throw error;
+  }
+}
+```
+
+## Designprinzipien
+
+<CardGroup cols={2}>
+  <Card title="Schnell fehlschlagen, informativ fehlschlagen" icon="bolt">
+    Fehler werden sofort mit allen Daten zurückgegeben, die ein Agent zur Selbstkorrektur benötigt.
+  </Card>
+  <Card title="Keine automatische Weiterleitung" icon="route">
+    Die API substituiert niemals stillschweigend ein anderes Modell. Der Agent entscheidet.
+  </Card>
+  <Card title="Datengetriebene Vorschläge" icon="database">
+    Alle Empfehlungen stammen aus Produktionsdaten, nicht aus hartkodierten Listen.
+  </Card>
+  <Card title="Rückwärtskompatibel" icon="plug">
+    Alle Hinweisfelder sind optional. Bestehende Clients bemerken keinen Unterschied.
+  </Card>
+</CardGroup>

@@ -151,7 +151,7 @@ Alle Antworten folgen einem konsistenten Format:
   "id": "chatcmpl-abc123",
   "object": "chat.completion",
   "created": 1234567890,
-  "model": "gpt-5.6-terra",
+  "model": "gpt-4o",
   "choices": [...],
   "usage": {
     "prompt_tokens": 10,
@@ -163,16 +163,30 @@ Alle Antworten folgen einem konsistenten Format:
 
 ### Routing-Transparenz
 
-TokenLab legt keine Anbieter-, Kanal-, Richtlinien- oder Zugangsdaten-Details in öffentlichen Antwortkörpern offen. Verlassen Sie sich nicht auf `_routing` oder andere interne Routing-Felder als Teil des öffentlichen API-Vertrags.
+Alle Antworten enthalten ein `_routing`-Feld mit Kanalinformationen:
 
-Für Debugging und Support können Sie öffentliche Antwort-Header verwenden, wenn sie vorhanden sind:
+```json
+{
+  "id": "chatcmpl-abc123",
+  ...,
+  "_routing": {
+    "channel": {
+      "id": "ch_xxx",
+      "name": "channel-name",
+      "provider": "openai"
+    },
+    "cached": false,
+    "retryCount": 0
+  }
+}
+```
 
-| Header | Beschreibung |
+| Feld | Beschreibung |
 |------|--------------|
-| `X-Routing-Time-MS` | Zeit für die Routenauswahl, wenn verfügbar |
-| `X-Request-ID` | Request-Kennung für Support und Debugging, wenn verfügbar |
-| `X-Task-ID` | Öffentliche asynchrone Task-Kennung für taskbasierte Antworten, wenn verfügbar |
-| `X-Billing-Transaction-ID` | Abrechnungstransaktionskennung nach finaler Abrechnung, wenn verfügbar |
+| `channel.id` | Verwendete Channel-Kennung |
+| `channel.provider` | Upstream-Anbieter (openai, anthropic, etc.) |
+| `cached` | Ob die Antwort aus dem Cache geliefert wurde |
+| `retryCount` | Anzahl der Wiederholungsversuche (falls zutreffend) |
 
 ### Fehlerantwort
 

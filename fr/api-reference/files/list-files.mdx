@@ -39,12 +39,6 @@ Utilisez le panneau OpenAPI interactif ci-dessus pour le schéma exact.
 - Attendez-vous à ce que `output_file_id` et `error_file_id` ne soient disponibles qu'après que le travailleur finalise le lot.
 - La tarification des lots peut différer de la tarification synchrone car les règles de remise `isBatchRequest=true` s'appliquent.
 
-## Filtres
-
-- `limit` accepte des valeurs de 1 à 10000 et vaut 10000 par défaut.
-- `purpose` peut être `batch`, `batch_output`, `user_data` ou `vision`.
-- `user_data` et `vision` renvoient les fichiers de référence d'image créés par TokenLab lorsqu'ils sont disponibles.
-
 ## Exemple de réponse
 
 <ResponseExample>

@@ -1,75 +1,26 @@
 ---
-title: "Obter Tarefa (Compatível com Volc)"
+title: "Obter tarefa (compatível com Volc)"
 openapi: "GET /api/v3/contents/generations/tasks/{id}"
-description: "Obtenha uma tarefa de compatibilidade Seedance pelo seu ID de tarefa cgt."
+description: "Obtenha uma tarefa compatível com Seedance pelo ID cgt."
 ---
 
-## Visão Geral
+## Visão geral
 
-Use o ID `cgt-...` retornado pela criação. Faça polling a cada poucos segundos enquanto a tarefa estiver como `queued` ou `running`. Pare quando a tarefa estiver como `succeeded`, `failed`, `cancelled` ou `expired`.
+Estes endpoints são para equipes que já usam o formato de tarefa Seedance no estilo Volc. A autenticação usa sua API key Bearer da TokenLab. O ID retornado começa com `cgt-`; consulte o status até que `status` seja `succeeded`, `failed`, `cancelled` ou `expired`.
 
 <Warning>
-Não reutilize o enum de tarefa unificado v1 ou a struct de resposta aqui. `/v1/tasks/{id}` usa `pending`, `processing`, `completed` e `failed`; este endpoint v3 usa o enum oficial acima. No objeto JSON v3, `duration` é uma string quando presente e `error` é omitido a menos que a tarefa tenha falhado. Um cliente Go rigoroso deve declarar `Duration` como `string` com a tag JSON `duration,omitempty` e parar em cada status terminal da v3.
+Não reutilize o enum nem a struct de resposta v1. `/v1/tasks/{id}` usa `pending`, `processing`, `completed` e `failed`; este endpoint usa o enum v3 acima. No v3, `duration` é uma string quando presente e `error` só aparece em falhas.
 </Warning>
 
-Veja também [Modelos de Vídeo Seedance 2.0](/guides/seedance-2-video) e [Geração de Vídeo](/guides/video-generation).
+Veja também [Modelos de vídeo Seedance 2.0](/pt/guides/seedance-2-video) e [Geração de vídeo](/pt/guides/video-generation).
 
-## Valores de Status
+## Formato da resposta
 
-- `queued`: aceito e aguardando para ser executado.
-- `running`: a geração está em andamento.
-- `succeeded`: o resultado está pronto e `content.video_url` está presente.
-- `failed`: a geração falhou; inspecione `error.code` e `error.message`.
-- `cancelled`: a tarefa foi cancelada antes da conclusão.
-- `expired`: a tarefa expirou antes da conclusão.
-
-## Campos de Resposta
-
-- `id`: ID da tarefa de compatibilidade, começando com `cgt-`.
-- `model`: identificador do modelo ecoado para compatibilidade.
-- `status`: um dos valores de status acima.
-- `content.video_url`: URL final do vídeo em caso de sucesso.
-- `content.last_frame_url`: presente apenas quando solicitado e disponível.
-- `usage`: uso de tokens quando disponível.
-- `created_at` e `updated_at`: timestamps da tarefa.
-- `error`: presente apenas quando a tarefa falhou; omitido para tarefas que não falharam.
-
-A resposta nunca adiciona campos do TokenLab como `progress`, `return_last_frame`, `watermark`, `priority` ou `camera_fixed`.
+A resposta usa `queued`, `running`, `succeeded`, `failed`, `cancelled` ou `expired`. Tarefas bem-sucedidas retornam `content.video_url`; `content.last_frame_url`, campos oficiais de geração e `usage` podem aparecer. `error` só é incluído em falhas. Campos TokenLab como `progress`, `return_last_frame`, `watermark`, `priority` ou `camera_fixed` não são adicionados.
 
 ## Exemplo
 
 ```bash
 curl https://api.tokenlab.sh/api/v3/contents/generations/tasks/cgt-20260102030405-a1b2c \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
-```
-
-```json
-{
-  "id": "cgt-20260102030405-a1b2c",
-  "model": "doubao-seedance-2.0",
-  "status": "succeeded",
-  "content": {
-    "video_url": "https://example.com/result.mp4"
-  },
-  "usage": {
-    "completion_tokens": 123456
-  }
-}
-```
-
-```go Go
-type SeedanceTask struct {
-    ID       string `json:"id"`
-    Status   string `json:"status"`
-    Duration string `json:"duration,omitempty"`
-}
-
-func isTerminal(status string) bool {
-    switch status {
-    case "succeeded", "failed", "cancelled", "expired":
-        return true
-    default:
-        return false
-    }
-}
 ```

@@ -5,8 +5,15 @@ description: "使用 OpenLIT 监控 TokenLab OpenAI 兼容请求"
 
 ## 概述
 
-把 OpenAI SDK Base URL 改为 TokenLab `/v1` 后，OpenLIT 就能记录这些请求。
+OpenLIT 对官方 OpenAI SDK 进行了插桩，因此可以通过将 SDK 客户端配置为 TokenLab 的 `/v1` 基础 URL 来监控 TokenLab 请求。
 
+<Note>
+**类型**: 可观测性
+
+**主要路径**: OpenAI SDK 插桩
+
+**支持置信度**: 支持的 OpenAI 兼容可观测性路径
+</Note>
 
 ## 安装
 
@@ -43,4 +50,4 @@ response = client.chat.completions.create(
 
 ## 端点说明
 
-这份配置会记录 OpenAI SDK 的 Chat Completions 请求。其他 API 能否被记录，取决于 OpenLIT/OpenTelemetry 是否支持对应的 SDK 方法或 HTTP 客户端。
+OpenLIT 遵循 SDK 插桩路径。Chat Completions 是最安全的集成界面；其他 TokenLab 原生调用取决于您的 OpenLIT/OpenTelemetry 设置是否捕获了该 SDK 方法或 HTTP 客户端。

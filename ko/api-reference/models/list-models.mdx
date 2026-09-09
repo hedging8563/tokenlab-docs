@@ -1,68 +1,245 @@
 ---
-title: "모델 목록 조회"
+title: "모델 목록"
 openapi: "GET /v1/models"
-description: "TokenLab에서 현재 사용 가능한 모델 목록을 조회합니다."
+description: "사용 가능한 모든 모델을 나열합니다"
 ---
-
-모델 카탈로그는 공개되어 있으며 API 키가 필요하지 않습니다. 각 항목에는 현재 기능, 가격 및 API 형식에 대한 요약이 포함되어 있습니다. 전체 세부 정보가 필요한 경우 특정 모델을 조회하십시오.
-
-## 쿼리 매개변수
-
-<ParamField query="category" type="string">
-  `chat`, `image`, `video`, `audio`, `tts`, `stt`, `music`, `3d`, `embedding`, `rerank` 또는 `translation`으로 필터링합니다.
-</ParamField>
-
-<ParamField query="recommended_for" type="string">
-  `image`, `video`, `music`, `3d`, `tts`, `stt`, `embedding`, `rerank` 또는 `translation`과 같은 작업에 대한 현재 권장 사항을 반환합니다.
-</ParamField>
-
-<ParamField query="provider" type="string">
-  `openai`, `anthropic`, `google` 또는 `deepseek`와 같은 모델 제조사로 필터링합니다.
-</ParamField>
-
-<ParamField query="tag" type="string">
-  `chat`, `image`, `video`, `embedding` 또는 `translation`과 같은 태그로 필터링합니다.
-</ParamField>
 
 ## 응답
 
-<ResponseField name="object" type="string">항상 `list`입니다.</ResponseField>
-<ResponseField name="data" type="array">`id`, `owned_by` 및 `tokenlab` 요약 정보가 포함된 모델 목록입니다.</ResponseField>
+<ResponseField name="object" type="string">
+  항상 `list`입니다.
+</ResponseField>
 
-`tokenlab` 하위의 일반적인 목록 필드는 다음과 같습니다:
+<ResponseField name="data" type="array">
+  모델 객체 배열입니다.
 
-- `tokenlab.aliases`
-- `tokenlab.capabilities`
-- `tokenlab.pricing` 및 `tokenlab.pricing_unit`
-- `tokenlab.max_input_tokens` 및 `tokenlab.max_output_tokens`
-- `tokenlab.category`
-- `tokenlab.lifecycle`, `tokenlab.commercial` 및 `tokenlab.badges`
-- `tokenlab.request_format_summary`
-- `recommended_for` 사용 시 `tokenlab.agent_preferences`
+  각 모델에는 항상 다음이 포함됩니다:
+  - `id` (string): 모델 식별자
+  - `object` (string): `model`
+  - `created` (integer): 생성 타임스탬프
+  - `owned_by` (string): 모델 제공자
+  - `tokenlab.aliases` (array): 같은 모델의 공개 별칭
+  - `tokenlab.pricing` (object): 스칼라 공개 가격 요약
+  - `tokenlab.capabilities` (array): 공개 기능 태그
+  - `tokenlab.max_input_tokens` (number 또는 `null`): 사용 가능한 경우 입력 컨텍스트 한도
+  - `tokenlab.max_output_tokens` (number 또는 `null`): 사용 가능한 경우 출력 한도
+  - `tokenlab.category` (string): 공개 모델 카테고리
+  - `tokenlab.pricing_unit` (string): 공개 가격 단위
+  - `tokenlab.has_complex_pricing` (boolean): 모델별 가격 차원이 있는지 여부
+  - `tokenlab.lifecycle` (object): 수명 주기 단계, 출시/사용 중단 날짜, 대체 모델, latest 배지 출처
+  - `tokenlab.commercial` (object): 사용자 과금 정책, 무료 사유, 선택적 무료 종료 시각
+  - `tokenlab.badges` (array): 수명 주기와 상업 메타데이터에서 파생된 표시 배지
 
-`recommended_for`를 사용하는 경우, 결과에 권장 상태 및 업데이트 시간이 포함될 수 있습니다. 순서를 고정하지 말고 현재 응답을 읽으십시오.
+  조건부 목록 메타데이터:
+  - `tokenlab.providers` (array): 사용 가능한 경우 공개 제공자
+  - `tokenlab.cache_pricing` (object 또는 `null`): 사용 가능한 경우 prompt cache 가격
+  - `tokenlab.pricing_summary` (object 또는 `null`): 복잡한 가격 모델에서만 반환됩니다
+  - `tokenlab.request_format_summary` (object 또는 `null`): `public_operations`, `request_endpoint`, `request_endpoint_by_operation` 를 포함하는 간단한 비채팅 탐색 요약
+  - `tokenlab.agent_preferences` (object): `recommended_for` 가 있을 때만 반환
 
-## 예시
+  `tokenlab.capability_flags`, `tokenlab.supported_operations`, `tokenlab.pricing_provenance`, `tokenlab.request_format_details` 같은 상세 전용 필드는 `GET /v1/models/{model}` 에서만 반환됩니다.
+</ResponseField>
 
-```bash
-curl "https://api.tokenlab.sh/v1/models?category=video"
+<Note>
+`GET /v1/models` 는 탐색에 최적화되어 있습니다. `capability_flags`, `pricing_provenance`, 전체 `request_format_details` 같은 상세 전용 메타데이터는 `GET /v1/models/{model}` 에 있습니다.
+</Note>
+
+## 쿼리 파라미터
+
+<ParamField query="category" type="string">
+  선택 사항인 공개 카테고리 필터입니다. `chat`, `image`, `video`, `audio`, `tts`, `stt`, `music`, `3d`, `embedding`, `rerank`, `translation` 을 지원합니다.
+</ParamField>
+
+<ParamField query="recommended_for" type="string">
+  선택 사항인 비채팅 추천 장면입니다. `image`, `video`, `music`, `3d`, `tts`, `stt`, `embedding`, `rerank`, `translation` 을 지원합니다.
+</ParamField>
+
+<ParamField query="provider" type="string">
+  선택 사항인 공급자 필터입니다. 예: `openai`, `anthropic`, `google`, `deepseek`.
+</ParamField>
+
+<ParamField query="tag" type="string">
+  선택 사항인 모델 태그 필터입니다. 예: `chat`, `image`, `video`, `embedding`, `translation`.
+</ParamField>
+
+<Note>
+`recommended_for` 가 있을 때 `/v1/models` 는 비채팅 모델을 최신 캐시된 24시간 성공률 스냅샷 기준으로 정렬합니다. `status = "insufficient_samples"` 인 모델은 계속 보이지만 점수화된 모델 뒤에 정렬됩니다.
+</Note>
+
+<RequestExample>
+```bash cURL
+curl "https://api.tokenlab.sh/v1/models" \
+  -H "Authorization: Bearer sk-your-api-key"
 ```
 
-```json
+```bash cURL
+curl "https://api.tokenlab.sh/v1/models?recommended_for=image" \
+  -H "Authorization: Bearer sk-your-api-key"
+```
+
+```python Python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="sk-your-api-key",
+    base_url="https://api.tokenlab.sh/v1"
+)
+
+models = client.models.list()
+
+for model in models.data:
+    print(f"{model.id} ({model.owned_by})")
+```
+
+```javascript JavaScript
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  apiKey: 'sk-your-api-key',
+  baseURL: 'https://api.tokenlab.sh/v1'
+});
+
+const models = await client.models.list();
+
+for (const model of models.data) {
+  console.log(`${model.id} (${model.owned_by})`);
+}
+```
+
+```go Go
+package main
+
+import (
+    "encoding/json"
+    "fmt"
+    "net/http"
+)
+
+func main() {
+    req, _ := http.NewRequest("GET", "https://api.tokenlab.sh/v1/models", nil)
+    req.Header.Set("Authorization", "Bearer sk-your-api-key")
+
+    resp, _ := http.DefaultClient.Do(req)
+    defer resp.Body.Close()
+
+    var payload struct {
+        Data []struct {
+            ID      string `json:"id"`
+            OwnedBy string `json:"owned_by"`
+        } `json:"data"`
+    }
+
+    json.NewDecoder(resp.Body).Decode(&payload)
+
+    for _, model := range payload.Data {
+        fmt.Printf("%s (%s)\n", model.ID, model.OwnedBy)
+    }
+}
+```
+
+```php PHP
+<?php
+$ch = curl_init('https://api.tokenlab.sh/v1/models');
+
+curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HTTPHEADER => [
+        'Authorization: Bearer sk-your-api-key'
+    ]
+]);
+
+$response = curl_exec($ch);
+curl_close($ch);
+
+$data = json_decode($response, true);
+foreach ($data['data'] as $model) {
+    echo "{$model['id']} ({$model['owned_by']})\n";
+}
+```
+</RequestExample>
+
+<ResponseExample>
+```json Response
 {
   "object": "list",
   "data": [
     {
-      "id": "veo3.1",
+      "id": "gpt-5.4",
       "object": "model",
+      "created": 1706000000,
+      "owned_by": "openai"
+    },
+    {
+      "id": "claude-sonnet-4-6",
+      "object": "model",
+      "created": 1706000000,
+      "owned_by": "anthropic"
+    },
+    {
+      "id": "gemini-3.5-flash",
+      "object": "model",
+      "created": 1706000000,
+      "owned_by": "google"
+    }
+  ]
+}
+```
+</ResponseExample>
+
+## 공급자별 필터링
+
+```python
+# Get all OpenAI models
+openai_models = [m for m in models.data if m.owned_by == "openai"]
+
+# Get all Anthropic models
+anthropic_models = [m for m in models.data if m.owned_by == "anthropic"]
+```
+
+## 모델 카테고리
+
+| 공급자 | 예시 모델 |
+|----------|----------------|
+| `openai` | gpt-5.4, gpt-5.4-mini, gpt-5-mini, gpt-4o, gpt-image-2 |
+| `anthropic` | claude-opus-4-6, claude-sonnet-4-6, claude-haiku-4-5 |
+| `google` | gemini-3.1-pro-preview, gemini-3.5-flash, gemini-2.5-pro |
+| `deepseek` | deepseek-r1, deepseek-v3-2 |
+| `xai` | grok-4.1 |
+| `moonshot` | kimi-k2.5 |
+| `minimax` | minimax-m3 |
+| `meta` | llama-3.3-70b, llama-3.1-405b |
+
+## 에이전트 추천 예시
+
+```json Response
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "gemini-2.5-flash-image",
+      "object": "model",
+      "created": 1706000000,
       "owned_by": "google",
       "tokenlab": {
-        "category": "video",
-        "capabilities": ["text-to-video", "image-to-video"]
+        "category": "image",
+        "pricing_unit": "per_request",
+        "agent_preferences": {
+          "image": {
+            "preferred_rank": 1,
+            "success_rate_24h": 0.98,
+            "sample_count_24h": 423,
+            "status": "ready",
+            "updated_at": "2026-03-28T12:00:00.000Z",
+            "basis": {
+              "source": "recent_activity_24h"
+            }
+          }
+        }
       }
     }
   ]
 }
 ```
+## 모델 삭제
 
-전체 세부 정보는 [모델 가져오기](/api-reference/models/get-model)을 참조하십시오.
+`DELETE /v1/models/{model}`은 지원되지 않습니다. TokenLab 모델은 공유 공개 카탈로그이며 사용자 소유 fine-tuned 모델 리소스가 아닙니다.

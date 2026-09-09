@@ -1,20 +1,18 @@
 ---
 title: "Eliminar archivo"
 openapi: "DELETE /v1/files/{file_id}"
-description: "Elimina un archivo subido que pertenece a la organización actual."
+description: "Elimina un archivo de lote, una vinculación de archivo de imagen/referencia o un archivo en modo Anthropic."
 ---
 
 ## Resumen
 
-Elimina un archivo creado con `/v1/files`. Los archivos Batch y los archivos de referencia de imagen creados por TokenLab devuelven un objeto deleted compatible con OpenAI.
-
-Cuando la solicitud usa el modo de compatibilidad con Anthropic Files, la misma ruta elimina el archivo estilo Anthropic del workspace enlazado.
+Elimina un archivo creado con `/v1/files`. Sin encabezados Anthropic, la ruta elimina archivos de lote de TokenLab o vinculaciones de archivos de imagen/referencia. Con `anthropic-beta: files-api-2025-04-14`, usa el modo Anthropic Files API para el workspace vinculado.
 
 ## Notas
 
-- Eliminar un archivo no cancela los trabajos Batch que ya lo referencian.
-- Los file ids inexistentes o no autorizados devuelven un error público not-found sin exponer el estado de enrutamiento.
-- Elimina archivos de referencia de imagen solo cuando ninguna solicitud pendiente de edición de imagen los necesite.
+- Eliminar un archivo de lote quita el registro almacenado e impide que futuros trabajos por lotes usen ese ID de archivo.
+- Eliminar un archivo de imagen/referencia pide al proveedor seleccionado que borre el archivo y luego elimina la vinculación de TokenLab cuando el proveedor acepta.
+- El modo Anthropic Files API requiere los mismos encabezados nativos de Anthropic usados para subir y recuperar.
 
 ## Ejemplo
 
@@ -27,4 +25,21 @@ curl -X DELETE "https://api.tokenlab.sh/v1/files/file_abc123" \
 
 ## Solicitud / Respuesta
 
-Usa el panel interactivo de OpenAPI de arriba para ver el schema exacto.
+Usa el panel interactivo de OpenAPI anterior para ver el schema exacto.
+
+## Ejemplo de respuesta
+
+<ResponseExample>
+```json 200 OK
+{
+  "id": "file_abc123",
+  "object": "file",
+  "deleted": true
+}
+```
+</ResponseExample>
+
+## Campos importantes
+
+<ResponseField name="id" type="string">Identificador del archivo eliminado.</ResponseField>
+<ResponseField name="deleted" type="boolean">Indica si la solicitud de eliminación se completó correctamente.</ResponseField>

@@ -1,12 +1,19 @@
 ---
 title: "List Batches"
 openapi: "GET /v1/batches"
-description: "List batches in the current Workspace."
+description: "Lists batch jobs for the current API key organization."
 ---
 
 ## Overview
 
-Return batches created in the current Workspace.
+This endpoint is part of TokenLab's OpenAI-compatible Batch API. Batch jobs use uploaded JSONL files, run asynchronously, and can return output/error files later.
+
+## Notes
+
+- Batch input files must use `purpose=batch`.
+- `completion_window` is currently `24h`.
+- Output ordering is not guaranteed; always match by `custom_id`.
+- Streaming is not supported inside batch items.
 
 ## Example
 
@@ -16,6 +23,16 @@ curl -X GET "https://api.tokenlab.sh/v1/batches?limit=20" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 </RequestExample>
+
+## Request / Response
+
+Use the interactive OpenAPI panel above for the exact schema.
+
+## Operational Tips
+
+- Use `custom_id` for idempotent downstream reconciliation.
+- Expect `output_file_id` and `error_file_id` only after the worker finalizes the batch.
+- Batch pricing may differ from synchronous pricing because `isBatchRequest=true` discount rules apply.
 
 ## Response example
 
@@ -30,6 +47,6 @@ curl -X GET "https://api.tokenlab.sh/v1/batches?limit=20" \
 
 ## Important fields
 
-<ResponseField name="object" type="string">Always `list`.</ResponseField>
-<ResponseField name="data" type="array">Batches.</ResponseField>
-<ResponseField name="status" type="string">Status of each batch.</ResponseField>
+<ResponseField name="object" type="string">Response object type.</ResponseField>
+<ResponseField name="data" type="array">Returned list or payload for this response.</ResponseField>
+<ResponseField name="status" type="string">Current lifecycle state for this resource.</ResponseField>

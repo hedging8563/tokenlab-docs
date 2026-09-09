@@ -12,7 +12,7 @@ Use `/v1/translations` for **text-to-text translation**.
 This endpoint is different from [Audio Translation](/api-reference/audio/create-translation), which accepts an audio file and always outputs English text.
 </Note>
 
-Use the Models API to get current text-translation models:
+For agent workflows, discover the current recommended translation models first:
 
 ```bash
 curl "https://api.tokenlab.sh/v1/models?recommended_for=translation" \

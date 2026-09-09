@@ -6,14 +6,14 @@ description: "将音频转录为输入语言"
 
 ## 请求体
 
-该接口会在转录完成后返回。音频较长时，请将 HTTP 客户端超时设为至少 `120s`。
+**同步请求超时：** 这个非聊天端点会等待路由到的模型完成处理。大输入、长音频或大批量请求可能超过常见的 30s 客户端默认超时，因此请将 HTTP 客户端超时设置为至少 `120s`。
 
 <ParamField body="file" type="file" required>
   要转录的音频文件。支持的格式：flac、mp3、mp4、mpeg、mpga、m4a、ogg、wav、webm。
 </ParamField>
 
 <ParamField body="model" type="string" default="whisper-1">
-  转录模型 ID，例如 `whisper-1`。
+  要使用的模型。目前仅支持 `whisper-1`。
 </ParamField>
 
 <ParamField body="language" type="string">
@@ -21,7 +21,7 @@ description: "将音频转录为输入语言"
 </ParamField>
 
 <ParamField body="prompt" type="string">
-  可选提示词，可补充专有名词、上下文或期望的文字风格。
+  可选文本，用于引导模型的风格或续接上一段内容。
 </ParamField>
 
 <ParamField body="response_format" type="string" default="json">
@@ -162,9 +162,9 @@ echo $data['text'];
 ```
 </ResponseExample>
 
-## 翻译成英文
+## 翻译
 
-需要英文结果时，使用音频翻译接口：
+要将音频翻译为英语，请使用 translations endpoint：
 
 ```python
 response = client.audio.translations.create(

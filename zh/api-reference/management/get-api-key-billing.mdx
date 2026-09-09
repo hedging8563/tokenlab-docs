@@ -1,16 +1,18 @@
 ---
-title: "获取 API 密钥账单"
+title: "获取 API Key 账单"
 openapi: "GET /v1/management/api-keys/{keyId}/billing"
-description: "获取一枚 API 密钥的汇总账单。"
+description: "返回某个用户 API Key 的聚合账单明细。"
 ---
 
-返回所选 API 密钥的总费用、请求数、计费用量，以及按模型、模型厂商、场景和日期汇总的费用。
+## 概览
+
+这个端点返回所选 API Key 的消费账单聚合结果，包括总费用、总请求数、按计费单位统计的用量，以及 `by_model`、`by_logical_model`、`by_model_vendor`、`by_scene` 四类拆分和按天费用趋势。
 
 ## 注意事项
 
 - 金额字段仅支持 USD。`CNY` 输入已停用，并会返回 `400 currency_retired`。
 
-- 不包含工作区充值和发票记录。
+- 充值、发票等组织级财务流水不会包含在这里。
 
 ## 示例
 
@@ -20,6 +22,10 @@ curl -X GET "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/bil
   -H "Authorization: Bearer mt-your-management-token"
 ```
 </RequestExample>
+
+## 请求 / 响应
+
+使用上面的交互式 OpenAPI 面板获取确切的模式。
 
 ## 响应示例
 
@@ -36,7 +42,7 @@ curl -X GET "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/bil
     "used_amount": 148.25,
     "used_amount_decimal": "148.25",
     "models": [
-      "gpt-5.6-luna",
+      "gpt-5-mini",
       "claude-3-7-sonnet"
     ],
     "expires_at": "2026-12-31T23:59:59.000Z",
@@ -60,8 +66,8 @@ curl -X GET "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/bil
   "breakdowns": {
     "by_model": [
       {
-        "model": "gpt-5.6-luna",
-        "logical_model": "gpt-5.6-luna",
+        "model": "gpt-5-mini",
+        "logical_model": "gpt-5-mini",
         "model_vendor": "OpenAI",
         "requests": 1,
         "cost": 0.0012,
@@ -72,8 +78,8 @@ curl -X GET "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/bil
     ],
     "by_logical_model": [
       {
-        "model": "gpt-5.6-luna",
-        "logical_model": "gpt-5.6-luna",
+        "model": "gpt-5-mini",
+        "logical_model": "gpt-5-mini",
         "model_vendor": "OpenAI",
         "requests": 1,
         "cost": 0.0012,
@@ -111,9 +117,9 @@ curl -X GET "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/bil
 
 ## 重要字段
 
-<ResponseField name="api_key" type="object">API 密钥摘要。</ResponseField>
+<ResponseField name="api_key" type="object">API Key 摘要，字段与列出、创建和更新响应相同。</ResponseField>
 <ResponseField name="summary" type="object">按所选筛选条件汇总的总计。</ResponseField>
-<ResponseField name="breakdowns" type="object">按不同维度汇总的费用和用量。</ResponseField>
+<ResponseField name="breakdowns" type="object">按所选筛选条件汇总的明细拆分。</ResponseField>
 <ResponseField name="summary.total_requests" type="number">请求总数。</ResponseField>
 <ResponseField name="summary.total_cost" type="number">以 JSON 数字返回的 USD 总费用，用于展示。</ResponseField>
 <ResponseField name="summary.total_cost_decimal" type="string">以十进制字符串返回的 USD 精确总费用。</ResponseField>
@@ -122,7 +128,7 @@ curl -X GET "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/bil
 <ResponseField name="summary.total_tokens" type="number">token 总数。</ResponseField>
 <ResponseField name="summary.usage_unit_breakdown" type="array">按计量单位分组的用量。</ResponseField>
 <ResponseField name="breakdowns.by_model" type="array">按请求时使用的公开模型拆分。</ResponseField>
-<ResponseField name="breakdowns.by_logical_model" type="array">按请求使用的公开模型汇总。</ResponseField>
+<ResponseField name="breakdowns.by_logical_model" type="array">按逻辑公开模型拆分。</ResponseField>
 <ResponseField name="breakdowns.by_model_vendor" type="array">按公开模型厂商拆分。</ResponseField>
 <ResponseField name="breakdowns.by_scene" type="array">按公开请求场景拆分。</ResponseField>
 <ResponseField name="breakdowns.daily_cost" type="array">每日费用趋势。</ResponseField>

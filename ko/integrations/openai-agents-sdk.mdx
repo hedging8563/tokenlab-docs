@@ -7,12 +7,20 @@ description: "OpenAI Agents SDK에서 TokenLab 모델 사용하기"
 
 OpenAI Agents SDK는 OpenAI 호환 클라이언트와 `OpenAIChatCompletionsModel`을 통해 TokenLab을 사용할 수 있습니다.
 
+<Note>
+**유형**: Python Agent SDK
+
+**주요 경로**: OpenAI 호환 채팅 완성(chat completions)
+
+**지원 신뢰도**: 지원되는 채팅 완성 경로
+</Note>
+
 ## 환경 설정
 
 ```bash
 export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 export TOKENLAB_BASE_URL="https://api.tokenlab.sh/v1"
-export TOKENLAB_MODEL="gpt-5.6-luna"
+export TOKENLAB_MODEL="gpt-5.4-mini"
 ```
 
 ## 예제
@@ -32,18 +40,20 @@ client = AsyncOpenAI(
 
 set_tracing_disabled(disabled=True)
 
+
 async def main():
     agent = Agent(
         name="Assistant",
         instructions="You are concise and practical.",
         model=OpenAIChatCompletionsModel(
-            model=os.getenv("TOKENLAB_MODEL", "gpt-5.6-luna"),
+            model=os.getenv("TOKENLAB_MODEL", "gpt-5.4-mini"),
             openai_client=client,
         ),
     )
 
     result = await Runner.run(agent, "Explain custom model providers in one paragraph.")
     print(result.final_output)
+
 
 asyncio.run(main())
 ```

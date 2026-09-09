@@ -6,22 +6,22 @@ description: "将音频翻译为英文文本"
 
 ## 概述
 
-把音频翻译成英文文本。无论输入是什么语言，结果都为英文。
+将任何受支持语言的音频翻译为英文文本。与转录不同，此端点无论输入语言是什么，始终输出英文文本。
 
 ## 请求体
 
-该接口会在翻译完成后返回。音频较长时，请将 HTTP 客户端超时设为至少 `120s`。
+**同步请求超时：** 这个非聊天端点会等待路由到的模型完成处理。大输入、长音频或大批量请求可能超过常见的 30s 客户端默认超时，因此请将 HTTP 客户端超时设置为至少 `120s`。
 
 <ParamField body="file" type="file" required>
   要翻译的音频文件。支持的格式：`flac`、`mp3`、`mp4`、`mpeg`、`mpga`、`m4a`、`ogg`、`wav`、`webm`。最大文件大小为 25 MB。
 </ParamField>
 
 <ParamField body="model" type="string" default="whisper-1">
-  音频翻译模型 ID，例如 `whisper-1`。
+  要使用的模型。当前仅支持 `whisper-1`。
 </ParamField>
 
 <ParamField body="prompt" type="string">
-  可选的英文提示词，可补充专有名词、上下文或期望的文字风格。
+  用于引导模型风格或续写上一段内容的可选文本。应使用英文。
 </ParamField>
 
 <ParamField body="response_format" type="string" default="json">
@@ -29,7 +29,7 @@ description: "将音频翻译为英文文本"
 </ParamField>
 
 <ParamField body="temperature" type="number">
-  采样温度，范围为 0–1。值越高，输出变化越大。
+  采样温度，取值范围在 0 到 1 之间。较高的值（如 0.8）会产生更随机的输出，而较低的值（如 0.2）会使输出更集中且更具确定性。
 </ParamField>
 
 ## 响应
@@ -160,5 +160,5 @@ echo $data['text'];
 | language 参数 | 不适用 | 可选提示 |
 
 <Note>
-  该接口会自动识别源语言，输出英文文本。
+  翻译端点会自动检测源语言并将其翻译为英文。转录中的 `language` 参数会被忽略。
 </Note>
