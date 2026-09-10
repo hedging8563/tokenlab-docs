@@ -11,10 +11,10 @@ TokenLab provides access to DeepSeek models. Total: **4 models** available.
 
 | Model ID | Pricing |
 |----------|--------|
-| `deepseek-flash` | $0.003–$1.2/1M tokens |
 | `deepseek-v4-flash` | $0.007–$1.32/1M tokens |
 | `deepseek-v4-flash-vision-exp` | $0.007–$1.32/1M tokens |
 | `deepseek-v4-pro` | $0.022–$3.96/1M tokens |
+| `deepseek-v4.1-flash` | $0.003–$1.2/1M tokens |
 
 
 ## Usage
@@ -28,7 +28,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="deepseek-flash",
+    model="deepseek-v4-flash",
     messages=[{"role": "user", "content": "Hello!"}]
 )
 ```
