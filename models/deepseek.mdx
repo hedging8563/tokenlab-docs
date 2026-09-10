@@ -5,12 +5,13 @@ description: "DeepSeek R1, V3 reasoning and chat models"
 
 ## Overview
 
-TokenLab provides access to DeepSeek models. Total: **3 models** available.
+TokenLab provides access to DeepSeek models. Total: **4 models** available.
 
 ## Chat Models
 
 | Model ID | Pricing |
 |----------|--------|
+| `deepseek-flash` | $0.003–$1.2/1M tokens |
 | `deepseek-v4-flash` | $0.007–$1.32/1M tokens |
 | `deepseek-v4-flash-vision-exp` | $0.007–$1.32/1M tokens |
 | `deepseek-v4-pro` | $0.022–$3.96/1M tokens |
@@ -27,7 +28,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="deepseek-v4-flash",
+    model="deepseek-flash",
     messages=[{"role": "user", "content": "Hello!"}]
 )
 ```
