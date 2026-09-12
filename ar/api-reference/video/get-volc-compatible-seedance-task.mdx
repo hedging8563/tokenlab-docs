@@ -1,26 +1,75 @@
 ---
-title: "جلب مهمة (متوافق مع Volc)"
+title: "الحصول على مهمة (متوافقة مع Volc)"
 openapi: "GET /api/v3/contents/generations/tasks/{id}"
-description: "اجلب مهمة Seedance متوافقة باستخدام معرف cgt."
+description: "الحصول على مهمة توافق Seedance باستخدام معرف مهمة cgt الخاص بها."
 ---
 
 ## نظرة عامة
 
-هذه الواجهات مخصصة للفرق التي تستخدم بالفعل شكل مهام Seedance بأسلوب Volc. يتم التوثيق باستخدام TokenLab Bearer API key. يبدأ معرف المهمة المرجع بـ `cgt-`؛ قم بالاستعلام عن الحالة حتى تصبح `status` إحدى `succeeded` أو `failed` أو `cancelled` أو `expired`.
+استخدم معرف `cgt-...` الذي تم إرجاعه بواسطة عملية الإنشاء. قم بإجراء استطلاع (Poll) كل بضع ثوانٍ طالما أن المهمة في حالة `queued` أو `running`. توقف عندما تصبح المهمة `succeeded` أو `failed` أو `cancelled` أو `expired`.
 
 <Warning>
-لا تُعد استخدام تعداد أو بنية استجابة v1. يستخدم `/v1/tasks/{id}` الحالات `pending` و`processing` و`completed` و`failed`، بينما يستخدم هذا المسار تعداد v3 الموضح أعلاه. في v3 تكون `duration` سلسلة نصية عند وجودها، ولا يظهر `error` إلا عند الفشل.
+لا تقم بإعادة استخدام enum المهمة الموحد v1 أو هيكل الاستجابة هنا. يستخدم `/v1/tasks/{id}` حالات `pending` و `processing` و `completed` و `failed`؛ بينما تستخدم نقطة النهاية v3 هذه الـ enum الرسمي المذكور أعلاه. في كائن JSON الخاص بـ v3، يكون `duration` عبارة عن سلسلة نصية (string) عند وجوده، ويتم حذف `error` ما لم تفشل المهمة. يجب على عميل Go الصارم تعريف `Duration` كـ `string` مع وسم JSON `duration,omitempty`، والتوقف عند كل حالة نهائية لـ v3.
 </Warning>
 
-انظر أيضا [نماذج فيديو Seedance 2.0](/ar/guides/seedance-2-video) و [توليد الفيديو](/ar/guides/video-generation).
+راجع أيضاً [نماذج فيديو Seedance 2.0](/guides/seedance-2-video) و [توليد الفيديو](/guides/video-generation).
 
-## شكل الاستجابة
+## قيم الحالة
 
-تستخدم استجابة المهمة `queued` أو `running` أو `succeeded` أو `failed` أو `cancelled` أو `expired`. تعيد المهام الناجحة `content.video_url`، وقد تعيد `content.last_frame_url` وحقول الجيل الرسمية و`usage`. لا يظهر `error` إلا عند الفشل، ولا تُضاف حقول TokenLab مثل `progress` أو `return_last_frame` أو `watermark` أو `priority` أو `camera_fixed`.
+- `queued`: تم قبول المهمة وهي بانتظار التشغيل.
+- `running`: عملية التوليد قيد التنفيذ.
+- `succeeded`: النتيجة جاهزة و `content.video_url` موجود.
+- `failed`: فشلت عملية التوليد؛ افحص `error.code` و `error.message`.
+- `cancelled`: تم إلغاء المهمة قبل اكتمالها.
+- `expired`: انتهت صلاحية المهمة قبل اكتمالها.
+
+## حقول الاستجابة
+
+- `id`: معرف مهمة التوافق، يبدأ بـ `cgt-`.
+- `model`: معرف النموذج الذي تم إرجاعه للتوافق.
+- `status`: إحدى قيم الحالة المذكورة أعلاه.
+- `content.video_url`: رابط الفيديو النهائي عند النجاح.
+- `content.last_frame_url`: موجود فقط عند طلبه وتوفره.
+- `usage`: استهلاك الـ token عند توفره.
+- `created_at` و `updated_at`: الطوابع الزمنية للمهمة.
+- `error`: موجود فقط عند فشل المهمة؛ يتم حذفه في المهام غير الفاشلة.
+
+لا تضيف الاستجابة أبداً حقول TokenLab مثل `progress` أو `return_last_frame` أو `watermark` أو `priority` أو `camera_fixed`.
 
 ## مثال
 
 ```bash
 curl https://api.tokenlab.sh/api/v3/contents/generations/tasks/cgt-20260102030405-a1b2c \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
+```
+
+```json
+{
+  "id": "cgt-20260102030405-a1b2c",
+  "model": "doubao-seedance-2.0",
+  "status": "succeeded",
+  "content": {
+    "video_url": "https://example.com/result.mp4"
+  },
+  "usage": {
+    "completion_tokens": 123456
+  }
+}
+```
+
+```go Go
+type SeedanceTask struct {
+    ID       string `json:"id"`
+    Status   string `json:"status"`
+    Duration string `json:"duration,omitempty"`
+}
+
+func isTerminal(status string) bool {
+    switch status {
+    case "succeeded", "failed", "cancelled", "expired":
+        return true
+    default:
+        return false
+    }
+}
 ```

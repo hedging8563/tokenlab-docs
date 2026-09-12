@@ -38,7 +38,7 @@ Les modèles image, vidéo, musique, 3D, audio et world peuvent être facturés 
 
 | Famille | Exemples |
 |---|---|
-| Images | `flux-pro`, `qwen-image-plus` |
+| Images | `flux-pro` |
 | Vidéo | `veo3.1`, `seedance-2.0` |
 | Musique | `suno-music` |
 | 3D | `tripo-h3.1` |
@@ -93,7 +93,7 @@ def estimate_tokens(text):
 
 # Comptage réel (pour les modèles OpenAI)
 import tiktoken
-encoder = tiktoken.encoding_for_model("gpt-4o")
+encoder = tiktoken.encoding_for_model("gpt-5.6-terra")
 tokens = encoder.encode("Votre texte ici")
 print(f"Nombre de tokens : {len(tokens)}")
 ```

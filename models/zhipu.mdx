@@ -5,13 +5,12 @@ description: "GLM-4, GLM-4.5, GLM-4.6 series"
 
 ## Overview
 
-TokenLab provides access to Zhipu AI (GLM) models. Total: **8 models** available.
+TokenLab provides access to Zhipu AI (GLM) models. Total: **7 models** available.
 
 ## Chat Models
 
 | Model ID | Pricing |
 |----------|--------|
-| `glm-4.7` | Input $1 / Output $2.5 per 1M tokens |
 | `glm-5` | Input $1 / Output $3.2 per 1M tokens |
 | `glm-5-turbo` | Input $1.2 / Output $4 per 1M tokens |
 | `glm-5.1` | Input $1.4 / Output $4.4 per 1M tokens |
@@ -32,7 +31,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="glm-4.7",
+    model="glm-5",
     messages=[{"role": "user", "content": "Hello!"}]
 )
 ```

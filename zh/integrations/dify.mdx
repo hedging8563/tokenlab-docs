@@ -5,26 +5,17 @@ description: "使用 OpenAI 提供商和自定义 base URL 将 TokenLab 集成�
 
 ## 概述
 
-Dify 可以通过其兼容 OpenAI 的模型提供商流程与 TokenLab 良好协作。
+Dify 可以在 OpenAI 模型设置中使用 TokenLab。这里配置的是 Chat Completions，不会让 Dify 额外获得 Responses 或 WebSocket 功能。
 
-这是一个面向 chat-completions 的集成路径。请勿将其视为 Dify 会提供与专用 Codex 集成相同的响应或 WebSocket 行为的保证。
-
-对于当前的 Dify 版本，最稳妥的路径通常是：
+当前 Dify 版本可以这样设置：
 - 选择内置的 **OpenAI** 提供商
-- 设置您的 TokenLab API key
+- 设置你的 TokenLab API 密钥
 - 设置自定义 base URL 为 `https://api.tokenlab.sh/v1`
 
 <Note>
-一些较旧的 Dify 构建版本将其显示为 `OpenAI-API-compatible`，而不是带有自定义 base URL 字段的内置 `OpenAI` 提供商。如果您的 Dify UI 看起来不同，请使用该版本中可用的最接近的 OpenAI 兼容自定义提供商流程。
+较旧的 Dify 版本可能把这项设置称为 `OpenAI-API-compatible`。界面名称不同时，请选择能够填写自定义 OpenAI API 地址的模型设置。
 </Note>
 
-<Note>
-**类型**: 框架或平台
-
-**主要路径**: OpenAI 兼容的聊天路径
-
-**支持置信度**: 在范围限制内支持
-</Note>
 
 ## 前置要求
 
@@ -33,11 +24,11 @@ Dify 可以通过其兼容 OpenAI 的模型提供商流程与 TokenLab 良好协
 
 ## 配置步骤
 
-### 第 1 步：获取您的 API Key
+### 第 1 步：获取你的 API 密钥
 
-1. 登录 [TokenLab Dashboard](https://tokenlab.sh/dashboard)
-2. 打开 [API Keys](https://tokenlab.sh/dashboard/api)
-3. 创建或复制一个以 `sk-` 开头的 API key
+1. 登录 [TokenLab Console](https://tokenlab.sh/dashboard)
+2. 打开 [API 密钥](https://tokenlab.sh/dashboard/api)
+3. 创建或复制一个以 `sk-` 开头的 API 密钥
 
 ### 第 2 步：配置提供商
 
@@ -46,18 +37,18 @@ Dify 可以通过其兼容 OpenAI 的模型提供商流程与 TokenLab 良好协
     在 Dify 中，前往 **设置 (Settings)** → **模型提供商 (Model Providers)**
   </Step>
   <Step title="选择 OpenAI">
-    打开 **OpenAI** 提供商设置。如果您的 Dify 版本在此处不提供自定义 base URL，请改用该版本提供的 OpenAI 兼容自定义提供商选项。
+    打开 **OpenAI** 提供商设置。如果你的 Dify 版本在此处不提供自定义 base URL，请改用该版本提供的 OpenAI 兼容自定义提供商选项。
   </Step>
   <Step title="输入 TokenLab 设置">
     使用以下值：
 
     | 字段 | 值 |
     |-------|-------|
-    | API Key | `sk-your-tokenlab-key` |
+    | API 密钥 | `sk-your-tokenlab-key` |
     | API Base URL / Custom Base URL | `https://api.tokenlab.sh/v1` |
   </Step>
   <Step title="添加模型">
-    添加您想要使用的模型，例如：
+    添加你想要使用的模型，例如：
     - `gpt-5.4`
     - `gpt-5.4-mini`
     - `claude-sonnet-5`
@@ -82,28 +73,23 @@ Dify 可以通过其兼容 OpenAI 的模型提供商流程与 TokenLab 良好协
 
 然后将其设置为相关知识库或应用程序设置中的默认 embedding 模型。
 
-## 推荐模型角色
+## 选择模型
 
-| 使用场景 | 建议模型 |
-|----------|------------------|
-| 默认聊天 | `gpt-5.4-mini`, `gpt-5.4`, `claude-sonnet-5` |
-| 深度推理 | `gpt-5.5`, `gpt-5.4`, `claude-opus-4-8`, `deepseek-v4-pro` |
-| 快速/廉价 | `gpt-5.4-mini`, `gemini-3.5-flash`, `deepseek-v4-flash` |
-| Embeddings | `text-embedding-3-small`, `text-embedding-3-large` |
+请从[模型页](https://tokenlab.sh/zh/models)复制当前聊天和 Embeddings 模型 ID。Dify 需要分别配置聊天与 Embeddings，而且每个模型都必须支持对应组件使用的 API。
 
-## 最佳实践
+## 配置说明
 
 <AccordionGroup>
-  <Accordion title="从内置的 OpenAI 提供商开始">
-    在较新的 Dify 版本中，带有自定义 base URL 的内置 OpenAI 提供商通常是 TokenLab 最简洁的设置方式。
+  <Accordion title="优先使用内置 OpenAI 设置">
+    新版 Dify 可以直接在内置 OpenAI 模型设置中填写自定义 Base URL。
   </Accordion>
 
-  <Accordion title="在迭代时使用更便宜的模型">
-    在迭代过程中使用 `gpt-5.4-mini`、`gemini-3.5-flash` 或 `deepseek-v4-flash`，仅在需要时将更繁重的工作流切换到更强大的模型。
+  <Accordion title="用自己的 Dify 应用比较模型">
+    使用相同的代表性输入测试候选模型，再到 Usage 比较输出质量和最终费用。
   </Accordion>
 
-  <Accordion title="请记住 Dify 通常是面向 chat-completions 的">
-    大多数 Dify 流程使用 OpenAI 兼容的聊天行为。如果您需要 Codex 特定的响应或 WebSocket 行为，请使用专用的 Codex 集成，而不是 Dify。
+  <Accordion title="这里使用 Chat Completions">
+    OpenAI 兼容配置不会为 Dify 增加 Responses 或 WebSocket 功能。
   </Accordion>
 </AccordionGroup>
 
@@ -117,7 +103,7 @@ Dify 可以通过其兼容 OpenAI 的模型提供商流程与 TokenLab 良好协
   </Accordion>
 
   <Accordion title="401 未授权">
-    - 仔细检查 API key
+    - 仔细检查 API 密钥
     - 确认该 key 在 TokenLab dashboard 中处于激活状态
     - 确保粘贴到 Dify 中的值不包含多余的空格或换行符
   </Accordion>

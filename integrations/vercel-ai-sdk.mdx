@@ -1,29 +1,18 @@
 ---
 title: "Vercel AI SDK"
-description: "Integrate TokenLab with Vercel AI SDK using OpenAI-compatible or Responses-native providers"
+description: "Use TokenLab models with Vercel AI SDK"
 ---
 
 ## Overview
 
 
 
-<Note>
-**Type**: Framework or Platform
 
-**Primary Path**: OpenAI-compatible default
-
-**Support Confidence**: Recommended integration pattern
-</Note>
-
-For TokenLab, the most stable default in Vercel AI SDK is the **OpenAI-compatible provider**.
-
-If you specifically need **Responses-native** behavior, you can switch to the OpenAI provider and keep the same TokenLab base URL.
-
-Treat this page as a recommended integration pattern, not as a guarantee that every helper in Vercel AI SDK is supported by TokenLab.
+Use the **OpenAI-compatible provider** for Chat Completions. If the selected model and your application need Responses, use the OpenAI provider with the same TokenLab Base URL.
 
 ## TokenLab Provider Package
 
-TokenLab also maintains a lightweight provider wrapper for Vercel AI SDK:
+TokenLab also provides a small Vercel AI SDK wrapper:
 
 ```bash
 npm install ai @tokenlabai/ai-sdk-provider
@@ -34,7 +23,7 @@ import { generateText } from 'ai';
 import { tokenlab } from '@tokenlabai/ai-sdk-provider';
 
 const { text } = await generateText({
-  model: tokenlab.chatModel('gpt-5.4'),
+  model: tokenlab.chatModel('gpt-5.6-terra'),
   prompt: 'Explain TokenLab in one sentence.',
 });
 
@@ -64,7 +53,7 @@ import { generateText } from 'ai';
 import { tokenlab } from './tokenlab';
 
 const { text } = await generateText({
-  model: tokenlab.chatModel('gpt-5.4'),
+  model: tokenlab.chatModel('gpt-5.6-terra'),
   prompt: 'Explain TokenLab in one sentence.',
 });
 
@@ -78,7 +67,7 @@ import { streamText } from 'ai';
 import { tokenlab } from './tokenlab';
 
 const result = await streamText({
-  model: tokenlab.chatModel('gpt-5.4'),
+  model: tokenlab.chatModel('gpt-5.6-terra'),
   prompt: 'Write a short poem about coding.',
 });
 
@@ -95,7 +84,7 @@ import { z } from 'zod';
 import { tokenlab } from './tokenlab';
 
 const result = await generateText({
-  model: tokenlab.chatModel('gpt-5.4'),
+  model: tokenlab.chatModel('gpt-5.6-terra'),
   prompt: 'What is the weather in San Francisco?',
   tools: {
     weather: tool({
@@ -123,7 +112,7 @@ import { z } from 'zod';
 import { tokenlab } from './tokenlab';
 
 const { object } = await generateObject({
-  model: tokenlab.chatModel('gpt-5.4'),
+  model: tokenlab.chatModel('gpt-5.6-terra'),
   schema: z.object({
     name: z.string(),
     role: z.string(),
@@ -154,7 +143,7 @@ import { generateText } from 'ai';
 import { tokenlabResponses } from './tokenlab-responses';
 
 const { text } = await generateText({
-  model: tokenlabResponses('gpt-5.4'),
+  model: tokenlabResponses('gpt-5.6-terra'),
   prompt: 'Explain TokenLab in one sentence.',
 });
 ```

@@ -151,7 +151,7 @@ Gemini 端點除了標準的 Bearer token 驗證外，亦支援使用 `?key=` �
   "id": "chatcmpl-abc123",
   "object": "chat.completion",
   "created": 1234567890,
-  "model": "gpt-4o",
+  "model": "gpt-5.6-terra",
   "choices": [...],
   "usage": {
     "prompt_tokens": 10,
@@ -163,30 +163,16 @@ Gemini 端點除了標準的 Bearer token 驗證外，亦支援使用 `?key=` �
 
 ### 路由透明性
 
-所有回應都包含帶有頻道資訊的 `_routing` 欄位：
+TokenLab 不會在公開回應本文中暴露提供者、頻道、策略或憑據細節。不要把 `_routing` 或其他內部路由欄位視為公開 API 契約的一部分。
 
-```json
-{
-  "id": "chatcmpl-abc123",
-  ...,
-  "_routing": {
-    "channel": {
-      "id": "ch_xxx",
-      "name": "channel-name",
-      "provider": "openai"
-    },
-    "cached": false,
-    "retryCount": 0
-  }
-}
-```
+調試與支援場景下，可以使用回應中實際出現的公開回應標頭：
 
-| 欄位 | 說明 |
+| 回應標頭 | 說明 |
 |-------|-------------|
-| `channel.id` | 使用的頻道識別碼 |
-| `channel.provider` | 上游提供者（openai、anthropic 等） |
-| `cached` | 回應是否由快取提供 |
-| `retryCount` | 重試次數（如有） |
+| `X-Routing-Time-MS` | 路由選擇耗時（如可用） |
+| `X-Request-ID` | 用於支援與調試的請求識別碼（如可用） |
+| `X-Task-ID` | 任務型回應的公開非同步任務識別碼（如可用） |
+| `X-Billing-Transaction-ID` | 最終計費後的計費交易識別碼（如可用） |
 
 ### 錯誤回應
 

@@ -6,11 +6,11 @@ description: "WebSocket でリアルタイム音声およびマルチモーダ�
 
 ## 概要
 
-このエンドポイントは、リアルタイム音声認識、音声合成、音声翻訳、リアルタイムマルチモーダルモデルのセッションに使用します。通常の `GET` はメタデータを返し、WebSocket アップグレードは選択された上流セッションへプロキシされます。
+このエンドポイントは、ストリーミング音声認識、音声合成、音声翻訳、リアルタイムのマルチモーダルモデルなどのリアルタイムセッションに使用します。通常の `GET` リクエストはエンドポイントのメタデータを返し、WebSocket のアップグレードリクエストは選択したモデルのリアルタイムセッションを開始します。
 
 ## サポート範囲
 
-このエンドポイントは TokenLab のリアルタイム WebSocket プロキシです。同じパスで通常の `GET /v1/realtime` メタデータ確認と WebSocket アップグレードをサポートします。`POST /v1/realtime/client_secrets`、`POST /v1/realtime/translations/client_secrets`、Realtime Calls（`accept`、`hangup`、`refer`、`reject`）、legacy beta REST session / transcription-session 作成などの OpenAI Realtime REST 補助エンドポイントは公開していません。
+TokenLab は `GET /v1/realtime` で、メタデータ確認と WebSocket アップグレードに使えるリアルタイム WebSocket エンドポイントを提供します。これは WebSocket サブセット（WebSocket subset）として扱ってください。対応するリアルタイムモデルのイベントだけを中継し、セッション作成、`client_secrets`、`Calls` 通話制御 API、legacy beta session API などの OpenAI Realtime REST 補助面はサポートしていません。
 
 ブラウザやモバイルアプリでは、長期 API キーをサーバー側に保持してください。このエンドポイントは短期 Realtime client secret を発行しません。
 
@@ -54,13 +54,13 @@ curl "https://api.tokenlab.sh/v1/realtime" \
 
 ## メッセージ
 
-TokenLab はクライアントとルーティングされたリアルタイムプロバイダーの間で WebSocket メッセージを転送します。選択したモデルの公式イベント形式を使い、`model` はクエリ文字列で指定します。
+TokenLab は、クライアントと選択したリアルタイムモデルの間で WebSocket メッセージを中継します。そのモデルのドキュメントに記載されたイベント形式を使用し、`model` は各イベントではなくクエリ文字列に含めてください。
 
 ## 課金と終了
 
-リアルタイムセッションは同じ API キー残高を使用します。TokenLab は接続時に少額を事前控除し、終了時に精算または返金します。
+セッションは API キーの残高で課金されます。TokenLab は開始時に見積もり額を確保し、終了時に実際の使用量で精算して差額を返金します。
 
-セッション完了後はクライアント socket を閉じてください。上流が先に閉じた場合、TokenLab は可能な限り close code を転送します。
+セッションが完了したら、クライアントのソケットを閉じてください。サービス側が先にセッションを閉じた場合、TokenLab は可能な限り安全なクローズイベント/コードをクライアントに送信します。
 
 ## レスポンス例
 
@@ -80,4 +80,4 @@ TokenLab はクライアントとルーティングされたリアルタイム�
 ## 重要フィールド
 
 <ResponseField name="type" type="string">API が返す event または message type です。</ResponseField>
-<ResponseField name="session.id" type="string">リアルタイム提供元が返す識別子です。サポート用ログに含めるためのもので、REST session URL ではありません。</ResponseField>
+<ResponseField name="session.id" type="string">リアルタイム接続を通じて受け取る不透明な識別子です。調査用のサポートログに含めてください。REST session URL ではありません。</ResponseField>

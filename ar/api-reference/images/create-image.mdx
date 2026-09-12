@@ -34,7 +34,7 @@ Google Gemini في عقد اختيار واحد:
 **مهلة الطلبات المتزامنة:** قد تعيد بعض طلبات الصور الصورة النهائية inline وتنتظر اكتمال التوليد. قد تستغرق طلبات الدقة العالية أو الجودة العالية ما يقارب دقيقة أو أكثر، لذا اضبط مهلة عميل HTTP على `120s` على الأقل. إذا احتوت استجابة الإنشاء على `status: "pending"` أو `task_id` أو `poll_url`، فاتبع `poll_url` المُعاد بدلًا من الانتظار.
 
 <ParamField body="model" type="string" required>
-  النموذج المطلوب استخدامه، مثل `gpt-image-2` أو `flux-pro` أو `qwen-image-plus` أو `nano-banana-pro`. استخدم `GET /v1/models?recommended_for=image` للحصول على قائمة التوصيات الحالية.
+  النموذج المطلوب استخدامه، مثل `gpt-image-2` أو `flux-pro` أو `nano-banana-pro`. استخدم `GET /v1/models?recommended_for=image` للحصول على قائمة التوصيات الحالية.
 </ParamField>
 
 <ParamField body="prompt" type="string" required>
@@ -301,7 +301,6 @@ curl -X POST "https://api.tokenlab.sh/v1/images/generations" \
 |-------|------|----------|
 | `gpt-image-2` | متزامن أو قائم على مهمة | نموذج GPT Image بتسعير حسب التوكنات وأحجام مرنة |
 | `flux-pro` | غالبًا قائم على مهمة | واقعي تصويريًا، جودة عالية |
-| `qwen-image-plus` | غالبًا قائم على مهمة | عرض نص قوي واتباع جيد للـ prompt |
 | `nano-banana-pro` | غالبًا قائم على مهمة | سير عمل صور مرجعية وإخراج عالي الدقة |
 | `grok-imagine-image` | غالبًا قائم على مهمة | توليد صور xAI مع اختيار النسبة والدقة |
 | `ideogram-v3` | غالبًا قائم على مهمة | عرض نص قوي |

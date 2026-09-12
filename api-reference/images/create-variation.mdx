@@ -6,18 +6,18 @@ description: "Creates a variation of a given image"
 
 ## Overview
 
-This endpoint is retained for legacy OpenAI-compatible variation clients. It is not the recommended path for current image-to-image workflows; use `/v1/images/edits` with `gpt-image-2` or `/v1/images/generations` with an image-to-image model such as `nano-banana-pro` when possible. Requires `multipart/form-data` content type.
+This endpoint supports existing OpenAI Variations clients. For new image-to-image features, use `/v1/images/edits` or `/v1/images/generations` with a current image-to-image model. Requests use `multipart/form-data`.
 
 ## Request Body
 
-**Synchronous request timeout:** Some routed image providers return the final image inline and wait for generation to finish. High-resolution or high-quality requests can take close to a minute or longer, so set your HTTP client timeout to at least `120s`. If the create response includes `status: "pending"`, `task_id`, or `poll_url`, follow the returned `poll_url` instead.
+Some requests return the final image immediately. Set your HTTP client timeout to at least `120s`. If the response includes `status: "pending"`, `task_id`, or `poll_url`, use the returned URL to retrieve the result.
 
 <ParamField body="image" type="file" required>
   The image to use as the basis for the variation. Must be a valid PNG file, less than 50MB, and square.
 </ParamField>
 
 <ParamField body="model" type="string" required>
-  Required model identifier for legacy variation-compatible routes. There is no implicit default; for current image-to-image workflows, prefer `/v1/images/edits` or `/v1/images/generations` with a current model.
+  Model ID. This endpoint has no default model.
 </ParamField>
 
 <ParamField body="n" type="integer" default="1">
@@ -25,7 +25,7 @@ This endpoint is retained for legacy OpenAI-compatible variation clients. It is 
 </ParamField>
 
 <ParamField body="size" type="string">
-  The size of the generated images for legacy variation-compatible routes. Supported values depend on the selected model.
+  Generated image size. Supported values depend on the selected model.
 </ParamField>
 
 <ParamField body="response_format" type="string" default="url">

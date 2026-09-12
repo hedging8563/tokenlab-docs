@@ -28,9 +28,9 @@ TokenLab هي منصة تجميع واجهات برمجة تطبيقات الذ�
 
 | الإمكانية | الوصف | نماذج أمثلة |
 |---|---|---|
-| المحادثة والاستدلال | توليد النص والتخطيط والأدوات | `gpt-5.4`, `claude-sonnet-4-6`, `deepseek-r1` |
+| المحادثة والاستدلال | توليد النص والتخطيط والأدوات | `gpt-5.4`, `claude-sonnet-4-6` |
 | الرؤية ومتعدد الوسائط | فهم الصور والمحادثة متعددة الوسائط | `gpt-4o`, `claude-sonnet-4-6`, `gemini-3.5-flash` |
-| توليد الصور وتحريرها | تحويل النص إلى صورة وتحرير الصور | `gpt-image-2`, `flux-pro`, `qwen-image-plus` |
+| توليد الصور وتحريرها | تحويل النص إلى صورة وتحرير الصور | `gpt-image-2`, `flux-pro` |
 | توليد الفيديو | نص/صورة/مرجع إلى فيديو والتحكم بالحركة | `veo3.1`, `wan-2.7`, `kling-3.0-video`, `happyhorse-1.0` |
 | الصوت وRealtime WebSocket | TTS والنسخ وترجمة الصوت وجلسات WebSocket الفورية | `gpt-4o-mini-tts`, `whisper-1`, `gpt-realtime` |
 | Embeddings وrerank | تمثيل النصوص وإعادة الترتيب | `text-embedding-3-small`, `qwen3-vl-rerank` |
@@ -49,7 +49,7 @@ curl https://api.tokenlab.sh/v1/chat/completions \
   -H "Authorization: Bearer sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-5.4",
+    "model": "gpt-5.6-terra",
     "messages": [
       {"role": "user", "content": "Explain what TokenLab does in one sentence."}
     ]
@@ -65,7 +65,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="gpt-5.4",
+    model="gpt-5.6-terra",
     messages=[{"role": "user", "content": "Explain what TokenLab does in one sentence."}]
 )
 
@@ -81,7 +81,7 @@ const client = new OpenAI({
 });
 
 const response = await client.chat.completions.create({
-  model: 'gpt-5.4',
+  model: 'gpt-5.6-terra',
   messages: [{ role: 'user', content: 'Explain what TokenLab does in one sentence.' }],
 });
 

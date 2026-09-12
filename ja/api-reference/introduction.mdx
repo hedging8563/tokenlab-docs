@@ -151,7 +151,7 @@ Gemini エンドポイントは、標準の Bearer トークンに加え `?key=`
   "id": "chatcmpl-abc123",
   "object": "chat.completion",
   "created": 1234567890,
-  "model": "gpt-4o",
+  "model": "gpt-5.6-terra",
   "choices": [...],
   "usage": {
     "prompt_tokens": 10,
@@ -163,30 +163,16 @@ Gemini エンドポイントは、標準の Bearer トークンに加え `?key=`
 
 ### ルーティングの透明性
 
-すべてのレスポンスにはチャンネル情報を含む `_routing` フィールドが含まれます:
+TokenLab は、公開レスポンス本文でプロバイダー、チャンネル、ポリシー、認証情報の詳細を公開しません。`_routing` やその他の内部ルーティングフィールドを公開 API 契約の一部として依存しないでください。
 
-```json
-{
-  "id": "chatcmpl-abc123",
-  ...,
-  "_routing": {
-    "channel": {
-      "id": "ch_xxx",
-      "name": "channel-name",
-      "provider": "openai"
-    },
-    "cached": false,
-    "retryCount": 0
-  }
-}
-```
+デバッグやサポートでは、レスポンスに含まれている場合のみ、次の公開レスポンスヘッダーを使用できます。
 
-| フィールド | 説明 |
+| ヘッダー | 説明 |
 |-------|-------------|
-| `channel.id` | 使用されたチャンネルの識別子 |
-| `channel.provider` | 上流プロバイダー（openai、anthropic など） |
-| `cached` | レスポンスがキャッシュから提供されたかどうか |
-| `retryCount` | リトライ試行回数（存在する場合） |
+| `X-Routing-Time-MS` | ルート選択にかかった時間（利用可能な場合） |
+| `X-Request-ID` | サポートとデバッグ用のリクエスト識別子（利用可能な場合） |
+| `X-Task-ID` | タスクベースのレスポンスで使う公開非同期タスク識別子（利用可能な場合） |
+| `X-Billing-Transaction-ID` | 最終課金後の課金トランザクション識別子（利用可能な場合） |
 
 ### エラーレスポンス
 

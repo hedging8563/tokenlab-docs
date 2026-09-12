@@ -1,34 +1,32 @@
 ---
-title: "✨ Ajan-Öncelikli API"
-description: "AI ajanlarının ilk yeniden denemede kendini düzeltmesi için yapılandırılmış hata ipuçları"
+title: "Ajanların işlem yapabileceği hatalar"
+description: "Metinleri ayrıştırmadan hata kodlarını, yeniden deneme sürelerini ve model önerilerini kullanın"
 ---
 
-## Genel Bakış
+OpenAI uyumlu TokenLab hataları, bir ajan veya uygulama için yapılandırılmış ipuçları içerebilir. Bu alanlar mevcut olduğunda bunları kullanın; ne yapacağınıza karar vermek için insan tarafından okunabilir `message` içeriğini ayrıştırmayın.
 
-TokenLab'nın Agent-First API'si, hata yanıtlarını AI ajanlarının hemen ayrıştırıp harekete geçebileceği yapılandırılmış ipuçlarıyla zenginleştirir — web aramaları yok, doküman bakışları yok, tahmin yürütme yok.
+Anthropic Messages ve Gemini API'leri kendi yerel hata formatlarını korur, bu nedenle bu sayfadaki uzantılar yalnızca OpenAI uyumlu Chat Completions ve Responses hataları için geçerlidir.
 
-OpenAI uyumlu Chat Completions ve Responses gateway hataları, `error` nesnesinde `did_you_mean`, `suggestions`, `hint`, `retryable` ve `retry_after` gibi isteğe bağlı alanlar içerebilir. Anthropic Messages ve Gemini yerel hata şekillerini korur ve bu uzantıları vaat etmez.
+## İsteğe bağlı hata alanları
 
-## Hata İpucu Alanları
+Aşağıdaki tüm alanlar `error` nesnesi içinde görünür ve bulunmayabilirler.
 
-OpenAI uyumlu gateway hatalarında tüm ipucu alanları `error` nesnesi içinde isteğe bağlı uzantılardır:
+| Alan | Tip | Kullanım |
+| --- | --- | --- |
+| `did_you_mean` | `string` | En yakın kullanılabilir model ID'si |
+| `suggestions` | `array` | İsteğe uygun olabilecek modeller |
+| `alternatives` | `array` | Alternatif olarak şu anda kullanılabilir modeller |
+| `hint` | `string` | Kısa bir açıklama veya önerilen eylem |
+| `retryable` | `boolean` | Aynı isteğin daha sonra başarılı olup olamayacağı |
+| `retry_after` | `number` | Tekrar denemeden önce beklenecek saniye süresi |
+| `balance_usd` | `number` | USD cinsinden güncel bakiye |
+| `estimated_cost_usd` | `number` | Reddedilen isteğin tahmini maliyeti |
 
-| Alan | Tür | Açıklama |
-|-------|------|-------------|
-| `did_you_mean` | `string` | En yakın eşleşen model adı |
-| `suggestions` | `array` | Meta veriye sahip önerilen modeller |
-| `alternatives` | `array` | Mevcut alternatif modeller |
-| `hint` | `string` | İnsan/ajan tarafından okunabilir sonraki adım yönlendirmesi |
-| `retryable` | `boolean` | Aynı isteğin yeniden denenmesinin başarılı olma olasılığı |
-| `retry_after` | `number` | Yeniden denemeden önce beklenmesi gereken saniye |
-| `balance_usd` | `number` | Hesap bakiyesi (USD cinsinden) |
-| `estimated_cost_usd` | `number` | Başarısız olan isteğin tahmini maliyeti (USD) |
+İstemciniz her hatayı yine de HTTP durumu ve `code` değerine göre işlemelidir. Bu ekstra alanları gerekli alanlar olarak değil, yararlı bağlam bilgileri olarak değerlendirin.
 
-## Hata Kodu Örnekleri
+## Bilinmeyen model
 
-### model_not_found (400)
-
-Bir model adı aktif hiçbir modelle eşleşmediğinde:
+Yanlış yazılmış veya kullanılamayan bir model `400 model_not_found` hatası döndürür. Eğer `did_you_mean` mevcutsa, bunu kullanıcıya gösterin veya yalnızca ürününüzün seçili modeli değiştirme izni varsa yeniden deneyin.
 
 ```json
 {
@@ -37,27 +35,19 @@ Bir model adı aktif hiçbir modelle eşleşmediğinde:
     "type": "invalid_request_error",
     "param": "model",
     "code": "model_not_found",
-    "did_you_mean": "gpt-5.4",
+    "did_you_mean": "gpt-5.6-terra",
     "suggestions": [
-      {"id": "gpt-5.4"},
-      {"id": "gpt-5-mini"},
-      {"id": "claude-sonnet-4-6"}
+      {"id": "gpt-5.6-terra"},
+      {"id": "gpt-5.6-luna"}
     ],
-    "hint": "Did you mean 'gpt-5.4'? Use GET https://api.tokenlab.sh/v1/models to list all available models."
+    "hint": "Did you mean 'gpt-5.6-terra'? Use GET https://api.tokenlab.sh/v1/models to list all available models."
   }
 }
 ```
 
-`did_you_mean` çözümlemesi şu yöntemleri kullanır:
-1. Statik takma ad eşlemesi (prodüksiyon hata verilerinden)
-2. Normalleştirilmiş string eşlemesi (tireleri kaldırır, büyük/küçük harf duyarsız)
-3. Düzenleme uzaklığı eşlemesi (eşik ≤ 3)
+## Yetersiz bakiye
 
-Genel erişim (public) rotaları, gizli, ertelenmiş veya herkese açık olmayan modeller için ayrı hata kodları açığa çıkarmaz. Kullanılamayan genel modelleri bir yanlış yazım gibi değerlendirin: `did_you_mean`, `suggestions` ve `hint` alanlarını inceleyin ve sonra desteklenen bir genel model ile yeniden deneyin.
-
-### insufficient_balance (402)
-
-Hesap bakiyesi tahmini maliyet için yetersiz olduğunda:
+`402 insufficient_balance` hatası, güncel bakiyeyi ve gereken tahmini tutarı içerebilir. Uygulamanız bir bakiye yükleme bağlantısı, daha ucuz bir model veya daha küçük bir istek sunabilir.
 
 ```json
 {
@@ -68,19 +58,17 @@ Hesap bakiyesi tahmini maliyet için yetersiz olduğunda:
     "balance_usd": 0.12,
     "estimated_cost_usd": 0.35,
     "suggestions": [
-      {"id": "gpt-5-mini"},
+      {"id": "gpt-5.6-luna"},
       {"id": "deepseek-v3-2"}
     ],
-    "hint": "Insufficient balance: need ~$0.3500 for claude-sonnet-4-6, but balance is $0.1200. Try a cheaper model, or top up at https://tokenlab.sh/dashboard/billing."
+    "hint": "Try a cheaper model, or top up at https://tokenlab.sh/dashboard/billing."
   }
 }
 ```
 
-`suggestions`, ajanların geçiş yapabileceği tahmini maliyetten daha ucuz modelleri içerir.
+## Geçici olarak kullanılamıyor
 
-### all_channels_failed (503)
-
-Bir model için tüm üst akış kanalları kullanılamaz olduğunda:
+`503 all_channels_failed` yanıtı, istenen modelin geçici olarak kullanılamadığı anlamına gelir. `retryable` değeri `true` olduğunda `retry_after` süresine uyun veya kullanıcının `alternatives` listesinden bir öğe seçmesine izin verin.
 
 ```json
 {
@@ -90,19 +78,17 @@ Bir model için tüm üst akış kanalları kullanılamaz olduğunda:
     "retryable": true,
     "retry_after": 30,
     "alternatives": [
-      {"id": "claude-sonnet-4-6", "status": "available", "tags": []},
-      {"id": "gpt-5-mini", "status": "available", "tags": []}
+      {"id": "claude-sonnet-5", "status": "available", "tags": []},
+      {"id": "gpt-5.6-luna", "status": "available", "tags": []}
     ],
-    "hint": "All channels for 'claude-opus-4-6' are temporarily unavailable. Retry in 30s or try an alternative model."
+    "hint": "Retry in 30s or try an alternative model."
   }
 }
 ```
 
-<Note>
-`retryable`, neden `no_channels` ise `false` olur (bu model için yapılandırılmış kanal yok). Yalnızca devre kesici atlamaları veya kota tükenmesi gibi geçici hatalar için `true` olur.
-</Note>
+## Hız sınırı (Rate limit)
 
-### rate_limit_exceeded (429)
+`429 rate_limit_exceeded` hatası için `retry_after` saniyesi kadar bekleyin veya standart `Retry-After` yanıt başlığını kullanın.
 
 ```json
 {
@@ -112,20 +98,14 @@ Bir model için tüm üst akış kanalları kullanılamaz olduğunda:
     "code": "rate_limit_exceeded",
     "retryable": true,
     "retry_after": 8,
-    "hint": "Rate limited. Retry after 8s. Current limit: 1000/min for user role."
+    "hint": "Retry after 8s."
   }
 }
 ```
 
-`retry_after` değeri, gerçek hız limiti pencere sıfırlama zamanından hesaplanır.
+## Bağlam çok uzun
 
-<Note>
-OpenAI-uyumlu uç noktalar, `rate_limit_exceeded`, `upstream_error` ve `all_channels_failed` gibi TokenLab'nın kararlı genel hata türlerini kullanır. Anthropic-uyumlu ve Gemini-uyumlu uç noktalar kendi yerel yanıt biçimlerini kullanır.
-</Note>
-
-### context_length_exceeded (400)
-
-Girdi modelin bağlam penceresini aştığında (üst akış hatası, ipuçları ile zenginleştirilmiş):
+`400 context_length_exceeded` hatası, aynı isteği tekrar göndererek çözülmez. Girdiyi kısaltın veya kullanıcının daha geniş bir bağlam penceresine sahip bir model seçmesine izin verin.
 
 ```json
 {
@@ -136,127 +116,50 @@ Girdi modelin bağlam penceresini aştığında (üst akış hatası, ipuçları
     "retryable": false,
     "suggestions": [
       {"id": "gemini-2.5-pro"},
-      {"id": "claude-sonnet-4-6"}
+      {"id": "claude-sonnet-5"}
     ],
     "hint": "Reduce your input or switch to a model with a larger context window."
   }
 }
 ```
 
-## Yerel Uç Nokta Keşfi
+## Doğru API formatını bulma
 
-Yerel protokol kullanılabilirliğini model ya da sağlayıcı adından veya Chat yanıt başlıklarından çıkarmayın. Yerel uç nokta seçmeden önce `GET /v1/models/{model}` isteğini okuyun ve yalnızca model ayrıntılarında ilan edilen ve aynı protokole sahip bir route tarafından desteklenen istek biçimini kullanın.
+Modele özel bir API kullanmadan önce `GET /v1/models/{model}` üzerinden `tokenlab.accepted_request_formats` değerini okuyun.
 
-Okunacak alan `tokenlab.accepted_request_formats` değeridir.
+| Değer | Endpoint |
+| --- | --- |
+| `chat_completions` | `/v1/chat/completions` |
+| `responses` | `/v1/responses` |
+| `messages` | `/v1/messages` |
+| `gemini` | `/v1beta/models/{model}:generateContent` |
 
-| İstek biçimi | Uç nokta |
-|--------------|----------|
-| Chat Completions | `/v1/chat/completions` |
-| Responses | `/v1/responses` |
-| Messages | `/v1/messages` |
-| Gemini | `/v1beta/models/{model}:generateContent` |
+Kabul edilen bir format, endpoint'i doğrular. Bireysel araçlar ve alanlar modele göre değişiklik gösterebilir; bunlara güvenmeden önce model sayfasını kontrol edin.
 
-İlan edilen istek biçimi uç noktanın kullanılabilirliğini belirler; tek tek alan ve araç desteği upstream'e bağlıdır.
+## Göreve göre model bulma
 
-## /v1/models İyileştirmeleri
-
-`/v1/models` artık ajanların görüntü, video, müzik, 3B, TTS, STT, embedding, rerank veya çeviri uç noktalarını çağırmadan önce kullanabileceği sohbet dışı öneri meta verilerini taşır.
-
-```json
-{
-  "id": "gemini-2.5-flash-image",
-  "tokenlab": {
-    "category": "image",
-    "pricing_unit": "per_request",
-    "agent_preferences": {
-      "image": {
-        "preferred_rank": 1,
-        "success_rate_24h": 0.98,
-        "sample_count_24h": 423,
-        "status": "ready",
-        "updated_at": "2026-03-28T12:00:00.000Z",
-        "basis": {
-          "source": "recent_activity_24h"
-        }
-      }
-    }
-  }
-}
-```
-
-| Alan | Değerler | Açıklama |
-|-------|--------|-------------|
-| `category` | `chat`, `image`, `video`, `audio`, `tts`, `stt`, `3d`, `embedding`, `rerank` | Model türü |
-| `pricing_unit` | `per_token`, `per_image`, `per_second`, `per_request` | Modelin faturalama yöntemi |
-| `cache_pricing` | object or `null` | Yalnızca modelin kendi upstream prompt cache fiyatları varsa döner. |
-| `agent_preferences.<scene>` | object | Yalnızca `GET /v1/models?recommended_for=<scene>` ile dönen sohbet dışı öneri anlık görüntüsü |
-
-`recommended_for` mevcutsa `agent_preferences`, önbelleğe alınmış 24 saatlik başarı oranı anlık görüntüsünden türetilir:
-
-- Pencere: 24 saat
-- Anlık görüntü önbelleği: stale-while-revalidate
-- `status = "ready"` modelin sıralamaya katılmak için yeterli güncel örneğe sahip olduğunu gösterir
-- `status = "insufficient_samples"` model görünür kalır ancak puanlanmış modellerin önüne alınmaz
-
-### Kategori Filtreleme
+Models API, sohbet dışı görevler için güncel bir kısa liste döndürebilir:
 
 ```bash
-GET https://api.tokenlab.sh/v1/models?category=chat          # Chat modelleri yalnızca
-GET https://api.tokenlab.sh/v1/models?category=image         # Görüntü üretim modelleri
-GET https://api.tokenlab.sh/v1/models?tag=coding&category=chat  # Kodlama-optimze chat modelleri
+curl "https://api.tokenlab.sh/v1/models?recommended_for=image" \
+  -H "Authorization: Bearer sk-your-api-key"
 ```
 
-### Öneri Keşfi
+Geçerli `recommended_for` değerleri şunlardır: `image`, `video`, `music`, `3d`, `tts`, `stt`, `embedding`, `rerank` ve `translation`. Seçilen model ID'sini oluşturma isteğinde açıkça gönderin. TokenLab bunu sessizce farklı bir modelle değiştirmez.
 
-Sohbet dışı iş akışları için ajanlar önce geçerli önerilen kısa listeyi almalıdır:
+## Makine tarafından okunabilir genel bakış
 
-```bash
-GET https://api.tokenlab.sh/v1/models?recommended_for=image
-GET https://api.tokenlab.sh/v1/models?recommended_for=translation
-GET https://api.tokenlab.sh/v1/models?category=tts&recommended_for=tts
-```
+Ajanlar, kompakt bir API genel bakışını şu adresten okuyabilir:
 
-Geçerli `recommended_for` değerleri şunlardır:
-
-- `image`
-- `video`
-- `music`
-- `3d`
-- `tts`
-- `stt`
-- `embedding`
-- `rerank`
-- `translation`
-
-Hem `category` hem de `recommended_for` mevcutsa, bunların tam olarak eşleşmesi gerekir.
-
-Önerilen ajan akışı:
-
-1. `GET /v1/models?recommended_for=<scene>`
-2. İlk `agent_preferences.<scene>.status == "ready"` olan modeli seçin
-3. Uç noktayı açıkça `model=<selected>` ile çağırın
-4. Yalnızca geçici hatalarda, bir sonraki `ready` model ile yeniden deneyin
-
-## llms.txt
-
-Makine tarafından okunabilir bir API genel bakışı şu adreste mevcuttur:
-
-```
+```text
 GET https://api.tokenlab.sh/llms.txt
 ```
 
-İçerir:
-- Çalışan bir örnekle ilk çağrı şablonu
-- Yaygın model adları (kullanım verilerinden dinamik olarak oluşturulur)
-- Tüm 12 API uç noktası
-- Model keşfi için filtre parametreleri
-- Hata işleme rehberi
+Bu dosya; ilk istek, yaygın endpoint'ler, model filtreleri ve hata işleme rehberliğini içerir.
 
-`llms.txt` dosyasını ilk API çağrılarından önce okuyan AI ajanları tipik olarak ilk denemede başarılı olabilir.
+## Güvenli yeniden deneme örneği
 
-## Ajan Kodunda Kullanım
-
-### Python (OpenAI SDK)
+Bu örnek, yalnızca API `did_you_mean` döndürdüğünde model adını düzeltir. Modelleri değiştirmenin ürününüzdeki kaliteyi, fiyatı veya veri işleme süreçlerini etkileyebileceği durumlarda kullanıcı onayı ekleyin.
 
 ```python
 from openai import OpenAI, BadRequestError
@@ -266,59 +169,16 @@ client = OpenAI(
     base_url="https://api.tokenlab.sh/v1"
 )
 
-def smart_chat(messages, model="gpt-4o"):
+def chat(messages, model):
     try:
-        return client.chat.completions.create(
-            model=model, messages=messages
-        )
-    except BadRequestError as e:
-        error = e.body.get("error", {}) if isinstance(e.body, dict) else {}
-        # Use did_you_mean for auto-correction
-        if error.get("code") == "model_not_found" and error.get("did_you_mean"):
+        return client.chat.completions.create(model=model, messages=messages)
+    except BadRequestError as exc:
+        error = exc.body.get("error", {}) if isinstance(exc.body, dict) else {}
+        suggested = error.get("did_you_mean")
+        if error.get("code") == "model_not_found" and suggested:
             return client.chat.completions.create(
-                model=error["did_you_mean"], messages=messages
+                model=suggested,
+                messages=messages,
             )
         raise
 ```
-
-### JavaScript (OpenAI SDK)
-
-```javascript
-import OpenAI from 'openai';
-
-const client = new OpenAI({
-  apiKey: 'sk-your-key',
-  baseURL: 'https://api.tokenlab.sh/v1'
-});
-
-async function smartChat(messages, model = 'gpt-4o') {
-  try {
-    return await client.chat.completions.create({ model, messages });
-  } catch (error) {
-    const err = error?.error;
-    if (err?.code === 'model_not_found' && err?.did_you_mean) {
-      return client.chat.completions.create({
-        model: err.did_you_mean, messages
-      });
-    }
-    throw error;
-  }
-}
-```
-
-## Tasarım İlkeleri
-
-<CardGroup cols={2}>
-  <Card title="Hızlı başarısızlık, bilgilendirici hata" icon="bolt">
-    Hatalar, bir ajanın kendi kendini düzeltmesi için ihtiyaç duyduğu tüm verilerle hemen döner.
-  </Card>
-  <Card title="Otomatik yönlendirme yok" icon="route">
-    API asla sessizce farklı bir model ikamesi yapmaz. Kararı ajan verir.
-  </Card>
-  <Card title="Veri odaklı öneriler" icon="database">
-    Tüm öneriler sert kodlanmış listelerden değil, prodüksiyon verilerinden gelir.
-  </Card>
-  <Card title="Geriye uyumlu" icon="plug">
-    Tüm ipucu alanları isteğe bağlıdır. Mevcut istemciler hiçbir fark görmez.
-  </Card>
-</CardGroup>

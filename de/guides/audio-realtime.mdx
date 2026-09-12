@@ -46,7 +46,7 @@ curl -X POST "https://api.tokenlab.sh/v1/audio/speech" \
 
 Öffnen Sie einen WebSocket mit dem Modell in der Query und dem API-Key im Authorization-Header. Nutzen Sie das Ereignisformat aus der Dokumentation des gewählten Realtime-Modells und schließen Sie den Socket am Ende der Sitzung.
 
-Dieser Leitfaden deckt nur den WebSocket-Proxy ab. TokenLab stellt derzeit keine OpenAI-Realtime-REST-Endpunkte für client secret, translation client secret, Calls oder legacy beta session-Verwaltung bereit.
+Dieser Leitfaden deckt nur das WebSocket subset ab. TokenLab stellt derzeit keine OpenAI-Realtime-REST-Endpunkte für client secret, translation client secret, Calls oder legacy beta session-Verwaltung bereit.
 
 ```javascript
 import WebSocket from 'ws';

@@ -1,14 +1,14 @@
 ---
 title: "获取任务状态"
 openapi: "GET /v1/tasks/{id}"
-description: "使用 create 端点返回的 `poll_url` 检索任何异步任务的状态和结果"
+description: "通过创建响应中的 `poll_url` 获取异步任务状态和结果"
 ---
 
 ## 概览
 
-使用此端点对视频、图像、音乐和 3D 生成等任务类型进行统一的异步轮询。
+通过这个 API 查询视频、图片、音乐、3D 等异步任务。
 
-如果 create 响应包含 `poll_url`，请调用该精确路径。某些图像模型可能会在图像特定的状态路径或 `/v1/tasks/{id}` 下返回基于任务的响应。
+创建响应包含 `poll_url` 时，直接使用这个地址。不同媒体 API 也可能提供自己的状态地址。
 
 ## 路径参数
 
@@ -19,15 +19,15 @@ description: "使用 create 端点返回的 `poll_url` 检索任何异步任务�
 ## 响应
 
 <ResponseField name="id" type="string">
-  规范的异步任务标识符。
+  TokenLab 任务 ID。
 </ResponseField>
 
 <ResponseField name="task_id" type="string">
-  异步任务标识符别名。
+  同一个任务 ID 的兼容字段名。
 </ResponseField>
 
 <ResponseField name="poll_url" type="string">
-  当 create 响应提供时，首选的轮询 URL。
+  创建响应返回的状态查询地址。
 </ResponseField>
 
 <ResponseField name="status" type="string">
@@ -55,11 +55,11 @@ description: "使用 create 端点返回的 `poll_url` 检索任何异步任务�
 </ResponseField>
 
 <ResponseField name="video" type="object">
-  单个视频负载，包含在可用时的 `url`、`duration`、`width` 和 `height`。
+  单个视频结果，可能包含 `url`、`duration`、`width` 和 `height`。
 </ResponseField>
 
 <ResponseField name="videos" type="array">
-  当存在多个输出时的多个视频负载。
+  多个视频结果。
 </ResponseField>
 
 <ResponseField name="error" type="string">
@@ -80,7 +80,7 @@ description: "使用 create 端点返回的 `poll_url` 检索任何异步任务�
 
 ## 错误行为
 
-如果任务不再存在、已过期或无法再从公开任务记录中查询到，TokenLab 将返回：
+任务不存在、已过期或当前 API 密钥无权访问时返回：
 
 ```json
 {

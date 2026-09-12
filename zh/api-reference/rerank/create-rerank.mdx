@@ -4,11 +4,11 @@ openapi: "POST /v1/rerank"
 description: "根据与查询的相关性对文档进行重排序"
 ---
 
-使用语义相似度模型对文档进行重排序。适用于优化搜索结果和 RAG 应用。
+根据查询内容重新排列文档，常用于搜索和 RAG。
 
 ## 请求体
 
-**同步请求超时：** 这个非聊天端点会等待路由到的模型完成处理。大输入、长音频或大批量请求可能超过常见的 30s 客户端默认超时，因此请将 HTTP 客户端超时设置为至少 `120s`。
+**请求超时：** 文档较多时可能超过客户端默认超时，建议把 HTTP 超时设为至少 `120s`。
 
 <ParamField body="model" type="string" required>
   要使用的重排序模型 ID（例如 `qwen3-vl-rerank`）。
@@ -23,7 +23,7 @@ description: "根据与查询的相关性对文档进行重排序"
 </ParamField>
 
 <ParamField body="top_n" type="integer">
-  返回的前几个结果数量。默认为所有文档。必须至少为 `1`，且不能大于 `documents.length`。如果供应商后续公开更严格的限制，TokenLab 会在这里文档化并执行。
+  返回前多少个结果。默认返回全部文档；最小为 `1`，最大不能超过 `documents.length`。个别模型可能有更低上限，以模型详情为准。
 </ParamField>
 
 <ParamField body="return_documents" type="boolean" default="false">
@@ -33,7 +33,7 @@ description: "根据与查询的相关性对文档进行重排序"
 ## 响应
 
 <ResponseField name="results" type="array">
-  带有评分的已排序文档列表。
+  已按相关性排列的结果。
 
   每个结果包含：
   - `index` (integer): 原始文档索引

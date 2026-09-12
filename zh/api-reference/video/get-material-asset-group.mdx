@@ -1,12 +1,12 @@
 ---
-title: "获取素材资源组"
+title: "获取素材组"
 openapi: "GET /v1/videos/assets/groups/{groupId}"
-description: "通过 TokenLab 组 ID 获取单个 Seedance 素材组。"
+description: "通过素材组 ID 获取一个 Seedance 素材组。"
 ---
 
-获取单个素材组。`library_type` 字段用于标识该组是虚拟人像（virtual-avatar）组还是真人（real-person）组。
+获取素材组及其类型和状态。`library_type` 用于区分虚拟人物与真人素材组。
 
-如果您需要在上传前确认该组仍然存在且状态为 `status: "ACTIVE"`，请使用此端点。
+只有状态为 `ACTIVE` 的素材组可以接收新素材。
 
 ## 请求示例
 

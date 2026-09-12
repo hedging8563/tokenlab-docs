@@ -44,7 +44,7 @@ curl https://api.tokenlab.sh/v1/responses \
   -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-5.4",
+    "model": "gpt-5.6-terra",
     "input": "Hello!"
   }'
 ```
@@ -95,7 +95,7 @@ curl https://api.tokenlab.sh/v1/messages \
   -H "anthropic-version: 2023-06-01" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "claude-sonnet-4-6",
+    "model": "claude-sonnet-5",
     "max_tokens": 1024,
     "messages": [{"role": "user", "content": "Hello!"}]
   }'

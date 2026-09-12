@@ -1,6 +1,6 @@
 ---
 title: "Authentication"
-description: "Secure your TokenLab API requests with API keys"
+description: "Authenticate TokenLab API requests with an API key"
 ---
 
 ## API Keys
@@ -27,15 +27,15 @@ Management API endpoints use a separate token type:
 Authorization: Bearer mt-your-management-token
 ```
 
-Use management tokens only with `/v1/management/*` endpoints. They are created from the **Settings** page in your Dashboard and are shown in full only once when generated or rotated.
+Use management tokens only with `/v1/management/*` endpoints. Create them on the **Settings** page in Console. The full token is shown only once when you generate or rotate it.
 
 <Note>
 Management tokens cannot be used for model inference, and standard `sk-...` API keys cannot be used for the Management API.
 </Note>
 
-## Getting Your API Key
+## Get an API key
 
-1. Log in to your [TokenLab Dashboard](https://tokenlab.sh/dashboard)
+1. Sign in to [TokenLab Console](https://tokenlab.sh/dashboard)
 2. Open **API Keys**
 3. Create a new key
 4. Give it a descriptive name
@@ -49,7 +49,7 @@ Management tokens cannot be used for model inference, and standard `sk-...` API 
 - Delete unused keys
 </Warning>
 
-## Using API Keys
+## Use an API key
 
 <CodeGroup>
 
@@ -58,7 +58,7 @@ curl https://api.tokenlab.sh/v1/responses \
   -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-5.4",
+    "model": "gpt-5.6-terra",
     "input": "Hello!"
   }'
 ```
@@ -84,9 +84,7 @@ const client = new OpenAI({
 
 </CodeGroup>
 
-## API Key Features
-
-### Usage Limits
+## Set a usage limit
 
 You can set a usage limit on each API key:
 
@@ -95,7 +93,7 @@ You can set a usage limit on each API key:
 | **No Limit** | Key uses your account balance without restrictions |
 | **Fixed Limit** | Key stops working after reaching the specified amount |
 
-### Key Prefix
+## Key prefix
 
 All TokenLab API keys start with `sk-`.
 
@@ -109,14 +107,14 @@ curl https://api.tokenlab.sh/v1/messages \
   -H "anthropic-version: 2023-06-01" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "claude-sonnet-4-6",
+    "model": "claude-sonnet-5",
     "max_tokens": 1024,
     "messages": [{"role": "user", "content": "Hello!"}]
   }'
 ```
 
 <Note>
-Use `Authorization: Bearer ...` for OpenAI-compatible endpoints such as `/v1/responses`, `/v1/chat/completions`, `/v1/models`, and most other TokenLab routes.
+Use `Authorization: Bearer ...` with OpenAI-compatible APIs such as `/v1/responses`, `/v1/chat/completions`, and `/v1/models`.
 </Note>
 
 ## Error Responses
@@ -124,7 +122,7 @@ Use `Authorization: Bearer ...` for OpenAI-compatible endpoints such as `/v1/res
 | Status Code | Type | Code | Description |
 |-------------|------|------|-------------|
 | 401 | `invalid_api_key` | `invalid_api_key` | Missing or invalid API key |
-| 401 | `expired_api_key` | `expired_api_key` | API key has been revoked |
+| 401 | `expired_api_key` | `expired_api_key` | API key has expired |
 | 402 | `insufficient_balance` | `insufficient_balance` | Account balance is insufficient |
 | 402 | `quota_exceeded` | `quota_exceeded` | API key usage limit reached |
 

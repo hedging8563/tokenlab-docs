@@ -5,14 +5,14 @@ description: "Reranks documents by relevance to a query"
 ---
 
 <Note>
-For coding agents, discover the current recommended rerank shortlist first with `GET /v1/models?recommended_for=rerank`, then send the selected `model` explicitly to this endpoint.
+Use `GET /v1/models?recommended_for=rerank` to get current rerank models.
 </Note>
 
 Rerank documents using semantic similarity models. Useful for improving search results and RAG applications.
 
 ## Request Body
 
-**Synchronous request timeout:** This non-chat endpoint waits for the routed model to finish. Large inputs, long audio, or large batches can exceed common 30s client defaults, so set your HTTP client timeout to at least `120s`.
+This endpoint returns after ranking finishes. For large document sets, set your HTTP client timeout to at least `120s`.
 
 <ParamField body="model" type="string" required>
   ID of the reranker model to use (e.g., `qwen3-vl-rerank`).

@@ -15,14 +15,6 @@ Os campos específicos do Responses não têm garantia de se comportarem de form
 Python, JavaScript e Go têm SDKs oficiais da OpenAI. PHP funciona bem com clientes comunitários compatíveis com OpenAI, mas não é um SDK oficial da OpenAI.
 </Note>
 
-<Note>
-**Type**: SDK nativo
-
-**Primary Path**: compatível com OpenAI / Chat Completions
-
-**Support Confidence**: Caminho principal com suporte
-</Note>
-
 ## Instalação
 
 <CodeGroup>
@@ -93,7 +85,7 @@ func main() {
 
 ```python Python
 response = client.chat.completions.create(
-    model="gpt-5.4",
+    model="gpt-5.6-terra",
     messages=[{"role": "user", "content": "Explain what TokenLab does in one sentence."}]
 )
 
@@ -102,7 +94,7 @@ print(response.choices[0].message.content)
 
 ```javascript JavaScript
 const response = await client.chat.completions.create({
-  model: 'gpt-5.4',
+  model: 'gpt-5.6-terra',
   messages: [{ role: 'user', content: 'Explain what TokenLab does in one sentence.' }],
 });
 
@@ -114,7 +106,7 @@ curl https://api.tokenlab.sh/v1/chat/completions \
   -H "Authorization: Bearer sk-your-tokenlab-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-5.4",
+    "model": "gpt-5.6-terra",
     "messages": [
       {"role": "user", "content": "Explain what TokenLab does in one sentence."}
     ]
@@ -133,7 +125,7 @@ Use este caminho apenas quando sua ferramenta ou fluxo de trabalho depender expl
 
 ```python Python
 stream = client.responses.create(
-    model="gpt-5.4",
+    model="gpt-5.6-terra",
     input="Write a short poem about coding.",
     stream=True,
 )
@@ -145,7 +137,7 @@ for event in stream:
 
 ```javascript JavaScript
 const stream = await client.responses.create({
-  model: 'gpt-5.4',
+  model: 'gpt-5.6-terra',
   input: 'Write a short poem about coding.',
   stream: true,
 });
@@ -163,7 +155,7 @@ for await (const event of stream) {
 
 ```python
 response = client.responses.create(
-    model="gpt-5.4",
+    model="gpt-5.6-terra",
     input="What's the weather in Tokyo?",
     tools=[{
         "type": "function",
@@ -189,7 +181,7 @@ for item in response.output:
 
 ```python
 response = client.responses.create(
-    model="gpt-4o",
+    model="gpt-5.6-terra",
     input=[{
         "role": "user",
         "content": [
@@ -219,7 +211,7 @@ Chat Completions é o caminho compatível com OpenAI padrão para o TokenLab:
 
 ```python
 response = client.chat.completions.create(
-    model="gpt-4o",
+    model="gpt-5.6-terra",
     messages=[
         {"role": "system", "content": "You are a helpful assistant."},
         {"role": "user", "content": "Hello!"}

@@ -1,12 +1,12 @@
 ---
-title: "列出素材资产组"
+title: "列出素材组"
 openapi: "GET /v1/videos/assets/groups"
-description: "列出当前组织拥有的 Seedance 素材组。"
+description: "列出当前工作区的 Seedance 素材组。"
 ---
 
-列出经过身份验证的组织所拥有的素材组。通过 `library_type` 和 `status` 进行筛选，以区分虚拟人像（virtual-avatar）组和真人（real-person）组。
+列出当前工作区的素材组。可用 `library_type` 和 `status` 筛选虚拟人物或真人素材组。
 
-在上传素材时使用返回的 `group_id`。在视频生成过程中，请勿将 `group_id` 作为 `material_asset_id` 传递；生成操作需要的是素材资产的 `id`。
+上传素材时使用返回的 `group_id`；生成视频时使用具体素材的 `id`，不要传素材组 ID。
 
 ## 请求示例
 

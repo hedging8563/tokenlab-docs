@@ -5,15 +5,8 @@ description: "使用 Guardrails 验证 TokenLab 模型输出"
 
 ## 概述
 
-Guardrails 可以封装任何与其 LLM API 接口兼容的可调用对象（callable）。对于 TokenLab，请使用 TokenLab 的 base URL 配置 OpenAI SDK，并将聊天补全（chat completions）的可调用对象传递给您的 guard。
+用 TokenLab Base URL 配置 OpenAI SDK，再把 Chat Completions 方法交给 Guardrails 校验输出。
 
-<Note>
-**类型**: 验证与结构化输出框架
-
-**主要路径**: 兼容 OpenAI 的 Chat Completions
-
-**支持置信度**: 支持兼容 OpenAI 的路径
-</Note>
 
 ## 环境
 
@@ -52,4 +45,4 @@ raw_output, validated_output, *rest = guard(
 
 ## 端点说明
 
-Guardrails 专注于围绕 LLM 调用进行验证。对于聊天补全流程，请使用兼容 OpenAI 的路径；如果您的应用程序需要原生的 TokenLab 端点，请传递自定义的可调用对象。
+Chat Completions 可以直接使用上面的 OpenAI SDK 配置。其他 TokenLab API 需要把相应的调用方法封装成 Guardrails 可接受的 callable。

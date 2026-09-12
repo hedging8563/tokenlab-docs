@@ -1,18 +1,19 @@
 ---
 title: "SDK 与库"
-description: "用于 TokenLab 集成的推荐 SDK 和库"
+description: "继续使用项目里已有的 SDK 接入 TokenLab"
 ---
 
 ## 概述
 
-TokenLab 最容易按所需行为选择 SDK：
-- 需要 Claude 原生 `/v1/messages` 行为时，使用官方 **Anthropic SDKs**
-- 需要 Gemini 原生请求格式时，使用官方 **Gemini / Google AI** 工具
-- 迁移 OpenAI 兼容 `/v1` 路由或 Responses 风格用法时，使用官方 **OpenAI SDKs**
+不用另装 TokenLab 专用 SDK。项目里已经在用哪个客户端，就继续用哪个，只需换成 TokenLab 的 API 密钥和地址：
 
-具体支持边界请以各集成页为准。在这套文档里，“recommended” 或 “supported” 代表存在已文档化的配置路径，并不自动等同于每个框架辅助层或提供商特定功能都做了端到端回归。
+- Chat Completions 和 Responses 使用 **OpenAI SDK**。
+- Claude Messages 使用 **Anthropic SDK**。
+- Gemini 请求使用 **Gemini / Google AI SDK**。
 
-## 推荐的 SDK
+对应的集成页面提供了可直接使用的配置，也会注明模型本身的限制。
+
+## 选择 SDK
 
 <CardGroup cols={2}>
   <Card title="OpenAI Python" icon="python" href="https://github.com/openai/openai-python">
@@ -31,7 +32,7 @@ TokenLab 最容易按所需行为选择 SDK：
 
 ## OpenAI SDK 示例
 
-当你迁移已有 OpenAI 兼容客户端，或明确想走 `/v1` 兼容路径时使用这个示例。需要 Claude 原生或 Gemini 原生功能时，请改用对应的原生 SDK。
+Chat Completions 和 Responses 都可以使用这个客户端。调用前请确认所选模型支持对应的 API 方法。
 
 ```python
 from openai import OpenAI
@@ -42,7 +43,7 @@ client = OpenAI(
 )
 
 response = client.responses.create(
-    model="gpt-5.4",
+    model="gpt-5.6-terra",
     input="Explain TokenLab in one sentence."
 )
 
@@ -80,35 +81,34 @@ client = Anthropic(
 )
 
 message = client.messages.create(
-    model="claude-sonnet-4-6",
+    model="claude-sonnet-5",
     max_tokens=1024,
     messages=[{"role": "user", "content": "Hello!"}]
 )
 ```
 
-## 你应该使用哪个 SDK？
+## 按需要选择 SDK
 
-| 目标 | 推荐路径 |
+| 需要 | SDK |
 |------|------------------|
-| 提供商原生行为 | 原生提供商 SDK 或路由 |
 | 已有 OpenAI 兼容客户端 | OpenAI SDK + TokenLab `/v1` |
-| 可移植聊天 / Embeddings | OpenAI 兼容 `/v1` 路由 |
-| Claude 原生功能 | Anthropic SDK |
-| Gemini 原生请求格式 | Gemini-native API / SDK |
-| LangChain / LlamaIndex / Vercel AI SDK | 使用专门的集成页面 |
+| Chat Completions、Responses 或 Embeddings | OpenAI SDK |
+| Claude Messages 字段 | Anthropic SDK |
+| Gemini contents、文件、缓存或工具 | Gemini / Google AI SDK |
+| LangChain、LlamaIndex、Vercel AI SDK | 查看对应集成页面 |
 
-## 最佳实践
+## 配置说明
 
 <AccordionGroup>
-  <Accordion title="行为重要时优先选原生路由">
-    Anthropic 或 Gemini 原生路由适合提供商特定字段、工具、流式细节，以及不应通过另一种格式翻译的行为。
+  <Accordion title="模型专属字段留在对应格式中">
+    Claude Messages 与 Gemini 表示工具、流式内容和消息的方式不同。应用依赖这些字段时，请使用对应 SDK。
   </Accordion>
 
-  <Accordion title="迁移时使用 OpenAI 兼容 `/v1`">
-    OpenAI 兼容 SDK 最适合已有 OpenAI 风格客户端、可移植聊天和 embeddings。它是兼容入口，不是 TokenLab 唯一的 API 表面。
+  <Accordion title="已有 OpenAI 客户端可以继续使用">
+    原有的 OpenAI 兼容聊天和 Embeddings 客户端，通常只需更换 API 密钥和 Base URL。
   </Accordion>
 
-  <Accordion title="明确指定 base URL">
-    在 client 配置中直接传入 TokenLab 的 base URL，而不是依赖较旧的环境变量别名。
+  <Accordion title="明确填写 Base URL">
+    在客户端配置中直接填写 TokenLab Base URL，不要依赖旧的环境变量别名。
   </Accordion>
 </AccordionGroup>

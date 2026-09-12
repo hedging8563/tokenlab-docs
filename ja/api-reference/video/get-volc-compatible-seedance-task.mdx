@@ -1,26 +1,75 @@
 ---
-title: "タスク取得（Volc 互換）"
+title: "タスクの取得 (Volc互換)"
 openapi: "GET /api/v3/contents/generations/tasks/{id}"
-description: "cgt タスク ID で Seedance 互換タスクを取得します。"
+description: "cgtタスクIDを使用してSeedance互換タスクを取得します。"
 ---
 
 ## 概要
 
-これらのエンドポイントは、Volc 形式の Seedance タスク構造をすでに利用しているチーム向けです。認証には TokenLab Bearer API Key を使います。返されるタスク ID は `cgt-` で始まります。`status` が `succeeded`、`failed`、`cancelled`、`expired` のいずれかになるまでポーリングしてください。
+createで返された `cgt-...` IDを使用します。タスクが `queued` または `running` の間は数秒ごとにポーリングを行ってください。タスクが `succeeded`、`failed`、`cancelled`、または `expired` になったら停止します。
 
 <Warning>
-v1 の状態 enum やレスポンス struct を流用しないでください。`/v1/tasks/{id}` は `pending`、`processing`、`completed`、`failed` を使いますが、このエンドポイントは上記の v3 enum を使います。v3 の `duration` は文字列で、`error` は失敗時だけ現れます。
+ここで統一されたv1タスクのenumやレスポンス構造体を再利用しないでください。`/v1/tasks/{id}` では `pending`、`processing`、`completed`、`failed` が使用されますが、このv3エンドポイントでは上記の公式enumを使用します。v3のJSONオブジェクトにおいて、`duration` は存在する場合は文字列となり、`error` はタスクが失敗しない限り省略されます。厳密なGoクライアントを実装する場合は、`Duration` を `string` 型としてJSONタグ `duration,omitempty` を指定し、すべてのv3終了ステータスで停止するようにしてください。
 </Warning>
 
-関連項目 [Seedance 2.0 動画モデル](/ja/guides/seedance-2-video) および [動画生成](/ja/guides/video-generation).
+[Seedance 2.0 ビデオモデル](/guides/seedance-2-video) および [ビデオ生成](/guides/video-generation) も参照してください。
 
-## 応答形式
+## ステータス値
 
-タスク状態は `queued`、`running`、`succeeded`、`failed`、`cancelled`、`expired` です。成功時は `content.video_url` を返し、利用可能な場合は `content.last_frame_url`、公式の生成フィールド、`usage` も返します。`error` は失敗時だけ含まれます。`progress`、`return_last_frame`、`watermark`、`priority`、`camera_fixed` などの TokenLab 拡張は追加しません。
+- `queued`: 受理済み、実行待ち。
+- `running`: 生成中。
+- `succeeded`: 結果の準備が完了し、`content.video_url` が存在します。
+- `failed`: 生成失敗。`error.code` および `error.message` を確認してください。
+- `cancelled`: 完了前にタスクがキャンセルされました。
+- `expired`: 完了前にタスクの有効期限が切れました。
+
+## レスポンスフィールド
+
+- `id`: 互換タスクID（`cgt-` で始まります）。
+- `model`: 互換性のためにエコーされるモデル識別子。
+- `status`: 上記のステータス値のいずれか。
+- `content.video_url`: 成功時の最終的な動画URL。
+- `content.last_frame_url`: 要求され、かつ利用可能な場合にのみ存在します。
+- `usage`: 利用可能な場合のトークン使用量。
+- `created_at` および `updated_at`: タスクのタイムスタンプ。
+- `error`: タスクが失敗した場合にのみ存在し、失敗していないタスクでは省略されます。
+
+レスポンスには、`progress`、`return_last_frame`、`watermark`、`priority`、`camera_fixed` といったTokenLabのフィールドは一切追加されません。
 
 ## 例
 
 ```bash
 curl https://api.tokenlab.sh/api/v3/contents/generations/tasks/cgt-20260102030405-a1b2c \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
+```
+
+```json
+{
+  "id": "cgt-20260102030405-a1b2c",
+  "model": "doubao-seedance-2.0",
+  "status": "succeeded",
+  "content": {
+    "video_url": "https://example.com/result.mp4"
+  },
+  "usage": {
+    "completion_tokens": 123456
+  }
+}
+```
+
+```go Go
+type SeedanceTask struct {
+    ID       string `json:"id"`
+    Status   string `json:"status"`
+    Duration string `json:"duration,omitempty"`
+}
+
+func isTerminal(status string) bool {
+    switch status {
+    case "succeeded", "failed", "cancelled", "expired":
+        return true
+    default:
+        return false
+    }
+}
 ```

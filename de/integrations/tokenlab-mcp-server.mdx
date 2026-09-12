@@ -30,10 +30,10 @@ Diese Seite beschreibt, wie Sie TokenLab als Tool-Server in Claude Code, Cursor,
 Der schnellste sichere Einstieg aktiviert zunächst nur die sechs öffentlichen Katalog-Tools. Dafür ist kein TokenLab API-Key erforderlich; authentifizierte Tools können Sie später aktivieren.
 
 <CardGroup cols={2}>
-  <Card title="In Cursor installieren" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab-model-catalog&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXIiXSwiZW52Ijp7IlRPS0VOTEFCX01DUF9UT09MX1BST0ZJTEUiOiJjYXRhbG9nIn19">
+  <Card title="In Cursor installieren" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXIiXSwiZW52Ijp7IlRPS0VOTEFCX01DUF9UT09MX1BST0ZJTEUiOiJjYXRhbG9nIn19">
     Das öffentliche Profil `catalog` mit einem Klick in Cursor hinzufügen
   </Card>
-  <Card title="In VS Code installieren" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab-model-catalog&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
+  <Card title="In VS Code installieren" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
     Das öffentliche Profil `catalog` zur VS-Code-Benutzerkonfiguration hinzufügen
   </Card>
 </CardGroup>
@@ -68,13 +68,13 @@ Der schnellste sichere Einstieg aktiviert zunächst nur die sechs öffentlichen 
         Fügen Sie TokenLab im Benutzerbereich hinzu, damit es projektübergreifend verfügbar ist.
 
         ```bash
-        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
+        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab -- npx -y @tokenlabai/mcp-server
         ```
 
         Für das Standardprofil `core` fügen Sie stattdessen Ihren API-Key hinzu.
 
         ```bash
-        claude mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key --scope user tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
+        claude mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key --scope user tokenlab -- npx -y @tokenlabai/mcp-server
         ```
 
         Verwenden Sie `--scope local` nur für das aktuelle Projekt oder `--scope project` für eine gemeinsam genutzte `.mcp.json`. Committen Sie keinen echten Key in eine Projektkonfiguration.
@@ -86,7 +86,7 @@ Der schnellste sichere Einstieg aktiviert zunächst nur die sechs öffentlichen 
         ```json
         {
           "mcpServers": {
-            "tokenlab-model-catalog": {
+            "tokenlab": {
               "command": "npx",
               "args": ["-y", "@tokenlabai/mcp-server"],
               "env": { "TOKENLAB_MCP_TOOL_PROFILE": "catalog" }
@@ -102,7 +102,7 @@ Der schnellste sichere Einstieg aktiviert zunächst nur die sechs öffentlichen 
         ```json
         {
           "servers": {
-            "tokenlab-model-catalog": {
+            "tokenlab": {
               "type": "stdio",
               "command": "npx",
               "args": ["-y", "@tokenlabai/mcp-server"],
@@ -118,10 +118,10 @@ Der schnellste sichere Einstieg aktiviert zunächst nur die sechs öffentlichen 
       <Tab title="Codex">
         ```bash
         # Öffentlicher Katalog
-        codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
+        codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab -- npx -y @tokenlabai/mcp-server
 
         # Standardprofil core mit API-Key
-        codex mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
+        codex mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key tokenlab -- npx -y @tokenlabai/mcp-server
         ```
       </Tab>
 
@@ -142,7 +142,7 @@ Der schnellste sichere Einstieg aktiviert zunächst nur die sechs öffentlichen 
   </Step>
 
   <Step title="Neu starten und prüfen">
-    Starten oder laden Sie den MCP-Client neu, vertrauen Sie dem lokalen Server nach Aufforderung und prüfen Sie, ob `tokenlab-model-catalog` verbunden ist.
+    Starten oder laden Sie den MCP-Client neu, vertrauen Sie dem lokalen Server nach Aufforderung und prüfen Sie, ob `tokenlab` verbunden ist.
 
     ```bash
     claude mcp list
@@ -155,14 +155,14 @@ Der schnellste sichere Einstieg aktiviert zunächst nur die sechs öffentlichen 
 
 ## Konfigurationsreferenz
 
-Verwenden Sie für lokale stdio-Clients den Servernamen `tokenlab-model-catalog`, den Befehl `npx`, die getrennten Argumente `-y` und `@tokenlabai/mcp-server` sowie kein Arbeitsverzeichnis. Mit `@tokenlabai/mcp-server@0.6.17` fixieren Sie die aktuell geprüfte Version.
+Verwenden Sie für lokale stdio-Clients den Servernamen `tokenlab`, den Befehl `npx`, die getrennten Argumente `-y` und `@tokenlabai/mcp-server` sowie kein Arbeitsverzeichnis. Mit `@tokenlabai/mcp-server@0.6.17` fixieren Sie die aktuell geprüfte Version.
 
 Standardkonfiguration für authentifizierte Tools:
 
 ```json
 {
   "mcpServers": {
-    "tokenlab-model-catalog": {
+    "tokenlab": {
       "command": "npx",
       "args": ["-y", "@tokenlabai/mcp-server"],
       "env": {
@@ -297,7 +297,7 @@ Verwenden Sie beides, wenn verfügbar:
   </Accordion>
 
   <Accordion title="Claude Code zeigt Pending approval">
-    Projektbezogene `.mcp.json`-Server benötigen Workspace-Vertrauen und eine ausdrückliche Freigabe. Starten Sie Claude Code interaktiv im Projekt, bestätigen Sie das Vertrauen und genehmigen Sie `tokenlab-model-catalog` unter `/mcp`. Für eine private, projektübergreifende Einrichtung verwenden Sie `--scope user`.
+    Projektbezogene `.mcp.json`-Server benötigen Workspace-Vertrauen und eine ausdrückliche Freigabe. Starten Sie Claude Code interaktiv im Projekt, bestätigen Sie das Vertrauen und genehmigen Sie `tokenlab` unter `/mcp`. Für eine private, projektübergreifende Einrichtung verwenden Sie `--scope user`.
   </Accordion>
 
   <Accordion title="Die Modellliste ist leer">

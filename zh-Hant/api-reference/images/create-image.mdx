@@ -34,7 +34,7 @@ xAI Grok Imagine 圖片模型（`grok-imagine-image`、`grok-imagine-image-quali
 **同步請求逾時：** 某些圖片請求會以内嵌方式返回最終圖片，並等待生成完成。高解析度或高品質請求可能接近一分鐘甚至更久，因此請將 HTTP 用戶端逾時設定為至少 `120s`。如果建立回應包含 `status: "pending"`、`task_id` 或 `poll_url`，請改為依照返回的 `poll_url` 輪詢。
 
 <ParamField body="model" type="string" required>
-  要使用的模型（例如 `gpt-image-2`、`flux-pro`、`qwen-image-plus` 或 `nano-banana-pro`）。使用 `GET /v1/models?recommended_for=image` 取得目前推薦清單。
+  要使用的模型（例如 `gpt-image-2`、`flux-pro` 或 `nano-banana-pro`）。使用 `GET /v1/models?recommended_for=image` 取得目前推薦清單。
 </ParamField>
 
 <ParamField body="prompt" type="string" required>
@@ -301,7 +301,6 @@ curl -X POST "https://api.tokenlab.sh/v1/images/generations" \
 |-------|------|------|
 | `gpt-image-2` | Inline 或 task-based | 按 token 計費的 GPT Image 模型，支援彈性尺寸 |
 | `flux-pro` | 通常為 task-based | 寫實、高品質 |
-| `qwen-image-plus` | 通常為 task-based | 文字渲染與 prompt 遵循較強 |
 | `nano-banana-pro` | 通常為 task-based | 參考圖工作流與高解析度輸出 |
 | `grok-imagine-image` | 通常為 task-based | xAI 圖片生成，支援比例與解析度選擇 |
 | `ideogram-v3` | 通常為 task-based | 文字渲染較強 |

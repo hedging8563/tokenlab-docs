@@ -28,9 +28,9 @@ Public katalog zamanla değişir. Güncel kullanılabilirliği `/v1/models`, `re
 
 | Yetenek | Açıklama | Örnek modeller |
 |---|---|---|
-| Chat ve akıl yürütme | Metin üretimi, planlama, araçlar | `gpt-5.4`, `claude-sonnet-4-6`, `deepseek-r1` |
+| Chat ve akıl yürütme | Metin üretimi, planlama, araçlar | `gpt-5.4`, `claude-sonnet-4-6` |
 | Vision ve multimodal | Görüntü anlama ve multimodal sohbet | `gpt-4o`, `claude-sonnet-4-6`, `gemini-3.5-flash` |
-| Görüntü üretimi ve düzenleme | Metinden görüntü ve görüntü düzenleme | `gpt-image-2`, `flux-pro`, `qwen-image-plus` |
+| Görüntü üretimi ve düzenleme | Metinden görüntü ve görüntü düzenleme | `gpt-image-2`, `flux-pro` |
 | Video üretimi | Metin/görüntü/referanstan video ve hareket kontrolü | `veo3.1`, `wan-2.7`, `kling-3.0-video`, `happyhorse-1.0` |
 | Ses ve Realtime | TTS, transkripsiyon, çeviri ve realtime oturumlar | `gpt-4o-mini-tts`, `whisper-1`, `gpt-realtime` |
 | Embeddings ve rerank | Metin vektörleştirme ve yeniden sıralama | `text-embedding-3-small`, `qwen3-vl-rerank` |
@@ -49,7 +49,7 @@ curl https://api.tokenlab.sh/v1/chat/completions \
   -H "Authorization: Bearer sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-5.4",
+    "model": "gpt-5.6-terra",
     "messages": [
       {"role": "user", "content": "Explain what TokenLab does in one sentence."}
     ]
@@ -65,7 +65,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="gpt-5.4",
+    model="gpt-5.6-terra",
     messages=[{"role": "user", "content": "Explain what TokenLab does in one sentence."}]
 )
 
@@ -81,7 +81,7 @@ const client = new OpenAI({
 });
 
 const response = await client.chat.completions.create({
-  model: 'gpt-5.4',
+  model: 'gpt-5.6-terra',
   messages: [{ role: 'user', content: 'Explain what TokenLab does in one sentence.' }],
 });
 

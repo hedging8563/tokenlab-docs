@@ -6,14 +6,7 @@ description: "Retrieves the current status, counts, and result files for a batch
 
 ## Overview
 
-This endpoint is part of TokenLab's OpenAI-compatible Batch API. Batch jobs use uploaded JSONL files, run asynchronously, and can return output/error files later.
-
-## Notes
-
-- Batch input files must use `purpose=batch`.
-- `completion_window` is currently `24h`.
-- Output ordering is not guaranteed; always match by `custom_id`.
-- Streaming is not supported inside batch items.
+Return the batch status, completed and failed counts, and result file IDs.
 
 ## Example
 
@@ -23,16 +16,6 @@ curl -X GET "https://api.tokenlab.sh/v1/batches/batch_abc123" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 </RequestExample>
-
-## Request / Response
-
-Use the interactive OpenAPI panel above for the exact schema.
-
-## Operational Tips
-
-- Use `custom_id` for idempotent downstream reconciliation.
-- Expect `output_file_id` and `error_file_id` only after the worker finalizes the batch.
-- Batch pricing may differ from synchronous pricing because `isBatchRequest=true` discount rules apply.
 
 ## Response example
 
@@ -52,6 +35,6 @@ Use the interactive OpenAPI panel above for the exact schema.
 
 ## Important fields
 
-<ResponseField name="request_counts" type="object">Returned list or payload for this response.</ResponseField>
-<ResponseField name="output_file_id" type="string|null">File identifier used by related APIs.</ResponseField>
-<ResponseField name="error_file_id" type="string|null">File identifier used by related APIs.</ResponseField>
+<ResponseField name="request_counts" type="object">Total, completed, and failed request counts.</ResponseField>
+<ResponseField name="output_file_id" type="string|null">Successful result file ID.</ResponseField>
+<ResponseField name="error_file_id" type="string|null">Failed result file ID.</ResponseField>

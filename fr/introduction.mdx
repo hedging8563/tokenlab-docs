@@ -28,9 +28,9 @@ Le catalogue public évolue dans le temps. Vérifiez la disponibilité actuelle 
 
 | Capacité | Description | Modèles exemples |
 |---|---|---|
-| Chat et raisonnement | Génération de texte, planification, outils | `gpt-5.4`, `claude-sonnet-4-6`, `deepseek-r1` |
+| Chat et raisonnement | Génération de texte, planification, outils | `gpt-5.4`, `claude-sonnet-4-6` |
 | Vision et multimodal | Compréhension d’image et chat multimodal | `gpt-4o`, `claude-sonnet-4-6`, `gemini-3.5-flash` |
-| Génération et édition d’images | Texte vers image et édition d’image | `gpt-image-2`, `flux-pro`, `qwen-image-plus` |
+| Génération et édition d’images | Texte vers image et édition d’image | `gpt-image-2`, `flux-pro` |
 | Génération vidéo | Texte/image/référence vers vidéo et contrôle de mouvement | `veo3.1`, `wan-2.7`, `kling-3.0-video`, `happyhorse-1.0` |
 | Audio et Realtime WebSocket | TTS, transcription, traduction audio et sessions WebSocket temps réel | `gpt-4o-mini-tts`, `whisper-1`, `gpt-realtime` |
 | Embeddings et rerank | Vectorisation de texte et reclassement | `text-embedding-3-small`, `qwen3-vl-rerank` |
@@ -49,7 +49,7 @@ curl https://api.tokenlab.sh/v1/chat/completions \
   -H "Authorization: Bearer sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-5.4",
+    "model": "gpt-5.6-terra",
     "messages": [
       {"role": "user", "content": "Explain what TokenLab does in one sentence."}
     ]
@@ -65,7 +65,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="gpt-5.4",
+    model="gpt-5.6-terra",
     messages=[{"role": "user", "content": "Explain what TokenLab does in one sentence."}]
 )
 
@@ -81,7 +81,7 @@ const client = new OpenAI({
 });
 
 const response = await client.chat.completions.create({
-  model: 'gpt-5.4',
+  model: 'gpt-5.6-terra',
   messages: [{ role: 'user', content: 'Explain what TokenLab does in one sentence.' }],
 });
 

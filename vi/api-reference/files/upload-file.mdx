@@ -58,7 +58,7 @@ Chính route `/v1/files` này cũng hỗ trợ đường dẫn Anthropic Files A
 
 - Thêm header `anthropic-beta: files-api-2025-04-14` để chuyển sang chế độ Anthropic.
 - Ở chế độ Anthropic, hãy tải trực tiếp file gốc lên và không gửi `purpose=batch`.
-- `file_id` trả về sẽ được gắn với cùng kênh/workspace Anthropic chính thức và nên được tái sử dụng trong các request `/v1/messages`.
+- `file_id` trả về sẽ được gắn với cùng không gian làm việc tương thích Anthropic và nên được tái sử dụng trong các request `/v1/messages`.
 - Nếu bạn định tham chiếu file này trong nội dung message Anthropic, hãy tiếp tục dùng các header Anthropic gốc (`x-api-key`, `anthropic-version` và beta header khi cần).
 
 ## Ví dụ phản hồi

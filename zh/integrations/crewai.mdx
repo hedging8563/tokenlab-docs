@@ -5,15 +5,8 @@ description: "通过 OpenAI 兼容的 LLM 设置在 CrewAI 智能体中使用 To
 
 ## 概述
 
-CrewAI 通过在环境变量或 `LLM` 类中设置模型、API key 和 base URL，支持 OpenAI 兼容的 LLM。
+在 CrewAI 的环境变量或 `LLM` 类中填写模型、API 密钥和 Base URL，即可调用 TokenLab 的 OpenAI 兼容 API。
 
-<Note>
-**类型**: 智能体框架
-
-**主要路径**: OpenAI 兼容的聊天补全 (Chat Completions)
-
-**支持置信度**: 支持自定义端点路径
-</Note>
 
 ## 环境变量
 
@@ -44,10 +37,8 @@ agent = Agent(
 )
 ```
 
-## 模型建议
-
-对于常规任务，建议使用 `gpt-5.4-mini`；对于需要大量规划的智能体，建议使用 `claude-sonnet-5` 或 `gpt-5.4`；对于更快速、低成本的迭代，建议使用 `deepseek-v4-flash`。
+模型 ID 会更新。请从[模型页](https://tokenlab.sh/zh/models)选择当前模型，并用自己的 CrewAI 任务比较效果、速度和费用。
 
 ## 端点说明
 
-CrewAI 的 OpenAI 兼容路径最适合 Chat Completions 风格的智能体调用。仅当您选择的工具或 SDK 能够支持这些原生协议时，才直接使用 TokenLab 原生端点。
+这套配置使用 Chat Completions。需要 Responses、Anthropic Messages 或 Gemini 格式时，请确认 CrewAI 组件支持对应 API。

@@ -5,11 +5,11 @@ description: "配置 Google Gemini CLI 以使用 TokenLab API"
 
 ## 概览
 
-Google Gemini CLI 是一个用于与 Gemini 模型交互的命令行工具。TokenLab 提供了一个兼容的端点，允许您使用 Gemini CLI 访问数百个模型。
+Gemini CLI 可以尝试通过自定义 Base URL 连接 TokenLab，但 Google 尚未把这种配置列为稳定的第三方接入方式。
 
 
 <Warning>
-这只是实验性兼容方案：Gemini CLI 目前并没有正式文档化稳定的 TokenLab 自定义 Base URL 工作流。如果您需要受支持的 TokenLab 终端方案，优先使用 Codex CLI、Claude Code 或 OpenCode。
+这项配置可能随 Gemini CLI 更新而失效。需要文档明确支持的 TokenLab 终端工具时，请使用 Codex CLI、Claude Code 或 OpenCode。
 </Warning>
 
 ## 系统要求
@@ -31,11 +31,11 @@ gemini --version
 
 ## 配置
 
-### 第 1 步：获取您的 API Key
+### 第 1 步：获取你的 API 密钥
 
-1. 登录 [TokenLab 控制台](https://tokenlab.sh/dashboard)
-2. 导航至 [API Keys](https://tokenlab.sh/dashboard/api)
-3. 创建并复制您的 API key（格式：`sk-...`）
+1. 登录 [TokenLab Console](https://tokenlab.sh/dashboard)
+2. 导航至 [API 密钥](https://tokenlab.sh/dashboard/api)
+3. 创建并复制你的 API 密钥（格式：`sk-...`）
 
 ### 第 2 步：设置环境变量
 
@@ -48,7 +48,7 @@ export GOOGLE_GEMINI_BASE_URL="https://api.tokenlab.sh"
 
 **永久配置：**
 
-添加到您的 shell 配置文件中：
+添加到你的 shell 配置文件中：
 
 <Tabs>
   <Tab title="Bash">
@@ -78,30 +78,26 @@ export GOOGLE_GEMINI_BASE_URL="https://api.tokenlab.sh"
 </Warning>
 
 <Note>
-**已知限制**：在某些情况下，如果存在缓存的 Google 会话，Gemini CLI 可能不会遵循 `GOOGLE_GEMINI_BASE_URL`。如果您遇到连接问题，请尝试清除 CLI 缓存或启动新的终端会话。
+**已知限制**：在某些情况下，如果存在缓存的 Google 会话，Gemini CLI 可能不会遵循 `GOOGLE_GEMINI_BASE_URL`。如果你遇到连接问题，请尝试清除 CLI 缓存或启动新的终端会话。
 </Note>
 
 ## 基本用法
 
-从您的项目目录启动 Gemini CLI：
+从你的项目目录启动 Gemini CLI：
 
 ```bash
 cd your-project
 gemini
 ```
 
-首次运行时，您需要：
+首次运行时，你需要：
 1. 选择主题
 2. 确认安全声明
 3. 信任工作目录
 
-## 可用模型
+## 选择模型
 
-| 模型 | 描述 |
-|-------|-------------|
-| `gemini-2.5-pro` | 功能最强大的 Gemini 模型 |
-| `gemini-3.5-flash` | 快速、高效，适用于大多数任务 |
-| `gemini-3.1-flash-lite` | 当前轻量 Gemini 模型 |
+从[模型页](https://tokenlab.sh/zh/models)复制当前 Gemini 模型 ID。模型能力、上下文和价格以页面信息为准。
 
 ## 常用命令
 
@@ -152,7 +148,7 @@ gemini
   <Accordion title="身份验证失败">
     - 验证 `GEMINI_API_KEY` 环境变量已设置
     - 检查 Key 是否以 `sk-` 开头
-    - 确保 Key 在 TokenLab 控制台中处于激活状态
+    - 确保 Key 在 TokenLab Console中处于激活状态
   </Accordion>
 
   <Accordion title="模型不可用">
@@ -161,7 +157,7 @@ gemini
   </Accordion>
 </AccordionGroup>
 
-## 最佳实践
+## 使用说明
 
 <AccordionGroup>
   <Accordion title="在项目目录中使用">
@@ -169,7 +165,7 @@ gemini
   </Accordion>
 
   <Accordion title="谨慎信任目录">
-    仅信任您拥有的目录。Gemini CLI 可以读取和修改文件。
+    仅信任你拥有的目录。Gemini CLI 可以读取和修改文件。
   </Accordion>
 
   <Accordion title="审查生成的代码">

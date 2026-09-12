@@ -50,7 +50,7 @@ curl -X POST "https://api.tokenlab.sh/v1/files" \
 
 - `purpose=user_data` 또는 `purpose=vision`을 사용합니다.
 - 선택적으로 `model`을 포함해 이미지 편집 모델을 선택할 수 있으며, 기본값은 `gpt-image-2`입니다.
-- 반환된 `file_id`는 선택된 업스트림 이미지 편집 채널에 바인딩되며 `images[].file_id`에서 재사용할 수 있습니다.
+- 반환된 `file_id`는 선택한 이미지 편집 모델 범위에서 사용할 수 있으며 `images[].file_id`에서 재사용할 수 있습니다.
 
 ## Anthropic Files API 모드
 
@@ -58,8 +58,12 @@ curl -X POST "https://api.tokenlab.sh/v1/files" \
 
 - `anthropic-beta: files-api-2025-04-14` 헤더를 추가하면 Anthropic 모드로 전환됩니다.
 - Anthropic 모드에서는 원본 파일을 직접 업로드하고 `purpose=batch` 는 보내지 마세요.
-- 반환된 `file_id` 는 동일한 공식 Anthropic 채널/워크스페이스에 바인딩되며, 이후 `/v1/messages` 요청에서 재사용해야 합니다.
+- 반환된 `file_id`는 동일한 Anthropic 호환 워크스페이스 범위에서 사용할 수 있으며 이후 `/v1/messages` 요청에서 재사용해야 합니다.
 - Anthropic 메시지 콘텐츠에서 해당 파일을 참조하려면 Anthropic 네이티브 헤더(`x-api-key`, `anthropic-version`, 필요 시 beta header)를 계속 사용하세요.
+
+## 파일 만료
+
+배치 입력 파일은 선택적으로 `expires_after[anchor]=created_at` 및 `expires_after[seconds]`로 만료 창을 설정할 수 있습니다. 초 값은 3600 이상 2592000 이하여야 합니다.
 
 ## 응답 예시
 

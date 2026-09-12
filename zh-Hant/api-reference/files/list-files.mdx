@@ -39,6 +39,12 @@ curl -X GET "https://api.tokenlab.sh/v1/files?purpose=batch&limit=20" \
 - 只有在工作者完成批次後，才預期會有 `output_file_id` 和 `error_file_id`。
 - 批次定價可能與同步定價不同，因為適用 `isBatchRequest=true` 的折扣規則。
 
+## 篩選條件
+
+- `limit` 接受 1 到 10000，預設值為 10000。
+- `purpose` 可以是 `batch`、`batch_output`、`user_data` 或 `vision`。
+- 當存在 TokenLab 建立的圖像參考檔案時，`user_data` 和 `vision` 會返回這些檔案。
+
 ## 回應範例
 
 <ResponseExample>

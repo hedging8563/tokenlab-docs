@@ -58,7 +58,7 @@ Esta misma ruta `/v1/files` también admite la ruta de Anthropic Files API.
 
 - Añade el encabezado `anthropic-beta: files-api-2025-04-14` para cambiar al modo Anthropic.
 - En modo Anthropic, sube el archivo original directamente y no envíes `purpose=batch`.
-- El `file_id` devuelto queda vinculado al mismo canal/workspace oficial de Anthropic y debe reutilizarse en las solicitudes `/v1/messages`.
+- El `file_id` devuelto queda vinculado al mismo espacio de trabajo compatible con Anthropic y debe reutilizarse en las solicitudes `/v1/messages`.
 - Si vas a referenciar ese archivo desde el contenido de un mensaje Anthropic, sigue usando los encabezados nativos de Anthropic (`x-api-key`, `anthropic-version` y, cuando haga falta, el beta header).
 
 ## Ejemplo de respuesta

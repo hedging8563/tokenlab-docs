@@ -50,7 +50,7 @@ Dieselbe Route `/v1/files` kann auch Bildreferenzdateien für `/v1/images/edits`
 
 - Verwende `purpose=user_data` oder `purpose=vision`.
 - Gib optional `model` an, um das Image-Edit-Modell auszuwählen; Standard ist `gpt-image-2`.
-- Die zurückgegebene `file_id` wird an den ausgewählten Upstream-Image-Edit-Channel gebunden und kann in `images[].file_id` wiederverwendet werden.
+- Die zurückgegebene `file_id` gilt für das ausgewählte Bildbearbeitungsmodell und kann in `images[].file_id` wiederverwendet werden.
 
 ## Anthropic Files API-Modus
 
@@ -58,8 +58,12 @@ Dieselbe Route `/v1/files` unterstützt auch den Anthropic-Files-API-Pfad.
 
 - Füge den Header `anthropic-beta: files-api-2025-04-14` hinzu, um in den Anthropic-Modus zu wechseln.
 - Im Anthropic-Modus lädst du die Originaldatei direkt hoch und sendest kein `purpose=batch`.
-- Das zurückgegebene `file_id` wird an denselben offiziellen Anthropic-Channel/Workspace gebunden und sollte in späteren `/v1/messages`-Requests wiederverwendet werden.
+- Die zurückgegebene `file_id` gilt für denselben Anthropic-kompatiblen Workspace und sollte in `/v1/messages`-Requests wiederverwendet werden.
 - Wenn du die hochgeladene Datei in Anthropic-Nachrichteninhalten referenzieren willst, verwende weiterhin die nativen Anthropic-Header (`x-api-key`, `anthropic-version` und bei Bedarf den Beta-Header).
+
+## Dateiablauf
+
+Für Batch-Eingabedateien können Sie optional mit `expires_after[anchor]=created_at` und `expires_after[seconds]` ein Ablaufzeitfenster setzen. Der Sekundenwert muss zwischen 3600 und 2592000 liegen.
 
 ## Antwortbeispiel
 

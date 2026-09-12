@@ -1,23 +1,10 @@
 ---
 title: "Retrieve File Content"
 openapi: "GET /v1/files/{file_id}/content"
-description: "Downloads the original content for an uploaded file."
+description: "Download file content."
 ---
 
-## Overview
-
-This endpoint primarily serves TokenLab's OpenAI-compatible Batch API file content retrieval.
-
-When the request opts into Anthropic Files compatibility mode, the same route can proxy the original stored file content for the bound workspace.
-
-Without Anthropic headers, this route downloads batch file content or proxies content for a bound image/reference file when the provider supports file content retrieval.
-
-## Notes
-
-- Batch input files must use `purpose=batch`.
-- `completion_window` is currently `24h`.
-- Output ordering is not guaranteed; always match by `custom_id`.
-- Streaming is not supported inside batch items.
+Download batch input, output, or error files. With Anthropic Files headers, the same API downloads Anthropic-format files in the current Workspace.
 
 ## Example
 
@@ -29,15 +16,9 @@ curl -X GET "https://api.tokenlab.sh/v1/files/file_abc123/content" \
 ```
 </RequestExample>
 
-## Request / Response
+## Content Types
 
-Use the interactive OpenAPI panel above for the exact schema.
-
-## Operational Tips
-
-- Use `custom_id` for idempotent downstream reconciliation.
-- Expect `output_file_id` and `error_file_id` only after the worker finalizes the batch.
-- Batch pricing may differ from synchronous pricing because `isBatchRequest=true` discount rules apply.
+Batch files are returned as JSONL or plain text. Image-reference files are returned as binary content.
 
 ## Response example
 
@@ -50,5 +31,5 @@ Use the interactive OpenAPI panel above for the exact schema.
 
 ## Important fields
 
-<ResponseField name="body" type="binary|string">Raw response body. Save it directly instead of parsing it as JSON.</ResponseField>
-<ResponseField name="custom_id" type="string">Identifier used for follow-up calls and support.</ResponseField>
+<ResponseField name="body" type="binary|string">File content. Save or parse it according to `Content-Type`.</ResponseField>
+<ResponseField name="custom_id" type="string">ID that matches a batch input item to its result.</ResponseField>

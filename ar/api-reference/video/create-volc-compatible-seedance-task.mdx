@@ -1,39 +1,77 @@
 ---
-title: "إنشاء مهمة (متوافق مع Volc)"
+title: "إنشاء مهمة (متوافقة مع Volc)"
 openapi: "POST /api/v3/contents/generations/tasks"
-description: "أنشئ مهمة Seedance 2.0 باستخدام جسم REST بأسلوب Volc أو طلب Action."
+description: "إنشاء مهمة Seedance 2.0 باستخدام واجهة برمجة التطبيقات المتوافقة مع Volc."
 ---
 
 ## نظرة عامة
 
-هذه الواجهات مخصصة للفرق التي تستخدم بالفعل شكل مهام Seedance بأسلوب Volc. يتم التوثيق باستخدام TokenLab Bearer API key. يبدأ معرف المهمة المرجع بـ `cgt-`؛ قم بالاستعلام عن الحالة حتى تصبح `status` إحدى `succeeded` أو `failed` أو `cancelled` أو `expired`.
+يمكن لعملاء Seedance الحاليين بنمط Volc استخدام TokenLab عن طريق تغيير عنوان API والمفتاح.
 
-يستخدم عقد المهام الرسمي مسارات REST تحت `/api/v3/contents/generations/tasks`. تبقى أسماء Action القديمة للتوافق مع تكاملات TokenLab السابقة فقط، وليست جزءًا من عقد المطابقة الرسمية.
+راجع أيضاً [نماذج فيديو Seedance 2.0](/guides/seedance-2-video) و [توليد الفيديو](/guides/video-generation).
 
-يقبل `callback_url` عنوان HTTP(S) عامًا. يرسل TokenLab نفس كائن الاستعلام عند كل تغير إلى `queued` أو `running` أو `succeeded` أو `failed` أو `expired`، من دون رؤوس TokenLab خاصة؛ وتُعاد محاولات `succeeded` و`failed` حتى ثلاث مرات بعد مهلة خمس ثوان.
+## المصادقة ونقاط النهاية (Endpoints)
 
-<Note>
-للاسترداد الآمن بعد انقطاع الاتصال، أرسل `Idempotency-Key` فريدًا مع طلب إنشاء REST. تؤدي إعادة إرسال نفس الجسم والمفتاح إلى إرجاع معرف `cgt-...` نفسه؛ ويؤدي استخدام المفتاح نفسه مع جسم مختلف إلى `409`. لا ينطبق ذلك على مسار Action القديم.
-</Note>
-
-انظر أيضا [نماذج فيديو Seedance 2.0](/ar/guides/seedance-2-video) و [توليد الفيديو](/ar/guides/video-generation).
+- استخدم `Authorization: Bearer <TOKENLAB_API_KEY>`.
+- لا يتم قبول توقيع Volc AK/SK. يجب أن تتضمن الطلبات مفتاح TokenLab Bearer.
+- استخدم مسار المهمة الرسمي: `POST /api/v3/contents/generations/tasks`.
 
 ## قواعد المحتوى
 
-- استخدم `type=text` لنص الطلب.
-- يعامل `type=image_url` بدون `role` كإطار أول، أو يمكنك تعيين `role=first_frame`.
-- استخدم `role=last_frame` فقط مع إطار أول.
-- استخدم `role=reference_image` أو `reference_video` أو `reference_audio` للوسائط المرجعية.
-- لا تخلط مدخلات الإطار الأول/الأخير مع الوسائط المرجعية في طلب واحد.
+- `type: "text"` هو نص المطالبة (prompt).
+- `type: "image_url"` بدون `role`، أو مع `role: "first_frame"`، يتم التعامل معه كإطار أول.
+- يجب إقران `role: "last_frame"` بإطار أول.
+- تُستخدم `role: "reference_image"` و `reference_video` و `reference_audio` كمرجع.
+- تقبل `image_url.url` رابط صورة عام أو معرف مورد (URI) مثل `asset://asset-YYYYMMDDHHMMSS-xxxxx`. يحدد `role` ما إذا كانت تلك المادة عبارة عن إطار أول، أو إطار أخير، أو صورة مرجعية.
+- لا تخلط بين مدخلات الإطار الأول/الأخير ووسائط المرجع في طلب واحد.
+- يقبل نص الطلب فقط الحقول المدعومة بهذا التنسيق. يتم رفض `material_asset_id` و `material_asset_ids` و `priority` على المستوى الأعلى. ضع معرف مورد TokenLab داخل `image_url.url` بدلاً من ذلك.
 
-## ملاحظات المعلمات
+## ملاحظات حول المعلمات
 
-- يقبل `ratio` القيم `16:9` و `4:3` و `1:1` و `3:4` و `9:16` و `21:9` أو `adaptive`.
-- القيمة الافتراضية الرسمية لـ `generate_audio` هي `false`؛ اضبطها على `true` عند الحاجة إلى صوت متزامن.
-- يتم قبول `service_tier=default`. ترفض مهام Seedance 2.0 المتوافقة `service_tier=flex` و `frames` و `camera_fixed=true`.
-- عندما يدعم النموذج المختار ذلك، يمكن أن يحتوي `tools` على كائنات مثل `{ "type": "web_search" }`. يتم رفض عناصر tool غير الصحيحة بدلا من تجاهلها.
+- تقبل `ratio` القيم `16:9` أو `4:3` أو `1:1` أو `3:4` أو `9:16` أو `21:9` أو `adaptive`.
+- `duration` هي طول الفيديو بالثواني، بما في ذلك قيم المدة التلقائية التي يدعمها النموذج.
+- تقبل `resolution` القيم `480p` أو `720p` أو `1080p`.
+- القيمة الافتراضية لـ `generate_audio` هي `false`؛ اضبطها على `true` عند الحاجة إلى صوت متزامن.
+- يتم قبول `watermark` و `return_last_frame` و `seed` و `execution_expires_after` و `safety_identifier` عندما تكون صالحة للنموذج المحدد.
+- قد تشير `callback_url` إلى نقطة نهاية HTTP(S) عامة.
+
+## تسليم رد الاتصال (Callback)
+
+عند وجود `callback_url`، يرسل TokenLab طلب HTTP `POST` عند تغير حالة المهمة. حالات رد الاتصال هي `queued` و `running` و `succeeded` و `failed` و `expired`. يتطابق نص JSON مع استجابة get-task.
+
+تؤكد استجابة `2xx` نجاح التسليم. بالنسبة لحالتي `succeeded` و `failed`، إذا لم ينجح التسليم في غضون خمس ثوانٍ، تتم إعادة المحاولة حتى ثلاث مرات، بما يتوافق مع السلوك الرسمي. يحتوي رد الاتصال على رأس محتوى JSON القياسي فقط ولا يحتوي على رؤوس تسليم خاصة بـ TokenLab. لا يتم اتباع عمليات إعادة التوجيه، ويتم رفض أهداف الشبكة الخاصة أو المحجوزة.
+
+احفظ معرف المهمة. إذا لم يتم تسليم رد الاتصال، فلا يزال بإمكانك استرداد النتيجة باستخدام نقطة نهاية get-task.
+
+## إعداد الصور
+
+عندما يحتوي `content[]` على روابط صور، يقوم TokenLab بإعدادها كمواد قابلة لإعادة الاستخدام عند الحاجة إليها بواسطة نموذج Seedance المحدد. إذا لم يكتمل الإعداد في غضون 60 ثانية، يعيد طلب الإنشاء خطأ "إعداد المادة" (material-preparing) القابل لإعادة المحاولة بدلاً من إرسال مهمة فيديو غير مكتملة.
+
+بالنسبة للمواد الموجودة، استخدم معرف `asset-YYYYMMDDHHMMSS-xxxxx` العام بدلاً من معرف الأصل الأصلي الذي تم إرجاعه بواسطة نظام آخر. يتحقق TokenLab من ملكية المادة قبل التوليد.
+
+## استجابة الإنشاء
+
+```json
+{
+  "id": "cgt-20260102030405-a1b2c"
+}
+```
+
+تحتوي استجابة الإنشاء على معرف المهمة فقط. احفظه حتى تتمكن من استرداد الحالة والنتائج في أي وقت.
+
+## منع المهام المكررة
+
+أرسل `Idempotency-Key` فريداً مع طلبات الإنشاء. إذا تم إغلاق الاتصال قبل وصول الاستجابة، أعد المحاولة باستخدام نفس مفتاح API ومفتاح التكرار (idempotency key) ونص الطلب:
+
+- إذا تم إنشاء المهمة الأصلية، يعيد TokenLab نفس معرف `cgt-...` ويضيف `Idempotency-Replayed: true`.
+- إذا كان الطلب الأصلي لا يزال قيد التسجيل، يعيد TokenLab `409 IdempotencyRequestInProgress` مع `Retry-After`؛ أعد محاولة استخدام نفس المفتاح والنص بعد ذلك التأخير.
+- إعادة استخدام المفتاح مع نص مختلف يعيد `409 IdempotencyConflict` ولا ينشئ مهمة ثانية أبداً.
+
+ينطبق التكرار (Idempotency) على مسار إنشاء REST الرسمي v3. وهو لا يغير شكل استجابة JSON، ولا يتم استنتاجه من `X-Request-ID` أو من نصوص طلب متطابقة بدون مفتاح.
 
 ## مثال
+
+### إنشاء REST
 
 ```bash
 curl https://api.tokenlab.sh/api/v3/contents/generations/tasks \
@@ -41,7 +79,7 @@ curl https://api.tokenlab.sh/api/v3/contents/generations/tasks \
   -H "Idempotency-Key: $CLIENT_JOB_ID" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "doubao-seedance-2-0-260128",
+    "model": "doubao-seedance-2.0",
     "content": [
       {"type": "text", "text": "A cinematic forest at sunset"},
       {"type": "image_url", "role": "reference_image", "image_url": {"url": "https://example.com/ref.png"}}
@@ -49,6 +87,28 @@ curl https://api.tokenlab.sh/api/v3/contents/generations/tasks \
     "ratio": "16:9",
     "duration": 5,
     "resolution": "720p",
-    "generate_audio": false
+    "generate_audio": false,
+    "callback_url": "https://example.com/webhooks/seedance"
   }'
 ```
+
+بالنسبة للمواد الموجودة، ضع كل معرف مورد (URI) في عنصر `content[]` الرسمي وحدد دوره:
+
+```json
+[
+  {
+    "type": "image_url",
+    "role": "first_frame",
+    "image_url": {"url": "asset://asset-20260720123458-start"}
+  },
+  {
+    "type": "image_url",
+    "role": "last_frame",
+    "image_url": {"url": "asset://asset-20260720123459-end01"}
+  }
+]
+```
+
+## الخطوة التالية
+
+استخدم معرف `cgt-...` الذي تم إرجاعه مع [الحصول على مهمة (متوافقة مع Volc)](/api-reference/video/get-volc-compatible-seedance-task) حتى تصل المهمة إلى حالة نهائية.

@@ -1,16 +1,16 @@
 ---
 title: "取消任务"
 openapi: "DELETE /v1/tasks/{id}"
-description: "在提供商和模型支持时取消排队中的异步任务"
+description: "取消仍在排队并且支持取消的异步任务"
 ---
 
 ## 概览
 
-使用 `DELETE /v1/tasks/{id}` 取消尚未开始运行的异步任务。请使用 create 响应中的任务 ID，或 `poll_url` 中携带的同一 ID。
+`DELETE /v1/tasks/{id}` 可以取消尚未开始运行、并且支持取消的任务。ID 来自创建响应或 `poll_url`。
 
 ## 支持范围
 
-当前仅在该任务实际使用的提供商支持取消时，支持取消排队中的 Seedance 视频任务。支持模型包括 `seedance-1.5-pro`、`seedance-2.0` 和 `seedance-2.0-fast`。已经进入 `processing`/running 的任务不能取消。已完成、失败、过期或不支持取消的任务仍可用于状态查询和计费对账。
+当前可以取消仍在排队的部分 Seedance 视频任务，包括 `seedance-1.5-pro`、`seedance-2.0` 和 `seedance-2.0-fast`。已经进入 `processing` / `running` 的任务不能取消。无论是否支持取消，任务仍可以用于状态查询和费用核对。
 
 ## 路径参数
 
@@ -21,15 +21,15 @@ description: "在提供商和模型支持时取消排队中的异步任务"
 ## 响应
 
 <ResponseField name="id" type="string">
-  规范异步任务标识符。
+  TokenLab 任务 ID。
 </ResponseField>
 
 <ResponseField name="task_id" type="string">
-  异步任务标识符别名。
+  同一个任务 ID 的兼容字段名。
 </ResponseField>
 
 <ResponseField name="poll_url" type="string">
-  任务的首选轮询 URL。取消后仍然有效。
+  任务状态查询地址，取消后仍然有效。
 </ResponseField>
 
 <ResponseField name="status" type="string">
@@ -50,7 +50,7 @@ description: "在提供商和模型支持时取消排队中的异步任务"
 
 ## 错误行为
 
-`400 unsupported_task_cancel` 表示任务类型、提供商或模型不支持取消。`409 task_not_cancellable` 表示任务已开始处理、已终态或不再可取消。`403` 表示当前 API key 无权访问该任务。
+`400 unsupported_task_cancel` 表示这个任务不支持取消。`409 task_not_cancellable` 表示任务已经开始、已经结束或无法再取消。`403` 表示当前 API 密钥无权访问。
 
 ## 示例
 

@@ -1,13 +1,13 @@
 ---
 title: "Structured Outputs & Tool Calling"
-description: "Use JSON mode, function tools, and native tool routes without assuming every model supports the same contract."
+description: "Return JSON or let a model call functions in your application"
 ---
 
-Structured outputs and tool calls are route-specific request formats. TokenLab forwards several public API formats, so the safest production pattern is to keep each provider-native tool shape on the route that owns it and validate model output in your own application.
+Structured output asks a model for JSON. Tool calling lets the model request a function that your application executes. The available fields depend on the API format and model, so keep one format throughout the conversation and validate every model-produced value in your application.
 
-## Choose The Route
+## Choose an API format
 
-| Need | Route | Use this shape |
+| Need | API | Fields |
 |------|-------|----------------|
 | Portable JSON object responses | `/v1/chat/completions` | `response_format: {"type": "json_object"}` |
 | OpenAI-compatible function calling | `/v1/chat/completions` | `tools: [{ "type": "function", "function": ... }]` |
@@ -15,15 +15,15 @@ Structured outputs and tool calls are route-specific request formats. TokenLab f
 | Claude-native tool use or thinking | `/v1/messages` | Anthropic Messages tool schema |
 | Gemini function declarations or built-in tools | `/v1beta/models/:model:generateContent` | Gemini-native `tools` and content parts |
 
-Do not send provider-native built-in tools through a different route and expect TokenLab to silently translate them.
+Use built-in tools only with the API format that documents them; TokenLab does not convert those tools between formats.
 
 ## JSON Mode
 
-For portable structured responses, start with Chat Completions JSON mode:
+For a JSON object that works across many chat models, use Chat Completions JSON mode:
 
 ```json
 {
-  "model": "gpt-5.4",
+  "model": "gpt-5.6-terra",
   "messages": [
     {
       "role": "user",
@@ -34,21 +34,21 @@ For portable structured responses, start with Chat Completions JSON mode:
 }
 ```
 
-The stable shared validation for Chat Completions accepts `text` and `json_object`. `json_schema`, `strict`, and provider-specific schema enforcement may exist for some native formats or compatibility paths, but they are not a blanket promise across every TokenLab route and model. Verify them against the selected model before relying on them.
+Chat Completions accepts `text` and `json_object`. `json_schema` and `strict` are model- and format-specific; use them only when the selected model documents support.
 
-Always parse and validate the returned JSON on your server. JSON mode improves the shape, but it does not replace application-level schema validation.
+Always parse and validate returned JSON on your server. JSON mode does not replace application-level schema validation.
 
-## Tool Calling Loop
+## Complete a tool call
 
-TokenLab does not execute your functions. Your application owns the loop:
+TokenLab returns the function name and arguments; your application executes it:
 
 1. Send messages plus tool definitions.
 2. Read the model response for `tool_calls`, `function_call`, Anthropic `tool_use`, or Gemini function call parts.
 3. Execute the tool in your own backend.
-4. Append the tool result in the format required by the same route.
+4. Append the tool result in the same API format.
 5. Continue the conversation until the model returns a final answer.
 
-Keep the same route throughout a tool loop. Mixing Chat Completions, Responses, Messages, and Gemini formats in one conversation usually creates subtle state and schema bugs.
+Keep the same API format until the tool call and final answer are complete. The four formats represent tool state differently.
 
 ## Chat Completions Example
 
@@ -57,7 +57,7 @@ curl https://api.tokenlab.sh/v1/chat/completions \
   -H "Authorization: Bearer sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-5.4",
+    "model": "gpt-5.6-terra",
     "messages": [
       {
         "role": "user",
@@ -84,17 +84,17 @@ curl https://api.tokenlab.sh/v1/chat/completions \
   }'
 ```
 
-## Schema Design
+## Write a useful schema
 
 - Keep schemas small and explicit. Large nested schemas add tokens and reduce reliability.
 - Prefer required fields for values your product cannot continue without.
 - Use enums for closed sets that your UI or backend depends on.
 - Include examples in the prompt when the model struggles with a shape.
-- Treat unsupported-field errors as contract feedback. Remove the field or use the native route that documents it.
+- If a field is not supported, remove it or use an API format that documents it.
 
-## Production Checklist
+## Before executing a tool
 
-- Record route, model, tool names, and sanitized schema shape in logs.
+- Record the API format, model, tool names, and schema field names.
 - Validate tool arguments before executing any side effect.
 - Apply your own permission checks before tool execution.
 - Make tool execution idempotent when a client retry can repeat the same tool call.

@@ -1,84 +1,45 @@
 ---
-title: "✨ TokenLab API Integration Skill"
-description: "Install the maintained TokenLab API integration skill and teach coding agents to discover models, read model details, and recover from API errors."
+title: "TokenLab API skill for coding agents"
+description: "Give a coding agent current TokenLab models, API examples, and error-handling guidance"
 ---
 
-<Note>
-This page documents the maintained shared `tokenlab-api-integration` skill. The canonical distribution lives in [hedging8563/tokenlab-skills](https://github.com/hedging8563/tokenlab-skills), where the public repository intentionally keeps only this skill.
-</Note>
+The `tokenlab-api-integration` skill helps coding agents add TokenLab to an application without relying on an old model list. It covers chat, images, video, audio, translation, embeddings, rerank, music, 3D, and Worlds.
 
-<Note>
-Use this page for skill installation and agent workflow guidance. For endpoint-specific setup, use the dedicated SDK, client, or API reference page for that tool.
-</Note>
-
-## What The Skill Does
-
-- Generates minimal runnable examples for TokenLab chat, image, audio, video, translation, and other API families.
-- Uses `https://api.tokenlab.sh/v1` for OpenAI-compatible clients and explains when to switch to native Anthropic or Gemini routes.
-- Discovers models with `/v1/models`, `/llms.txt`, and `recommended_for` shortlists instead of guessing from stale lists.
-- Reads a model details before retrying non-chat requests, so unsupported fields are not silently dropped.
-- Handles Agent-First error hints such as `did_you_mean`, `suggestions`, `retry_after`, and `recommended_request`.
+The public skill is available in [tokenlab-skills](https://github.com/hedging8563/tokenlab-skills).
 
 ## Install
 
-<Note>
-Use the canonical non-interactive install command:
+```bash
+npx skills add https://github.com/hedging8563/tokenlab-skills \
+  --skill tokenlab-api-integration \
+  -y
+```
+
+Run the same command again to update an existing installation. If your coding tool does not support the installer, copy `skills/tokenlab-api-integration/` from the repository into its shared skills or rules directory.
+
+To confirm installation, ask the agent to list its available skills and look for `tokenlab-api-integration`.
+
+## What the skill can help with
+
+- Create a runnable example for a TokenLab API.
+- Read the current model list and model-specific fields.
+- Choose Chat Completions, Responses, Anthropic Messages, or Gemini format.
+- Handle model-name suggestions, rate limits, and retry timing.
+- Keep API keys out of prompts and source code.
+
+The skill does not replace the API reference. For exact fields and response objects, use the linked TokenLab documentation.
+
+## Create an API key
+
+Open [Console → API keys](https://tokenlab.sh/dashboard/api), create a key, and store it in an environment variable. A TokenLab API key starts with `sk-`.
 
 ```bash
-npx skills add https://github.com/hedging8563/tokenlab-skills --skill tokenlab-api-integration -y
+export TOKENLAB_API_KEY="sk-your-api-key"
 ```
 
-This installs the shared `tokenlab-api-integration` skill from the TokenLab skills repository.
+Never paste a key into an agent prompt, frontend code, screenshot, or public repository. Ask the agent to read it from the environment instead.
 
-If your tool does not support the installer, copy `skills/tokenlab-api-integration/` from the repository into your tool's shared skills or rules directory.
-</Note>
-
-### Update Existing Installs
-
-If you installed the skill earlier, rerun the same command to update to the current public package.
-
-### Verify Installation
-
-Ask your coding agent:
-
-```
-What skills are available?
-```
-
-If you see `tokenlab-api-integration`, the installation succeeded.
-
-## Get Your API Key
-
-<Steps>
-  <Step title="Visit TokenLab">
-    Go to [tokenlab.sh](https://tokenlab.sh)
-  </Step>
-  <Step title="Sign In">
-    Create an account or log in
-  </Step>
-  <Step title="Get API Key">
-    Open [Dashboard → API Keys](https://tokenlab.sh/dashboard/api) and create a new key
-  </Step>
-  <Step title="Copy The Key">
-    Your key starts with `sk-...`. Store it securely.
-  </Step>
-</Steps>
-
-<Tip>
-Do not paste API keys into prompts or source files. The skill should ask which environment variable to use and generate code that reads the key from that variable.
-</Tip>
-
-## Recommended Agent Workflow
-
-1. Start with the smallest working example that matches the user's requested language and API family.
-2. When model choice is open, call `/v1/models` or `https://api.tokenlab.sh/llms.txt` before hardcoding a model.
-3. For non-chat work, call `/v1/models?recommended_for=<scene>` where `<scene>` is `image`, `video`, `music`, `3d`, `tts`, `stt`, `embedding`, `rerank`, or `translation`.
-4. Before changing a failed non-chat request, read `/v1/models/:model` and align with `supported_operations`, `supported_parameters`, `request_endpoint`, `request_endpoint_by_operation`, `request_shape_mode`, and `recommended_request`.
-5. If the API returns an Agent-First error, use the structured fields to correct the request and retry only when the error is retryable.
-
-## Minimal Chat Example
-
-This example uses the OpenAI Python SDK with the TokenLab base URL:
+## First request
 
 ```python
 import os
@@ -86,137 +47,82 @@ from openai import OpenAI
 
 client = OpenAI(
     api_key=os.environ["TOKENLAB_API_KEY"],
-    base_url="https://api.tokenlab.sh/v1"
+    base_url="https://api.tokenlab.sh/v1",
 )
 
 response = client.chat.completions.create(
-    model="gpt-4o-mini",
-    messages=[{"role": "user", "content": "Hello!"}]
+    model="gpt-5.6-luna",
+    messages=[{"role": "user", "content": "Hello!"}],
 )
 
 print(response.choices[0].message.content)
 ```
 
-Run it with:
+Install the OpenAI SDK and run the file:
 
 ```bash
 pip install openai
-export TOKENLAB_API_KEY="sk-your-api-key"
 python app.py
 ```
 
-## Model Discovery
+## Ask the agent to use current model data
 
-Prefer live discovery over stale bundled lists:
+Model IDs, fields, and prices change. The skill can read:
 
 ```bash
-# Machine-readable API overview
+# Compact API overview
 curl https://api.tokenlab.sh/llms.txt
 
-# List models
-curl "https://api.tokenlab.sh/v1/models" -H "Authorization: Bearer sk-KEY"
-curl "https://api.tokenlab.sh/v1/models?category=image" -H "Authorization: Bearer sk-KEY"
+# Current models
+curl "https://api.tokenlab.sh/v1/models" \
+  -H "Authorization: Bearer $TOKENLAB_API_KEY"
 
-# Ranked non-chat shortlists
-curl "https://api.tokenlab.sh/v1/models?recommended_for=image" -H "Authorization: Bearer sk-KEY"
-curl "https://api.tokenlab.sh/v1/models?recommended_for=video" -H "Authorization: Bearer sk-KEY"
-curl "https://api.tokenlab.sh/v1/models?recommended_for=translation" -H "Authorization: Bearer sk-KEY"
+# Models for a non-chat task
+curl "https://api.tokenlab.sh/v1/models?recommended_for=image" \
+  -H "Authorization: Bearer $TOKENLAB_API_KEY"
 
-# Read one model details before retrying non-chat requests
-curl "https://api.tokenlab.sh/v1/models/gpt-image-2" -H "Authorization: Bearer sk-KEY"
-
-# Pricing-only detail
-curl "https://api.tokenlab.sh/v1/models/gpt-image-2/pricing" -H "Authorization: Bearer sk-KEY"
+# Fields and formats for one model
+curl "https://api.tokenlab.sh/v1/models/gpt-image-2" \
+  -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```
 
-## Native Protocol Selection
+`recommended_for` supports `image`, `video`, `music`, `3d`, `tts`, `stt`, `embedding`, `rerank`, and `translation`.
 
-OpenAI-compatible `/v1` is the default path for common chat, image, embedding, audio, and rerank examples. Do not infer native protocol availability from a model or provider name, or from Chat response headers. Read `GET /v1/models/{model}` and use only a format listed in `tokenlab.accepted_request_formats`.
+## Keep the API format consistent
 
-The protocol endpoints are Chat Completions at `/v1/chat/completions`, Responses at `/v1/responses`, Messages at `/v1/messages`, and Gemini at `/v1beta/models/{model}:generateContent`.
+Read `tokenlab.accepted_request_formats` from the selected model before generating code.
 
-## Agent-First Error Recovery
+| Format | Endpoint |
+| --- | --- |
+| Chat Completions | `/v1/chat/completions` |
+| Responses | `/v1/responses` |
+| Anthropic Messages | `/v1/messages` |
+| Gemini | `/v1beta/models/{model}:generateContent` |
 
-Errors include fields that coding agents can parse without scraping docs:
+A conversation or tool call should stay in one format. Model-specific fields are not automatically converted between formats.
 
-| Error | Useful fields | Agent action |
-|---|---|---|
-| Wrong model name | `did_you_mean`, `suggestions`, `hint` | Retry with the corrected model or one suggested alternative |
-| Insufficient balance | `balance_usd`, `estimated_cost_usd`, `suggestions` | Ask for approval or switch to an affordable model |
-| Rate limit or temporary unavailability | `retryable`, `retry_after`, `alternatives` | Wait, retry, or choose a listed alternative |
-| Non-chat unsupported request | `supported_operations`, `supported_parameters`, `request_endpoint`, `request_endpoint_by_operation`, `request_shape_mode`, `recommended_request` | Rebuild the request from the model details and return a clear error on intent-changing fields |
+## Let errors guide safe changes
 
-## Supported API Families
+OpenAI-compatible errors may include `did_you_mean`, `suggestions`, `hint`, `retryable`, and `retry_after`. The agent should still use the HTTP status and error `code` as the primary signal.
 
-| Family | Primary path |
-|---|---|
-| Chat and Responses | `/v1/chat/completions`, `/v1/responses` |
-| Claude-native messages | `/v1/messages` |
-| Gemini-native requests | `/v1beta/models/{model}:generateContent` |
-| Images | `/v1/images/generations`, `/v1/images/edits` |
-| Video | `/v1/videos/generations` |
-| Music | `/v1/music/generations` |
-| Worlds | `/v1/worlds/generations` plus world status and media asset endpoints |
-| 3D | `/v1/3d/generations` |
-| Audio | `/v1/audio/speech`, `/v1/audio/transcriptions`, `/v1/audio/translations` |
-| Realtime | `/v1/realtime?model={model}` |
-| Embeddings and rerank | `/v1/embeddings`, `/v1/rerank` |
-| Text translation | `/v1/translations` |
+- A wrong model ID can be corrected with `did_you_mean` after user approval when changing models matters.
+- `429` can be retried after `Retry-After`.
+- Validation, authentication, balance, and permission errors require a change; repeating the same request will not help.
+- A create-request timeout must be checked for an existing task before the agent sends another create request.
 
-## Best Practices
+## Example requests for the agent
 
-<CardGroup cols={2}>
-  <Card title="API Key Safety" icon="shield">
-    Use environment variables and server-side calls. Never expose keys in frontend code.
-  </Card>
-  <Card title="Check Non-Chat Requests" icon="file-code">
-    Read `/v1/models?recommended_for=...` and `/v1/models/:model` before retrying image, video, music, 3D, translation, audio, embedding, or rerank requests.
-  </Card>
-  <Card title="Smallest Runnable Example" icon="terminal">
-    Generate one working call before adding abstractions, queues, or UI flows.
-  </Card>
-  <Card title="Use Structured Hints" icon="rotate-cw">
-    Parse `did_you_mean`, `retry_after`, `alternatives`, and `recommended_request` before changing the code.
-  </Card>
-</CardGroup>
+```text
+Use the TokenLab API skill to add image generation to this Node.js app.
+Read the current model details before choosing fields.
+Keep the API key in TOKENLAB_API_KEY and add one runnable test.
+```
 
-## FAQ
+```text
+Use TokenLab Chat Completions in this Python service.
+Keep the existing OpenAI SDK and change only the Base URL, API key source, and model.
+```
 
-<AccordionGroup>
-  <Accordion title="Skill not triggering automatically?">
-    Mention “TokenLab” or “TokenLab API” in the request, for example: `Use TokenLab to add image generation to my Node.js app`.
-  </Accordion>
+## Help
 
-  <Accordion title="Which coding agents are supported?">
-    Any coding agent that supports shared skill or rules directories can use the folder. The `skills` installer handles supported agents automatically.
-  </Accordion>
-
-  <Accordion title="How do I update the skill?">
-    Rerun the install command. It refreshes the local copy from the canonical public repository.
-
-    ```bash
-    npx skills add https://github.com/hedging8563/tokenlab-skills --skill tokenlab-api-integration -y
-    ```
-  </Accordion>
-</AccordionGroup>
-
-## Resources
-
-<CardGroup cols={2}>
-  <Card title="Agent-First API" icon="robot" href="/guides/agent-first-api">
-    Structured error hints and recovery behavior
-  </Card>
-  <Card title="API Documentation" icon="book" href="https://docs.tokenlab.sh">
-    Endpoint-specific setup and API reference
-  </Card>
-  <Card title="Models" icon="sparkles" href="https://tokenlab.sh/en/models">
-    Browse available models
-  </Card>
-  <Card title="llms.txt" icon="file-lines" href="https://api.tokenlab.sh/llms.txt">
-    Machine-readable API overview for agents
-  </Card>
-</CardGroup>
-
-<Info>
-Questions? Use [GitHub Issues](https://github.com/hedging8563/tokenlab-skills/issues) or contact [support@tokenlab.sh](mailto:support@tokenlab.sh).
-</Info>
+Report skill issues in [GitHub Issues](https://github.com/hedging8563/tokenlab-skills/issues). API and account questions can be sent to [support@tokenlab.sh](mailto:support@tokenlab.sh).

@@ -30,10 +30,10 @@ description: "Claude Code、Cursor、VS Code、CodexなどのMCPクライアン�
 最も安全で簡単な始め方は、6個の公開カタログツールだけを有効にする方法です。TokenLab APIキーは不要で、認証が必要なツールは後から追加できます。
 
 <CardGroup cols={2}>
-  <Card title="Cursorにインストール" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab-model-catalog&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXIiXSwiZW52Ijp7IlRPS0VOTEFCX01DUF9UT09MX1BST0ZJTEUiOiJjYXRhbG9nIn19">
+  <Card title="Cursorにインストール" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXIiXSwiZW52Ijp7IlRPS0VOTEFCX01DUF9UT09MX1BST0ZJTEUiOiJjYXRhbG9nIn19">
     公開 `catalog` プロファイルをワンクリックでCursorに追加
   </Card>
-  <Card title="VS Codeにインストール" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab-model-catalog&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
+  <Card title="VS Codeにインストール" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
     公開 `catalog` プロファイルをVS Codeのユーザー設定に追加
   </Card>
 </CardGroup>
@@ -68,13 +68,13 @@ description: "Claude Code、Cursor、VS Code、CodexなどのMCPクライアン�
         全プロジェクトで使えるユーザー設定として追加します。
 
         ```bash
-        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
+        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab -- npx -y @tokenlabai/mcp-server
         ```
 
         既定の `core` を有効にする場合はAPIキーを設定します。
 
         ```bash
-        claude mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key --scope user tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
+        claude mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key --scope user tokenlab -- npx -y @tokenlabai/mcp-server
         ```
 
         現在のプロジェクトだけなら `--scope local`、共有 `.mcp.json` を作るなら `--scope project` を使います。実際のキーをプロジェクト設定にコミットしないでください。
@@ -86,7 +86,7 @@ description: "Claude Code、Cursor、VS Code、CodexなどのMCPクライアン�
         ```json
         {
           "mcpServers": {
-            "tokenlab-model-catalog": {
+            "tokenlab": {
               "command": "npx",
               "args": ["-y", "@tokenlabai/mcp-server"],
               "env": { "TOKENLAB_MCP_TOOL_PROFILE": "catalog" }
@@ -102,7 +102,7 @@ description: "Claude Code、Cursor、VS Code、CodexなどのMCPクライアン�
         ```json
         {
           "servers": {
-            "tokenlab-model-catalog": {
+            "tokenlab": {
               "type": "stdio",
               "command": "npx",
               "args": ["-y", "@tokenlabai/mcp-server"],
@@ -118,10 +118,10 @@ description: "Claude Code、Cursor、VS Code、CodexなどのMCPクライアン�
       <Tab title="Codex">
         ```bash
         # 公開カタログ
-        codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
+        codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab -- npx -y @tokenlabai/mcp-server
 
         # 既定のcoreとAPIキー
-        codex mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
+        codex mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key tokenlab -- npx -y @tokenlabai/mcp-server
         ```
       </Tab>
 
@@ -142,7 +142,7 @@ description: "Claude Code、Cursor、VS Code、CodexなどのMCPクライアン�
   </Step>
 
   <Step title="再起動して検証する">
-    MCPクライアントを再起動または再読み込みし、求められたらローカルサーバーを承認して、`tokenlab-model-catalog` が接続済みであることを確認します。
+    MCPクライアントを再起動または再読み込みし、求められたらローカルサーバーを承認して、`tokenlab` が接続済みであることを確認します。
 
     ```bash
     claude mcp list
@@ -155,14 +155,14 @@ description: "Claude Code、Cursor、VS Code、CodexなどのMCPクライアン�
 
 ## 設定リファレンス
 
-ローカルstdioサーバーに対応するクライアントでは、サーバー名 `tokenlab-model-catalog`、コマンド `npx`、引数 `-y` と `@tokenlabai/mcp-server` を使い、作業ディレクトリは空欄にします。検証済みリリースを固定するには `@tokenlabai/mcp-server@0.6.17` を使います。
+ローカルstdioサーバーに対応するクライアントでは、サーバー名 `tokenlab`、コマンド `npx`、引数 `-y` と `@tokenlabai/mcp-server` を使い、作業ディレクトリは空欄にします。検証済みリリースを固定するには `@tokenlabai/mcp-server@0.6.17` を使います。
 
 認証付きツールの標準設定：
 
 ```json
 {
   "mcpServers": {
-    "tokenlab-model-catalog": {
+    "tokenlab": {
       "command": "npx",
       "args": ["-y", "@tokenlabai/mcp-server"],
       "env": {
@@ -297,7 +297,7 @@ MCPサーバーは実行時に役立ちますが、[TokenLab skills repository](
   </Accordion>
 
   <Accordion title="Claude CodeにPending approvalと表示される">
-    プロジェクトの `.mcp.json` にはワークスペースの信頼と明示的な承認が必要です。プロジェクトでClaude Codeを対話的に起動し、信頼を承認して `/mcp` から `tokenlab-model-catalog` を承認します。個人用で全プロジェクトに使う場合は `--scope user` を使用します。
+    プロジェクトの `.mcp.json` にはワークスペースの信頼と明示的な承認が必要です。プロジェクトでClaude Codeを対話的に起動し、信頼を承認して `/mcp` から `tokenlab` を承認します。個人用で全プロジェクトに使う場合は `--scope user` を使用します。
   </Accordion>
 
   <Accordion title="モデルリストが空である">

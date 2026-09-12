@@ -1,32 +1,29 @@
 ---
-title: "异步作业与轮询"
-description: "创建异步媒体作业，轮询公共 TokenLab 任务状态，并在没有提供商特定 ID 的情况下对最终结果进行对账。"
+title: "异步任务与状态查询"
+description: "创建媒体任务，并等待最终结果"
 ---
 
-许多媒体端点是异步的。创建请求开始工作并返回公共 TokenLab 任务标识；您的应用程序轮询直到该任务达到终止状态。请勿围绕上游任务 URL、路由 ID 或提供商回调行为构建客户工作流。
+不少媒体端点会先返回任务，而不是直接返回成品。保存任务 ID，并使用 `poll_url` 查询，直到状态变为 `completed` 或 `failed`。
 
-## 公共任务契约
+## 需要保存的字段
 
 创建响应可以包括：
 
-| 字段 | 含义 | 操作 |
+| 字段 | 含义 | 怎么处理 |
 |-------|---------|------------|
-| `id` | 公共 TokenLab 任务 ID | 将其与您自己的作业记录一起存储 |
-| `task_id` | 相同公共任务标识的兼容别名 | 将其视为与 `id` 等效 |
-| `status` | 当前公共任务状态 | 当状态不是终止时开始轮询 |
-| `poll_url` | 优选状态 URL | 存在时优先使用此 URL |
-| `model` | 端点请求或解析的模型 | 存储以便支持和计费对账 |
+| `id` | TokenLab 任务 ID | 与你自己的任务记录一起保存 |
+| `task_id` | 同一个任务 ID 的另一种字段名 | 与 `id` 等同处理 |
+| `status` | 当前状态 | 完成或失败前继续查询 |
+| `poll_url` | 状态查询地址 | 返回时直接使用 |
+| `model` | 任务使用的模型 | 与任务记录一起保存 |
 
-`/v1/tasks/{id}` 是公共异步媒体作业的规范固定状态端点。可能存在特定于媒体的状态路由以保持兼容性，但新的集成应优先使用 `poll_url` 或 `/v1/tasks/{id}`。
+响应中有 `poll_url` 时直接使用。客户端需要固定地址时，可以调用 `/v1/tasks/{id}`。
 
-## 推荐流程
+## 保存任务并查询状态
 
-1. 验证用户请求并发送带有显式 `model` 的创建调用。
-2. 在将控制权返回给 UI 之前，持久化 `id` / `task_id`、`poll_url`、端点、模型、用户 ID 和您自己的作业 ID。
-3. 对于长时间运行的媒体任务，每 `5-10s` 轮询一次。
-4. 仅在任务为 `completed` 或 `failed` 时停止。
-5. 在 `completed` 时，读取特定于媒体的结果字段并存储最终 URL 或元数据。
-6. 在 `failed` 时，存储公共错误，并仅作为新的用户可见作业提供重试。
+创建成功后立即保存 `id` 或 `task_id`，同时记录 `poll_url`、模型、API 地址，以及你自己的用户或任务 ID。耗时较长的媒体任务通常每 5–10 秒查询一次即可。
+
+状态变为 `completed` 或 `failed` 后停止查询。完成的任务会带回媒体结果；失败的任务会带回可记录或展示的错误。重新生成会创建一个新任务，也可能产生新的费用。
 
 ```json
 {
@@ -38,58 +35,58 @@ description: "创建异步媒体作业，轮询公共 TokenLab 任务状态，�
 }
 ```
 
-## 轮询示例
+## 查询示例
 
 ```bash
 curl "https://api.tokenlab.sh/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 
-预期的公共状态为 `pending`、`processing`、`completed` 和 `failed`。取消的任务表示为 `failed`，并带有 `cancelled: true` 和 `cancellation_status: "cancelled"`，以便旧的状态处理继续有效。
+任务状态包括 `pending`、`processing`、`completed` 和 `failed`。取消后的任务使用 `failed`，同时带有 `cancelled: true` 和 `cancellation_status: "cancelled"`。
 
-## 客户端重试规则
+## 避免重复生成
 
-网络超时是重复作业的最常见来源。使用以下规则：
+创建请求超时后直接重发，最容易产生重复任务。
 
 | 超时发生位置 | 更安全的行为 |
 |-----------------------|----------------|
-| 在您的服务器接收到创建响应之前 | 检查服务器日志中的 `request_id`；仅在未创建任务时重试 |
-| 在存储创建响应之后 | 恢复对存储的 `task_id` 的轮询 |
-| 在轮询期间 | 使用退避重试状态请求 |
-| 在终止状态之后 | 除非用户明确刷新记录，否则不要再次轮询 |
+| 服务端没有收到创建响应 | 用 `request_id` 查询；确认没有创建任务后再重试 |
+| 已经保存创建响应 | 继续查询已保存的 `task_id` |
+| 查询状态时超时 | 退避后重新查询状态，不要重新创建 |
+| 已经完成或失败 | 不再自动查询 |
 
-不要仅因为浏览器刷新或状态轮询失败而发送第二个创建请求。
+浏览器刷新或状态查询失败时，不要再次创建任务。
 
-## 计费与结算
+## 费用记录
 
-异步作业在创建请求被接受时可以保留估计金额。最终结算发生在终止状态之后。当可用时，任务状态响应可以暴露 `billing_transaction_id` 和 `X-Billing-Transaction-ID` 头。
+异步任务被接受时可能暂扣预估费用，完成或失败后才会记录最终金额。状态响应可能包含 `billing_transaction_id` 和 `X-Billing-Transaction-ID` 响应头。
 
-对于对账，请在您的日志中连接这些标识符：
+请把下面几个 ID 保存在同一条记录中：
 
 - 来自创建请求的 `request_id`。
 - 来自任务的 `task_id` / `id`。
 - 当存在时的 `billing_transaction_id`。
-- 您自己的用户 ID、项目 ID 或作业 ID。
+- 你自己的用户 ID、项目 ID 或作业 ID。
 
 ## 取消
 
-`DELETE /v1/tasks/{id}` 的支持范围有意保持较窄。当前在所选任务支持取消时，可用于排队中的 Seedance 视频任务，例如 `seedance-1.5-pro`、`seedance-2.0` 和 `seedance-2.0-fast`。
+`DELETE /v1/tasks/{id}` 可以取消仍在排队、并且支持取消的 Seedance 视频任务，包括 `seedance-1.5-pro`、`seedance-2.0` 和 `seedance-2.0-fast`。
 
-不支持的任务返回 `400 unsupported_task_cancel`。已经运行或处于终止状态的任务返回 `409 task_not_cancellable`。构建取消 UI 时应为“请求取消”，而不是保证停止按钮。
+不支持取消时返回 `400 unsupported_task_cancel`；任务已经开始或结束时返回 `409 task_not_cancellable`。取消请求不保证已经开始的任务一定能停下。
 
 ## 故障排除
 
 | 症状 | 可能原因 | 检查内容 |
 |---------|--------------|---------------|
-| `async_task_not_found` | 任务未知、过期、对该 API 密钥不可访问或不是公共异步任务 | 确认 API 密钥所有权和存储的公共 `task_id` |
-| 任务似乎从未完成 | 客户端一直在轮询错误的 URL 或在终止状态之前停止 | 使用 `poll_url` 或 `/v1/tasks/{id}` 并检查最新状态 |
-| 最终媒体 URL 缺失 | 任务未完成，或上游作业完成但没有可用输出 | 继续轮询直到终止，然后将缺失输出处理为失败 |
-| 用户看到重复项 | 重试路径在超时或刷新后创建了新任务 | 通过您自己的作业 ID 和存储的 `task_id` 去重 |
-| 计费不匹配 | 结算是异步的或客户端在比较提供商 ID | 比较 `request_id`、`task_id` 和 `billing_transaction_id` |
+| `async_task_not_found` | ID 已过期、填错，或不属于这枚 API 密钥 | 确认 API 密钥和保存的 `task_id` |
+| 长时间没有完成 | 查询地址错误，或过早停止查询 | 使用 `poll_url` 或 `/v1/tasks/{id}` 查看最新状态 |
+| 完成后没有媒体 URL | 任务仍未完成，或完成时没有可用文件 | 查询到最终状态；没有结果时按失败处理 |
+| 用户看到重复结果 | 超时或刷新后又创建了一次 | 用自己的任务 ID 和 `task_id` 去重 |
+| 账单金额对不上 | 最终费用尚未记录，或比较了错误的 ID | 对照 `request_id`、`task_id` 和 `billing_transaction_id` |
 
-## 支持包
+## 联系支持时提供什么
 
-联系支持时，请包括 `request_id`、`task_id`、`billing_transaction_id`（如有）、端点、模型、时间戳和经过清理的请求形状。除非支持要求提供经过编辑的示例，否则请勿包含 API 密钥、私人媒体、签名 URL 或完整提示。
+请提供 `request_id`、`task_id`、`billing_transaction_id`（如有）、API 地址、模型、时间，以及请求中使用了哪些字段。不要发送 API 密钥、私密媒体、签名 URL 或完整提示词；支持人员明确需要时，也只发送脱敏示例。
 
 ## API 参考
 

@@ -1,26 +1,75 @@
 ---
-title: "查詢任務（火山相容）"
+title: "取得任務 (Volc 相容)"
 openapi: "GET /api/v3/contents/generations/tasks/{id}"
-description: "按 cgt 任務 ID 查詢 Seedance 相容任務。"
+description: "透過 cgt 任務 ID 取得 Seedance 相容性任務。"
 ---
 
 ## 概覽
 
-這些介面面向已經使用火山風格 Seedance 任務結構的團隊。鑑權使用 TokenLab Bearer API Key。返回的任務 ID 以 `cgt-` 開頭；請輪詢狀態介面，直到 `status` 變為 `succeeded`、`failed`、`cancelled` 或 `expired`。
+使用建立時回傳的 `cgt-...` ID。當任務狀態為 `queued` 或 `running` 時，請每隔幾秒進行輪詢。當任務狀態變為 `succeeded`、`failed`、`cancelled` 或 `expired` 時停止輪詢。
 
 <Warning>
-不要重用 v1 的任務列舉或回應 struct。`/v1/tasks/{id}` 使用 `pending`、`processing`、`completed`、`failed`；本介面使用上面的 v3 列舉。v3 的 `duration` 是字串，`error` 只在失敗時出現。
+請勿在此處重複使用統一的 v1 任務列舉 (enum) 或回應結構。`/v1/tasks/{id}` 使用 `pending`、`processing`、`completed` 和 `failed`；此 v3 端點使用上述官方列舉。在 v3 JSON 物件中，`duration` 若存在則為字串，且除非任務失敗，否則會省略 `error`。嚴謹的 Go 客戶端應將 `Duration` 宣告為 `string` 並加上 JSON 標籤 `duration,omitempty`，並在每個 v3 終止狀態時停止。
 </Warning>
 
-另見 [Seedance 2.0 影片模型](/zh-Hant/guides/seedance-2-video) 和 [影片生成](/zh-Hant/guides/video-generation).
+請參閱 [Seedance 2.0 影片模型](/guides/seedance-2-video) 與 [影片生成](/guides/video-generation)。
 
-## 回應結構
+## 狀態值
 
-任務狀態使用 `queued`、`running`、`succeeded`、`failed`、`cancelled` 或 `expired`。成功任務返回 `content.video_url`；可用時還會返回 `content.last_frame_url`、官方生成欄位與 `usage`。`error` 只在失敗時出現，不會加入 `progress`、`return_last_frame`、`watermark`、`priority` 或 `camera_fixed` 等 TokenLab 擴充欄位。
+- `queued`: 已接受並等待執行。
+- `running`: 正在生成中。
+- `succeeded`: 結果已就緒，且 `content.video_url` 存在。
+- `failed`: 生成失敗；請檢查 `error.code` 和 `error.message`。
+- `cancelled`: 任務在完成前已被取消。
+- `expired`: 任務在完成前已過期。
+
+## 回應欄位
+
+- `id`: 相容性任務 ID，以 `cgt-` 開頭。
+- `model`: 為相容性而回傳的模型識別碼。
+- `status`: 上述狀態值之一。
+- `content.video_url`: 成功時的最終影片 URL。
+- `content.last_frame_url`: 僅在請求且可用時提供。
+- `usage`: 可用時的 token 使用量。
+- `created_at` 與 `updated_at`: 任務時間戳記。
+- `error`: 僅在任務失敗時出現；非失敗任務將省略此欄位。
+
+回應中絕不會包含 TokenLab 的欄位，例如 `progress`、`return_last_frame`、`watermark`、`priority` 或 `camera_fixed`。
 
 ## 範例
 
 ```bash
 curl https://api.tokenlab.sh/api/v3/contents/generations/tasks/cgt-20260102030405-a1b2c \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
+```
+
+```json
+{
+  "id": "cgt-20260102030405-a1b2c",
+  "model": "doubao-seedance-2.0",
+  "status": "succeeded",
+  "content": {
+    "video_url": "https://example.com/result.mp4"
+  },
+  "usage": {
+    "completion_tokens": 123456
+  }
+}
+```
+
+```go Go
+type SeedanceTask struct {
+    ID       string `json:"id"`
+    Status   string `json:"status"`
+    Duration string `json:"duration,omitempty"`
+}
+
+func isTerminal(status string) bool {
+    switch status {
+    case "succeeded", "failed", "cancelled", "expired":
+        return true
+    default:
+        return false
+    }
+}
 ```

@@ -7,14 +7,6 @@ description: "Observe las solicitudes de TokenLab a través de Helicone Gateway"
 
 Helicone puede actuar como proxy y observar las solicitudes compatibles con OpenAI de TokenLab enrutándolas a través de Helicone Gateway y apuntando a TokenLab.
 
-<Note>
-**Tipo**: Gateway de observabilidad
-
-**Ruta principal**: Completado de chat compatible con OpenAI a través de Helicone Gateway
-
-**Nivel de soporte**: Ruta de observabilidad soportada
-</Note>
-
 ## Entorno
 
 ```bash
@@ -33,7 +25,7 @@ curl --request POST \
   --header "Helicone-Target-Provider: TokenLab" \
   --header "Content-Type: application/json" \
   --data '{
-    "model": "gpt-5.4-mini",
+    "model": "gpt-5.6-luna",
     "messages": [
       {
         "role": "user",

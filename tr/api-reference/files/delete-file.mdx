@@ -1,18 +1,20 @@
 ---
-title: "Dosya Sil"
+title: "Dosyayı sil"
 openapi: "DELETE /v1/files/{file_id}"
-description: "Batch dosyasını, görüntü/referans dosyası bağını veya Anthropic modundaki dosyayı siler."
+description: "Geçerli organizasyona ait yüklenmiş bir dosyayı siler."
 ---
 
-## Genel Bakış
+## Genel bakış
 
-`/v1/files` ile oluşturulan dosyayı siler. Anthropic başlıkları yoksa route, TokenLab batch dosyalarını veya bağlı görüntü/referans dosyası bağlarını siler. `anthropic-beta: files-api-2025-04-14` varsa bağlı workspace için Anthropic Files API modunu kullanır.
+`/v1/files` üzerinden oluşturulan bir dosyayı siler. Batch dosyaları ve TokenLab tarafından oluşturulan görüntü referans dosyaları OpenAI uyumlu bir deleted nesnesi döndürür.
+
+İstek Anthropic Files uyumluluk modunu kullandığında, aynı route bağlı workspace’ten Anthropic tarzı dosyayı siler.
 
 ## Notlar
 
-- Batch dosyası silme, saklanan batch dosyası kaydını kaldırır ve sonraki batch işlerinin bu file ID değerini kullanmasını engeller.
-- Görüntü/referans dosyası silme, seçili sağlayıcıdan dosyayı silmesini ister; sağlayıcı kabul ettikten sonra TokenLab dosya bağını kaldırır.
-- Anthropic Files API modu, upload ve retrieve sırasında kullanılan aynı Anthropic native başlıklarını gerektirir.
+- Bir dosyayı silmek, onu zaten referans alan Batch işlerini iptal etmez.
+- Eksik veya yetkisiz file ids, yönlendirme durumunu açığa çıkarmadan herkese açık bir not-found hatası döndürür.
+- Görüntü referans dosyalarını yalnızca bekleyen hiçbir görüntü düzenleme isteği onlara ihtiyaç duymadığında silin.
 
 ## Örnek
 
@@ -26,20 +28,3 @@ curl -X DELETE "https://api.tokenlab.sh/v1/files/file_abc123" \
 ## İstek / Yanıt
 
 Kesin schema için yukarıdaki etkileşimli OpenAPI panelini kullanın.
-
-## Response örneği
-
-<ResponseExample>
-```json 200 OK
-{
-  "id": "file_abc123",
-  "object": "file",
-  "deleted": true
-}
-```
-</ResponseExample>
-
-## Önemli alanlar
-
-<ResponseField name="id" type="string">Silinen dosya tanımlayıcısı.</ResponseField>
-<ResponseField name="deleted" type="boolean">Silme isteğinin başarılı olup olmadığı.</ResponseField>

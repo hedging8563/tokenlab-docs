@@ -6,11 +6,11 @@ description: "Conecta sesiones de voz y multimodales en tiempo real por WebSocke
 
 ## Resumen
 
-Este endpoint sirve para reconocimiento de voz, síntesis de voz, traducción de voz o modelos multimodales en tiempo real. Un `GET` normal devuelve metadatos; el upgrade WebSocket se proxifica a la sesión upstream enrutada.
+Usa este endpoint para sesiones en tiempo real como reconocimiento de voz en streaming, síntesis de voz, traducción de voz o modelos multimodales en tiempo real. Una solicitud `GET` normal devuelve los metadatos del endpoint, mientras que una solicitud de actualización a WebSocket abre una sesión en tiempo real para el modelo seleccionado.
 
 ## Superficie admitida
 
-Este endpoint es el proxy WebSocket en tiempo real de TokenLab. Admite una comprobación de metadatos con `GET /v1/realtime` y upgrades WebSocket en la misma ruta. No expone endpoints auxiliares REST de OpenAI Realtime como `POST /v1/realtime/client_secrets`, `POST /v1/realtime/translations/client_secrets`, Realtime Calls (`accept`, `hangup`, `refer`, `reject`) ni creación de legacy beta REST session / transcription-session.
+TokenLab expone un endpoint WebSocket en tiempo real en `GET /v1/realtime` para comprobaciones de metadatos y upgrades WebSocket. Trátalo como un WebSocket subset: reenvía eventos de modelos realtime compatibles y no admite superficies auxiliares REST de OpenAI Realtime como creación de sesiones, `client_secrets`, API de control de llamadas `Calls` ni legacy beta session APIs.
 
 En apps web o móviles, mantén las claves API de larga duración en tu servidor. Este endpoint no emite Realtime client secrets de corta duración.
 
@@ -54,13 +54,13 @@ curl "https://api.tokenlab.sh/v1/realtime" \
 
 ## Mensajes
 
-TokenLab reenvía mensajes WebSocket entre tu cliente y el proveedor realtime enrutado. Conserva la forma oficial de eventos del modelo elegido y pasa `model` en la query string.
+TokenLab transmite los mensajes WebSocket entre tu cliente y el modelo en tiempo real seleccionado. Usa el formato de eventos documentado para ese modelo e incluye `model` en la cadena de consulta en lugar de en cada evento.
 
 ## Facturación y cierre
 
-Las sesiones realtime usan el mismo saldo de la clave API. TokenLab predescuenta una pequeña estimación al abrir y liquida o reembolsa al cerrar.
+Las sesiones se cobran del saldo de tu clave API: TokenLab reserva una estimación al inicio, luego liquida el uso real al finalizar y reembolsa la diferencia.
 
-Cierra el socket del cliente cuando termine la sesión. Si el upstream cierra primero, TokenLab reenvía el código de cierre cuando sea posible.
+Cierra el socket del cliente cuando la sesión haya terminado. Si el servicio cierra la sesión primero, TokenLab envía a tu cliente un evento/código de cierre seguro cuando es posible.
 
 ## Ejemplo de respuesta
 
@@ -80,4 +80,4 @@ Cierra el socket del cliente cuando termine la sesión. Si el upstream cierra pr
 ## Campos importantes
 
 <ResponseField name="type" type="string">Tipo de evento o mensaje devuelto por la API.</ResponseField>
-<ResponseField name="session.id" type="string">Identificador emitido por el proveedor realtime; inclúyelo en logs de soporte, no como URL de sesión REST.</ResponseField>
+<ResponseField name="session.id" type="string">Identificador opaco recibido a través de la conexión realtime. Inclúyelo en logs de soporte para depuración; no es una URL de sesión REST.</ResponseField>

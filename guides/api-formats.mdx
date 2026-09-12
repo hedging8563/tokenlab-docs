@@ -1,264 +1,120 @@
 ---
-title: "✨ API Protocols"
-description: "Choose Chat Completions, Responses, Messages, or Gemini native endpoints"
+title: "API formats"
+description: "Choose Chat Completions, Responses, Messages, or Gemini"
 ---
 
-## Overview
+One TokenLab API key works with four common API formats. Keep the format your application already uses unless you need a model-specific feature.
 
-TokenLab exposes four protocol surfaces with one API key: OpenAI Chat Completions, OpenAI Responses, Anthropic Messages, and Gemini native REST. Protocol availability is model-specific: a native endpoint is listed only when the model details advertise that request format and a same-protocol route is currently available. A provider or model name alone does not imply native protocol support.
+| Format | Endpoint | Choose it when |
+| --- | --- | --- |
+| Chat Completions | `/v1/chat/completions` | You use an OpenAI-compatible chat client or want broad model compatibility |
+| Responses | `/v1/responses` | Your application uses Responses events, background responses, or Responses tools |
+| Anthropic Messages | `/v1/messages` | You need Claude Messages fields such as thinking or Claude tool use |
+| Gemini | `/v1beta/models/:model:generateContent` | You already use Gemini `contents`, parts, files, cache, or Gemini tools |
 
-<CardGroup cols={2}>
-  <Card title="Chat Completions" icon="plug">
-    `/v1/chat/completions`
-    Portable compatibility entry point
-  </Card>
-  <Card title="Responses" icon="bolt">
-    `/v1/responses`
-    Native Responses lifecycle and events
-  </Card>
-  <Card title="Anthropic Messages" icon="message">
-    `/v1/messages`
-    Native Messages request and response shapes
-  </Card>
-  <Card title="Gemini Native" icon="sparkles">
-    `/v1beta/models/:model:generateContent`
-    Native Gemini ProtoJSON and SSE
-  </Card>
-</CardGroup>
+Check `tokenlab.accepted_request_formats` on the model page or in `GET /v1/models/{model}`. A model does not necessarily accept all four formats.
 
-TokenLab preserves unknown request fields on same-protocol routes and forwards them on a best-effort basis. Their presence in a request does not guarantee that the selected upstream or model supports them.
+## Chat Completions
 
-## Why Multi-Format?
-
-| Benefit | Description |
-|---------|-------------|
-| **Protocol-native SDKs** | Keep the request and response shape expected by your SDK |
-| **Native features** | Access format-specific capabilities |
-| **Native-first migration** | Keep native provider routes when behavior matters; use `/v1` OpenAI compatibility for existing OpenAI-style clients |
-| **Single billing** | One account, one API key, all formats |
-
-## Format Comparison
-
-| Feature | Chat Completions | Responses | Messages | Gemini native |
-|---------|------------------|-----------|----------|---------------|
-| **Endpoint** | `/v1/chat/completions` | `/v1/responses` | `/v1/messages` | `/v1beta/models/:model:generateContent` |
-| **Auth Header** | `Authorization: Bearer` | `Authorization: Bearer` | `x-api-key` | `Authorization: Bearer` |
-| **Native state** | No | `previous_response_id`, stored/background responses | Messages request history | Cached content and Gemini resources |
-| **Streaming** | Chat SSE | Responses SSE / WebSocket | Messages SSE | Gemini SSE |
-| **Availability** | Widest portable surface | Responses request format + same-protocol route | Messages request format + same-protocol route | Gemini request format + same-protocol route |
-
-## OpenAI Format
-
-Use this compatibility route for existing OpenAI SDK integrations and portable chat flows. Chat requests can be compiled one-way to a compatible Responses, Messages, or Gemini route. Native Responses, Messages, and Gemini requests are never converted back through Chat Completions.
+Chat Completions is the easiest choice for existing OpenAI-compatible clients and portable chat features.
 
 ```python
 from openai import OpenAI
 
 client = OpenAI(
     api_key="sk-your-tokenlab-key",
-    base_url="https://api.tokenlab.sh/v1"
+    base_url="https://api.tokenlab.sh/v1",
 )
 
-# Portable chat works across many models
 response = client.chat.completions.create(
-    model="claude-sonnet-4-6",  # Claude via OpenAI format
-    messages=[
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": "Hello!"}
-    ]
+    model="gpt-5.6-luna",
+    messages=[{"role": "user", "content": "Hello!"}],
 )
+
+print(response.choices[0].message.content)
 ```
 
-**Best for:**
-- General use
-- Existing OpenAI SDK integrations
-- Maximum compatibility
+Use this format for:
 
-## Anthropic Format
+- existing OpenAI-compatible chat integrations
+- standard message history and streaming
+- function calling supported by the selected model
+- embeddings through `/v1/embeddings`
 
-Native Anthropic Messages API. Required for Claude-specific features like extended thinking.
+Fields unique to another API format are not guaranteed to work here.
 
-The native Messages endpoint is available only when the model details publish the Messages request format and a same-protocol route is currently available. It does not fall back to Chat Completions.
+## Responses
+
+Use Responses only when the selected model lists `responses` in `accepted_request_formats`.
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="sk-your-tokenlab-key",
+    base_url="https://api.tokenlab.sh/v1",
+)
+
+response = client.responses.create(
+    model="gpt-5.6-terra",
+    input="Explain why the sky is blue in two sentences.",
+)
+
+print(response.output_text)
+```
+
+The Responses API supports create, retrieve, compact, delete, streaming, WebSocket creation and continuation, and background responses where the selected model supports them. Delete removes a stored response; it does not cancel an active response.
+
+## Anthropic Messages
+
+Use the Anthropic SDK with the TokenLab host, without adding `/v1` to the base URL.
 
 ```python
 from anthropic import Anthropic
 
 client = Anthropic(
     api_key="sk-your-tokenlab-key",
-    base_url="https://api.tokenlab.sh"  # No /v1 suffix!
+    base_url="https://api.tokenlab.sh",
 )
 
 message = client.messages.create(
-    model="claude-sonnet-4-6",
-    max_tokens=1024,
-    system="You are a helpful assistant.",  # Separate system field
-    messages=[
-        {"role": "user", "content": "Hello!"}
-    ]
-)
-```
-
-### Extended Thinking (Claude Opus 4.6)
-
-Only available in Anthropic format:
-
-```python
-message = client.messages.create(
-    model="claude-opus-4-6",
-    max_tokens=16000,
-    thinking={
-        "type": "enabled",
-        "budget_tokens": 10000
-    },
-    messages=[{"role": "user", "content": "Solve this complex problem..."}]
+    model="claude-sonnet-5",
+    max_tokens=512,
+    messages=[{"role": "user", "content": "Hello!"}],
 )
 
-# Access thinking process
-for block in message.content:
-    if block.type == "thinking":
-        print(f"Thinking: {block.thinking}")
-    elif block.type == "text":
-        print(f"Answer: {block.text}")
+print(message.content[0].text)
 ```
 
-**Best for:**
-- Claude-specific features
-- Extended thinking mode
-- Native Anthropic SDK users
+Choose Messages for Claude-specific request and response fields. Keep Claude tool calls, thinking blocks, and prompt-cache fields in this format.
 
-## Gemini Format
+## Gemini
 
-Native Google Gemini API format for Google ecosystem integration.
-
-Gemini lowerCamelCase field names and original proto `snake_case` field names are both official ProtoJSON spellings. TokenLab preserves either spelling, including mixed requests; when both spellings of a field are present, TokenLab does not merge them or assign a local precedence.
+Gemini requests use the TokenLab host and the Gemini REST path.
 
 ```bash
 curl "https://api.tokenlab.sh/v1beta/models/gemini-3.5-flash:generateContent" \
   -H "Authorization: Bearer sk-your-tokenlab-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "contents": [{
-      "parts": [{"text": "Hello!"}]
-    }],
-    "systemInstruction": {
-      "parts": [{"text": "You are a helpful assistant."}]
-    }
+    "contents": [{"parts": [{"text": "Hello!"}]}]
   }'
 ```
 
-### Streaming
+Choose Gemini when your application already uses Gemini content parts, function declarations, files, cached content, or other Gemini fields. Both lowerCamelCase ProtoJSON names and original snake_case proto names are accepted; avoid sending both spellings of the same field in one request.
 
-```bash
-curl "https://api.tokenlab.sh/v1beta/models/gemini-3.5-flash:streamGenerateContent?alt=sse" \
-  -H "Authorization: Bearer sk-your-tokenlab-key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "contents": [{"parts": [{"text": "Write a story"}]}]
-  }'
-```
+## Do not mix formats in one conversation
 
-**Best for:**
-- Google Cloud integrations
-- Existing Gemini SDK code
-- Native Gemini features
+Messages, Responses, Chat Completions, and Gemini represent conversation state and tool calls differently. Keep one format for a conversation. If you must migrate stored history, convert and validate it in your application before sending the next request.
 
-**Gemini Files and Cache:** `/upload/v1beta/files`, `/v1beta/files`, `/v1beta/files:register`, and `/v1beta/cachedContents` are available on the native Gemini route. Files use Gemini File API-compatible upstream channels; explicit cache resources can also route through Vertex AI channels. Resources created through TokenLab are bound to the same upstream channel/key for later `generateContent` calls.
+## Unknown fields
 
-The supported legacy Gemini surface includes model list/get, `generateContent`, `streamGenerateContent`, `countTokens`, `embedContent`, and `batchEmbedContents`. Gemini Interactions and Live are not exposed by this surface.
+TokenLab may pass through fields it does not recognize, but that does not mean every model accepts them. A feature is safe to depend on only when the selected model documents it and your application handles an unsupported-field error.
 
-## Responses Format
+## Related references
 
-Use `/v1/responses` only for models that advertise a Responses contract. The native surface includes create, compact, retrieve, delete, SSE, WebSocket create/continuation, and durable background completion. For `background: true`, TokenLab attempts the selected native route directly and lets the upstream response determine support; there is no provider/model-name capability switch. Delete remains deletion; it is not a cancellation endpoint. Public cancel, input-items, and input-tokens endpoints are not currently exposed.
-
-Responses WebSocket accepts `response.create` events. `generate: false` creates a local warmup response that can be continued; `stream` and `background` are not valid WebSocket request fields. Connections are serial, do not multiplex active responses, and are limited to 60 minutes.
-
-## Tool Compatibility Boundary
-
-Chat function tools can be compiled to another protocol when the selected route can represent the complete tool-call loop. Provider-native tools must stay on their native route:
-
-- OpenAI Responses hosted and native tools such as `tool_search`, `web_search`, `file_search`, `code_interpreter`, MCP, shell/apply_patch, and computer-use tools require `/v1/responses`.
-- Anthropic server/native tools such as `web_search_*`, `web_fetch_*`, `code_execution_*`, `tool_search_*`, bash, computer-use, and text-editor tools require `/v1/messages`.
-- Gemini built-in tools such as `googleSearch`, `codeExecution`, `urlContext`, `computerUse`, and similar `tools` fields require `/v1beta`.
-
-Native protocol requests are not downgraded to Chat Completions. Field enumerations, tool combinations, parameter ranges, and future extensions are otherwise left to the selected upstream instead of being rejected by a TokenLab compatibility validator.
-
-## Choosing the Right Format
-
-```mermaid
-graph TD
-    A[Which protocol?] --> B{Need native state or tools?}
-    B -->|Responses lifecycle| C[Use Responses]
-    B -->|Messages behavior| D[Use Anthropic Messages]
-    B -->|Gemini behavior| E[Use Gemini native]
-    B -->|No| F[Use Chat Completions]
-    A --> G{Existing native SDK?}
-    G -->|Anthropic| D
-    G -->|Gemini| E
-    G -->|OpenAI Responses| C
-    G -->|OpenAI Chat| F
-```
-
-## Migration Guides
-
-### From OpenAI Official API
-
-```python
-# Before (OpenAI)
-client = OpenAI(api_key="sk-openai-key")
-
-# After (TokenLab)
-client = OpenAI(
-    api_key="sk-tokenlab-key",
-    base_url="https://api.tokenlab.sh/v1"  # Add this line
-)
-# That's it! Same code works
-```
-
-### From Anthropic Official API
-
-```python
-# Before (Anthropic)
-client = Anthropic(api_key="sk-ant-key")
-
-# After (TokenLab)
-client = Anthropic(
-    api_key="sk-tokenlab-key",
-    base_url="https://api.tokenlab.sh"  # Add this line (no /v1!)
-)
-```
-
-### From Google AI Studio
-
-```python
-# Before (Google)
-import google.generativeai as genai
-genai.configure(api_key="google-api-key")
-
-# After (TokenLab) - Use REST API
-import requests
-
-response = requests.post(
-    "https://api.tokenlab.sh/v1beta/models/gemini-3.5-flash:generateContent",
-    headers={"Authorization": "Bearer sk-tokenlab-key"},
-    json={"contents": [{"parts": [{"text": "Hello"}]}]}
-)
-```
-
-## Portable Chat Compatibility
-
-Use Chat Completions when one client must reach models backed by different physical protocols:
-
-```python
-from openai import OpenAI
-
-client = OpenAI(base_url="https://api.tokenlab.sh/v1", api_key="sk-...")
-
-# These portable chat calls use the same /v1 compatibility SDK:
-response = client.chat.completions.create(model="gpt-4o", ...)
-response = client.chat.completions.create(model="claude-sonnet-4-6", ...)
-response = client.chat.completions.create(model="gemini-3.5-flash", ...)
-```
-
-<Note>
-Native protocol availability is never inferred from a `gpt-*`, Claude, Gemini, or provider name. Consult the model's published request formats before choosing a native endpoint.
-</Note>
+- [Create Chat Completion](/api-reference/chat/create-completion)
+- [Create Response](/api-reference/responses/create-response)
+- [Create Message](/api-reference/messages/create-message)
+- [Generate Gemini Content](/api-reference/gemini/generate-content)
+- [SDKs and libraries](/guides/sdks)

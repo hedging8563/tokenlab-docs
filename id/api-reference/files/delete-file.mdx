@@ -1,18 +1,20 @@
 ---
-title: "Hapus File"
+title: "Hapus file"
 openapi: "DELETE /v1/files/{file_id}"
-description: "Menghapus file batch, binding file gambar/referensi, atau file mode Anthropic."
+description: "Menghapus file yang diunggah milik organisasi saat ini."
 ---
 
 ## Ikhtisar
 
-Menghapus file yang dibuat melalui `/v1/files`. Tanpa header Anthropic, route ini menghapus file batch TokenLab atau binding file gambar/referensi. Dengan `anthropic-beta: files-api-2025-04-14`, route memakai mode Anthropic Files API untuk workspace yang terikat.
+Menghapus file yang dibuat melalui `/v1/files`. File Batch dan file referensi gambar yang dibuat TokenLab mengembalikan objek deleted yang kompatibel dengan OpenAI.
+
+Ketika request memakai mode kompatibilitas Anthropic Files, route yang sama menghapus file bergaya Anthropic dari workspace yang terikat.
 
 ## Catatan
 
-- Penghapusan file batch menghapus record file yang tersimpan dan mencegah job batch berikutnya memakai file ID tersebut.
-- Penghapusan file gambar/referensi meminta provider yang dipilih menghapus file, lalu menghapus binding file TokenLab setelah provider menerima penghapusan.
-- Mode Anthropic Files API memerlukan header native Anthropic yang sama seperti saat upload dan retrieve.
+- Menghapus file tidak membatalkan job Batch yang sudah mereferensikannya.
+- file ids yang tidak ada atau tidak diizinkan mengembalikan error not-found publik tanpa mengekspos status routing.
+- Hapus file referensi gambar hanya setelah tidak ada request edit gambar tertunda yang membutuhkannya.
 
 ## Contoh
 
@@ -26,20 +28,3 @@ curl -X DELETE "https://api.tokenlab.sh/v1/files/file_abc123" \
 ## Permintaan / Respons
 
 Gunakan panel OpenAPI interaktif di atas untuk schema yang tepat.
-
-## Contoh response
-
-<ResponseExample>
-```json 200 OK
-{
-  "id": "file_abc123",
-  "object": "file",
-  "deleted": true
-}
-```
-</ResponseExample>
-
-## Field penting
-
-<ResponseField name="id" type="string">Identifier file yang dihapus.</ResponseField>
-<ResponseField name="deleted" type="boolean">Apakah request penghapusan berhasil.</ResponseField>

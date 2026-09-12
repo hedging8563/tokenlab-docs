@@ -5,19 +5,8 @@ description: "使用 OpenAI 兼容集成将 TokenLab 与 LlamaIndex 集成"
 
 ## 概述
 
-<Note>
-**类型**: 框架或平台
 
-**主要路径**: 通过 OpenAILike 实现 OpenAI 兼容
-
-**支持置信度**: 通过 OpenAILike 支持
-</Note>
-
-对于 TokenLab，更稳健的 LlamaIndex 设置是使用 **OpenAI 兼容集成**，而不是内置的 OpenAI 类。
-
-当前的 LlamaIndex 文档明确建议针对第三方 OpenAI 兼容端点使用 `OpenAILike`，因为内置的 OpenAI 类会根据官方模型名称推断元数据。
-
-换句话说：在此处将 `OpenAILike` 视为受支持的 TokenLab 路径，而不是内置的 OpenAI 类。
+TokenLab 在 LlamaIndex 中使用 `OpenAILike`。它支持自定义 Base URL，也不会根据 OpenAI 模型名推断元数据。
 
 ## 安装
 
@@ -36,7 +25,7 @@ from llama_index.llms.openai_like import OpenAILike
 from llama_index.embeddings.openai_like import OpenAILikeEmbedding
 
 llm = OpenAILike(
-    model="gpt-5.4",
+    model="gpt-5.6-terra",
     api_base="https://api.tokenlab.sh/v1",
     api_key="sk-your-tokenlab-key",
     is_chat_model=True,
@@ -139,7 +128,7 @@ async def main():
 asyncio.run(main())
 ```
 
-## 最佳实践
+## 配置建议
 
 <AccordionGroup>
   <Accordion title="为 TokenLab 使用 OpenAILike">

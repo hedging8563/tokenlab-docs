@@ -1,12 +1,12 @@
 ---
 title: "创建 World"
 openapi: "POST /v1/worlds/generations"
-description: "创建一个 World Labs Marble 世界生成任务"
+description: "使用文字、图片或视频创建可探索的 3D World"
 ---
 
-使用 World Labs Marble 生成可探索的 3D 世界。这是一个异步 API：创建响应会返回任务标识以及用于查询状态的 `poll_url`。
+创建可探索的 3D World。响应会返回任务 ID 和 `poll_url`，通过这个地址查询进度和结果。
 
-支持的模型为 `marble-1.0`、`marble-1.1` 和 `marble-1.1-plus`。World Labs 文档中还包含 `marble-1.0-draft`，但 TokenLab 目前尚未在此端点开放 draft 生成。
+通过 [Models API](/zh/api-reference/models/list-models) 获取当前可用的 Marble 模型。该接口暂不支持 `marble-1.0-draft`。
 
 ## 请求体
 
@@ -19,7 +19,7 @@ description: "创建一个 World Labs Marble 世界生成任务"
 </ParamField>
 
 <ParamField body="world_prompt" type="object">
-  面向高级调用方的原生 World Labs `world_prompt` 对象。支持的提示类型包括 `text`、`image`、`multi-image` 和 `video`。
+  World Labs `world_prompt` 对象，支持 `text`、`image`、`multi-image` 和 `video`。
 </ParamField>
 
 <ParamField body="image" type="string">
@@ -61,11 +61,11 @@ description: "创建一个 World Labs Marble 世界生成任务"
 ## 响应
 
 <ResponseField name="id" type="string">
-  用于轮询的公开任务 ID。
+  TokenLab 任务 ID。
 </ResponseField>
 
 <ResponseField name="task_id" type="string">
-  异步任务标识别名。
+  同一个任务 ID 的兼容字段名。
 </ResponseField>
 
 <ResponseField name="operation_id" type="string">
@@ -73,7 +73,7 @@ description: "创建一个 World Labs Marble 世界生成任务"
 </ResponseField>
 
 <ResponseField name="poll_url" type="string">
-  该任务的推荐轮询 URL。
+  任务状态查询地址。
 </ResponseField>
 
 <ResponseField name="status" type="string">
@@ -94,11 +94,9 @@ description: "创建一个 World Labs Marble 世界生成任务"
 
 ## 计费
 
-World Labs 按 credits 计费。TokenLab 会先按请求类型的最大值预扣，并在完成的 operation 返回 `cost.total_credits` 时按实际 credits 结算。标准 Marble 请求最多 1,600 credits。`marble-1.1-plus` 请求最多 3,100 credits。
+World Labs 按 credits 计费。创建任务时可能暂扣最高预估金额，完成后根据 `cost.total_credits` 记录实际费用。标准 Marble 请求最多 1,600 credits，`marble-1.1-plus` 最多 3,100 credits。
 
-## 范围
-
-这些管理端点覆盖 TokenLab 归属的媒体资产和已完成生成的 worlds。TokenLab 仍不开放 `marble-1.0-draft` 生成或独立 pano/depth 工具。
+`marble-1.0-draft` 和独立 pano / depth 工具当前不可用。
 
 <RequestExample>
 ```bash cURL

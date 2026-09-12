@@ -1,28 +1,28 @@
 ---
-title: "Music Generation"
-description: "Create music or lyrics tasks, poll for final audio, and store user-facing music outputs safely."
+title: "Music generation"
+description: "Create songs or lyrics and wait for the finished audio"
 ---
 
-Music generation is asynchronous. `POST /v1/music/generations` creates a public TokenLab task and returns `id` / `task_id`, `status`, and usually `poll_url`. Your application should store that task identity, show task state, and poll until a terminal status.
+Music generation is asynchronous. `POST /v1/music/generations` returns a task ID, status, and usually `poll_url`. Use that URL until the task is `completed` or `failed`.
 
-## Choose The Workflow
+## Choose what to create
 
-| Workflow | Key fields | Notes |
+| What to create | Key fields | Notes |
 |----------|------------|-------|
 | Full song or instrumental | `model`, `mv`, `prompt`, optional `title`, `tags`, `action: "MUSIC"` | Use when the user expects final audio |
 | Lyrics only | `model`, `prompt`, `action: "LYRICS"` | Use only with models that expose lyric generation |
-| Continue an existing clip | `continue_clip_id`, optional `continue_at` | Store the previous public clip/task identity before offering continuation |
+| Continue an existing clip | `continue_clip_id`, optional `continue_at` | Keep the earlier clip ID |
 
-Query the current model catalog before shipping a hard-coded model list:
+Get the current music-model list from:
 
 ```bash
 curl "https://api.tokenlab.sh/v1/models?recommended_for=music" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 
-The current public examples use `suno_music` for music generation and include `mv` with an official Suno model version such as `chirp-v4`. For lyric-only flows, send `action: "LYRICS"` with a model whose model details documents lyric generation and omit `mv`. Treat model IDs as public TokenLab IDs, not as a guarantee that provider-specific fields are model details fields.
+The example below uses `suno_music` with `mv: "chirp-v4"`. For lyrics only, choose a model that documents lyric generation, send `action: "LYRICS"`, and omit `mv`.
 
-## Create A Music Task
+## Create a music task
 
 ```bash
 curl https://api.tokenlab.sh/v1/music/generations \
@@ -38,11 +38,11 @@ curl https://api.tokenlab.sh/v1/music/generations \
   }'
 ```
 
-Keep prompts, titles, and tags user-visible and safe to store. Do not place API keys, private URLs, or private diagnostic details in any prompt field.
+Prompts, titles, and tags may appear in your product history. Never place API keys, private URLs, or diagnostic data in them.
 
-## Poll For Completion
+## Get the finished audio
 
-Use `poll_url` first. If your client needs a fixed route, call `GET /v1/tasks/{id}` with the returned `id` or `task_id`.
+Use `poll_url`. If your client needs a fixed URL, call `GET /v1/tasks/{id}` with the returned `id` or `task_id`.
 
 ```bash
 curl "https://api.tokenlab.sh/v1/tasks/$TASK_ID" \
@@ -83,9 +83,9 @@ A completed polling response can include the final media fields:
 
 Final media fields are absent until `status` is `completed`. Failed tasks return `status: "failed"` with `error`.
 
-Expected public statuses are `pending`, `processing`, `completed`, and `failed`. A completed music task can include `audio_url`, `video_url`, `title`, `lyrics`, and normalized metadata. Store final URLs in your own database so the user can reopen the result without restarting generation.
+Statuses are `pending`, `processing`, `completed`, and `failed`. A completed task can include `audio_url`, `video_url`, `title`, `lyrics`, and other metadata. Store the final URLs so users can reopen the result without generating it again.
 
-## UI And State Handling
+## Show the right state
 
 - Show a pending state immediately after task creation.
 - Poll every `5-10s` for long tasks, then stop on `completed` or `failed`.
@@ -93,9 +93,9 @@ Expected public statuses are `pending`, `processing`, `completed`, and `failed`.
 - For lyric-only tasks, render text output separately from audio tasks so users understand what they are buying.
 - On refresh, resume from the stored `task_id` instead of creating a new task.
 
-## Billing And Reconciliation
+## Billing records
 
-Music tasks can reserve an estimated amount at create time and settle after the terminal status is known. Store `request_id`, `task_id`, model, endpoint, and `billing_transaction_id` when it appears. Use Management API usage records for reconciliation instead of provider task IDs.
+Music tasks can reserve an estimated amount when created. The final amount is recorded after completion or failure. Save `request_id`, `task_id`, model, endpoint, and `billing_transaction_id` when it appears; use Management API usage records for the final charge.
 
 ## Common Errors
 
@@ -104,7 +104,7 @@ Music tasks can reserve an estimated amount at create time and settle after the 
 | Task created but no player | Task is still pending or completed without `audio_url` | Keep polling until terminal, then handle missing output as a failed user job |
 | Duplicate songs after refresh | UI recreated the task instead of resuming | Persist and reuse `task_id` |
 | Lyric task returns no audio | `action: "LYRICS"` is text-only | Separate lyrics and music UI paths |
-| Unsupported parameter | Field is not in the model details | Remove provider-specific fields or choose a model that documents them |
+| Unsupported parameter | The selected model does not accept the field | Remove it or choose a model that documents it |
 
 ## API Reference
 

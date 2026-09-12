@@ -1,12 +1,13 @@
 ---
 title: "流式传输"
-description: "实现实时流式响应"
+description: "让模型边生成边显示"
 ---
 
 ## 概述
 
-流式会逐步交付输出。只有模型公开 Responses 原生契约且存在同协议 upstream 路径时，才使用 Responses streaming；否则请使用 Chat Completions 或模型公开的原生协议。
-## 推荐：Responses 流式传输
+流式响应会把内容分段返回，不必等整段答案生成完。模型的 `accepted_request_formats` 包含 `responses` 时可以使用 Responses 流；现有应用依赖 Chat Completions 时，继续使用原来的流式写法即可。
+
+## Responses 流式传输
 
 <CodeGroup>
 
@@ -15,7 +16,7 @@ curl https://api.tokenlab.sh/v1/responses \
   -H "Authorization: Bearer sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-5.4",
+    "model": "gpt-5.6-terra",
     "input": "Write a short poem.",
     "stream": true
   }'
@@ -30,7 +31,7 @@ client = OpenAI(
 )
 
 stream = client.responses.create(
-    model="gpt-5.4",
+    model="gpt-5.6-terra",
     input="Write a short poem.",
     stream=True
 )
@@ -49,7 +50,7 @@ const client = new OpenAI({
 });
 
 const stream = await client.responses.create({
-  model: 'gpt-5.4',
+  model: 'gpt-5.6-terra',
   input: 'Write a short poem.',
   stream: true
 });
@@ -64,20 +65,22 @@ for await (const event of stream) {
 </CodeGroup>
 
 
-## Responses 与 Gemini 流式边界
+## Responses WebSocket
 
-Responses SSE 会保留 upstream 事件名称、顺序和字段，只在旁路读取 usage 和终态，不改写 wire。第一个事件交付后，绝不再尝试其他 channel 或 credential。
+连接 `wss://api.tokenlab.sh/v1/responses` 后发送 `response.create` 事件。WebSocket 响应会自动使用流式输出，不支持 `background` 或 `response.cancel`。`generate: false` 不会生成模型内容或产生模型费用，而是返回一个可以继续使用的响应 ID。
 
-Responses WebSocket 只接受官方 `response.create` 事件。stream 是隐含行为；该 transport 不提供 `background` 或 `response.cancel`，background 只通过 HTTP 运行。每个连接串行处理、不做 multiplexing，最长 60 分钟。
+一个连接同时只处理一个响应，最长保持 60 分钟。事件包含当前响应内递增的 `sequence_number`。名称为 `error` 的流事件使用扁平对象；连接和协议错误使用嵌套的 `error` 对象。
 
-Gemini SSE 保留原生 chunk。只有 metadata 的事件、没有 `finishReason` 的中间 chunk，以及自然 EOF 都合法；TokenLab 不会添加 Chat `[DONE]`.
+## Gemini 流式输出
+
+`POST /v1beta/models/{model}:streamGenerateContent?alt=sse` 返回 Gemini 格式的 chunks。有些事件只有元数据，中间事件可能没有 `finishReason`，流也可能直接结束，不会额外添加 Chat Completions 的 `[DONE]`。
 ## Chat Completions 流式传输
 
-如果你的框架仍然需要来自 `/v1/chat/completions` 的 SSE 分块，这同样可行：
+现有客户端使用 `/v1/chat/completions` SSE 时，可以继续沿用：
 
 ```python
 stream = client.chat.completions.create(
-    model="gpt-4o",
+    model="gpt-5.6-terra",
     messages=[{"role": "user", "content": "Write a short poem"}],
     stream=True
 )
@@ -90,13 +93,13 @@ for chunk in stream:
 
 ## 流结束条件
 
-典型的完成条件：
+不同格式的结束标志不同：
 - Responses API 流使用 `response.completed`
 - Chat Completions 流使用 `finish_reason: "stop"`
 - 当达到 token 限制时使用 `finish_reason: "length"`
 - 当模型希望使用工具时，会出现 tool/function call 事件
 
-## Web 应用模式
+## Web 应用示例
 
 ```javascript
 async function streamChat(message) {
@@ -107,7 +110,7 @@ async function streamChat(message) {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      model: 'gpt-4o',
+      model: 'gpt-5.6-terra',
       messages: [{ role: 'user', content: message }],
       stream: true
     })
@@ -136,18 +139,18 @@ async function streamChat(message) {
 }
 ```
 
-## 最佳实践
+## 正确处理流式内容
 
 <AccordionGroup>
-  <Accordion title="新构建项目优先使用 Responses 流式传输">
-    如果你的 SDK 或应用已经支持 `/v1/responses`，请使用它。将 `/v1/chat/completions` 流式传输保留给出于兼容性需求的集成。
+  <Accordion title="使用客户端已经支持的格式">
+    所选模型和客户端都支持 Responses 时可以使用 `/v1/responses`。已有 Chat Completions 流式代码可以继续使用 `/v1/chat/completions`。
   </Accordion>
 
-  <Accordion title="增量刷新输出">
-    在 delta 分块到达时将其追加到 UI 或终端，而不是等待完整响应返回后再处理。
+  <Accordion title="内容到达后立即显示">
+    收到 delta 后直接追加到界面或终端，不必等待完整回答。
   </Accordion>
 
-  <Accordion title="处理断连与重试">
-    将网络中断和上游断连视为正常故障模式，并在长时间运行的会话中谨慎地重新连接。
+  <Accordion title="断连后的回答仍未完成">
+    部分内容有用时可以保留，但不能标记为完整回答。重新发送可能得到不同内容，也可能再次收费。
   </Accordion>
 </AccordionGroup>

@@ -5,12 +5,12 @@ description: "Transcribes audio into the input language"
 ---
 
 <Note>
-For coding agents, discover the current recommended STT shortlist first with `GET /v1/models?recommended_for=stt`, then send the selected `model` explicitly to this endpoint.
+Use `GET /v1/models?recommended_for=stt` to get current transcription models.
 </Note>
 
 ## Request Body
 
-**Synchronous request timeout:** This non-chat endpoint waits for the routed model to finish. Large inputs, long audio, or large batches can exceed common 30s client defaults, so set your HTTP client timeout to at least `120s`.
+This endpoint returns after transcription finishes. For longer audio, set your HTTP client timeout to at least `120s`.
 
 <ParamField body="file" type="file" required>
   Audio file to transcribe. Supported formats: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, webm.

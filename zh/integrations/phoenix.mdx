@@ -5,15 +5,8 @@ description: "使用 Arize Phoenix 追踪 TokenLab 兼容 OpenAI 的请求"
 
 ## 概述
 
-Phoenix 可以通过自动检测配置了 TokenLab OpenAI 兼容 base URL 的 OpenAI Python 客户端，从而追踪 TokenLab 请求。
+把 OpenAI Python 客户端 Base URL 设为 TokenLab 后，Phoenix 可以记录这些调用。
 
-<Note>
-**类型**: 可观测性 (Observability)
-
-**主要路径**: OpenAI SDK 检测
-
-**支持置信度**: 支持的 OpenAI 兼容追踪路径
-</Note>
 
 ## 安装
 
@@ -60,4 +53,4 @@ print(response.choices[0].message.content)
 
 ## 端点说明
 
-Phoenix 会追踪 OpenAI SDK 的调用路径。请使用此页面进行 Chat Completions 风格的 TokenLab 调用。如果您的应用程序检测捕获了您用于这些请求的客户端，其他 TokenLab 原生端点仍然可以被追踪。
+Phoenix 会记录 OpenAI SDK 发出的 Chat Completions 请求。其他 TokenLab API 格式是否能被记录，取决于你的 Phoenix 埋点和客户端配置。

@@ -1,21 +1,20 @@
 ---
 title: "创建任务（火山兼容）"
 openapi: "POST /api/v3/contents/generations/tasks"
-description: "使用与火山官方一致的 REST 请求和响应形状创建 Seedance 2.0 任务。"
+description: "通过火山兼容格式创建 Seedance 2.0 任务。"
 ---
 
 ## 概览
 
-这些接口面向已经使用火山风格 Seedance 任务结构的团队。它们保留任务式请求和响应结构，同时使用 TokenLab 的鉴权、计费、模型可用性和任务轮询。
+已有火山风格 Seedance 客户端只需更换 API 地址和密钥，即可通过 TokenLab 创建任务。
 
 另见 [Seedance 2.0 视频模型](/zh/guides/seedance-2-video) 和 [视频生成](/zh/guides/video-generation)。
 
 ## 鉴权与入口
 
 - 使用 `Authorization: Bearer <TOKENLAB_API_KEY>`。
-- 当前版本不接受火山 AK/SK 签名。只带 AK/SK 签名而没有 TokenLab Bearer 的请求会返回火山风格鉴权错误。
+- 不接受火山 AK/SK 签名。请求必须携带 TokenLab Bearer 密钥。
 - 使用官方任务路径：`POST /api/v3/contents/generations/tasks`。
-- TokenLab 仍保留已有 Action 别名用于向后兼容，但它不属于官方线级兼容任务契约。
 
 ## 内容规则
 
@@ -25,7 +24,7 @@ description: "使用与火山官方一致的 REST 请求和响应形状创建 Se
 - `role: "reference_image"`、`reference_video`、`reference_audio` 表示参考素材。
 - `image_url.url` 可以是公网图片 URL，也可以是 `asset://asset-YYYYMMDDHHMMSS-xxxxx` 形式的 TokenLab 素材 URI；`role` 决定该素材是首帧、尾帧还是参考图。
 - 同一个请求里不要混用首尾帧输入和参考素材。
-- REST 请求体只接受官方顶层字段。顶层 `material_asset_id`、`material_asset_ids`、`priority` 等 TokenLab 扩展字段会被拒绝；TokenLab 素材 URI 应放入官方 `image_url.url` 对象中。
+- 请求体只接受该格式支持的顶层字段。`material_asset_id`、`material_asset_ids`、`priority` 等字段会被拒绝；TokenLab 素材 URI 应放入 `image_url.url`。
 
 ## 参数说明
 
@@ -34,21 +33,21 @@ description: "使用与火山官方一致的 REST 请求和响应形状创建 Se
 - `resolution` 可传 `480p`、`720p` 或 `1080p`。
 - `generate_audio` 官方默认值是 `false`；需要同步音频时显式传 `true`。
 - `watermark`、`return_last_frame`、`seed`、`execution_expires_after` 和 `safety_identifier` 在符合所选模型规则时可用。
-- `callback_url` 可填写公网 HTTP(S) 地址。TokenLab 会校验并保存该地址，不会把它透传给执行任务的服务商。
+- `callback_url` 可填写公网 HTTP(S) 地址。
 
 ## Callback 回调
 
-传入 `callback_url` 后，每次任务状态变化时 TokenLab 都会发送 HTTP `POST`。回调状态包括 `queued`、`running`、`succeeded`、`failed` 和 `expired`。无论任务最终由哪个服务商处理，JSON body 都与查询任务接口返回的任务对象完全一致。
+传入 `callback_url` 后，任务状态变化时 TokenLab 会发送 HTTP `POST`。回调状态包括 `queued`、`running`、`succeeded`、`failed` 和 `expired`，JSON body 与查询任务接口返回的任务对象一致。
 
-接收端返回任意 `2xx` 即确认送达。对于 `succeeded` 和 `failed`，五秒内未成功送达时最多重试三次，与火山官方行为一致。回调只包含标准 JSON Content-Type，不附加 TokenLab 私有 header。回调不会跟随重定向，内网和保留地址会被拒绝。
+接收端返回任意 `2xx` 即视为送达。`succeeded` 和 `failed` 回调在五秒内未送达时最多重试三次。回调不会跟随重定向，也不接受内网或保留地址。
 
-回调只是通知。建议保留轮询，作为回调端长时间不可用时的兜底。
+请保存任务 ID。回调未送达时，仍可通过查询任务接口获取结果。
 
 ## 图片准备
 
-`content[]` 中包含图片 URL 时，TokenLab 会在所选 Seedance 模型需要素材引用时把它们准备为可复用素材。如果 60 秒内仍未准备完成，创建请求会返回可重试的素材准备中错误，而不是提交一个不完整的视频任务。
+`content[]` 中的图片会在需要时保存为可复用素材。若 60 秒内尚未就绪，创建请求会返回可重试的素材准备中错误。
 
-使用已有 TokenLab 素材时，请传公开的 `asset-YYYYMMDDHHMMSS-xxxxx` ID，不要传其他系统返回的原始素材 ID。TokenLab 会在生成前校验素材归属。
+使用已有 TokenLab 素材时，请传 `asset-YYYYMMDDHHMMSS-xxxxx` ID。
 
 ## 创建响应
 
@@ -58,17 +57,17 @@ description: "使用与火山官方一致的 REST 请求和响应形状创建 Se
 }
 ```
 
-创建响应只包含兼容任务 ID。即使启用了 callback，也应保存这个 ID 并保留任务轮询，作为回调失败时的兜底。
+创建响应只包含任务 ID。请保存它，以便随时查询状态和结果。
 
-## 幂等重试与创建响应丢失
+## 避免重复创建
 
-生产创建请求建议携带唯一的 `Idempotency-Key`，并把该 key 与完整 JSON 请求体一起保存。如果连接在收到创建响应前断开，请使用同一个 TokenLab API 凭据、同一个 key 和不变的请求体重试：
+创建请求建议携带唯一的 `Idempotency-Key`。如果连接在响应返回前中断，请使用同一枚 API 密钥、同一个 key 和相同的请求体重试：
 
-- 原任务已经创建时，TokenLab 返回相同的 `cgt-...` ID，并附带 `Idempotency-Replayed: true`。
-- 原请求仍在注册时，返回 `409 IdempotencyRequestInProgress` 和 `Retry-After`；等待指定时间后继续用同一 key 和请求体重试。
+- 任务已经创建时，返回相同的 `cgt-...` ID，并附带 `Idempotency-Replayed: true`。
+- 请求仍在处理中时，返回 `409 IdempotencyRequestInProgress` 和 `Retry-After`；等待指定时间后再重试。
 - 同一个 key 配不同请求体时返回 `409 IdempotencyConflict`，不会再创建第二个任务。
 
-幂等只作用于官方 v3 REST 创建路径，不改变 JSON 响应形状；TokenLab 不会把 `X-Request-ID` 或“请求体碰巧相同”自动当成幂等键。
+`Idempotency-Key` 只适用于这个 v3 REST 创建接口。`X-Request-ID` 或相同请求体不会自动防止重复创建。
 
 ## 示例
 
@@ -80,7 +79,7 @@ curl https://api.tokenlab.sh/api/v3/contents/generations/tasks \
   -H "Idempotency-Key: $CLIENT_JOB_ID" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "doubao-seedance-2-0-260128",
+    "model": "doubao-seedance-2.0",
     "content": [
       {"type": "text", "text": "A cinematic forest at sunset"},
       {"type": "image_url", "role": "reference_image", "image_url": {"url": "https://example.com/ref.png"}}
@@ -110,6 +109,6 @@ curl https://api.tokenlab.sh/api/v3/contents/generations/tasks \
 ]
 ```
 
-## 下一步
+## 查询结果
 
-使用返回的 `cgt-...` ID 调用 [查询任务（火山兼容）](/zh/api-reference/video/get-volc-compatible-seedance-task)，直到任务进入终态。
+使用返回的 `cgt-...` ID 调用 [查询任务（火山兼容）](/zh/api-reference/video/get-volc-compatible-seedance-task)。

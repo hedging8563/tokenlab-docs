@@ -17,14 +17,14 @@
     }
   ],
   "tags": [
-  {
-    "name": "Chat",
-    "description": "Chat completions API (OpenAI-compatible)"
-  },
-  {
-    "name": "Responses",
-    "description": "OpenAI Responses API-compatible native endpoints"
-  },
+    {
+      "name": "Chat",
+      "description": "Chat completions API (OpenAI-compatible)"
+    },
+    {
+      "name": "Responses",
+      "description": "OpenAI Responses API-compatible native endpoints"
+    },
     {
       "name": "Embeddings",
       "description": "Text embeddings API"
@@ -221,9 +221,14 @@
             "$ref": "#/components/responses/UpstreamError"
           },
           "503": {
-            "$ref": "#/components/responses/AllChannelsFailed"
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/embeddings": {
@@ -288,8 +293,16 @@
           },
           "500": {
             "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/multimodal/embeddings": {
@@ -349,8 +362,16 @@
           },
           "502": {
             "$ref": "#/components/responses/UpstreamError"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/images/generations": {
@@ -421,8 +442,16 @@
           },
           "500": {
             "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/images/{id}": {
@@ -618,8 +647,16 @@
           },
           "500": {
             "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/audio/transcriptions": {
@@ -670,8 +707,16 @@
           },
           "500": {
             "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/videos/generations": {
@@ -773,8 +818,16 @@
           },
           "500": {
             "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/videos/generations/{id}": {
@@ -1694,8 +1747,16 @@
           },
           "500": {
             "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/messages/count_tokens": {
@@ -1794,8 +1855,16 @@
           },
           "502": {
             "$ref": "#/components/responses/UpstreamError"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       },
       "get": {
         "tags": [
@@ -2087,6 +2156,9 @@
         "operationId": "geminiGenerateContent",
         "parameters": [
           {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          },
+          {
             "name": "model",
             "in": "path",
             "required": true,
@@ -2199,6 +2271,9 @@
                 }
               }
             }
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
         }
       }
@@ -2212,6 +2287,9 @@
         "description": "Streams native Gemini GenerateContent Server-Sent Events without adding Chat Completions terminators. Metadata-only chunks, intermediate chunks without finishReason, and natural EOF are valid.\n\n**Authentication:** Use `?key=` query parameter, `x-goog-api-key` header, or `Authorization: Bearer` header.",
         "operationId": "geminiStreamGenerateContent",
         "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          },
           {
             "name": "model",
             "in": "path",
@@ -2292,6 +2370,9 @@
                 }
               }
             }
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
         }
       }
@@ -2385,6 +2466,9 @@
         "operationId": "geminiEmbedContent",
         "parameters": [
           {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          },
+          {
             "name": "model",
             "in": "path",
             "required": true,
@@ -2457,6 +2541,9 @@
                 }
               }
             }
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
         }
       }
@@ -2470,6 +2557,9 @@
         "description": "Creates multiple embeddings using the native Gemini BatchEmbedContents contract.",
         "operationId": "geminiBatchEmbedContents",
         "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          },
           {
             "name": "model",
             "in": "path",
@@ -2531,6 +2621,9 @@
                 }
               }
             }
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
         }
       }
@@ -2688,8 +2781,16 @@
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/responses/{id}": {
@@ -2863,9 +2964,14 @@
             "$ref": "#/components/responses/PaymentRequired"
           },
           "503": {
-            "$ref": "#/components/responses/ServerError"
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/rerank": {
@@ -2955,8 +3061,16 @@
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/music/generations": {
@@ -3053,8 +3167,16 @@
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/music/generations/{id}": {
@@ -3158,8 +3280,16 @@
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/3d/generations/{id}": {
@@ -3316,6 +3446,19 @@
                     ],
                     "format": "date-time",
                     "description": "Optional RFC3339 timestamp. null means no expiry."
+                  },
+                  "deliveryPolicy": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "enum": [
+                      "auto",
+                      "verified",
+                      "official",
+                      null
+                    ],
+                    "description": "Per-key Delivery policy. null inherits the Workspace default."
                   }
                 },
                 "required": [
@@ -3383,6 +3526,7 @@
                     "enum": [
                       "active",
                       "inactive",
+                      "suspended",
                       "revoked"
                     ],
                     "description": "Lifecycle status for the user API key."
@@ -3424,6 +3568,19 @@
                     ],
                     "format": "date-time",
                     "description": "Updated RFC3339 expiry timestamp. null clears the expiry."
+                  },
+                  "deliveryPolicy": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "enum": [
+                      "auto",
+                      "verified",
+                      "official",
+                      null
+                    ],
+                    "description": "Per-key Delivery policy. null inherits the Workspace default."
                   }
                 },
                 "description": "At least one field must be provided.",
@@ -4082,8 +4239,16 @@
           },
           "402": {
             "$ref": "#/components/responses/PaymentRequired"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       },
       "get": {
         "tags": [
@@ -4283,8 +4448,16 @@
           },
           "500": {
             "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/audio/translations": {
@@ -4351,8 +4524,16 @@
           },
           "500": {
             "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/realtime": {
@@ -4361,7 +4542,7 @@
           "Realtime"
         ],
         "summary": "Connect to realtime WebSocket",
-        "description": "Returns realtime endpoint metadata for normal HTTP GET requests. WebSocket clients use the same path with `?model={model}` and Bearer API key authentication to open realtime speech or multimodal sessions. This public surface is a TokenLab WebSocket proxy; it does not expose OpenAI Realtime REST helper endpoints such as client secrets, translation client secrets, Calls, or legacy beta session creation.",
+        "description": "Returns realtime endpoint metadata for normal HTTP GET requests. WebSocket clients use the same path with `?model={model}` and Bearer API key authentication to open realtime speech or multimodal sessions. This public surface is a TokenLab WebSocket subset of OpenAI Realtime; it does not expose its REST helper endpoints such as client secrets, translation client secrets, Calls, or legacy beta session creation.",
         "operationId": "connectRealtime",
         "parameters": [
           {
@@ -4759,8 +4940,16 @@
           },
           "500": {
             "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/images/variations": {
@@ -4831,8 +5020,16 @@
           },
           "500": {
             "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1beta/models": {
@@ -5404,8 +5601,16 @@
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/worlds/generations/{id}": {
@@ -6246,6 +6451,9 @@
         "operationId": "createVolcCompatibleSeedanceTask",
         "parameters": [
           {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          },
+          {
             "name": "Idempotency-Key",
             "in": "header",
             "required": false,
@@ -6358,22 +6566,7 @@
             }
           },
           "503": {
-            "description": "Idempotency state temporarily unavailable",
-            "headers": {
-              "Retry-After": {
-                "description": "Seconds to wait before retrying with the same key and body.",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/VolcSeedanceError"
-                }
-              }
-            }
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
         }
       },
@@ -6713,6 +6906,9 @@
         "operationId": "dispatchVolcCompatibleSeedanceActionPost",
         "parameters": [
           {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          },
+          {
             "name": "Action",
             "in": "query",
             "required": false,
@@ -6939,21 +7135,7 @@
             }
           },
           "503": {
-            "description": "Real-person validation service unavailable",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "oneOf": [
-                    {
-                      "$ref": "#/components/schemas/VolcSeedanceError"
-                    },
-                    {
-                      "$ref": "#/components/schemas/VolcVisualValidationError"
-                    }
-                  ]
-                }
-              }
-            }
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
         }
       }
@@ -9227,7 +9409,8 @@
                   "upstream_contract_mismatch",
                   "platform_normalization_error",
                   "async_task_not_found",
-                  "async_task_mapping_invalid"
+                  "async_task_mapping_invalid",
+                  "delivery_tier_unavailable"
                 ]
               },
               "code": {
@@ -9367,6 +9550,9 @@
                   "string",
                   "null"
                 ]
+              },
+              "request_id": {
+                "type": "string"
               }
             },
             "required": [
@@ -10191,7 +10377,8 @@
           "models",
           "expires_at",
           "last_used_at",
-          "created_at"
+          "created_at",
+          "delivery_policy"
         ],
         "properties": {
           "id": {
@@ -10208,6 +10395,7 @@
             "enum": [
               "active",
               "inactive",
+              "suspended",
               "revoked"
             ],
             "description": "Lifecycle status for the user API key: active, inactive, or revoked."
@@ -10261,6 +10449,19 @@
           "used_amount_decimal": {
             "type": "string",
             "description": "Exact accumulated API key usage in USD as a decimal string for reconciliation."
+          },
+          "delivery_policy": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "auto",
+              "verified",
+              "official",
+              null
+            ],
+            "description": "Per-key Delivery policy. null inherits the Workspace default."
           }
         }
       },
@@ -10330,7 +10531,10 @@
           "cache_write_tokens_1h",
           "cost",
           "cost_decimal",
-          "created_at"
+          "created_at",
+          "requested_policy",
+          "resolved_tier",
+          "charged_price_basis"
         ],
         "properties": {
           "request_id": {
@@ -10406,6 +10610,39 @@
           "cost_decimal": {
             "type": "string",
             "description": "Exact request cost in USD as a decimal string for reconciliation."
+          },
+          "requested_policy": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "auto",
+              "verified",
+              "official",
+              null
+            ]
+          },
+          "resolved_tier": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "verified",
+              "official",
+              null
+            ]
+          },
+          "charged_price_basis": {
+            "anyOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ChargedPriceBasis"
+              }
+            ]
           }
         }
       },
@@ -13815,6 +14052,145 @@
             "$ref": "#/components/schemas/VolcVisualValidationError"
           }
         ]
+      },
+      "ChargedPriceBasis": {
+        "type": "object",
+        "required": [
+          "version",
+          "resolvedTier",
+          "priceVersion",
+          "measure",
+          "effectiveUnitPrices"
+        ],
+        "properties": {
+          "version": {
+            "type": "integer",
+            "enum": [
+              1
+            ]
+          },
+          "resolvedTier": {
+            "type": "string",
+            "enum": [
+              "verified",
+              "official"
+            ]
+          },
+          "priceVersion": {
+            "type": "string"
+          },
+          "measure": {
+            "type": "object",
+            "required": [
+              "unit",
+              "quantity",
+              "dimensions"
+            ],
+            "properties": {
+              "unit": {
+                "type": "string"
+              },
+              "quantity": {
+                "type": "string"
+              },
+              "dimensions": {
+                "type": "object",
+                "additionalProperties": {
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          "effectiveUnitPrices": {
+            "type": "object",
+            "required": [
+              "unit"
+            ],
+            "properties": {
+              "unit": {
+                "type": "string"
+              },
+              "input": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "output": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "cacheRead": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "cacheWrite": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "cacheWrite1h": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "fixed": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "structured": {
+                "anyOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
       }
     },
     "responses": {
@@ -14004,6 +14380,57 @@
               }
             }
           }
+        }
+      },
+      "DeliveryUnavailable": {
+        "description": "No eligible Delivery route is currently available, or all eligible routes failed.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            },
+            "examples": {
+              "requestedTierUnavailable": {
+                "summary": "The requested Delivery tier has no eligible route",
+                "value": {
+                  "error": {
+                    "message": "The requested Delivery tier is temporarily unavailable for model gpt-5.4.",
+                    "type": "all_channels_failed",
+                    "code": "delivery_tier_unavailable",
+                    "retryable": true,
+                    "request_id": "req_01JEXAMPLE"
+                  }
+                }
+              },
+              "eligibleRoutesFailed": {
+                "summary": "All eligible Delivery routes failed",
+                "value": {
+                  "error": {
+                    "message": "All available routes failed to process the request.",
+                    "type": "all_channels_failed",
+                    "retryable": true,
+                    "request_id": "req_01JEXAMPLE"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "DeliveryPolicy": {
+        "name": "X-TokenLab-Delivery-Policy",
+        "in": "header",
+        "required": false,
+        "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation.",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "verified",
+            "official"
+          ]
         }
       }
     }

@@ -28,9 +28,9 @@ Danh mục công khai thay đổi theo thời gian. Hãy kiểm tra khả dụng
 
 | Khả năng | Mô tả | Model ví dụ |
 |---|---|---|
-| Chat và suy luận | Sinh văn bản, lập kế hoạch, công cụ | `gpt-5.4`, `claude-sonnet-4-6`, `deepseek-r1` |
+| Chat và suy luận | Sinh văn bản, lập kế hoạch, công cụ | `gpt-5.4`, `claude-sonnet-4-6` |
 | Thị giác và đa phương thức | Hiểu hình ảnh và chat đa phương thức | `gpt-4o`, `claude-sonnet-4-6`, `gemini-3.5-flash` |
-| Tạo và chỉnh sửa ảnh | Text-to-image và chỉnh sửa ảnh | `gpt-image-2`, `flux-pro`, `qwen-image-plus` |
+| Tạo và chỉnh sửa ảnh | Text-to-image và chỉnh sửa ảnh | `gpt-image-2`, `flux-pro` |
 | Tạo video | Text/image/reference-to-video và điều khiển chuyển động | `veo3.1`, `wan-2.7`, `kling-3.0-video`, `happyhorse-1.0` |
 | Âm thanh & Realtime WebSocket | TTS, transcription, dịch âm thanh và phiên WebSocket thời gian thực | `gpt-4o-mini-tts`, `whisper-1`, `gpt-realtime` |
 | Embeddings và rerank | Vector hóa văn bản và xếp hạng lại | `text-embedding-3-small`, `qwen3-vl-rerank` |
@@ -49,7 +49,7 @@ curl https://api.tokenlab.sh/v1/chat/completions \
   -H "Authorization: Bearer sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-5.4",
+    "model": "gpt-5.6-terra",
     "messages": [
       {"role": "user", "content": "Explain what TokenLab does in one sentence."}
     ]
@@ -65,7 +65,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="gpt-5.4",
+    model="gpt-5.6-terra",
     messages=[{"role": "user", "content": "Explain what TokenLab does in one sentence."}]
 )
 
@@ -81,7 +81,7 @@ const client = new OpenAI({
 });
 
 const response = await client.chat.completions.create({
-  model: 'gpt-5.4',
+  model: 'gpt-5.6-terra',
   messages: [{ role: 'user', content: 'Explain what TokenLab does in one sentence.' }],
 });
 

@@ -1,278 +1,107 @@
 ---
-title: "Xử lý lỗi"
-description: "Xử lý lỗi API một cách trơn tru"
+title: "Xử lý lỗi API"
+description: "Đọc mã lỗi, chỉ thử lại khi cần thiết và lưu giữ Request ID"
 ---
 
-## Định dạng phản hồi lỗi
+Xử lý lỗi dựa trên mã trạng thái HTTP và `code`. Trường `message` được viết cho người dùng và có thể thay đổi mà không cần thông báo trước.
 
-Chat Completions, Responses, Messages và Gemini là ranh giới giao thức công khai, không phải API Web. Lỗi giao thức gốc không được bọc trong envelope Web `{ success, data, error }`. Ví dụ sau áp dụng cho lỗi gateway tương thích OpenAI ở Chat và Responses:
+Chat Completions và Responses sử dụng đối tượng `error` theo phong cách OpenAI. Anthropic Messages và Gemini giữ định dạng lỗi riêng của họ, vì vậy đừng sử dụng một trình phân tích cú pháp duy nhất cho mọi API của TokenLab.
+
 ```json
 {
   "error": {
-    "message": "Human-readable error description",
+    "message": "Human-readable description",
     "type": "error_type",
     "code": "error_code",
     "param": "parameter_name",
-    "did_you_mean": "suggested_model",
-    "suggestions": [{"id": "model-id"}],
-    "hint": "Next step guidance",
     "retryable": true,
     "retry_after": 30
   }
 }
 ```
 
-Với lỗi gateway tương thích OpenAI, `message` và `type` luôn có mặt; `code`, `param` và phần mở rộng gợi ý là tùy chọn. Messages và Gemini dùng họ lỗi gốc riêng. Lỗi validation upstream được giữ nguyên khi có thể trả về an toàn; 400/422 xác định không đổi channel và không retry sau khi đã gửi byte đầu tiên.
-## Mã trạng thái HTTP
+Chỉ `message` và `type` luôn xuất hiện trong các lỗi tương thích với OpenAI do TokenLab tạo ra. Các trường khác chỉ xuất hiện khi chúng liên quan.
 
-| Mã | Mô tả |
-|------|-------------|
-| 400 | Yêu cầu không hợp lệ - Tham số không hợp lệ |
-| 401 | Không xác thực - API key không hợp lệ hoặc bị thiếu |
-| 402 | Yêu cầu thanh toán - Số dư không đủ |
-| 403 | Bị cấm - Từ chối truy cập hoặc model không được phép |
-| 404 | Không tìm thấy - Model hoặc tài nguyên không tồn tại |
-| 413 | Dữ liệu tải lên quá lớn - Vượt quá kích thước input hoặc file |
-| 429 | Quá nhiều yêu cầu - Vượt quá giới hạn tốc độ |
-| 500 | Lỗi máy chủ nội bộ |
-| 502 | Bad Gateway - Lỗi từ nhà cung cấp thượng nguồn |
-| 503 | Dịch vụ không khả dụng - Dịch vụ tạm thời không có |
-| 504 | Gateway Timeout - Yêu cầu hết thời gian chờ |
+## Mã trạng thái (Status codes)
 
-## Các loại lỗi
+| Trạng thái | Ý nghĩa | Hành động thông thường |
+| --- | --- | --- |
+| `400` | Một trường, ID mô hình hoặc đầu vào không hợp lệ | Sửa yêu cầu; không lặp lại yêu cầu đó nếu chưa thay đổi |
+| `401` | API key bị thiếu, không hợp lệ, hết hạn hoặc bị thu hồi | Thay thế bằng key mới |
+| `402` | Số dư hoặc giới hạn của API key quá thấp | Nạp thêm tiền, nâng giới hạn hoặc giảm quy mô yêu cầu |
+| `403` | Key này không thể sử dụng tài nguyên hoặc mô hình này | Thay đổi quyền của key hoặc chọn mô hình khác |
+| `404` | Tài nguyên không tồn tại hoặc không còn khả dụng | Kiểm tra ID và API key đã tạo ra nó |
+| `413` | Yêu cầu hoặc tệp tải lên quá lớn | Giảm đầu vào xuống giới hạn của mô hình hoặc endpoint đã ghi trong tài liệu |
+| `429` | Đã đạt giới hạn yêu cầu | Chờ theo thời gian `Retry-After` |
+| `500`–`504` | Lỗi dịch vụ hoặc mạng tạm thời | Thử lại với giới hạn và cơ chế backoff khi yêu cầu an toàn để lặp lại |
 
-### Lỗi xác thực (401)
+## Mã lỗi phổ biến
 
-| Kiểu | Mã | Mô tả |
-|------|------|-------------|
-| `invalid_api_key` | `invalid_api_key` | API key bị thiếu hoặc không hợp lệ |
-| `expired_api_key` | `expired_api_key` | API key đã bị thu hồi |
+| Mã | Ý nghĩa | Những gì cần thay đổi |
+| --- | --- | --- |
+| `invalid_api_key` | API key bị thiếu hoặc không hợp lệ | Kiểm tra tiêu đề Authorization và giá trị key |
+| `expired_api_key` | Key đã hết hạn hoặc bị thu hồi | Tạo hoặc chọn một key đang hoạt động |
+| `insufficient_balance` | Số dư tài khoản không đủ để thực hiện yêu cầu | Nạp thêm tiền, giảm yêu cầu hoặc chọn mô hình có giá thấp hơn |
+| `quota_exceeded` | API key đã đạt giới hạn riêng | Tăng giới hạn của key đó hoặc sử dụng key được ủy quyền khác |
+| `model_not_allowed` | Key không thể sử dụng mô hình được yêu cầu | Cập nhật danh sách mô hình của key hoặc chọn mô hình được phép |
+| `model_not_found` | ID mô hình không xác định hoặc không khả dụng | Đọc `/v1/models` và sử dụng ID mô hình hiện tại |
+| `context_length_exceeded` | Đầu vào dài hơn mức mô hình chấp nhận | Xóa bớt lịch sử hoặc chọn mô hình có cửa sổ ngữ cảnh lớn hơn |
+| `rate_limit_exceeded` | Quá nhiều yêu cầu được gửi trong cửa sổ hiện tại | Chờ theo thời gian `Retry-After` |
+| `payload_too_large` | Nội dung yêu cầu hoặc tệp vượt quá giới hạn endpoint | Giảm hoặc nén đầu vào |
+| `all_channels_failed` | Mô hình đã chọn tạm thời không khả dụng | Chờ theo `retry_after` hoặc để người dùng chọn phương án thay thế |
+| `timeout_error` | Yêu cầu không hoàn thành kịp thời | Chỉ thử lại khi thao tác an toàn để lặp lại |
 
-```python
-from openai import OpenAI, AuthenticationError
+Một số lỗi tương thích với OpenAI bao gồm các trường tùy chọn như `did_you_mean`, `suggestions`, `alternatives`, `hint`, `retryable` hoặc `retry_after`. Xem [Các lỗi mà tác nhân có thể xử lý](/guides/agent-first-api).
 
-try:
-    response = client.chat.completions.create(...)
-except AuthenticationError as e:
-    print(f"Authentication failed: {e.message}")
-```
+## Quyết định thử lại
 
-### Lỗi thanh toán (402)
+| Lỗi | Có lặp lại cùng một yêu cầu không? |
+| --- | --- |
+| `400`, `401`, `402`, `403`, `404`, `413` | Không. Hãy thay đổi yêu cầu, thông tin xác thực, số dư, quyền hoặc đầu vào. |
+| `429` | Có, sau khoảng thời gian chờ do máy chủ cung cấp. |
+| `500`–`504` | Đôi khi. Sử dụng exponential backoff và giới hạn thử lại nghiêm ngặt. |
+| Kết nối bị đóng trước khi có phản hồi | Đôi khi. Đối với các thao tác tạo, hãy kiểm tra xem tác vụ hoặc tác dụng phụ đã tồn tại chưa. |
+| Luồng bị gián đoạn sau khi có đầu ra | Đừng coi đó là phản hồi hoàn chỉnh. Việc lặp lại có thể tạo ra đầu ra khác hoặc bị tính phí lần thứ hai. |
 
-| Kiểu | Mã | Mô tả |
-|------|------|-------------|
-| `insufficient_balance` | `insufficient_balance` | Số dư tài khoản quá thấp |
-| `quota_exceeded` | `quota_exceeded` | Đã đạt giới hạn sử dụng API key |
+Đối với việc tạo hình ảnh, video, âm nhạc, 3D và Worlds, hãy lưu ID tác vụ ngay khi nó được trả về. Nếu yêu cầu tạo bị hết thời gian chờ (timeout), hãy kiểm tra bản ghi tác vụ trước khi gửi yêu cầu tạo khác.
 
-```python
-from openai import OpenAI, APIStatusError
-
-try:
-    response = client.chat.completions.create(...)
-except APIStatusError as e:
-    if e.status_code == 402:
-        print("Please top up your account balance")
-```
-
-### Lỗi truy cập (403)
-
-| Kiểu | Mã | Mô tả |
-|------|------|-------------|
-| `access_denied` | `access_denied` | Bị từ chối quyền truy cập tài nguyên |
-| `access_denied` | `model_not_allowed` | Model không được phép sử dụng với API key này |
-
-```json
-{
-  "error": {
-    "message": "You don't have permission to access this model",
-    "type": "access_denied",
-    "code": "model_not_allowed"
-  }
-}
-```
-
-### Lỗi xác thực tham số (400)
-
-| Kiểu | Mô tả |
-|------|-------------|
-| `invalid_request_error` | Tham số yêu cầu không hợp lệ |
-| `context_length_exceeded` | Đầu vào quá dài cho model |
-| `model_not_found` | Model yêu cầu không có sẵn trong chi tiết model hiện tại |
-
-```json
-{
-  "error": {
-    "message": "Model not found: please check the model name",
-    "type": "invalid_request_error",
-    "param": "model",
-    "code": "model_not_found",
-    "did_you_mean": "gpt-5.4",
-    "suggestions": [{"id": "gpt-5.4"}, {"id": "gpt-5-mini"}],
-    "hint": "Did you mean 'gpt-5.4'? Use GET https://api.tokenlab.sh/v1/models to list all available models."
-  }
-}
-```
-
-Các route công khai không phân biệt lỗi chính tả, model ẩn, model trì hoãn, hoặc trạng thái không công khai trong thân phản hồi. Nếu một model hiện không có sẵn qua chi tiết model, TokenLab trả về `model_not_found`.
-
-### Lỗi giới hạn tốc độ (429)
-
-Khi bạn vượt quá giới hạn tốc độ:
-
-```json
-{
-  "error": {
-    "message": "Rate limit: 1000 rpm exceeded",
-    "type": "rate_limit_exceeded",
-    "code": "rate_limit_exceeded",
-    "retryable": true,
-    "retry_after": 8,
-    "hint": "Rate limited. Retry after 8s. Current limit: 1000/min for user role."
-  }
-}
-```
-
-**Các header được kèm theo:**
-
-```
-Retry-After: 8
-```
-
-Header `Retry-After` và trường `retry_after` đều chỉ ra số giây chính xác cần chờ trước khi thử lại.
-
-### Dữ liệu tải lên quá lớn (413)
-
-Khi kích thước input hoặc file vượt quá giới hạn:
-
-```json
-{
-  "error": {
-    "message": "Input size exceeds maximum allowed",
-    "type": "invalid_request_error",
-    "code": "payload_too_large"
-  }
-}
-```
-
-Nguyên nhân phổ biến:
-- File ảnh quá lớn (tối đa 20MB)
-- File âm thanh quá lớn (tối đa 25MB)
-- Văn bản đầu vào vượt quá độ dài ngữ cảnh của model
-
-### Lỗi thượng nguồn (502, 503)
-
-| Kiểu | Mô tả |
-|------|-------------|
-| `upstream_error` | Nhà cung cấp trả về lỗi |
-| `all_channels_failed` | Không có nhà cung cấp khả dụng |
-| `timeout_error` | Yêu cầu hết thời gian chờ |
-
-Khi tất cả các kênh thất bại, phản hồi bao gồm các model thay thế:
-
-```json
-{
-  "error": {
-    "message": "Model claude-opus-4-6 temporarily unavailable",
-    "code": "all_channels_failed",
-    "retryable": true,
-    "retry_after": 30,
-    "alternatives": [
-      {"id": "claude-sonnet-4-6", "status": "available", "tags": []},
-      {"id": "gpt-5-mini", "status": "available", "tags": []}
-    ],
-    "hint": "Retry in 30s or switch to an available model."
-  }
-}
-```
-
-## Xử lý lỗi trong Python
+## Ví dụ bằng Python
 
 ```python
-from openai import OpenAI, APIError, RateLimitError, APIConnectionError
+import random
+import time
+from openai import OpenAI, APIConnectionError, APIStatusError, RateLimitError
 
 client = OpenAI(
     api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1"
+    base_url="https://api.tokenlab.sh/v1",
 )
 
-def chat_with_retry(messages, max_retries=3):
-    for attempt in range(max_retries):
+def chat(messages, model="gpt-5.6-luna", attempts=3):
+    for attempt in range(attempts):
         try:
             return client.chat.completions.create(
-                model="gpt-4o",
-                messages=messages
+                model=model,
+                messages=messages,
             )
-        except RateLimitError as e:
-            if attempt < max_retries - 1:
-                import time
-                time.sleep(2 ** attempt)  # Exponential backoff
-                continue
-            raise
-        except APIConnectionError as e:
-            print(f"Connection error: {e}")
-            raise
-        except APIError as e:
-            print(f"API error: {e.status_code} - {e.message}")
-            raise
+        except RateLimitError as exc:
+            if attempt == attempts - 1:
+                raise
+            retry_after = exc.response.headers.get("Retry-After")
+            wait = float(retry_after) if retry_after else (2 ** attempt + random.random())
+            time.sleep(wait)
+        except APIStatusError as exc:
+            if exc.status_code < 500 or attempt == attempts - 1:
+                raise
+            time.sleep(2 ** attempt + random.random())
+        except APIConnectionError:
+            if attempt == attempts - 1:
+                raise
+            time.sleep(2 ** attempt + random.random())
 ```
 
-## Xử lý lỗi trong JavaScript
+## Lưu giữ Request ID
 
-```javascript
-import OpenAI from 'openai';
+Các tiêu đề phản hồi bao gồm Request ID để theo dõi. Hãy lưu nó cùng với endpoint, mô hình, thời gian và ID người dùng hoặc ID công việc của riêng bạn. Đối với công việc bất đồng bộ (async), hãy lưu thêm `task_id` và `billing_transaction_id` khi có.
 
-const client = new OpenAI({
-  apiKey: 'sk-your-api-key',
-  baseURL: 'https://api.tokenlab.sh/v1'
-});
-
-async function chatWithRetry(messages, maxRetries = 3) {
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    try {
-      return await client.chat.completions.create({
-        model: 'gpt-4o',
-        messages
-      });
-    } catch (error) {
-      if (error instanceof OpenAI.RateLimitError) {
-        if (attempt < maxRetries - 1) {
-          await new Promise(r => setTimeout(r, 2 ** attempt * 1000));
-          continue;
-        }
-      }
-      throw error;
-    }
-  }
-}
-```
-
-## Thực hành tốt nhất
-
-<AccordionGroup>
-  <Accordion title="Áp dụng exponential backoff">
-    Khi bị giới hạn tốc độ, chờ ngày càng lâu hơn giữa các lần thử lại:
-    ```python
-    wait_time = 2 ** attempt  # 1s, 2s, 4s, 8s...
-    ```
-  </Accordion>
-
-  <Accordion title="Đặt timeout">
-    Luôn đặt timeout hợp lý để tránh các yêu cầu treo:
-    ```python
-    client = OpenAI(timeout=60.0)  # 60 second timeout
-    ```
-  </Accordion>
-
-  <Accordion title="Ghi nhật ký lỗi để gỡ lỗi">
-    Ghi lại toàn bộ phản hồi lỗi bao gồm request ID để hỗ trợ:
-    ```python
-    except APIError as e:
-        logger.error(f"API Error: {e.status_code} - {e.message}")
-    ```
-  </Accordion>
-
-  <Accordion title="Xử lý lỗi riêng cho từng model">
-    Một số model có yêu cầu riêng (ví dụ: số token tối đa, định dạng ảnh).
-    Kiểm tra hợp lệ đầu vào trước khi thực hiện yêu cầu.
-  </Accordion>
-</AccordionGroup>
+Khi liên hệ với bộ phận hỗ trợ, hãy bao gồm các ID đó và một ví dụ đã được che thông tin nhạy cảm. Không bao giờ gửi API keys, management tokens, phương tiện riêng tư, signed URLs hoặc các lời nhắc (prompts) riêng tư hoàn chỉnh.

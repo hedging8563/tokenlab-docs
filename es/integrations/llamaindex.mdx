@@ -5,14 +5,6 @@ description: "Integra TokenLab con LlamaIndex utilizando integraciones compatibl
 
 ## Descripción general
 
-<Note>
-**Tipo**: Framework o Plataforma
-
-**Ruta principal**: Compatible con OpenAI mediante OpenAILike
-
-**Nivel de soporte**: Soportado mediante OpenAILike
-</Note>
-
 Para TokenLab, la configuración más robusta de LlamaIndex consiste en utilizar **integraciones compatibles con OpenAI** en lugar de las clases integradas de OpenAI.
 
 La documentación actual de LlamaIndex recomienda explícitamente `OpenAILike` para endpoints de terceros compatibles con OpenAI, ya que las clases integradas de OpenAI infieren metadatos a partir de los nombres oficiales de los modelos.
@@ -36,7 +28,7 @@ from llama_index.llms.openai_like import OpenAILike
 from llama_index.embeddings.openai_like import OpenAILikeEmbedding
 
 llm = OpenAILike(
-    model="gpt-5.4",
+    model="gpt-5.6-terra",
     api_base="https://api.tokenlab.sh/v1",
     api_key="sk-your-tokenlab-key",
     is_chat_model=True,

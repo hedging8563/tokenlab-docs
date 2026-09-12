@@ -1,19 +1,12 @@
 ---
 title: "OpenHands"
-description: "Configure TokenLab models for OpenHands CLI and headless workflows"
+description: "Connect OpenHands to TokenLab"
 ---
 
 ## Overview
 
-OpenHands can use TokenLab through its LiteLLM/OpenAI-compatible model configuration, especially for CLI and headless workflows where you provide the model, API key, and base URL.
+OpenHands can call TokenLab through its LiteLLM/OpenAI-compatible model settings. Enter the model, API key, and Base URL there.
 
-<Note>
-**Type**: Coding Agent
-
-**Primary Path**: OpenAI-compatible model configuration
-
-**Support Confidence**: Supported custom endpoint path
-</Note>
 
 ## Environment
 
@@ -43,6 +36,4 @@ make setup-config
 
 When prompted for model details, use the TokenLab model ID with the `openai/` prefix and TokenLab's `/v1` base URL.
 
-## Model Suggestions
-
-Use `claude-sonnet-5` or `gpt-5.4` for coding-agent planning, `gpt-5.4-mini` for faster routine loops, and `deepseek-v4-pro` when you want a strong alternative reasoning model.
+Model IDs change over time. Choose a current coding model on the [Models page](https://tokenlab.sh/en/models), then compare it on your own repository tasks.

@@ -248,7 +248,7 @@ description: "إرشادات توافق مدعومة بالأدلة لأدوات
 
 ```json
 {
-  "model": "claude-opus-4-6",
+  "model": "claude-opus-5",
   "thinking": {
     "type": "enabled",
     "budget_tokens": 10000
@@ -349,7 +349,7 @@ description: "إرشادات توافق مدعومة بالأدلة لأدوات
 # Chat Completions
 curl https://api.tokenlab.sh/v1/chat/completions \
   -H "Authorization: Bearer sk-xxx" \
-  -d '{"model": "gpt-4o", "messages": [...], "stream": true}'
+  -d '{"model": "gpt-5.6-terra", "messages": [...], "stream": true}'
 
 # Chat Completions usage tracking
 -d '{"...", "stream_options": {"include_usage": true}}'
@@ -379,7 +379,7 @@ curl https://api.tokenlab.sh/v1/chat/completions \
   </Accordion>
 
   <Accordion title="استخدم stream_options.include_usage فقط لـ Chat Completions">
-    بالنسبة لبث Chat Completions، قم بتمكين `stream_options.include_usage` للحصول على عدد دقيق للرموز. لدى Responses عقد بث خاص بها ولا تكشف عن هذا الخيار الخاص بـ Chat فقط.
+    بالنسبة لبث Chat Completions، قم بتمكين `stream_options.include_usage` للحصول على عدد دقيق للرموز. لدى Responses عقد بث خاص بها ولا تعرض هذا الخيار الخاص بـ Chat فقط.
   </Accordion>
 
   <Accordion title="استخدم تنسيق tool_choice المناسب">

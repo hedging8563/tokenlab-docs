@@ -34,7 +34,7 @@ Model gambar xAI Grok Imagine (`grok-imagine-image`, `grok-imagine-image-quality
 **Timeout permintaan sinkron:** beberapa request gambar mengembalikan gambar final secara inline dan menunggu proses generasi selesai. Permintaan resolusi tinggi atau kualitas tinggi dapat memakan waktu hampir satu menit atau lebih, jadi atur timeout HTTP client Anda minimal `120s`. Jika respons pembuatan berisi `status: "pending"`, `task_id`, atau `poll_url`, ikuti `poll_url` yang dikembalikan.
 
 <ParamField body="model" type="string" required>
-  Model yang digunakan (misalnya `gpt-image-2`, `flux-pro`, `qwen-image-plus`, atau `nano-banana-pro`). Gunakan `GET /v1/models?recommended_for=image` untuk daftar rekomendasi terbaru.
+  Model yang digunakan (misalnya `gpt-image-2`, `flux-pro`, atau `nano-banana-pro`). Gunakan `GET /v1/models?recommended_for=image` untuk daftar rekomendasi terbaru.
 </ParamField>
 
 <ParamField body="prompt" type="string" required>
@@ -301,7 +301,6 @@ Ini adalah contoh model saat ini, bukan katalog tetap. Gunakan `GET /v1/models?r
 |-------|------|-------|
 | `gpt-image-2` | Inline atau berbasis task | Model GPT Image berbasis harga token, ukuran fleksibel |
 | `flux-pro` | Sering berbasis task | Fotorealistik, kualitas tinggi |
-| `qwen-image-plus` | Sering berbasis task | Rendering teks dan kepatuhan prompt yang kuat |
 | `nano-banana-pro` | Sering berbasis task | Workflow gambar referensi dan output resolusi tinggi |
 | `grok-imagine-image` | Sering berbasis task | Generasi gambar xAI dengan pilihan rasio aspek dan resolusi |
 | `ideogram-v3` | Sering berbasis task | Rendering teks yang kuat |

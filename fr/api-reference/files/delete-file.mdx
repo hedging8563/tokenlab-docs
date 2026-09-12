@@ -1,18 +1,20 @@
 ---
-title: "Supprimer un fichier"
+title: "Supprimer le fichier"
 openapi: "DELETE /v1/files/{file_id}"
-description: "Supprime un fichier de lot, une liaison de fichier image/référence, ou un fichier en mode Anthropic."
+description: "Supprime un fichier téléversé appartenant à l’organisation courante."
 ---
 
-## Vue d’ensemble
+## Aperçu
 
-Supprime un fichier créé avec `/v1/files`. Sans en-têtes Anthropic, la route supprime les fichiers de lot TokenLab ou les liaisons de fichiers image/référence. Avec `anthropic-beta: files-api-2025-04-14`, elle utilise le mode Anthropic Files API pour l’espace de travail lié.
+Supprime un fichier créé via `/v1/files`. Les fichiers Batch et les fichiers de référence d’image créés par TokenLab renvoient un objet deleted compatible OpenAI.
+
+Lorsque la requête active le mode de compatibilité Anthropic Files, la même route supprime le fichier de style Anthropic dans l’espace de travail lié.
 
 ## Notes
 
-- La suppression d’un fichier de lot retire l’enregistrement stocké et empêche les futurs lots d’utiliser cet ID de fichier.
-- La suppression d’un fichier image/référence demande au fournisseur sélectionné de supprimer le fichier, puis retire la liaison TokenLab après acceptation.
-- Le mode Anthropic Files API nécessite les mêmes en-têtes Anthropic natifs que l’envoi et la récupération.
+- Supprimer un fichier n’annule pas les jobs Batch qui le référencent déjà.
+- Les file ids absents ou non autorisés renvoient une erreur not-found publique sans exposer l’état de routage.
+- Supprimez les fichiers de référence d’image seulement lorsqu’aucune requête d’édition d’image en attente n’en a besoin.
 
 ## Exemple
 
@@ -25,21 +27,4 @@ curl -X DELETE "https://api.tokenlab.sh/v1/files/file_abc123" \
 
 ## Requête / Réponse
 
-Utilisez le panneau OpenAPI interactif ci-dessus pour le schema exact.
-
-## Exemple de réponse
-
-<ResponseExample>
-```json 200 OK
-{
-  "id": "file_abc123",
-  "object": "file",
-  "deleted": true
-}
-```
-</ResponseExample>
-
-## Champs importants
-
-<ResponseField name="id" type="string">Identifiant du fichier supprimé.</ResponseField>
-<ResponseField name="deleted" type="boolean">Indique si la requête de suppression a réussi.</ResponseField>
+Utilisez le panneau OpenAPI interactif ci-dessus pour le schéma exact.

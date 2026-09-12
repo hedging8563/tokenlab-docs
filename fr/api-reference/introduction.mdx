@@ -151,7 +151,7 @@ Toutes les réponses suivent un format cohérent :
   "id": "chatcmpl-abc123",
   "object": "chat.completion",
   "created": 1234567890,
-  "model": "gpt-4o",
+  "model": "gpt-5.6-terra",
   "choices": [...],
   "usage": {
     "prompt_tokens": 10,
@@ -163,30 +163,16 @@ Toutes les réponses suivent un format cohérent :
 
 ### Transparence du routage
 
-Toutes les réponses incluent un champ `_routing` avec les informations de canal :
+TokenLab n'expose pas les détails de fournisseur, de canal, de politique ou d'identifiants dans les corps de réponse publics. Ne dépendez pas de `_routing` ni d'autres champs de routage internes comme faisant partie du contrat d'API public.
 
-```json
-{
-  "id": "chatcmpl-abc123",
-  ...,
-  "_routing": {
-    "channel": {
-      "id": "ch_xxx",
-      "name": "channel-name",
-      "provider": "openai"
-    },
-    "cached": false,
-    "retryCount": 0
-  }
-}
-```
+Pour le débogage et le support, utilisez les en-têtes de réponse publics lorsqu'ils sont présents :
 
-| Champ | Description |
+| En-tête | Description |
 |-------|-------------|
-| `channel.id` | Identifiant du canal utilisé |
-| `channel.provider` | Fournisseur en amont (openai, anthropic, etc.) |
-| `cached` | Si la réponse a été servie depuis le cache |
-| `retryCount` | Nombre de tentatives de retry (le cas échéant) |
+| `X-Routing-Time-MS` | Temps de sélection de route, lorsqu'il est disponible |
+| `X-Request-ID` | Identifiant de requête pour le support et le débogage, lorsqu'il est disponible |
+| `X-Task-ID` | Identifiant public de tâche asynchrone pour les réponses basées sur des tâches, lorsqu'il est disponible |
+| `X-Billing-Transaction-ID` | Identifiant de transaction de facturation après la facturation finale, lorsqu'il est disponible |
 
 ### Réponse d'erreur
 

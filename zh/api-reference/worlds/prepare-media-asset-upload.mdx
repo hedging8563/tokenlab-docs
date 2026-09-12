@@ -1,12 +1,12 @@
 ---
-title: "准备媒体资产上传"
+title: "准备 World 素材上传"
 openapi: "POST /v1/worlds/media-assets/prepare-upload"
-description: "创建 World Labs 媒体资产上传目标"
+description: "获取 World 图片或视频素材的上传地址"
 ---
 
-创建 World Labs 媒体资产记录，并获取图片或视频的上传 URL。将二进制文件上传到 `upload_info.upload_url` 后，可以在 `world_prompt` 中通过 `source: "media_asset"` 引用返回的 `media_asset.media_asset_id`。
+创建 World 素材并获取上传地址。把文件上传到 `upload_info.upload_url` 后，在 `world_prompt` 中使用返回的 `media_asset.media_asset_id`。
 
-TokenLab 会记录资产归属。只有同一组织可以获取或在 World 生成中使用该媒体资产。
+素材只对当前工作区可见，也只能在这个工作区中用于 World 生成。
 
 ## 请求体
 
@@ -23,17 +23,17 @@ TokenLab 会记录资产归属。只有同一组织可以获取或在 World 生�
 </ParamField>
 
 <ParamField body="metadata" type="object">
-  随上游媒体资产保存的可选元数据对象。
+  与素材一起保存的自定义信息。
 </ParamField>
 
 ## 响应
 
 <ResponseField name="media_asset" type="object">
-  已准备好的 World Labs 媒体资产元数据。
+  已创建的 World Labs 素材信息。
 </ResponseField>
 
 <ResponseField name="upload_info.upload_url" type="string">
-  用于上传二进制文件的上游签名 URL。
+  用于上传文件的签名 URL。
 </ResponseField>
 
 <RequestExample>

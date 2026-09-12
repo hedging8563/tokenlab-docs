@@ -1,46 +1,46 @@
 ---
 title: "Introduction"
-description: "Access hundreds of AI models through a unified API"
+description: "One API for chat, images, video, audio, and more"
 ---
 
-## What Is TokenLab?
+## Build with TokenLab
 
-TokenLab is an AI API aggregation platform that gives you unified access to **hundreds of AI models** from providers such as OpenAI, Anthropic, Google, DeepSeek, Moonshot, MiniMax, and more.
+TokenLab gives you one API key for chat, image, video, audio, embedding, and other AI models. Use the model format you need, share one balance across models, and pay only for what you use.
 
 <CardGroup cols={2}>
-  <Card title="Native + Compatible" icon="plug">
-    Use native Anthropic/Gemini routes when provider behavior matters, or OpenAI-compatible `/v1` routes for existing OpenAI-style tools.
+  <Card title="One API key" icon="key">
+    Use the same key across chat, image, video, audio, embedding, and rerank models.
   </Card>
-  <Card title="Native Formats" icon="shuffle">
-    Call OpenAI, Anthropic, Gemini, and Responses-style endpoints from one platform.
+  <Card title="Use the format you need" icon="shuffle">
+    Keep an OpenAI-compatible client, or use Anthropic and Gemini formats when their native behavior matters.
   </Card>
-  <Card title="Pay As You Go" icon="coins">
-    No subscriptions. Only pay for what you actually use.
+  <Card title="Clear prices" icon="tags">
+    The Models page shows the current TokenLab price and billing unit for each model.
   </Card>
-  <Card title="High Availability" icon="shield-check">
-    Smart routing, failover, and multi-channel support improve reliability.
+  <Card title="Pay as you go" icon="coins">
+    One balance works across models. There is no subscription.
   </Card>
 </CardGroup>
 
-## Supported Capabilities
+## What you can build
 
-The public catalog changes over time. Use `/v1/models`, `recommended_for`, or the Models page for exact current availability; the examples below use current public model IDs.
+The catalog changes as models are added or retired. Check `/v1/models` or the Models page for current availability and prices.
 
 | Capability | Description | Example models |
 |---|---|---|
-| Chat & Reasoning | Text generation, planning, tools | `gpt-5.4`, `claude-sonnet-4-6`, `deepseek-r1` |
-| Vision & Multimodal | Image understanding and multimodal chat | `gpt-4o`, `claude-sonnet-4-6`, `gemini-3.5-flash` |
-| Image Generation & Editing | Text-to-image and image editing | `gpt-image-2`, `flux-pro`, `qwen-image-plus` |
-| Video Generation | Text-to-video, image-to-video, reference video, and motion control | `veo3.1`, `wan-2.7`, `kling-3.0-video`, `happyhorse-1.0` |
-| Audio & Realtime WebSocket | TTS, transcription, audio translation, and realtime WebSocket sessions | `gpt-4o-mini-tts`, `whisper-1`, `gpt-realtime` |
-| Embeddings & Rerank | Text vectorization and reranking | `text-embedding-3-small`, `qwen3-vl-rerank` |
+| Chat and reasoning | Text generation, planning, and tools | `gpt-5.4`, `claude-sonnet-4-6` |
+| Vision and multimodal | Image understanding and multimodal chat | `gpt-4o`, `claude-sonnet-4-6`, `gemini-3.5-flash` |
+| Image generation and editing | Text-to-image and image editing | `gpt-image-2`, `flux-pro` |
+| Video generation | Text-to-video, image-to-video, reference video, and motion control | `veo3.1`, `wan-2.7`, `kling-3.0-video`, `happyhorse-1.0` |
+| Audio and realtime | TTS, transcription, audio translation, and realtime WebSocket sessions | `gpt-4o-mini-tts`, `whisper-1`, `gpt-realtime` |
+| Embeddings and rerank | Text vectorization and reranking | `text-embedding-3-small`, `qwen3-vl-rerank` |
 | Translation | Text translation and WebSocket speech translation workflows | `doubao-seed-translation`, `gpt-realtime-translate` |
 | Music & 3D | Music and 3D asset generation | `suno-music`, `tripo-h3.1` |
 | Worlds | World generation, status polling, and media asset workflows | Use `/v1/worlds/generations` and the Models API for current availability |
 
 ## Choose the Request Format
 
-Start with the route that matches the behavior you need. Use native Anthropic/Gemini routes for provider-native features; use OpenAI-compatible `/v1/chat/completions` when migrating existing OpenAI-style chat code.
+Use `/v1/chat/completions` with an OpenAI-compatible client. Choose Anthropic or Gemini format only when you need behavior specific to that API.
 
 <CodeGroup>
 
@@ -49,7 +49,7 @@ curl https://api.tokenlab.sh/v1/chat/completions \
   -H "Authorization: Bearer sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-5.4",
+    "model": "gpt-5.6-terra",
     "messages": [
       {"role": "user", "content": "Explain what TokenLab does in one sentence."}
     ]
@@ -65,7 +65,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="gpt-5.4",
+    model="gpt-5.6-terra",
     messages=[{"role": "user", "content": "Explain what TokenLab does in one sentence."}]
 )
 
@@ -81,7 +81,7 @@ const client = new OpenAI({
 });
 
 const response = await client.chat.completions.create({
-  model: 'gpt-5.4',
+  model: 'gpt-5.6-terra',
   messages: [{ role: 'user', content: 'Explain what TokenLab does in one sentence.' }],
 });
 
@@ -94,31 +94,31 @@ Use `POST /v1/responses` only when you explicitly need Responses-specific behavi
 
 </CodeGroup>
 
-## Key Features
+## More to explore
 
 <CardGroup cols={2}>
-  <Card title="Multiple API Formats" icon="layers" href="/guides/api-formats">
-    Use OpenAI, Anthropic, Gemini, or Responses-native formats with one account.
+  <Card title="API formats" icon="layers" href="/guides/api-formats">
+    Choose between OpenAI-compatible, Anthropic, Gemini, and Responses formats.
   </Card>
-  <Card title="Agent-First Errors" icon="wand-magic-sparkles" href="/guides/agent-first-api">
-    Structured hints help coding agents self-correct faster.
+  <Card title="Errors for coding agents" icon="wand-magic-sparkles" href="/guides/agent-first-api">
+    Use stable error codes and suggestions to recover from failed requests.
   </Card>
-  <Card title="Integration Coverage" icon="toolbox" href="/guides/ide-sdk-compatibility">
-    Connect IDEs, SDKs, frameworks, and chat apps with fewer provider-specific changes.
+  <Card title="Tools and SDKs" icon="toolbox" href="/guides/ide-sdk-compatibility">
+    Connect popular SDKs, coding tools, frameworks, and chat apps.
   </Card>
 </CardGroup>
 
-## Next Steps
+## Keep going
 
 <CardGroup cols={2}>
   <Card title="Quickstart" icon="rocket" href="/quickstart">
-    Get your first request working in a couple of minutes.
+    Send your first request in a couple of minutes.
   </Card>
   <Card title="API Reference" icon="book" href="/api-reference/introduction">
-    Explore the endpoint-by-endpoint reference.
+    Find request fields, response shapes, and examples.
   </Card>
   <Card title="Integrations" icon="puzzle-piece" href="/integrations/openai-sdk">
-    Start with SDK, IDE, and app integrations.
+    Set up an SDK, coding tool, or app.
   </Card>
   <Card title="Models" icon="robot" href="https://tokenlab.sh/en/models">
     Browse current model availability and pricing.

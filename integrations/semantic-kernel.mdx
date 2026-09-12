@@ -7,13 +7,6 @@ description: "Connect Microsoft Semantic Kernel to TokenLab with a custom OpenAI
 
 Semantic Kernel can call TokenLab through its OpenAI custom endpoint chat completion service.
 
-<Note>
-**Type**: SDK / Agent Framework
-
-**Primary Path**: OpenAI-compatible chat completions
-
-**Support Confidence**: Supported custom endpoint path
-</Note>
 
 ## Environment
 
@@ -33,7 +26,7 @@ using Microsoft.SemanticKernel;
 var builder = Kernel.CreateBuilder();
 
 builder.AddOpenAIChatCompletion(
-    modelId: "gpt-5.4-mini",
+    modelId: "gpt-5.6-luna",
     endpoint: new Uri("https://api.tokenlab.sh/v1"),
     apiKey: Environment.GetEnvironmentVariable("TOKENLAB_API_KEY"));
 
@@ -63,4 +56,4 @@ Do not use:
 https://api.tokenlab.sh/v1/chat/completions
 ```
 
-Semantic Kernel appends the chat completions path internally for this connector.
+Semantic Kernel adds the chat completions path automatically for this connector.

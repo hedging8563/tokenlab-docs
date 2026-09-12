@@ -1,157 +1,61 @@
 ---
 title: "获取模型"
 openapi: "GET /v1/models/{model}"
-description: "检索一个模型实例"
+description: "获取模型的能力、价格和 API 格式"
 ---
 
 ## 路径参数
 
 <ParamField path="model" type="string" required>
-  要检索的模型 ID（例如：`gpt-5.4`、`claude-sonnet-4-6`）。
+  模型 ID，例如 `gpt-5.4` 或 `claude-sonnet-4-6`。
 </ParamField>
 
 ## 响应
 
 <ResponseField name="id" type="string">
-  模型标识符。
-它还包含 `lifecycle`、`commercial` 和 `badges`，用于说明弃用/退役状态、用户收费策略和展示标签。
+  模型 ID。
 </ResponseField>
 
 <ResponseField name="object" type="string">
-  始终为 `model`。
-</ResponseField>
-
-<ResponseField name="created" type="integer">
-  创建时间戳。
+  固定为 `model`。
 </ResponseField>
 
 <ResponseField name="owned_by" type="string">
-  模型提供方。
+  模型厂商。
 </ResponseField>
 
 <ResponseField name="tokenlab" type="object">
-  TokenLab 专属的公开元数据。详情路由可包含 `category`、`pricing_unit`、`capability_flags`、`supported_operations`、`pricing_provenance`、`request_format_summary`、完整的 `request_format_details`，以及非聊天推荐快照的场景级 `agent_preferences`。
+  TokenLab 模型信息，包括能力、价格、计费单位、上下文长度、可用 API 格式、支持的操作和生命周期状态。
 </ResponseField>
 
-<RequestExample>
-```bash cURL
-curl "https://api.tokenlab.sh/v1/models/gpt-5.4" \
-  -H "Authorization: Bearer sk-your-api-key"
+常用字段包括：
+
+- `tokenlab.capabilities`：文本、图片、视频、音频等能力。
+- `tokenlab.pricing`：当前公开价格。
+- `tokenlab.max_input_tokens` 与 `max_output_tokens`：上下文和输出上限。
+- `tokenlab.accepted_request_formats`：可用的 API 格式。
+- `tokenlab.supported_operations`：文生图、图生视频等可用操作。
+- `tokenlab.lifecycle`：当前状态、发布日期、弃用日期或替代模型。
+
+部分媒体模型还会返回推荐状态和更新时间。推荐信息会随模型表现与可用性变化，不要在应用中固定排序。
+
+## 示例
+
+```bash
+curl "https://api.tokenlab.sh/v1/models/gpt-5.4"
 ```
-
-```python Python
-from openai import OpenAI
-
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
-
-model = client.models.retrieve("gpt-5.4")
-print(f"Model: {model.id}, Provider: {model.owned_by}")
-```
-
-```javascript JavaScript
-import OpenAI from 'openai';
-
-const client = new OpenAI({
-  apiKey: 'sk-your-api-key',
-  baseURL: 'https://api.tokenlab.sh/v1'
-});
-
-const model = await client.models.retrieve('gpt-5.4');
-console.log(`Model: ${model.id}, Provider: ${model.owned_by}`);
-```
-
-```go Go
-package main
-
-import (
-    "encoding/json"
-    "fmt"
-    "net/http"
-)
-
-func main() {
-    req, _ := http.NewRequest("GET", "https://api.tokenlab.sh/v1/models/gpt-5.4", nil)
-    req.Header.Set("Authorization", "Bearer sk-your-api-key")
-
-    resp, _ := http.DefaultClient.Do(req)
-    defer resp.Body.Close()
-
-    var model map[string]interface{}
-    json.NewDecoder(resp.Body).Decode(&model)
-    fmt.Printf("Model: %s, Provider: %s\n", model["id"], model["owned_by"])
-}
-```
-
-```php PHP
-<?php
-$ch = curl_init('https://api.tokenlab.sh/v1/models/gpt-5.4');
-
-curl_setopt_array($ch, [
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_HTTPHEADER => [
-        'Authorization: Bearer sk-your-api-key'
-    ]
-]);
-
-$response = curl_exec($ch);
-curl_close($ch);
-
-$model = json_decode($response, true);
-echo "Model: {$model['id']}, Provider: {$model['owned_by']}\n";
-```
-</RequestExample>
-
-<ResponseExample>
-```json Response
-{
-  "id": "gpt-5.4",
-  "object": "model",
-  "created": 1706000000,
-  "owned_by": "openai"
-}
-```
-</ResponseExample>
-
-## 非聊天推荐元数据
-
-对于非聊天模型，详情路由还会返回 `tokenlab.agent_preferences.<scene>`。
-
-可用于查看：
-
-- `preferred_rank`
-- `success_rate_24h`
-- `sample_count_24h`
-- `status`
-- `updated_at`
-
-公开响应会用 `basis.source` 概括推荐依据，不会暴露路由标识符。
-
-## 公开详情元数据
-
-与 `GET /v1/models` 相比，详情路由还可以额外返回：
-
-- `tokenlab.capability_flags`
-- `tokenlab.supported_operations`
-- `tokenlab.pricing_provenance`
-- `tokenlab.request_format_summary`
-- `tokenlab.request_format_details`
-
-## 错误处理
-
-如果该模型不存在，你将收到一个 404 错误：
 
 ```json
 {
-  "error": {
-    "message": "Model 'invalid-model' not found",
-    "type": "invalid_request_error",
-    "code": "model_not_found"
+  "id": "gpt-5.6-terra",
+  "object": "model",
+  "owned_by": "openai",
+  "tokenlab": {
+    "category": "chat",
+    "capabilities": ["text"],
+    "accepted_request_formats": ["responses", "chat_completions"]
   }
 }
 ```
-## 模型删除
 
-`DELETE /v1/models/{model}` 不受支持。TokenLab 模型是共享公开目录，不是用户拥有的微调模型资源。
+模型不存在时返回 `404 model_not_found`。

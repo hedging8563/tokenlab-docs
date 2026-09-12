@@ -70,8 +70,8 @@ openclaw onboard --tokenlab-api-key "$TOKENLAB_API_KEY"
         baseUrl: "https://api.tokenlab.sh/v1",
         apiKey: "sk-your-tokenlab-key",
         models: [
-          { id: "gpt-4o", name: "GPT-4o" },
-          { id: "deepseek-r1", name: "DeepSeek R1" },
+          { id: "gpt-5.6-terra", name: "GPT-5.6 Terra" },
+          { id: "deepseek-reasoner", name: "DeepSeek Reasoner" },
           { id: "qwen3-coder-flash", name: "Qwen 3 Coder Flash" }
         ]
       },
@@ -80,7 +80,7 @@ openclaw onboard --tokenlab-api-key "$TOKENLAB_API_KEY"
         baseUrl: "https://api.tokenlab.sh/v1",
         apiKey: "sk-your-tokenlab-key",
         models: [
-          { id: "gpt-4o", name: "GPT-4o (Responses)" },
+          { id: "gpt-5.6-terra", name: "GPT-5.6 Terra (Responses)" },
           { id: "gpt-5.2", name: "GPT-5.2 (Responses)" }
         ]
       },
@@ -89,8 +89,8 @@ openclaw onboard --tokenlab-api-key "$TOKENLAB_API_KEY"
         baseUrl: "https://api.tokenlab.sh",
         apiKey: "sk-your-tokenlab-key",
         models: [
-          { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6" },
-          { id: "claude-opus-4-6", name: "Claude Opus 4.6" }
+          { id: "claude-sonnet-5", name: "Claude Sonnet 5" },
+          { id: "claude-opus-5", name: "Claude Opus 5" }
         ]
       },
       "tokenlab-gemini": {
@@ -144,7 +144,6 @@ openclaw onboard --tokenlab-api-key "$TOKENLAB_API_KEY"
 | المزوّد | مرجع النموذج | الوصف |
 |--------|--------------|-------|
 | `tokenlab` | `tokenlab/gpt-4o` | مسار متوافق مع OpenAI |
-| `tokenlab` | `tokenlab/deepseek-r1` | نموذج استدلال DeepSeek |
 | `tokenlab-responses` | `tokenlab-responses/gpt-4o` | مسار Responses API |
 | `tokenlab-claude` | `tokenlab-claude/claude-sonnet-4-6` | مسار Claude Messages الأصلي |
 | `tokenlab-gemini` | `tokenlab-gemini/gemini-3.5-flash` | مسار Gemini الأصلي |

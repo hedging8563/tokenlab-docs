@@ -5,26 +5,17 @@ description: "Integrate TokenLab with Dify using the OpenAI provider and a custo
 
 ## Overview
 
-Dify works well with TokenLab through its OpenAI-compatible model provider flow.
+Dify can use TokenLab through its OpenAI model settings. This configuration is for Chat Completions; it does not add Responses or WebSocket features to Dify.
 
-This is a chat-completions-oriented integration path. It should not be read as a guarantee that Dify exposes the same Responses or WebSocket behavior as dedicated Codex integrations.
-
-For current Dify versions, the safest path is usually:
+In current Dify versions:
 - choose the built-in **OpenAI** provider
 - set your TokenLab API key
 - set a custom base URL of `https://api.tokenlab.sh/v1`
 
 <Note>
-Some older Dify builds expose this as `OpenAI-API-compatible` instead of the built-in `OpenAI` provider with a custom base URL field. If your Dify UI looks different, use the closest OpenAI-compatible custom provider flow available in that version.
+Some older Dify versions call this `OpenAI-API-compatible`. If the labels in your UI differ, choose the custom OpenAI-compatible model settings.
 </Note>
 
-<Note>
-**Type**: Framework or Platform
-
-**Primary Path**: OpenAI-compatible chat path
-
-**Support Confidence**: Supported with scope limits
-</Note>
 
 ## Prerequisites
 
@@ -82,28 +73,23 @@ For RAG and knowledge base indexing, add an embedding model such as:
 
 Then set it as the default embedding model in the relevant knowledge base or application settings.
 
-## Recommended Model Roles
+## Choose models
 
-| Use Case | Suggested Models |
-|----------|------------------|
-| Default chat | `gpt-5.4-mini`, `gpt-5.4`, `claude-sonnet-5` |
-| Deep reasoning | `gpt-5.5`, `gpt-5.4`, `claude-opus-4-8`, `deepseek-v4-pro` |
-| Fast/cheap | `gpt-5.4-mini`, `gemini-3.5-flash`, `deepseek-v4-flash` |
-| Embeddings | `text-embedding-3-small`, `text-embedding-3-large` |
+Copy current chat and embedding model IDs from the [Models page](https://tokenlab.sh/en/models). Dify must configure chat and embeddings separately, and each model must support the API used by that Dify component.
 
 ## Best Practices
 
 <AccordionGroup>
-  <Accordion title="Start with the built-in OpenAI provider">
-    In newer Dify versions, the built-in OpenAI provider with a custom base URL is usually the cleanest setup for TokenLab.
+  <Accordion title="Use the built-in OpenAI settings when available">
+    In newer Dify versions, set a custom base URL on the built-in OpenAI model settings.
   </Accordion>
 
-  <Accordion title="Use cheaper models for iteration">
-    Use `gpt-5.4-mini`, `gemini-3.5-flash`, or `deepseek-v4-flash` while iterating, then switch heavier workflows to stronger models only where needed.
+  <Accordion title="Compare models with your own Dify app">
+    Test the same representative inputs and compare output quality and final cost in Usage before changing the model.
   </Accordion>
 
-  <Accordion title="Remember Dify is usually chat-completions oriented">
-    Most Dify flows use OpenAI-compatible chat behavior. If you need Codex-specific Responses or WebSocket behavior, use the dedicated Codex integrations instead of Dify.
+  <Accordion title="This setup uses Chat Completions">
+    Responses and WebSocket features are not added by the OpenAI-compatible Dify configuration.
   </Accordion>
 </AccordionGroup>
 

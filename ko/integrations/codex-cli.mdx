@@ -5,16 +5,6 @@ description: "OpenAI Codex CLI를 TokenLab API와 사용하도록 구성"
 
 ## 개요
 
-
-
-<Note>
-**유형**: 코딩 도구
-
-**Primary Path**: OpenAI Responses (고급 선택 경로)
-
-**Support Confidence**: 모델/경로 제한이 있는 지원
-</Note>
-
 OpenAI Codex는 터미널에서 코드를 읽고 수정하며 실행할 수 있는 경량의 코딩 에이전트인 오픈 소스 커맨드라인 도구(CLI)입니다. 이는 GPT 모델 기반으로 구축되었으며 코드 생성에 최적화되어 있습니다.
 
 TokenLab의 경우 Codex CLI는 `/v1/responses`를 사용할 수 있지만, 이를 고급 호환성 경로로 취급해야 합니다. 일부 Responses 전용 기능은 모든 모델 및 라우트에서 보장되지 않습니다.
@@ -133,7 +123,6 @@ codex -m gpt-5.6-sol "Build a REST API server"
 | `gpt-5.6-sol` | 코딩 및 추론에 가장 적합한 기본 선택 |
 | `gpt-5-mini` | 코딩 워크플로우를 위한 더 빠르고 저렴한 대체 |
 | `claude-sonnet-4-6` | 코드 리뷰, 문서화 |
-| `deepseek-r1` | 알고리즘 설계, 추론 |
 
 ## 대화형 명령
 

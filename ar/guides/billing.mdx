@@ -38,7 +38,7 @@ description: "تعرف على نظام تسعير الدفع حسب الاستخ
 
 | العائلة | أمثلة |
 |---|---|
-| الصور | `flux-pro`, `qwen-image-plus` |
+| الصور | `flux-pro` |
 | الفيديو | `veo3.1`, `seedance-2.0` |
 | الموسيقى | `suno-music` |
 | 3D | `tripo-h3.1` |
@@ -93,7 +93,7 @@ def estimate_tokens(text):
 
 # Actual count (for OpenAI models)
 import tiktoken
-encoder = tiktoken.encoding_for_model("gpt-4o")
+encoder = tiktoken.encoding_for_model("gpt-5.6-terra")
 tokens = encoder.encode("Your text here")
 print(f"Token count: {len(tokens)}")
 ```

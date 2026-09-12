@@ -4,7 +4,7 @@ openapi: "GET /v1beta/models"
 description: "使用 Google Gemini API 格式列出可用模型"
 ---
 
-返回以 Google Gemini API 格式表示的可用模型列表。
+返回可通过 Gemini API 格式使用的模型。
 
 ## 查询参数
 
@@ -13,7 +13,7 @@ description: "使用 Google Gemini API 格式列出可用模型"
 </ParamField>
 
 <ParamField query="pageToken" type="string">
-  上一页返回的不透明续页令牌。将它原样传回即可获取下一页。
+  上一页返回的分页令牌。原样传入即可获取下一页。
 </ParamField>
 
 ## 身份验证

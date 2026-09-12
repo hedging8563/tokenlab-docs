@@ -38,7 +38,7 @@ Görüntü, video, müzik, 3D, ses ve world generation modelleri istek, görünt
 
 | Aile | Örnekler |
 |---|---|
-| Görüntü | `flux-pro`, `qwen-image-plus` |
+| Görüntü | `flux-pro` |
 | Video | `veo3.1`, `seedance-2.0` |
 | Müzik | `suno-music` |
 | 3D | `tripo-h3.1` |
@@ -93,7 +93,7 @@ def estimate_tokens(text):
 
 # Gerçek sayı (OpenAI modelleri için)
 import tiktoken
-encoder = tiktoken.encoding_for_model("gpt-4o")
+encoder = tiktoken.encoding_for_model("gpt-5.6-terra")
 tokens = encoder.encode("Metniniz buraya")
 print(f"Token sayısı: {len(tokens)}")
 ```

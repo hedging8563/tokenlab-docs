@@ -1,15 +1,15 @@
 ---
 title: "查询任务（火山兼容）"
 openapi: "GET /api/v3/contents/generations/tasks/{id}"
-description: "按 cgt 任务 ID 查询 Seedance 兼容任务。"
+description: "查询 Seedance 兼容任务的状态和结果。"
 ---
 
 ## 概览
 
-使用创建响应返回的 `cgt-...` ID 查询任务。任务为 `queued` 或 `running` 时，每隔几秒轮询一次；任务变为 `succeeded`、`failed`、`cancelled` 或 `expired` 后停止轮询。
+使用创建响应返回的 `cgt-...` ID 查询任务。任务处于 `queued` 或 `running` 时每隔几秒轮询一次；到 `succeeded`、`failed`、`cancelled` 或 `expired` 就停止。
 
 <Warning>
-不要复用统一 v1 的任务枚举或响应 struct。`/v1/tasks/{id}` 使用 `pending`、`processing`、`completed`、`failed`；本 v3 接口使用上面的官方枚举。v3 JSON 中的 `duration` 在出现时是字符串，`error` 只在失败时出现。严格解码的 Go 客户端应把 `Duration` 声明为 `string`，JSON tag 使用 `duration,omitempty`，并把四个 v3 终态都作为停止条件。
+v3 与 `/v1/tasks/{id}` 的状态名称不同，不要复用 v1 的枚举或响应结构体。v3 JSON 中的 `duration` 是字符串，`error` 只在失败时出现。Go 客户端可将 `Duration` 声明为 `string`，JSON tag 使用 `duration,omitempty`，并在每个 v3 终态停止轮询。
 </Warning>
 
 另见 [Seedance 2.0 视频模型](/zh/guides/seedance-2-video) 和 [视频生成](/zh/guides/video-generation)。
@@ -25,8 +25,8 @@ description: "按 cgt 任务 ID 查询 Seedance 兼容任务。"
 
 ## 响应字段
 
-- `id`：兼容任务 ID，以 `cgt-` 开头。
-- `model`：兼容返回的模型标识。
+- `id`：以 `cgt-` 开头的任务 ID。
+- `model`：模型 ID。
 - `status`：上述状态之一。
 - `content.video_url`：成功后的最终视频 URL。
 - `content.last_frame_url`：仅在请求且可用时返回。
@@ -34,7 +34,7 @@ description: "按 cgt 任务 ID 查询 Seedance 兼容任务。"
 - `created_at` 和 `updated_at`：任务时间戳。
 - `error`：仅任务失败时返回；非失败任务不返回该字段。
 
-响应不会添加 `progress`、`return_last_frame`、`watermark`、`priority` 或 `camera_fixed` 等 TokenLab 扩展字段。
+该响应不包含 `progress`、`return_last_frame`、`watermark`、`priority` 或 `camera_fixed`。
 
 ## 示例
 
@@ -46,7 +46,7 @@ curl https://api.tokenlab.sh/api/v3/contents/generations/tasks/cgt-2026010203040
 ```json
 {
   "id": "cgt-20260102030405-a1b2c",
-  "model": "doubao-seedance-2-0-260128",
+  "model": "doubao-seedance-2.0",
   "status": "succeeded",
   "content": {
     "video_url": "https://example.com/result.mp4"

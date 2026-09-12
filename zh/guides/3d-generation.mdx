@@ -1,31 +1,27 @@
 ---
-title: "3D生成"
-description: "创建文本到3D或图像到3D任务，轮询已完成的资产，并处理可下载的模型文件。"
+title: "3D 生成"
+description: "用文字或图片生成可下载的 3D 模型"
 ---
 
-3D生成是异步的。 `POST /v1/3d/generations` 创建一个TokenLab任务；完成状态响应返回可下载的模型资产，如 `model_url`，并在可用时返回特定格式的URL。
+3D 模型不会立即生成完成。`POST /v1/3d/generations` 会返回任务 ID 和 `poll_url`，完成后可以从 `model_url` 等地址下载。
 
 ## 选择输入类型
 
-| 工作流 | 必需输入 | 可选字段 | 备注 |
+| 输入 | 必填 | 可选字段 | 说明 |
 |--------|----------|----------|------|
-| 文本到3D | `model`, `prompt` | `format`, `quality`, `style`, `seed` | 最适合从描述生成新资产 |
-| 图像到3D | `model`, `prompt`, `image` 或 `image_url` | `format`, `quality`, `style`, `seed` | 仅在所选模型支持图像输入时使用 |
+| 文生 3D | `model`、`prompt` | `format`、`quality`、`style`、`seed` | 用文字描述新模型 |
+| 图生 3D | `model`、`prompt`、`image` 或 `image_url` | `format`、`quality`、`style`、`seed` | 所选模型必须支持图片输入 |
 
-在决定要公开哪些选项之前，请查询模型目录：
-
-此 endpoint 使用输入类型而不是 `operation` 字段。模型 metadata 会以 `text-to-3d` 和/或 `image-to-3d` 表示 3D 能力；`3d-generation` 不是公开请求 operation。
+这个 API 不使用 `operation`。模型标有 `text-to-3d` 时可以接收提示词，标有 `image-to-3d` 时可以接收图片。
 
 ```bash
 curl "https://api.tokenlab.sh/v1/models?recommended_for=3d" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 
-当前 Tripo 示例包括：`tripo-h3.1` 用于高质量文生/图生 3D 流程，`tripo-p1.0` 用于生产级 3D 资产生成。请用 Models API 确认所选模型支持你的输入类型和输出格式。
+不同模型支持的输入和输出格式不同。发送 `image`、`image_url`、`format`、`quality`、`style` 或 `seed` 前，请查看模型详情。
 
-不要假设每个3D模型都支持两种输入类型或每种输出格式。在发送 `image`, `image_url`, `format`, `quality`, `style` 或 `seed` 之前，请检查所选模型详情。
-
-## 创建3D任务
+## 创建 3D 任务
 
 ```bash
 curl https://api.tokenlab.sh/v1/3d/generations \
@@ -39,50 +35,50 @@ curl https://api.tokenlab.sh/v1/3d/generations \
   }'
 ```
 
-对于图像到3D，尽可能使用公共 `image_url`。仅在您的客户端故意发送私有媒体且您的后端准备好处理更大的请求体时，才使用内联/base64 `image`。
+图片可以从互联网访问时，图生 3D 使用 `https` 地址即可。图片不能公开访问时，可以用内联 base64 `image`，但服务端必须能接收更大的请求体。
 
-## 输出格式选择
+## 输出格式
 
-- `glb` 通常是网页预览的最安全默认值。
-- `fbx` 和 `obj` 在所选模型支持时对DCC管道很有用。
-- `usdz` 在模型公开时对Apple AR工作流很有用。
-- 较高的 `quality` 值可能会增加延迟和成本。将其作为明确的用户选择公开，而不是隐藏的默认值。
-- `seed` 仅在模型尊重它时对可重复性有用。
+- `glb` 适合网页预览。
+- `fbx` 和 `obj` 常用于 DCC 工具，前提是模型支持。
+- `usdz` 可用于 Apple AR，前提是模型支持。
+- 更高的 `quality` 可能等待更久、费用更高，应当让用户自己选择。
+- 只有模型支持时，`seed` 才能影响结果的可重复性。
 
-## 轮询和存储资产
+## 获取生成结果
 
-首先使用返回的 `poll_url`。如果您的客户端需要固定路由，请使用 `GET /v1/tasks/{id}`。
+使用创建响应中的 `poll_url` 查询。客户端需要固定地址时，可以调用 `GET /v1/tasks/{id}`。
 
 ```bash
 curl "https://api.tokenlab.sh/v1/tasks/$TASK_ID" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 
-完成的任务返回 `model_url`，并可能包括 `glb_url`, `fbx_url`, `obj_url` 或 `usdz_url`。如果用户需要重复访问、版本历史或长期下载，请在您自己的产品中下载或缓存所选资产。
+任务完成后会返回 `model_url`，也可能包含 `glb_url`、`fbx_url`、`obj_url` 或 `usdz_url`。如果产品需要长期下载或版本历史，请把文件保存到自己的存储中。
 
-## 生产检查清单
+## 让结果可以长期访问
 
-- 持久化 `task_id`, `poll_url`, 模型，请求格式和您自己的资产记录ID。
-- 在页面刷新后恢复轮询，而不是创建重复任务。
-- 在创建任务之前验证源图像的大小和可达性。
-- 除非用户有权限访问资产，否则请将生成的资产URL排除在公共页面之外。
-- 记录 `billing_transaction_id`（如果存在）以便后续对账。
+- 保存 `task_id`、`poll_url`、模型、输出格式和你自己的文件 ID。
+- 页面刷新后继续查询原任务，不要重新创建。
+- 提交前确认源图片大小合适、URL 可以访问。
+- 文件地址不能展示给无权访问的用户。
+- 返回 `billing_transaction_id` 时一并保存，方便核对费用。
 
 ## 常见错误
 
 | 症状 | 可能原因 | 修复 |
 |------|----------|------|
-| 创建响应没有资产URL | 3D生成是异步的 | 轮询直到终端状态 |
+| 创建响应没有下载地址 | 模型还在生成 | 查询到 `completed` 或 `failed` |
 | 请求的格式缺失 | 模型未返回该格式 | 回退到 `model_url` 或选择支持该格式的模型 |
 | 图像到3D被拒绝 | 所选模型仅支持文本或图像URL不可达 | 检查模型详情并验证URL |
-| 重复资产 | 重试路径在超时后重新创建了任务 | 在重试之前存储任务身份 |
+| 出现重复模型 | 超时后又创建了一次任务 | 重试前确认是否已经取得任务 ID |
 
-## API参考
+## API 参考
 
 | 主题 | 参考 |
 |------|------|
-| 创建3D | [创建3D](/zh/api-reference/3d/create-3d) |
-| 获取3D状态 | [获取3D状态](/zh/api-reference/3d/get-3d-status) |
+| 创建 3D | [创建 3D](/zh/api-reference/3d/create-3d) |
+| 获取 3D 状态 | [获取 3D 状态](/zh/api-reference/3d/get-3d-status) |
 | 获取任务状态 | [获取任务状态](/zh/api-reference/tasks/get-task-status) |
 | 列出模型 | [列出模型](/zh/api-reference/models/list-models) |
 | 计费与定价 | [计费与定价](/zh/guides/billing) |

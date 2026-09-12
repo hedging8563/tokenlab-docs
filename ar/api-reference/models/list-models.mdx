@@ -1,245 +1,68 @@
 ---
-title: "عرض النماذج"
+title: "سرد النماذج"
 openapi: "GET /v1/models"
-description: "يعرض جميع النماذج المتاحة"
+description: "سرد النماذج المتاحة حالياً على TokenLab"
 ---
 
-## نظرة عامة
+كتالوج النماذج متاح للعامة ولا يتطلب API key. يتضمن كل عنصر ملخصاً للقدرات الحالية، والأسعار، وتنسيقات API. يمكنك استرداد نموذج واحد عندما تحتاج إلى تفاصيل كاملة.
 
-`GET /v1/models` مهيأ للاكتشاف. أما البيانات الوصفية الخاصة بالتفاصيل فقط، مثل `capability_flags` و `pricing_provenance` و `request_format_details` الكامل، فتوجد في `GET /v1/models/{model}`.
-
-## معلمات الاستعلام
+## معلمات الاستعلام (Query Parameters)
 
 <ParamField query="category" type="string">
-  فلتر اختياري للفئة العامة. يدعم `chat` و `image` و `video` و `audio` و `tts` و `stt` و `music` و `3d` و `embedding` و `rerank` و `translation`.
+  التصفية حسب `chat` أو `image` أو `video` أو `audio` أو `tts` أو `stt` أو `music` أو `3d` أو `embedding` أو `rerank` أو `translation`.
 </ParamField>
 
 <ParamField query="recommended_for" type="string">
-  سيناريو اختياري للتوصية خارج chat. يدعم `image` و `video` و `music` و `3d` و `tts` و `stt` و `embedding` و `rerank` و `translation`.
+  إرجاع التوصيات الحالية لمهمة معينة مثل `image` أو `video` أو `music` أو `3d` أو `tts` أو `stt` أو `embedding` أو `rerank` أو `translation`.
 </ParamField>
 
 <ParamField query="provider" type="string">
-  فلتر اختياري حسب المزود، مثل `openai` أو `anthropic` أو `google` أو `deepseek`.
+  التصفية حسب الجهة المصنعة للنموذج، مثل `openai` أو `anthropic` أو `google` أو `deepseek`.
 </ParamField>
 
 <ParamField query="tag" type="string">
-  فلتر اختياري حسب وسم النموذج، مثل `chat` أو `image` أو `video` أو `embedding` أو `translation`.
+  التصفية حسب وسم (tag) مثل `chat` أو `image` أو `video` أو `embedding` أو `translation`.
 </ParamField>
 
-<Note>
-عندما تكون `recommended_for` موجودة، يرتب `/v1/models` النماذج غير chat وفق أحدث لقطة مخزنة مؤقتًا لمعدل النجاح خلال 24 ساعة. تظل النماذج ذات `status = "insufficient_samples"` مرئية، لكنها تظهر بعد النماذج ذات النقاط.
-</Note>
+## الاستجابة (Response)
 
-## الاستجابة
+<ResponseField name="object" type="string">دائماً `list`.</ResponseField>
+<ResponseField name="data" type="array">النماذج مع `id` و `owned_by` وملخص `tokenlab`.</ResponseField>
 
-<ResponseField name="object" type="string">
-  دائمًا `list`.
-</ResponseField>
+تشمل حقول القائمة الشائعة تحت `tokenlab` ما يلي:
 
-<ResponseField name="data" type="array">
-  مصفوفة من كائنات النماذج.
+- `tokenlab.aliases`
+- `tokenlab.capabilities`
+- `tokenlab.pricing` و `tokenlab.pricing_unit`
+- `tokenlab.max_input_tokens` و `tokenlab.max_output_tokens`
+- `tokenlab.category`
+- `tokenlab.lifecycle` و `tokenlab.commercial` و `tokenlab.badges`
+- `tokenlab.request_format_summary`
+- `tokenlab.agent_preferences` عند استخدام `recommended_for`
 
-  يحتوي كل نموذج دائمًا على:
-  - `id` (string): معرّف النموذج
-  - `object` (string): `model`
-  - `created` (integer): طابع زمني للإنشاء
-  - `owned_by` (string): مزود النموذج
-  - `tokenlab.aliases` (array): الأسماء البديلة العامة للنموذج نفسه
-  - `tokenlab.pricing` (object): ملخص التسعير العام البسيط
-  - `tokenlab.capabilities` (array): وسوم القدرات العامة
-  - `tokenlab.max_input_tokens` (number أو `null`): حد سياق الإدخال عند توفره
-  - `tokenlab.max_output_tokens` (number أو `null`): حد الإخراج عند توفره
-  - `tokenlab.category` (string): الفئة العامة للنموذج
-  - `tokenlab.pricing_unit` (string): وحدة التسعير العامة
-  - `tokenlab.has_complex_pricing` (boolean): ما إذا كان التسعير يتضمن أبعادًا خاصة بالنموذج
-  - `tokenlab.lifecycle` (object): مرحلة دورة الحياة وتواريخ الإصدار/الإيقاف ونموذج الاستبدال ومصدر شارة latest
-  - `tokenlab.commercial` (object): سياسة تحصيل الرسوم من المستخدم وسبب المجانية ووقت انتهائها الاختياري
-  - `tokenlab.badges` (array): شارات عرض مشتقة من بيانات دورة الحياة والبيانات التجارية
+عند استخدام `recommended_for`، قد تتضمن النتائج أيضاً حالة التوصية ووقت التحديث. يرجى قراءة الاستجابة الحالية بدلاً من تثبيت الترتيب.
 
-  بيانات القائمة الشرطية:
-  - `tokenlab.providers` (array): المزودون العامون عند توفرهم
-  - `tokenlab.cache_pricing` (object أو `null`): أسعار prompt cache عند توفرها
-  - `tokenlab.pricing_summary` (object أو `null`): تُعاد فقط للنماذج ذات التسعير المعقد
-  - `tokenlab.request_format_summary` (object أو `null`): ملخص اكتشاف خفيف خارج chat يحتوي على `public_operations` و `request_endpoint` و `request_endpoint_by_operation`
-  - `tokenlab.agent_preferences` (object): يُعاد فقط عندما تكون `recommended_for` موجودة
+## مثال
 
-  الحقول الخاصة بصفحة التفاصيل فقط، مثل `tokenlab.capability_flags` و `tokenlab.supported_operations` و `tokenlab.pricing_provenance` و `tokenlab.request_format_details`، تُعاد فقط من `GET /v1/models/{model}`.
-</ResponseField>
-
-<RequestExample>
-```bash cURL
-curl "https://api.tokenlab.sh/v1/models" \
-  -H "Authorization: Bearer sk-your-api-key"
+```bash
+curl "https://api.tokenlab.sh/v1/models?category=video"
 ```
 
-```bash cURL
-curl "https://api.tokenlab.sh/v1/models?recommended_for=image" \
-  -H "Authorization: Bearer sk-your-api-key"
-```
-
-```python Python
-from openai import OpenAI
-
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
-
-models = client.models.list()
-
-for model in models.data:
-    print(f"{model.id} ({model.owned_by})")
-```
-
-```javascript JavaScript
-import OpenAI from 'openai';
-
-const client = new OpenAI({
-  apiKey: 'sk-your-api-key',
-  baseURL: 'https://api.tokenlab.sh/v1'
-});
-
-const models = await client.models.list();
-
-for (const model of models.data) {
-  console.log(`${model.id} (${model.owned_by})`);
-}
-```
-
-```go Go
-package main
-
-import (
-    "encoding/json"
-    "fmt"
-    "net/http"
-)
-
-func main() {
-    req, _ := http.NewRequest("GET", "https://api.tokenlab.sh/v1/models", nil)
-    req.Header.Set("Authorization", "Bearer sk-your-api-key")
-
-    resp, _ := http.DefaultClient.Do(req)
-    defer resp.Body.Close()
-
-    var payload struct {
-        Data []struct {
-            ID      string `json:"id"`
-            OwnedBy string `json:"owned_by"`
-        } `json:"data"`
-    }
-
-    json.NewDecoder(resp.Body).Decode(&payload)
-
-    for _, model := range payload.Data {
-        fmt.Printf("%s (%s)\n", model.ID, model.OwnedBy)
-    }
-}
-```
-
-```php PHP
-<?php
-$ch = curl_init('https://api.tokenlab.sh/v1/models');
-
-curl_setopt_array($ch, [
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_HTTPHEADER => [
-        'Authorization: Bearer sk-your-api-key'
-    ]
-]);
-
-$response = curl_exec($ch);
-curl_close($ch);
-
-$data = json_decode($response, true);
-foreach ($data['data'] as $model) {
-    echo "{$model['id']} ({$model['owned_by']})\n";
-}
-```
-</RequestExample>
-
-<ResponseExample>
-```json Response
+```json
 {
   "object": "list",
   "data": [
     {
-      "id": "gpt-5.4",
+      "id": "veo3.1",
       "object": "model",
-      "created": 1706000000,
-      "owned_by": "openai"
-    },
-    {
-      "id": "claude-sonnet-4-6",
-      "object": "model",
-      "created": 1706000000,
-      "owned_by": "anthropic"
-    },
-    {
-      "id": "gemini-3.5-flash",
-      "object": "model",
-      "created": 1706000000,
-      "owned_by": "google"
-    }
-  ]
-}
-```
-</ResponseExample>
-
-## التصفية حسب المزود
-
-```python
-# الحصول على كل نماذج OpenAI
-openai_models = [m for m in models.data if m.owned_by == "openai"]
-
-# الحصول على كل نماذج Anthropic
-anthropic_models = [m for m in models.data if m.owned_by == "anthropic"]
-```
-
-## فئات النماذج
-
-| المزود | أمثلة على النماذج |
-|--------|-------------------|
-| `openai` | gpt-5.4, gpt-5.4-mini, gpt-5-mini, gpt-4o, gpt-image-2 |
-| `anthropic` | claude-opus-4-6, claude-sonnet-4-6, claude-haiku-4-5 |
-| `google` | gemini-3.1-pro-preview, gemini-3.5-flash, gemini-2.5-pro |
-| `deepseek` | deepseek-r1, deepseek-v3-2 |
-| `xai` | grok-4.1 |
-| `moonshot` | kimi-k2.5 |
-| `minimax` | minimax-m3 |
-| `meta` | llama-3.3-70b, llama-3.1-405b |
-
-## مثال توصية الوكيل
-
-```json Response
-{
-  "object": "list",
-  "data": [
-    {
-      "id": "gemini-2.5-flash-image",
-      "object": "model",
-      "created": 1706000000,
       "owned_by": "google",
       "tokenlab": {
-        "category": "image",
-        "pricing_unit": "per_request",
-        "agent_preferences": {
-          "image": {
-            "preferred_rank": 1,
-            "success_rate_24h": 0.98,
-            "sample_count_24h": 423,
-            "status": "ready",
-            "updated_at": "2026-03-28T12:00:00.000Z",
-            "basis": {
-              "source": "recent_activity_24h"
-            }
-          }
-        }
+        "category": "video",
+        "capabilities": ["text-to-video", "image-to-video"]
       }
     }
   ]
 }
 ```
-## حذف النماذج
 
-`DELETE /v1/models/{model}` غير مدعوم. نماذج TokenLab كتالوج عام مشترك وليست موارد نماذج fine-tuned يملكها المستخدم.
+راجع [الحصول على نموذج](/api-reference/models/get-model) للحصول على التفاصيل الكاملة.

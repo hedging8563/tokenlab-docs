@@ -1,19 +1,12 @@
 ---
 title: "Jan"
-description: "通过远程 OpenAI 兼容提供商在 Jan 中使用 TokenLab 模型"
+description: "把 Jan 连接到 TokenLab"
 ---
 
 ## 概述
 
-Jan 可以作为远程 OpenAI 兼容提供商连接到 TokenLab。
+在 Jan 中把 TokenLab 添加为远程 OpenAI 兼容服务即可。
 
-<Note>
-**类型**: 聊天应用
-
-**主要路径**: OpenAI 兼容的聊天补全 (chat completions)
-
-**支持置信度**: 已支持路径
-</Note>
 
 ## 配置 Jan
 
@@ -22,11 +15,11 @@ Jan 可以作为远程 OpenAI 兼容提供商连接到 TokenLab。
 3. 输入:
    - **Name**: TokenLab
    - **Base URL**: `https://api.tokenlab.sh/v1`
-   - **API Key**: `sk-your-tokenlab-key`
+   - **API 密钥**: `sk-your-tokenlab-key`
 4. 添加或选择 `gpt-5.4-mini`
 5. 保存并开启一个新会话。
 
-## 模型发现
+## 刷新模型
 
 TokenLab 通过以下地址提供模型发现功能：
 
@@ -34,12 +27,8 @@ TokenLab 通过以下地址提供模型发现功能：
 https://api.tokenlab.sh/v1/models
 ```
 
-如果您的 Jan 构建版本支持 TokenLab 的远程模型发现，请刷新模型列表。否则，请手动添加模型 ID。
+如果你的 Jan 构建版本支持 TokenLab 的远程模型发现，请刷新模型列表。否则，请手动添加模型 ID。
 
-## 推荐模型
+## 选择模型
 
-- `gpt-5.4-mini`
-- `gpt-5.4`
-- `claude-sonnet-5`
-- `gemini-3.5-flash`
-- `deepseek-v4-flash`
+刷新 Jan 的模型列表，或从[模型页](https://tokenlab.sh/zh/models)复制当前聊天模型 ID。

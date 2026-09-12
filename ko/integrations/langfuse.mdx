@@ -7,14 +7,6 @@ description: "Langfuse를 사용하여 TokenLab의 OpenAI 호환 요청 추적�
 
 Langfuse는 OpenAI SDK가 TokenLab의 `/v1` 베이스 URL로 구성된 경우, OpenAI 통합을 통해 TokenLab 호출을 추적할 수 있습니다.
 
-<Note>
-**유형**: 관측 가능성(Observability)
-
-**주요 경로**: OpenAI SDK 추적
-
-**지원 신뢰도**: 지원되는 OpenAI 호환 추적 경로
-</Note>
-
 ## 환경 설정
 
 ```bash
@@ -34,7 +26,6 @@ from langfuse.openai import openai
 
 openai.api_key = os.environ["TOKENLAB_API_KEY"]
 openai.base_url = "https://api.tokenlab.sh/v1"
-
 
 @observe()
 def story():

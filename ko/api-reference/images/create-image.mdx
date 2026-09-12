@@ -34,7 +34,7 @@ xAI Grok Imagine 이미지 모델(`grok-imagine-image`, `grok-imagine-image-qual
 **동기 요청 타임아웃:** 일부 이미지 요청은 생성이 완료될 때까지 기다린 뒤 최종 이미지를 inline 으로 반환합니다. 고해상도 또는 고품질 요청은 1분 안팎이거나 그 이상 걸릴 수 있으므로 HTTP 클라이언트 타임아웃을 최소 `120s` 로 설정하세요. 생성 응답에 `status: "pending"`, `task_id`, 또는 `poll_url` 이 포함되어 있으면 반환된 `poll_url` 을 따라 폴링하세요.
 
 <ParamField body="model" type="string" required>
-  사용할 모델(예: `gpt-image-2`, `flux-pro`, `qwen-image-plus`, `nano-banana-pro`). 현재 추천 목록은 `GET /v1/models?recommended_for=image` 로 확인하세요.
+  사용할 모델(예: `gpt-image-2`, `flux-pro`, `nano-banana-pro`). 현재 추천 목록은 `GET /v1/models?recommended_for=image` 로 확인하세요.
 </ParamField>
 
 <ParamField body="prompt" type="string" required>
@@ -301,7 +301,6 @@ curl -X POST "https://api.tokenlab.sh/v1/images/generations" \
 |-------|------|------|
 | `gpt-image-2` | 인라인 또는 작업 기반 | 토큰 단위 과금 GPT Image 모델, 유연한 크기 |
 | `flux-pro` | 작업 기반인 경우가 많음 | 사실적인 이미지, 고품질 |
-| `qwen-image-plus` | 작업 기반인 경우가 많음 | 강한 텍스트 렌더링과 프롬프트 준수 |
 | `nano-banana-pro` | 작업 기반인 경우가 많음 | 참조 이미지 워크플로와 고해상도 출력 |
 | `grok-imagine-image` | 작업 기반인 경우가 많음 | xAI 이미지 생성, 종횡비와 해상도 선택 지원 |
 | `ideogram-v3` | 작업 기반인 경우가 많음 | 강한 텍스트 렌더링 |

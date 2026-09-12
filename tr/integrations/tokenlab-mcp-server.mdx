@@ -30,10 +30,10 @@ Genel katalog ve fiyatlandırma araçları TokenLab API anahtarı gerektirmez. K
 En hızlı ve güvenli başlangıç, yalnızca altı genel katalog aracını etkinleştirmektir. TokenLab API anahtarı gerekmez; kimlik doğrulamalı araçları daha sonra açabilirsiniz.
 
 <CardGroup cols={2}>
-  <Card title="Cursor'a yükle" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab-model-catalog&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXIiXSwiZW52Ijp7IlRPS0VOTEFCX01DUF9UT09MX1BST0ZJTEUiOiJjYXRhbG9nIn19">
+  <Card title="Cursor'a yükle" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXIiXSwiZW52Ijp7IlRPS0VOTEFCX01DUF9UT09MX1BST0ZJTEUiOiJjYXRhbG9nIn19">
     Genel `catalog` profilini tek tıkla Cursor'a ekleyin
   </Card>
-  <Card title="VS Code'a yükle" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab-model-catalog&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
+  <Card title="VS Code'a yükle" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
     Genel `catalog` profilini VS Code kullanıcı yapılandırmasına ekleyin
   </Card>
 </CardGroup>
@@ -68,13 +68,13 @@ En hızlı ve güvenli başlangıç, yalnızca altı genel katalog aracını etk
         TokenLab'i tüm projelerde kullanmak için kullanıcı kapsamına ekleyin.
 
         ```bash
-        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
+        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab -- npx -y @tokenlabai/mcp-server
         ```
 
         Varsayılan `core` profilini etkinleştirmek için API anahtarınızı ekleyin.
 
         ```bash
-        claude mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key --scope user tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
+        claude mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key --scope user tokenlab -- npx -y @tokenlabai/mcp-server
         ```
 
         Yalnızca geçerli proje için `--scope local`, ortak `.mcp.json` oluşturmak için `--scope project` kullanın. Gerçek anahtarı proje yapılandırmasına commit etmeyin.
@@ -86,7 +86,7 @@ En hızlı ve güvenli başlangıç, yalnızca altı genel katalog aracını etk
         ```json
         {
           "mcpServers": {
-            "tokenlab-model-catalog": {
+            "tokenlab": {
               "command": "npx",
               "args": ["-y", "@tokenlabai/mcp-server"],
               "env": { "TOKENLAB_MCP_TOOL_PROFILE": "catalog" }
@@ -102,7 +102,7 @@ En hızlı ve güvenli başlangıç, yalnızca altı genel katalog aracını etk
         ```json
         {
           "servers": {
-            "tokenlab-model-catalog": {
+            "tokenlab": {
               "type": "stdio",
               "command": "npx",
               "args": ["-y", "@tokenlabai/mcp-server"],
@@ -118,10 +118,10 @@ En hızlı ve güvenli başlangıç, yalnızca altı genel katalog aracını etk
       <Tab title="Codex">
         ```bash
         # Genel katalog
-        codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
+        codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab -- npx -y @tokenlabai/mcp-server
 
         # API anahtarıyla varsayılan core profili
-        codex mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
+        codex mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key tokenlab -- npx -y @tokenlabai/mcp-server
         ```
       </Tab>
 
@@ -142,7 +142,7 @@ En hızlı ve güvenli başlangıç, yalnızca altı genel katalog aracını etk
   </Step>
 
   <Step title="Yeniden başlatın ve doğrulayın">
-    MCP istemcisini yeniden başlatın veya yükleyin, istendiğinde yerel sunucuya güvenin ve `tokenlab-model-catalog` bağlantısını doğrulayın.
+    MCP istemcisini yeniden başlatın veya yükleyin, istendiğinde yerel sunucuya güvenin ve `tokenlab` bağlantısını doğrulayın.
 
     ```bash
     claude mcp list
@@ -155,14 +155,14 @@ En hızlı ve güvenli başlangıç, yalnızca altı genel katalog aracını etk
 
 ## Yapılandırma başvurusu
 
-Yerel stdio istemcilerinde `tokenlab-model-catalog` sunucu adını, `npx` komutunu, ayrı `-y` ve `@tokenlabai/mcp-server` argümanlarını kullanın; çalışma dizinini boş bırakın. Güncel doğrulanmış sürümü sabitlemek için `@tokenlabai/mcp-server@0.6.17` kullanın.
+Yerel stdio istemcilerinde `tokenlab` sunucu adını, `npx` komutunu, ayrı `-y` ve `@tokenlabai/mcp-server` argümanlarını kullanın; çalışma dizinini boş bırakın. Güncel doğrulanmış sürümü sabitlemek için `@tokenlabai/mcp-server@0.6.17` kullanın.
 
 Kimlik doğrulamalı araçlar için standart yapılandırma:
 
 ```json
 {
   "mcpServers": {
-    "tokenlab-model-catalog": {
+    "tokenlab": {
       "command": "npx",
       "args": ["-y", "@tokenlabai/mcp-server"],
       "env": {
@@ -297,7 +297,7 @@ Mümkün olduğunda her ikisini de kullanın:
   </Accordion>
 
   <Accordion title="Claude Code Pending approval gösteriyor">
-    Proje kapsamındaki `.mcp.json` sunucuları çalışma alanı güveni ve açık onay gerektirir. Claude Code'u projede etkileşimli başlatın, güveni kabul edin ve `/mcp` içinde `tokenlab-model-catalog` sunucusunu onaylayın. Tüm projelerde kullanılabilen özel ayar için `--scope user` kullanın.
+    Proje kapsamındaki `.mcp.json` sunucuları çalışma alanı güveni ve açık onay gerektirir. Claude Code'u projede etkileşimli başlatın, güveni kabul edin ve `/mcp` içinde `tokenlab` sunucusunu onaylayın. Tüm projelerde kullanılabilen özel ayar için `--scope user` kullanın.
   </Accordion>
 
   <Accordion title="Model listesi boş">

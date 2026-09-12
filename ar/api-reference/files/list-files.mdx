@@ -39,6 +39,12 @@ curl -X GET "https://api.tokenlab.sh/v1/files?purpose=batch&limit=20" \
 - توقّع `output_file_id` و `error_file_id` فقط بعد انتهاء العامل من الدفعة.
 - قد تختلف أسعار الدفعات عن الأسعار المتزامنة لأن قواعد الخصم `isBatchRequest=true` تنطبق.
 
+## عوامل التصفية
+
+- يقبل `limit` قيمًا من 1 إلى 10000، والقيمة الافتراضية هي 10000.
+- يمكن أن يكون `purpose` هو `batch` أو `batch_output` أو `user_data` أو `vision`.
+- يعيد `user_data` و `vision` ملفات مراجع الصور التي أنشأها TokenLab عند توفرها.
+
 ## مثال الاستجابة
 
 <ResponseExample>

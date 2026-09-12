@@ -1,17 +1,17 @@
 ---
 title: "Worlds"
-description: "生成可探索的 Worlds、上传媒体提示、轮询任务并管理已完成的 World。"
+description: "用文字、图片或视频创建可探索的 Marble 世界"
 ---
 
-World 生成会异步创建可探索的 Marble World。当输出是用户可以打开或再次访问的环境时使用 Worlds；如果需要可下载的单独模型资产，请使用 3D 生成。
+Worlds 可以创建一个能打开、探索和再次访问的 Marble 世界。如果需要的是可下载的单个模型，请使用 3D 生成。
 
-## 输入与媒体资产
+## 输入与素材
 
-World 任务可根据所选模型和请求形态从文本、图片、多图或视频开始。可复用的媒体提示应先准备媒体资产，再在 World 请求中引用。媒体资产和完成后的 World 只对你的账户可用。
+根据模型能力，可以用文字、单张图片、多张图片或视频创建世界。需要重复使用的媒体只需上传一次，之后通过素材 ID 引用。素材和生成的世界仅限当前账户访问。
 
-## 创建与轮询
+## 创建并查询状态
 
-创建响应包含公共任务 ID，通常也包含 poll_url。展示任务状态前先保存这个 ID，然后跟随 poll_url 或 GET /v1/tasks/{id}，直到任务 completed 或 failed。
+创建成功后会返回任务 ID，通常还会提供 `poll_url`。保存这个 ID，通过 `poll_url` 或 `GET /v1/tasks/{id}` 查询，直到状态变为 `completed` 或 `failed`。
 
 ```bash
 curl -X POST "https://api.tokenlab.sh/v1/worlds/generations" \
@@ -23,15 +23,15 @@ curl -X POST "https://api.tokenlab.sh/v1/worlds/generations" \
   }'
 ```
 
-## 管理已完成的 Worlds
+## 查看和删除 Worlds
 
-Worlds 列表和详情端点用于查看当前账户里已完成的 World。待处理或失败的生成任务请使用任务状态端点。只有用户明确删除产品里的生成 World 时才调用删除。
+Worlds 列表和详情 API 会返回当前账户中已经完成的世界。仍在生成或已经失败的任务通过任务状态 API 查询。只有用户明确删除结果时才调用删除 API。
 
 ## 常见问题
 
 - 不要假设每个 World 模型都支持所有输入类型。
-- 签名图片或视频 URL 要保持足够长的有效期，覆盖服务端拉取重试。
-- 超时后重试前，先保存并查询已返回的任务 ID。
+- 带签名的图片或视频 URL 要保持足够长的有效期，确保服务能够读取。
+- 请求超时后，确认没有创建任务再重新提交。
 - 需要可下载模型文件时使用 3D 生成，而不是 Worlds。
 
 ## API 参考
@@ -40,8 +40,8 @@ Worlds 列表和详情端点用于查看当前账户里已完成的 World。待�
 |-------|-----------|
 | 创建 World | [创建 World](/zh/api-reference/worlds/create-world) |
 | 获取 World 状态 | [获取 World 状态](/zh/api-reference/worlds/get-world-status) |
-| 准备媒体资产上传 | [准备媒体资产上传](/zh/api-reference/worlds/prepare-media-asset-upload) |
-| 获取媒体资产 | [获取媒体资产](/zh/api-reference/worlds/get-media-asset) |
+| 准备素材上传 | [准备素材上传](/zh/api-reference/worlds/prepare-media-asset-upload) |
+| 获取素材 | [获取素材](/zh/api-reference/worlds/get-media-asset) |
 | 列出 Worlds | [列出 Worlds](/zh/api-reference/worlds/list-worlds) |
 | 获取 World | [获取 World](/zh/api-reference/worlds/get-world) |
 | 删除 World | [删除 World](/zh/api-reference/worlds/delete-world) |

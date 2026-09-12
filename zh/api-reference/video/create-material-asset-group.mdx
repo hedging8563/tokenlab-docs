@@ -1,12 +1,12 @@
 ---
-title: "创建素材资产组"
+title: "创建素材组"
 openapi: "POST /v1/videos/assets/groups"
-description: "创建一个 Seedance 虚拟人像素材组。"
+description: "创建 Seedance 虚拟人物素材组。"
 ---
 
-创建一个 `library_type: "aigc_avatar"` 的素材组。请使用此端点创建虚拟人像、产品、风格以及其他无需真人验证的可复用参考素材。
+创建 `library_type: "aigc_avatar"` 的素材组，用来保存虚拟人物、产品、风格和其他无需真人验证的参考素材。
 
-新的真人素材组需通过 [创建视觉验证会话](/zh/api-reference/video/create-visual-validation-session) 创建，无法直接通过此端点创建。
+真人素材组需要通过[视觉验证](/zh/api-reference/video/create-visual-validation-session)创建。
 
 ## 请求示例
 

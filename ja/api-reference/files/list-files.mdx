@@ -39,6 +39,12 @@ curl -X GET "https://api.tokenlab.sh/v1/files?purpose=batch&limit=20" \
 - ワーカーがバッチを最終化した後にのみ `output_file_id` と `error_file_id` を期待してください。
 - バッチの価格は、`isBatchRequest=true` の割引ルールが適用されるため、同期価格とは異なる場合があります。
 
+## フィルター
+
+- `limit` は 1 から 10000 まで指定でき、デフォルトは 10000 です。
+- `purpose` は `batch`、`batch_output`、`user_data`、`vision` のいずれかです。
+- `user_data` と `vision` は、利用可能な場合に TokenLab が作成した画像参照ファイルを返します。
+
 ## レスポンス例
 
 <ResponseExample>

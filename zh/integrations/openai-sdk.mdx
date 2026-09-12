@@ -5,23 +5,12 @@ description: "将 TokenLab 与官方 OpenAI SDK 以及兼容 OpenAI 的客户端
 
 ## 概览
 
-要使用 TokenLab，官方 OpenAI SDK 客户端只需将客户端的 base URL 指向 `https://api.tokenlab.sh/v1`。
-
-对于大多数新项目，建议将 **Chat Completions** 作为默认的 OpenAI 兼容路径。仅在明确需要 Responses 特定行为时才使用 **Responses API**。
-
-Responses 特定字段并不能保证在每个模型和路由路径上表现一致。
+把 OpenAI SDK Base URL 设为 `https://api.tokenlab.sh/v1`，并使用 TokenLab API 密钥即可。现有应用已经使用哪种 API 方法就继续沿用，同时通过 `accepted_request_formats` 确认所选模型支持。
 
 <Note>
 Python、JavaScript 和 Go 有官方的 OpenAI SDK。PHP 与兼容 OpenAI 的社区客户端配合良好，但它并不是官方 OpenAI SDK。
 </Note>
 
-<Note>
-**类型**: Native SDK
-
-**主要路径**: OpenAI 兼容 / Chat Completions
-
-**支持情况**: 核心支持路径
-</Note>
 
 ## 安装
 
@@ -42,7 +31,7 @@ go get github.com/openai/openai-go/v3
 </CodeGroup>
 
 <Note>
-仅在明确需要 Responses 特定行为时使用 `POST /v1/responses`。某些仅限 Responses 的字段仍可能依赖于所选模型和路由路径。
+需要 Responses API 的输入项、工具或续接能力时，使用 `POST /v1/responses`。可选字段是否可用取决于所选模型。
 </Note>
 
 ## 配置客户端
@@ -93,7 +82,7 @@ func main() {
 
 ```python Python
 response = client.chat.completions.create(
-    model="gpt-5.4",
+    model="gpt-5.6-terra",
     messages=[{"role": "user", "content": "Explain what TokenLab does in one sentence."}]
 )
 
@@ -102,7 +91,7 @@ print(response.choices[0].message.content)
 
 ```javascript JavaScript
 const response = await client.chat.completions.create({
-  model: 'gpt-5.4',
+  model: 'gpt-5.6-terra',
   messages: [{ role: 'user', content: 'Explain what TokenLab does in one sentence.' }],
 });
 
@@ -114,7 +103,7 @@ curl https://api.tokenlab.sh/v1/chat/completions \
   -H "Authorization: Bearer sk-your-tokenlab-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-5.4",
+    "model": "gpt-5.6-terra",
     "messages": [
       {"role": "user", "content": "Explain what TokenLab does in one sentence."}
     ]
@@ -125,7 +114,7 @@ curl https://api.tokenlab.sh/v1/chat/completions \
 
 ## 高级：Responses API
 
-仅当您的工具或工作流明确依赖 OpenAI Responses 语义时才使用此路径。
+只有客户端和所选模型都需要 Responses 时，才使用这项配置。
 
 ### 使用 Responses 的流式传输
 
@@ -133,7 +122,7 @@ curl https://api.tokenlab.sh/v1/chat/completions \
 
 ```python Python
 stream = client.responses.create(
-    model="gpt-5.4",
+    model="gpt-5.6-terra",
     input="Write a short poem about coding.",
     stream=True,
 )
@@ -145,7 +134,7 @@ for event in stream:
 
 ```javascript JavaScript
 const stream = await client.responses.create({
-  model: 'gpt-5.4',
+  model: 'gpt-5.6-terra',
   input: 'Write a short poem about coding.',
   stream: true,
 });
@@ -163,7 +152,7 @@ for await (const event of stream) {
 
 ```python
 response = client.responses.create(
-    model="gpt-5.4",
+    model="gpt-5.6-terra",
     input="What's the weather in Tokyo?",
     tools=[{
         "type": "function",
@@ -189,7 +178,7 @@ for item in response.output:
 
 ```python
 response = client.responses.create(
-    model="gpt-4o",
+    model="gpt-5.6-terra",
     input=[{
         "role": "user",
         "content": [
@@ -219,7 +208,7 @@ Chat Completions 是 TokenLab 的默认 OpenAI 兼容路径：
 
 ```python
 response = client.chat.completions.create(
-    model="gpt-4o",
+    model="gpt-5.6-terra",
     messages=[
         {"role": "system", "content": "You are a helpful assistant."},
         {"role": "user", "content": "Hello!"}
@@ -235,11 +224,11 @@ print(response.choices[0].message.content)
   <Accordion title="连接错误">
     - 确认 base URL 精确为 `https://api.tokenlab.sh/v1`
     - 检查是否有代理干扰或自定义 HTTP 客户端覆盖
-    - 在调试提供商行为之前，确保您的 SDK 版本是最新的
+    - 在调试提供商行为之前，确保你的 SDK 版本是最新的
   </Accordion>
 
   <Accordion title="身份验证失败">
-    - 检查您的 API 密钥是否以 `sk-` 开头
+    - 检查你的 API 密钥是否以 `sk-` 开头
     - 确认该密钥在 TokenLab 控制面板中处于激活状态
     - 确认 SDK 正在发送 `Authorization: Bearer ...`
   </Accordion>
@@ -247,6 +236,6 @@ print(response.choices[0].message.content)
   <Accordion title="错误的 API 路径">
     - `responses.create(...)` 会向 `/v1/responses` 发送请求
     - `chat.completions.create(...)` 会向 `/v1/chat/completions` 发送请求
-    - 默认使用 Chat Completions，除非您明确需要 Responses 特定行为
+    - 默认使用 Chat Completions，除非你明确需要 Responses 特定行为
   </Accordion>
 </AccordionGroup>

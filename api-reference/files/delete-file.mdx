@@ -1,18 +1,20 @@
 ---
 title: "Delete File"
 openapi: "DELETE /v1/files/{file_id}"
-description: "Deletes a batch file, image/reference file binding, or Anthropic-mode file."
+description: "Delete an uploaded file from the current Workspace."
 ---
 
 ## Overview
 
-Deletes a file created through `/v1/files`. Without Anthropic headers, the route deletes TokenLab batch files or bound image/reference file bindings. With `anthropic-beta: files-api-2025-04-14`, it uses Anthropic Files API mode for the bound workspace.
+Delete a file created through `/v1/files`. A successful response includes `deleted: true`.
+
+With Anthropic Files headers, the same API deletes an Anthropic-format file from the current Workspace.
 
 ## Notes
 
-- Batch file deletion removes the stored batch file record and prevents future batch jobs from using that file ID.
-- Image/reference file deletion asks the selected provider to delete the file, then removes the TokenLab file binding after the provider accepts the deletion.
-- Anthropic Files API mode requires the same Anthropic-native headers used for upload and retrieval.
+- Deleting a file does not cancel batch jobs that already reference it.
+- Missing or inaccessible file IDs return a not-found error.
+- Delete image reference files only after no pending image edit request needs them.
 
 ## Example
 
@@ -22,24 +24,3 @@ curl -X DELETE "https://api.tokenlab.sh/v1/files/file_abc123" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 </RequestExample>
-
-## Request / Response
-
-Use the interactive OpenAPI panel above for the exact schema.
-
-## Response example
-
-<ResponseExample>
-```json 200 OK
-{
-  "id": "file_abc123",
-  "object": "file",
-  "deleted": true
-}
-```
-</ResponseExample>
-
-## Important fields
-
-<ResponseField name="id" type="string">File identifier that was deleted.</ResponseField>
-<ResponseField name="deleted" type="boolean">Whether the delete request succeeded.</ResponseField>

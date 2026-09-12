@@ -39,7 +39,7 @@ Operation 3D publik disimpulkan dari bentuk request: request yang hanya berisi `
 </ParamField>
 
 <ParamField body="seed" type="integer">
-  Seed untuk pembuatan yang dapat direproduksi.
+  Seed bilangan bulat untuk pembuatan yang dapat direproduksi. Harus antara `0` dan `4294967295`.
 </ParamField>
 
 <ParamField body="user" type="string">
@@ -182,6 +182,8 @@ echo "Task ID: " . $data['id'];
 ```json Response
 {
   "id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "task_id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "poll_url": "/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "status": "pending",
   "created": 1706000000,
   "model": "tripo-h3.1"

@@ -1,18 +1,20 @@
 ---
-title: "ファイルを削除"
+title: "ファイルの削除"
 openapi: "DELETE /v1/files/{file_id}"
-description: "バッチファイル、画像/参照ファイルの紐付け、または Anthropic モードのファイルを削除します。"
+description: "現在の組織が所有するアップロード済みファイルを削除します。"
 ---
 
 ## 概要
 
-`/v1/files` で作成したファイルを削除します。Anthropic ヘッダーがない場合は、TokenLab のバッチファイルまたは紐付け済みの画像/参照ファイルを削除します。`anthropic-beta: files-api-2025-04-14` がある場合は、紐付いたワークスペースで Anthropic Files API モードを使います。
+`/v1/files` で作成したファイルを削除します。Batch ファイルと TokenLab 作成の画像参照ファイルは、OpenAI 互換の deleted オブジェクトを返します。
+
+リクエストが Anthropic Files 互換モードを選ぶ場合、同じルートはバインドされたワークスペースから Anthropic スタイルのファイルを削除します。
 
 ## 注意事項
 
-- バッチファイルの削除では、保存済みのバッチファイル記録を削除し、その file ID を今後のバッチジョブで使えないようにします。
-- 画像/参照ファイルの削除では、選択されたプロバイダーに削除を依頼し、受理後に TokenLab 側の紐付けを削除します。
-- Anthropic Files API モードでは、アップロードや取得時と同じ Anthropic ネイティブヘッダーが必要です。
+- ファイルを削除しても、そのファイルをすでに参照している Batch ジョブはキャンセルされません。
+- 存在しない、または権限のない file id は、ルーティング状態を公開せず public な not-found エラーを返します。
+- 画像参照ファイルは、保留中の画像編集リクエストが不要になってから削除してください。
 
 ## 例
 
@@ -26,20 +28,3 @@ curl -X DELETE "https://api.tokenlab.sh/v1/files/file_abc123" \
 ## リクエスト / レスポンス
 
 正確な schema は上のインタラクティブ OpenAPI パネルを使用してください。
-
-## レスポンス例
-
-<ResponseExample>
-```json 200 OK
-{
-  "id": "file_abc123",
-  "object": "file",
-  "deleted": true
-}
-```
-</ResponseExample>
-
-## 重要なフィールド
-
-<ResponseField name="id" type="string">削除されたファイル識別子。</ResponseField>
-<ResponseField name="deleted" type="boolean">削除リクエストが成功したかどうか。</ResponseField>

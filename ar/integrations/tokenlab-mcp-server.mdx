@@ -30,10 +30,10 @@ description: "اربط Claude Code وCursor وVS Code وCodex وعملاء MCP �
 أسرع بداية آمنة هي تفعيل أدوات الكتالوج العامة الست فقط. لا تحتاج إلى مفتاح TokenLab API، ويمكنك تفعيل الأدوات التي تتطلب بيانات اعتماد لاحقاً.
 
 <CardGroup cols={2}>
-  <Card title="التثبيت في Cursor" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab-model-catalog&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXIiXSwiZW52Ijp7IlRPS0VOTEFCX01DUF9UT09MX1BST0ZJTEUiOiJjYXRhbG9nIn19">
+  <Card title="التثبيت في Cursor" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXIiXSwiZW52Ijp7IlRPS0VOTEFCX01DUF9UT09MX1BST0ZJTEUiOiJjYXRhbG9nIn19">
     أضف ملف التعريف العام `catalog` إلى Cursor بنقرة واحدة
   </Card>
-  <Card title="التثبيت في VS Code" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab-model-catalog&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
+  <Card title="التثبيت في VS Code" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
     أضف ملف التعريف العام `catalog` إلى إعدادات مستخدم VS Code
   </Card>
 </CardGroup>
@@ -68,13 +68,13 @@ description: "اربط Claude Code وCursor وVS Code وCodex وعملاء MCP �
         أضف TokenLab ضمن نطاق المستخدم ليكون متاحاً في كل المشاريع.
 
         ```bash
-        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
+        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab -- npx -y @tokenlabai/mcp-server
         ```
 
         لتفعيل ملف `core` الافتراضي، أضف مفتاح API بدلاً من ذلك.
 
         ```bash
-        claude mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key --scope user tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
+        claude mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key --scope user tokenlab -- npx -y @tokenlabai/mcp-server
         ```
 
         استخدم `--scope local` للمشروع الحالي فقط أو `--scope project` لإنشاء `.mcp.json` مشترك. لا تحفظ مفتاحاً حقيقياً في إعدادات المشروع.
@@ -86,7 +86,7 @@ description: "اربط Claude Code وCursor وVS Code وCodex وعملاء MCP �
         ```json
         {
           "mcpServers": {
-            "tokenlab-model-catalog": {
+            "tokenlab": {
               "command": "npx",
               "args": ["-y", "@tokenlabai/mcp-server"],
               "env": { "TOKENLAB_MCP_TOOL_PROFILE": "catalog" }
@@ -102,7 +102,7 @@ description: "اربط Claude Code وCursor وVS Code وCodex وعملاء MCP �
         ```json
         {
           "servers": {
-            "tokenlab-model-catalog": {
+            "tokenlab": {
               "type": "stdio",
               "command": "npx",
               "args": ["-y", "@tokenlabai/mcp-server"],
@@ -118,10 +118,10 @@ description: "اربط Claude Code وCursor وVS Code وCodex وعملاء MCP �
       <Tab title="Codex">
         ```bash
         # الكتالوج العام
-        codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
+        codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab -- npx -y @tokenlabai/mcp-server
 
         # ملف core الافتراضي مع مفتاح API
-        codex mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
+        codex mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key tokenlab -- npx -y @tokenlabai/mcp-server
         ```
       </Tab>
 
@@ -142,7 +142,7 @@ description: "اربط Claude Code وCursor وVS Code وCodex وعملاء MCP �
   </Step>
 
   <Step title="أعد التشغيل وتحقق">
-    أعد تشغيل عميل MCP أو تحميله، ووافق على الخادم المحلي عند الطلب، ثم تأكد من اتصال `tokenlab-model-catalog`.
+    أعد تشغيل عميل MCP أو تحميله، ووافق على الخادم المحلي عند الطلب، ثم تأكد من اتصال `tokenlab`.
 
     ```bash
     claude mcp list
@@ -155,14 +155,14 @@ description: "اربط Claude Code وCursor وVS Code وCodex وعملاء MCP �
 
 ## مرجع الإعداد
 
-في أي عميل stdio محلي، استخدم اسم الخادم `tokenlab-model-catalog` والأمر `npx` والوسيطتين المنفصلتين `-y` و`@tokenlabai/mcp-server`، واترك دليل العمل فارغاً. استخدم `@tokenlabai/mcp-server@0.6.17` لتثبيت الإصدار المتحقق منه حالياً.
+في أي عميل stdio محلي، استخدم اسم الخادم `tokenlab` والأمر `npx` والوسيطتين المنفصلتين `-y` و`@tokenlabai/mcp-server`، واترك دليل العمل فارغاً. استخدم `@tokenlabai/mcp-server@0.6.17` لتثبيت الإصدار المتحقق منه حالياً.
 
 إعداد قياسي للأدوات الموثقة:
 
 ```json
 {
   "mcpServers": {
-    "tokenlab-model-catalog": {
+    "tokenlab": {
       "command": "npx",
       "args": ["-y", "@tokenlabai/mcp-server"],
       "env": {
@@ -297,7 +297,7 @@ https://tokenlab-model-explorer.vercel.app/mcp
   </Accordion>
 
   <Accordion title="يعرض Claude Code حالة Pending approval">
-    تتطلب خوادم `.mcp.json` الخاصة بالمشروع الثقة في مساحة العمل والموافقة الصريحة. شغّل Claude Code تفاعلياً داخل المشروع، وافق على الثقة، ثم وافق على `tokenlab-model-catalog` في `/mcp`. استخدم `--scope user` لإعداد خاص متاح في كل المشاريع.
+    تتطلب خوادم `.mcp.json` الخاصة بالمشروع الثقة في مساحة العمل والموافقة الصريحة. شغّل Claude Code تفاعلياً داخل المشروع، وافق على الثقة، ثم وافق على `tokenlab` في `/mcp`. استخدم `--scope user` لإعداد خاص متاح في كل المشاريع.
   </Accordion>
 
   <Accordion title="قائمة النماذج فارغة">

@@ -6,11 +6,11 @@ description: "Kết nối phiên giọng nói và đa phương thức thời gia
 
 ## Tổng quan
 
-Endpoint này dùng cho nhận dạng giọng nói, tổng hợp giọng nói, dịch giọng nói hoặc mô hình đa phương thức thời gian thực. Yêu cầu `GET` thường trả về metadata; yêu cầu upgrade WebSocket sẽ được proxy tới phiên upstream đã định tuyến.
+Dùng endpoint này cho các phiên thời gian thực như nhận dạng giọng nói streaming, tổng hợp giọng nói, dịch giọng nói hoặc các mô hình đa phương thức thời gian thực. Yêu cầu `GET` thông thường trả về metadata của endpoint, còn yêu cầu nâng cấp WebSocket sẽ mở một phiên thời gian thực cho mô hình đã chọn.
 
 ## Phạm vi hỗ trợ
 
-Endpoint này là proxy WebSocket thời gian thực của TokenLab. Nó hỗ trợ kiểm tra metadata bằng `GET /v1/realtime` và upgrade WebSocket trên cùng đường dẫn. Nó không cung cấp các REST helper endpoint của OpenAI Realtime như `POST /v1/realtime/client_secrets`, `POST /v1/realtime/translations/client_secrets`, Realtime Calls (`accept`, `hangup`, `refer`, `reject`) hoặc tạo legacy beta REST session / transcription-session.
+TokenLab cung cấp endpoint WebSocket thời gian thực tại `GET /v1/realtime` để kiểm tra metadata và upgrade WebSocket. Hãy xem đây là một WebSocket subset: endpoint chỉ chuyển tiếp sự kiện của các mô hình realtime được hỗ trợ và không hỗ trợ các bề mặt REST helper của OpenAI Realtime như tạo phiên, `client_secrets`, API điều khiển cuộc gọi `Calls` hoặc legacy beta session APIs.
 
 Với ứng dụng trình duyệt hoặc di động, hãy giữ API key dài hạn trên server của bạn. Endpoint này không phát hành Realtime client secret ngắn hạn.
 
@@ -54,13 +54,13 @@ curl "https://api.tokenlab.sh/v1/realtime" \
 
 ## Tin nhắn
 
-TokenLab chuyển tiếp tin nhắn WebSocket giữa client và nhà cung cấp realtime đã định tuyến. Giữ đúng dạng sự kiện chính thức của mô hình đã chọn và truyền `model` trong query string.
+TokenLab chuyển tiếp các tin nhắn WebSocket giữa client của bạn và mô hình thời gian thực đã chọn. Hãy dùng định dạng sự kiện được ghi trong tài liệu của mô hình đó và đưa `model` vào query string thay vì vào từng sự kiện.
 
 ## Tính phí và đóng kết nối
 
-Phiên realtime dùng cùng số dư API key. TokenLab trừ trước một ước tính nhỏ khi socket mở, rồi quyết toán hoặc hoàn tiền khi phiên đóng.
+Phiên được tính phí từ số dư khóa API của bạn: TokenLab giữ trước một khoản ước tính khi bắt đầu, sau đó quyết toán theo mức sử dụng thực tế khi kết thúc và hoàn lại phần chênh lệch.
 
-Đóng socket client khi phiên hoàn tất. Nếu upstream đóng trước, TokenLab sẽ chuyển tiếp close code khi có thể.
+Đóng socket client khi phiên hoàn tất. Nếu dịch vụ đóng phiên trước, TokenLab sẽ gửi một sự kiện/mã đóng an toàn đến client của bạn khi có thể.
 
 ## Ví dụ phản hồi
 
@@ -80,4 +80,4 @@ Phiên realtime dùng cùng số dư API key. TokenLab trừ trước một ư�
 ## Trường quan trọng
 
 <ResponseField name="type" type="string">Loại event hoặc message do API trả về.</ResponseField>
-<ResponseField name="session.id" type="string">Mã định danh do provider realtime trả về; dùng trong log hỗ trợ, không phải REST session URL.</ResponseField>
+<ResponseField name="session.id" type="string">Mã định danh mờ nhận được qua kết nối realtime. Dùng trong log hỗ trợ để gỡ lỗi; đây không phải REST session URL.</ResponseField>

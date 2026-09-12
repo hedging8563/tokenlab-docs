@@ -30,10 +30,10 @@ Các công cụ danh mục và giá cả công khai không yêu cầu khóa API 
 Cách bắt đầu nhanh và an toàn nhất là chỉ bật sáu công cụ danh mục công khai. Bạn không cần khóa API TokenLab và có thể bật các công cụ cần xác thực sau.
 
 <CardGroup cols={2}>
-  <Card title="Cài đặt trong Cursor" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab-model-catalog&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXIiXSwiZW52Ijp7IlRPS0VOTEFCX01DUF9UT09MX1BST0ZJTEUiOiJjYXRhbG9nIn19">
+  <Card title="Cài đặt trong Cursor" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXIiXSwiZW52Ijp7IlRPS0VOTEFCX01DUF9UT09MX1BST0ZJTEUiOiJjYXRhbG9nIn19">
     Thêm cấu hình `catalog` công khai vào Cursor bằng một lần nhấp
   </Card>
-  <Card title="Cài đặt trong VS Code" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab-model-catalog&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
+  <Card title="Cài đặt trong VS Code" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
     Thêm cấu hình `catalog` công khai vào cài đặt người dùng VS Code
   </Card>
 </CardGroup>
@@ -68,13 +68,13 @@ Cách bắt đầu nhanh và an toàn nhất là chỉ bật sáu công cụ dan
         Thêm TokenLab ở phạm vi người dùng để sử dụng trong mọi dự án.
 
         ```bash
-        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
+        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab -- npx -y @tokenlabai/mcp-server
         ```
 
         Để bật cấu hình `core` mặc định, hãy thêm khóa API thay thế.
 
         ```bash
-        claude mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key --scope user tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
+        claude mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key --scope user tokenlab -- npx -y @tokenlabai/mcp-server
         ```
 
         Dùng `--scope local` cho riêng dự án hiện tại hoặc `--scope project` để tạo `.mcp.json` dùng chung. Không đưa khóa thật vào cấu hình dự án.
@@ -86,7 +86,7 @@ Cách bắt đầu nhanh và an toàn nhất là chỉ bật sáu công cụ dan
         ```json
         {
           "mcpServers": {
-            "tokenlab-model-catalog": {
+            "tokenlab": {
               "command": "npx",
               "args": ["-y", "@tokenlabai/mcp-server"],
               "env": { "TOKENLAB_MCP_TOOL_PROFILE": "catalog" }
@@ -102,7 +102,7 @@ Cách bắt đầu nhanh và an toàn nhất là chỉ bật sáu công cụ dan
         ```json
         {
           "servers": {
-            "tokenlab-model-catalog": {
+            "tokenlab": {
               "type": "stdio",
               "command": "npx",
               "args": ["-y", "@tokenlabai/mcp-server"],
@@ -118,10 +118,10 @@ Cách bắt đầu nhanh và an toàn nhất là chỉ bật sáu công cụ dan
       <Tab title="Codex">
         ```bash
         # Danh mục công khai
-        codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
+        codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab -- npx -y @tokenlabai/mcp-server
 
         # Cấu hình core mặc định với khóa API
-        codex mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
+        codex mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key tokenlab -- npx -y @tokenlabai/mcp-server
         ```
       </Tab>
 
@@ -142,7 +142,7 @@ Cách bắt đầu nhanh và an toàn nhất là chỉ bật sáu công cụ dan
   </Step>
 
   <Step title="Khởi động lại và xác minh">
-    Khởi động lại hoặc tải lại MCP client, phê duyệt máy chủ cục bộ khi được hỏi và xác nhận `tokenlab-model-catalog` đã kết nối.
+    Khởi động lại hoặc tải lại MCP client, phê duyệt máy chủ cục bộ khi được hỏi và xác nhận `tokenlab` đã kết nối.
 
     ```bash
     claude mcp list
@@ -155,14 +155,14 @@ Cách bắt đầu nhanh và an toàn nhất là chỉ bật sáu công cụ dan
 
 ## Tham chiếu cấu hình
 
-Trong mọi client stdio cục bộ, dùng tên `tokenlab-model-catalog`, lệnh `npx`, hai đối số riêng `-y` và `@tokenlabai/mcp-server`, đồng thời để trống thư mục làm việc. Dùng `@tokenlabai/mcp-server@0.6.17` để ghim bản phát hành hiện đã được xác minh.
+Trong mọi client stdio cục bộ, dùng tên `tokenlab`, lệnh `npx`, hai đối số riêng `-y` và `@tokenlabai/mcp-server`, đồng thời để trống thư mục làm việc. Dùng `@tokenlabai/mcp-server@0.6.17` để ghim bản phát hành hiện đã được xác minh.
 
 Cấu hình chuẩn cho công cụ có xác thực:
 
 ```json
 {
   "mcpServers": {
-    "tokenlab-model-catalog": {
+    "tokenlab": {
       "command": "npx",
       "args": ["-y", "@tokenlabai/mcp-server"],
       "env": {
@@ -297,7 +297,7 @@ Sử dụng cả hai khi có sẵn:
   </Accordion>
 
   <Accordion title="Claude Code hiển thị Pending approval">
-    Server `.mcp.json` theo dự án cần sự tin cậy của workspace và phê duyệt rõ ràng. Khởi động Claude Code tương tác trong dự án, chấp nhận tin cậy rồi phê duyệt `tokenlab-model-catalog` trong `/mcp`. Dùng `--scope user` cho cấu hình riêng tư khả dụng trong mọi dự án.
+    Server `.mcp.json` theo dự án cần sự tin cậy của workspace và phê duyệt rõ ràng. Khởi động Claude Code tương tác trong dự án, chấp nhận tin cậy rồi phê duyệt `tokenlab` trong `/mcp`. Dùng `--scope user` cho cấu hình riêng tư khả dụng trong mọi dự án.
   </Accordion>
 
   <Accordion title="Danh sách mô hình trống">

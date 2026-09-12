@@ -30,10 +30,10 @@ Alat katalog publik dan harga tidak memerlukan kunci API TokenLab. Atur `TOKENLA
 Cara paling cepat dan aman untuk memulai adalah mengaktifkan hanya enam alat katalog publik. Anda tidak memerlukan kunci API TokenLab dan dapat mengaktifkan alat berkredensial nanti.
 
 <CardGroup cols={2}>
-  <Card title="Instal di Cursor" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab-model-catalog&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXIiXSwiZW52Ijp7IlRPS0VOTEFCX01DUF9UT09MX1BST0ZJTEUiOiJjYXRhbG9nIn19">
+  <Card title="Instal di Cursor" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXIiXSwiZW52Ijp7IlRPS0VOTEFCX01DUF9UT09MX1BST0ZJTEUiOiJjYXRhbG9nIn19">
     Tambahkan profil publik `catalog` ke Cursor dengan sekali klik
   </Card>
-  <Card title="Instal di VS Code" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab-model-catalog&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
+  <Card title="Instal di VS Code" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
     Tambahkan profil publik `catalog` ke konfigurasi pengguna VS Code
   </Card>
 </CardGroup>
@@ -68,13 +68,13 @@ Cara paling cepat dan aman untuk memulai adalah mengaktifkan hanya enam alat kat
         Tambahkan TokenLab pada cakupan pengguna agar tersedia di semua proyek.
 
         ```bash
-        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
+        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab -- npx -y @tokenlabai/mcp-server
         ```
 
         Untuk mengaktifkan profil `core` default, tambahkan kunci API Anda.
 
         ```bash
-        claude mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key --scope user tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
+        claude mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key --scope user tokenlab -- npx -y @tokenlabai/mcp-server
         ```
 
         Gunakan `--scope local` hanya untuk proyek saat ini atau `--scope project` untuk membuat `.mcp.json` bersama. Jangan commit kunci asli ke konfigurasi proyek.
@@ -86,7 +86,7 @@ Cara paling cepat dan aman untuk memulai adalah mengaktifkan hanya enam alat kat
         ```json
         {
           "mcpServers": {
-            "tokenlab-model-catalog": {
+            "tokenlab": {
               "command": "npx",
               "args": ["-y", "@tokenlabai/mcp-server"],
               "env": { "TOKENLAB_MCP_TOOL_PROFILE": "catalog" }
@@ -102,7 +102,7 @@ Cara paling cepat dan aman untuk memulai adalah mengaktifkan hanya enam alat kat
         ```json
         {
           "servers": {
-            "tokenlab-model-catalog": {
+            "tokenlab": {
               "type": "stdio",
               "command": "npx",
               "args": ["-y", "@tokenlabai/mcp-server"],
@@ -118,10 +118,10 @@ Cara paling cepat dan aman untuk memulai adalah mengaktifkan hanya enam alat kat
       <Tab title="Codex">
         ```bash
         # Katalog publik
-        codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
+        codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab -- npx -y @tokenlabai/mcp-server
 
         # Profil core default dengan kunci API
-        codex mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key tokenlab-model-catalog -- npx -y @tokenlabai/mcp-server
+        codex mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key tokenlab -- npx -y @tokenlabai/mcp-server
         ```
       </Tab>
 
@@ -142,7 +142,7 @@ Cara paling cepat dan aman untuk memulai adalah mengaktifkan hanya enam alat kat
   </Step>
 
   <Step title="Mulai ulang dan verifikasi">
-    Mulai ulang atau muat ulang klien MCP, setujui server lokal saat diminta, lalu pastikan `tokenlab-model-catalog` terhubung.
+    Mulai ulang atau muat ulang klien MCP, setujui server lokal saat diminta, lalu pastikan `tokenlab` terhubung.
 
     ```bash
     claude mcp list
@@ -155,14 +155,14 @@ Cara paling cepat dan aman untuk memulai adalah mengaktifkan hanya enam alat kat
 
 ## Referensi konfigurasi
 
-Pada klien stdio lokal, gunakan nama `tokenlab-model-catalog`, perintah `npx`, argumen terpisah `-y` dan `@tokenlabai/mcp-server`, serta biarkan direktori kerja kosong. Gunakan `@tokenlabai/mcp-server@0.6.17` untuk mengunci rilis yang saat ini telah diverifikasi.
+Pada klien stdio lokal, gunakan nama `tokenlab`, perintah `npx`, argumen terpisah `-y` dan `@tokenlabai/mcp-server`, serta biarkan direktori kerja kosong. Gunakan `@tokenlabai/mcp-server@0.6.17` untuk mengunci rilis yang saat ini telah diverifikasi.
 
 Konfigurasi standar untuk alat berkredensial:
 
 ```json
 {
   "mcpServers": {
-    "tokenlab-model-catalog": {
+    "tokenlab": {
       "command": "npx",
       "args": ["-y", "@tokenlabai/mcp-server"],
       "env": {
@@ -297,7 +297,7 @@ Gunakan keduanya jika tersedia:
   </Accordion>
 
   <Accordion title="Claude Code menampilkan Pending approval">
-    Server `.mcp.json` tingkat proyek memerlukan kepercayaan workspace dan persetujuan eksplisit. Mulai Claude Code secara interaktif di proyek, terima kepercayaan, lalu setujui `tokenlab-model-catalog` di `/mcp`. Gunakan `--scope user` untuk konfigurasi pribadi yang tersedia di semua proyek.
+    Server `.mcp.json` tingkat proyek memerlukan kepercayaan workspace dan persetujuan eksplisit. Mulai Claude Code secara interaktif di proyek, terima kepercayaan, lalu setujui `tokenlab` di `/mcp`. Gunakan `--scope user` untuk konfigurasi pribadi yang tersedia di semua proyek.
   </Accordion>
 
   <Accordion title="Daftar model kosong">

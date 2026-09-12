@@ -1,33 +1,29 @@
 ---
 title: "创建视频"
 openapi: "POST /v1/videos/generations"
-description: "创建一个视频生成任务"
+description: "提交视频生成任务"
 ---
 
 import VideoModelContractNote from "../../snippets/generated/video-model-contract-note.mdx";
 
 ## 概述
 
-视频生成是异步的。你提交请求后，会收到一个任务 ID 和 `poll_url`，然后通过轮询获取结果。
+视频生成需要一些时间。创建成功后会返回任务 ID 和 `poll_url`，通过这个地址查询进度和结果。
 
-### 轮询行为
+### 查询任务状态
 
-创建响应会返回规范异步标识 `id`，并通常同时回传 `task_id`。请优先轮询 `poll_url`；如果需要固定状态入口，请使用 `GET /v1/tasks/{id}`。
+直接请求创建响应中的 `poll_url`。`id` 与 `task_id` 指向同一个任务，也可以通过 `GET /v1/tasks/{id}` 查询。
 
-如果创建响应返回 `poll_url`，请直接使用该 URL。若它指向 `/v1/tasks/{id}`，请将其视为规范的固定状态查询入口。
-
-为了获得最可靠的轮询行为，请严格使用创建请求返回的 `poll_url`。
-
-### 模型与媒体行为
+### 音频与媒体输入
 
 音频输出是否开启取决于具体模型。在 TokenLab 中，Veo 3 和 Seedance 请求在省略 `output_audio` 时默认按开启音频处理。模型支持音频控制时，可用 `output_audio` 显式切换；兼容别名 `outputAudio` 和 `generate_audio` 也可以使用，但多个字段同时出现时值必须一致。
 
-生产集成中，建议优先使用公网可访问的 `https` URL 作为图片、视频和音频输入。兼容模型仍支持内联 `data:` URL，但大体积 base64 在重试、观测和排障时通常更不友好。
+图片、视频和音频建议使用公网可访问的 `https` URL。部分模型也接受内联 `data:` URL；文件较大时，URL 会更稳定。
 
 ## 请求体
 
 <ParamField body="model" type="string" default="veo3.1">
-  视频模型 ID。请使用 `veo3.1`、`wan-2.7`、`happyhorse-1.0`、`viduq3`、`pixverse-v6`、`kling-3.0-video` 等模型 ID；文生视频、图生视频、参考图生视频等能力用 `operation` 选择。当前公开视频能力请参考[视频生成指南](/zh/guides/video-generation)和 [Models API](/zh/api-reference/models/list-models)。
+  视频模型 ID。可从 [Models API](/zh/api-reference/models/list-models) 获取当前可用模型，用 `operation` 选择文生视频、图生视频等生成方式。
 </ParamField>
 
 <VideoModelContractNote />
@@ -37,11 +33,11 @@ import VideoModelContractNote from "../../snippets/generated/video-model-contrac
 </ParamField>
 
 <ParamField body="operation" type="string">
-  要执行的视频操作。支持 `text-to-video`、`image-to-video`、`reference-to-video`、`start-end-to-video`、`video-to-video`、`video-extension`、`audio-to-video` 和 `motion-control`。TokenLab 可以根据输入自动推断操作，但生产环境仍建议显式传入 `operation`。
+  生成方式。支持 `text-to-video`、`image-to-video`、`reference-to-video`、`start-end-to-video`、`video-to-video`、`video-extension`、`audio-to-video` 和 `motion-control`。省略时会根据输入判断；明确填写可以更早发现不匹配的参数。
 </ParamField>
 
 <ParamField body="image_url" type="string">
-  用于图生视频的起始图片 URL。对于 Seedance 素材，也可以传入 `asset://asset-YYYYMMDDHHMMSS-xxxxx`，把一个处于 `ACTIVE` 状态的 TokenLab 素材用作首帧。为了获得最广泛的跨模型兼容性，普通图片建议使用 `https` URL。
+  图生视频的起始图片。可传公网 `https` URL；Seedance 也接受处于 `ACTIVE` 状态的 TokenLab 素材 URI，例如 `asset://asset-YYYYMMDDHHMMSS-xxxxx`。
 </ParamField>
 
 <ParamField body="image" type="string">
@@ -49,19 +45,19 @@ import VideoModelContractNote from "../../snippets/generated/video-model-contrac
 </ParamField>
 
 <ParamField body="reference_images" type="array">
-用于参考图生视频的参考图输入。可传数量取决于模型。对于 `seedance-2.0` 和 `seedance-2.0-fast`，TokenLab 当前支持最多 9 张参考图，外加最多 3 段参考视频和 3 段参考音频。每张 Seedance 参考图既可以是 `https` URL，也可以是指向 `ACTIVE` TokenLab 素材的 `asset://asset-YYYYMMDDHHMMSS-xxxxx`。模型选型、4K 边界和 Mini 说明请参考 [Seedance 2.0 视频模型指南](/zh/guides/seedance-2-video)。普通图片建议优先使用公网 `https` URL；兼容模型也支持内联 `data:` URL。 对于 `grok-imagine-video`，reference-to-video 最多接受 7 个图片参考，且 `duration` 最高为 10 秒。`grok-imagine-video-1.5-preview` 仅支持图生视频，不接受参考图片。
+  参考图列表，数量上限取决于模型。`seedance-2.0` 和 `seedance-2.0-fast` 最多支持 9 张参考图、3 段参考视频和 3 段参考音频；图片可以使用公网 `https` URL 或处于 `ACTIVE` 状态的 TokenLab 素材 URI。`grok-imagine-video` 最多接受 7 张参考图，生成时长最高 10 秒；`grok-imagine-video-1.5-preview` 只支持图生视频。Seedance 的分辨率和素材限制见 [Seedance 2.0 视频模型指南](/zh/guides/seedance-2-video)。
 </ParamField>
 
 <ParamField body="material_asset_id" type="string">
-  [创建素材](/zh/api-reference/video/create-material-asset)或自动图片准备流程返回的 TokenLab Seedance 素材 ID。素材变为 `ACTIVE` 后，可在能够使用 TokenLab 素材库的 Seedance 模型中使用。该字段只表示 `reference-to-video` 的通用参考素材；省略 `operation` 时，TokenLab 会据此自动推断为 `reference-to-video`。若要把素材作为 `image-to-video` 首帧，请改用 `image_url: "asset://<material_asset_id>"`；首尾帧流程使用 `start_image` 和 `end_image`，明确的参考图角色使用 `reference_images`。
+  [创建素材](/zh/api-reference/video/create-material-asset)返回的 Seedance 素材 ID。素材状态变为 `ACTIVE` 后，可用于 `reference-to-video`。作为图生视频首帧时，请改用 `image_url: "asset://<material_asset_id>"`；首尾帧分别使用 `start_image` 和 `end_image`。
 </ParamField>
 
 <ParamField body="material_asset_ids" type="array">
-  多个 TokenLab Seedance 素材 ID，仅用于 `reference-to-video` 的通用参考素材。它们与 `reference_images` 共用 Seedance 图片参考数量限制；所选模型必须能够使用 TokenLab 素材库。若要把其中一个素材作为 `image-to-video` 首帧，请选取该素材并改用 `image_url: "asset://<material_asset_id>"`。
+  多个 Seedance 素材 ID，用于 `reference-to-video`。它们与 `reference_images` 共用图片数量上限。作为图生视频首帧时，请将对应素材写入 `image_url`。
 </ParamField>
 
 <Info>
-当所选 Seedance 模型可使用 TokenLab 素材库时，TokenLab 会在生成前将图片字段（`image`、`image_url`、`image_urls`、`reference_images`、`start_image`、`end_image`）准备为可复用素材。这些字段也接受 `asset://asset-YYYYMMDDHHMMSS-xxxxx` 形式的 TokenLab 素材 URI；TokenLab 会校验素材是否属于当前组织，并保留字段所表达的用途。原始上游 `asset://` ID 会被拒绝。如果 60 秒内仍未准备完成，API 会返回 `409 seedance_material_preparing` 和 `auto_material_asset_ids`；请在这些素材变为 `ACTIVE` 后重试。如果所选模型暂不可使用素材库，普通图片输入仍走常规图片路径；显式素材 ID 会返回素材可用性错误。
+Seedance 可把请求中的图片保存为当前工作区的可复用素材，也接受 `asset://asset-YYYYMMDDHHMMSS-xxxxx` 形式的 TokenLab 素材 URI。若素材在 60 秒内尚未就绪，API 会返回 `409 seedance_material_preparing` 和 `auto_material_asset_ids`；素材状态变为 `ACTIVE` 后即可重试。
 </Info>
 
 
@@ -74,7 +70,7 @@ import VideoModelContractNote from "../../snippets/generated/video-model-contrac
 </ParamField>
 
 <ParamField body="video_url" type="string">
-  源视频的公网 URL。基于视频 URL 的 `video-to-video` 流程和 `motion-control` 需要该字段；部分衍生流程改用 `task_id`。
+  源视频的公网 URL。`video-to-video` 和 `motion-control` 使用该字段；部分续写或扩展功能使用 `task_id`。
 </ParamField>
 
 <ParamField body="video_urls" type="array">
@@ -90,15 +86,15 @@ import VideoModelContractNote from "../../snippets/generated/video-model-contrac
 </ParamField>
 
 <ParamField body="task_id" type="string">
-  某些续写、扩展或衍生流程使用的任务标识符。
+  部分续写、扩展或衍生功能使用的任务 ID。
 </ParamField>
 
 <ParamField body="extend_at" type="integer">
-  某些 `video-extension` 流程使用的模型侧扩展起点参数。
+  部分 `video-extension` 模型使用的扩展起点。
 </ParamField>
 
 <ParamField body="extend_times" type="string">
-  某些 `video-extension` 流程使用的模型侧扩展次数或倍率参数。
+  部分 `video-extension` 模型使用的扩展次数或倍率。
 </ParamField>
 
 <ParamField body="duration" type="integer">
@@ -110,7 +106,7 @@ import VideoModelContractNote from "../../snippets/generated/video-model-contrac
 </ParamField>
 
 <ParamField body="aspect_ratio" type="string">
-  规范宽高比，例如 `adaptive`、`16:9`、`9:16`、`1:1`、`4:3`、`3:4` 或 `21:9`。Seedance 省略时默认 `adaptive`。
+  视频宽高比，例如 `adaptive`、`16:9`、`9:16`、`1:1`、`4:3`、`3:4` 或 `21:9`。Seedance 省略时默认为 `adaptive`。
 </ParamField>
 
 <ParamField body="resolution" type="string">
@@ -118,11 +114,11 @@ import VideoModelContractNote from "../../snippets/generated/video-model-contrac
 </ParamField>
 
 <ParamField body="output_audio" type="boolean">
-  规范的音频输出开关。Veo 3 和 Seedance 省略时默认 `true`。`kling-3.0-video` 仅在非元素引用请求中接受该字段，省略时默认无声。不要将 `output_audio=true` 与 `kling_elements` 组合使用。
+  是否生成音频。Veo 3 和 Seedance 省略时默认为 `true`。`kling-3.0-video` 仅在不使用元素引用时接受该字段，省略时默认无声。不要将 `output_audio=true` 与 `kling_elements` 一起使用。
 </ParamField>
 
 <ParamField body="draft" type="boolean">
-  Seedance 1.5 Pro 草稿工作流开关。仅在支持草稿任务的 Seedance 模型上使用 `draft=true`；不要和 `draft_task_id` 同时传。
+  是否使用 Seedance 1.5 Pro 草稿模式。不要和 `draft_task_id` 同时传入。
 </ParamField>
 
 <ParamField body="draft_task_id" type="string">
@@ -198,25 +194,25 @@ import VideoModelContractNote from "../../snippets/generated/video-model-contrac
 </ParamField>
 
 <ParamField body="effect_type" type="string">
-  某些特效或编辑流程使用的模型侧效果选择器。
+  部分特效或编辑模型使用的效果类型。
 </ParamField>
 
 <ParamField body="user" type="string">
   终端用户的唯一标识符。对 Seedance，如果未传 `safety_identifier`，TokenLab 会使用该值。
 </ParamField>
 
-## 兼容说明
+## 兼容字段
 
-- 规范公开字段继续使用 snake_case：`aspect_ratio`、`output_audio`、`reference_images` 和 `reference_image_type`。
+- 主要字段使用 snake_case：`aspect_ratio`、`output_audio`、`reference_images` 和 `reference_image_type`。
 - 为了兼容已有调用，TokenLab 也接受 `ratio`、`generate_audio`、`outputAudio`、`seconds`、`referenceImages` 和 `referenceImageType`。
-- 如果规范字段和别名字段同时出现，值必须一致；冲突会在创建任务前被拒绝。
-- 如果省略 `operation`，TokenLab 会根据输入自动推断操作；生产环境仍建议显式传入。
+- 如果主要字段和别名同时出现，两边的值必须一致。
+- 如果省略 `operation`，TokenLab 会根据输入判断生成方式。
 
-## 输入最佳实践
+## 媒体输入
 
-- 对于 `image_url`、`reference_images`、`video_url` 和 `audio_url`，建议优先使用公网可访问的 `https` URL。
-- 可以避免在同一请求中混用内联 base64 和远程 URL；统一一种表示方式更容易排障和重试。
-- 请确保远程媒体 URL 的有效期足够覆盖重试窗口和异步任务创建过程。
+- `image_url`、`reference_images`、`video_url` 和 `audio_url` 建议使用公网可访问的 `https` URL。
+- 同一请求尽量统一使用 URL 或内联 base64，避免混用。
+- 远程媒体 URL 需要在任务开始处理前保持有效。
 
 ## Seedance 参数
 
@@ -231,7 +227,7 @@ curl -X POST "https://api.tokenlab.sh/v1/videos/generations" \
   -H "Authorization: Bearer sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "seedance-2.0",
+    "model": "seedance-2.5",
     "prompt": "A sleek product reveal with cinematic camera movement",
     "operation": "text-to-video",
     "duration": -1,
@@ -244,19 +240,19 @@ curl -X POST "https://api.tokenlab.sh/v1/videos/generations" \
 ## 响应
 
 <ResponseField name="id" type="string">
-  规范异步任务 ID。
+  任务 ID。
 </ResponseField>
 
 <ResponseField name="task_id" type="string">
-  用于轮询的唯一任务标识符。
+  与 `id` 相同的任务 ID。
 </ResponseField>
 
 <ResponseField name="poll_url" type="string">
-  此任务建议使用的轮询 URL。检查状态时请使用该精确路径。
+  查询任务状态和结果的地址。
 </ResponseField>
 
 <ResponseField name="billing_transaction_id" type="string">
-  当结算已经完成时返回 TokenLab 账单交易 ID。它对应 dashboard / 对账使用的交易标识，与异步 `id` / `task_id` 不同。
+  结算完成后返回的账单交易 ID，与任务 ID 不同。
 </ResponseField>
 
 <ResponseField name="status" type="string">
@@ -407,9 +403,9 @@ response = requests.post(
 
 ## 视频转视频
 
-对于 `grok-imagine-video` 的 video-to-video，请在 `video_url` 中传入公网 HTTPS `.mp4` URL。TokenLab 会把它转换为 xAI REST 的 `video.url` 请求体。你可以把 `resolution` 设为 `480p` 或 `720p`；该编辑流程不接受 `duration` 和 `aspect_ratio`。
+`grok-imagine-video` 的 `video-to-video` 接受公网 HTTPS `.mp4` URL，可将 `resolution` 设为 `480p` 或 `720p`；该模式不接受 `duration` 和 `aspect_ratio`。
 
-当模型接受现有视频作为主输入时，请使用 `operation=video-to-video`。
+使用现有视频作为输入时，将 `operation` 设为 `video-to-video`。
 
 ```python
 response = requests.post(
@@ -427,7 +423,7 @@ response = requests.post(
 
 ## 动作控制
 
-当模型同时需要主体图片和动作参考视频时，请使用 `operation=motion-control`。TokenLab 会把公开的 `image_url` + `video_url` 请求形态转换成该模型的 motion-control 请求格式。
+需要主体图片和动作参考视频时，将 `operation` 设为 `motion-control`，并分别传入 `image_url` 和 `video_url`。
 
 ```python
 response = requests.post(
@@ -446,7 +442,7 @@ response = requests.post(
 
 ## 模型发现
 
-公开视频模型库存和支持的操作会持续变化。接入某个模型特定流程前，请以 [Models API](/zh/api-reference/models/list-models) 确认当前支持情况：
+可用模型和生成方式可能调整。通过 [Models API](/zh/api-reference/models/list-models) 获取当前信息：
 
 ```bash
 curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \
@@ -456,4 +452,4 @@ curl "https://api.tokenlab.sh/v1/models/veo3.1" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 
-依赖模型特定操作或字段前，请读取单模型详情响应。`audio-to-video`、`video-extension` 等操作属于模型特定能力；请在那里确认实时可用性，不要依赖本页中的静态示例。
+`audio-to-video`、`video-extension` 等功能只在部分模型中提供，以单个模型的详情响应为准。

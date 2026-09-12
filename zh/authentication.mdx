@@ -1,11 +1,11 @@
 ---
 title: "身份验证"
-description: "使用 API key 保护你的 TokenLab API 请求"
+description: "用 API 密钥验证 TokenLab API 请求"
 ---
 
-## API key
+## API 密钥
 
-所有 TokenLab API 请求都需要 API key。
+所有 TokenLab API 请求都需要 API 密钥。
 
 对于兼容 OpenAI 的端点，请按如下方式发送：
 
@@ -19,23 +19,37 @@ Authorization: Bearer sk-your-api-key
 x-api-key: sk-your-api-key
 ```
 
-## 获取你的 API key
+## 管理令牌
 
-1. 登录你的 [TokenLab Dashboard](https://tokenlab.sh/dashboard)
-2. 打开 **API Keys**
-3. 创建一个新 key
-4. 为其指定一个便于识别的名称
-5. 立即复制它，因为它只会显示一次
+管理 API 使用单独的令牌：
+
+```bash
+Authorization: Bearer mt-your-management-token
+```
+
+管理令牌只用于 `/v1/management/*`。在 Console 的 **Settings** 页面创建或轮换；完整令牌只显示一次。
+
+<Note>
+管理令牌不能调用模型，普通的 `sk-...` API 密钥也不能调用管理 API。
+</Note>
+
+## 获取 API 密钥
+
+1. 登录 [TokenLab Console](https://tokenlab.sh/dashboard)
+2. 打开 **API 密钥**
+3. 创建一把新密钥
+4. 起一个好认的名字
+5. 马上复制。完整密钥只显示一次
 
 <Warning>
-- 绝不要在客户端代码中暴露 API key
-- 绝不要将 API key 提交到版本控制
-- 使用环境变量或 secret manager
-- 定期轮换 key
-- 删除未使用的 key
+- 不要把 API 密钥写进前端代码
+- 不要把 API 密钥提交到版本库
+- 用环境变量或密钥管理器保存
+- 定期轮换密钥
+- 删掉不用的密钥
 </Warning>
 
-## 使用 API key
+## 使用 API 密钥
 
 <CodeGroup>
 
@@ -44,7 +58,7 @@ curl https://api.tokenlab.sh/v1/responses \
   -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-5.4",
+    "model": "gpt-5.6-terra",
     "input": "Hello!"
   }'
 ```
@@ -70,20 +84,18 @@ const client = new OpenAI({
 
 </CodeGroup>
 
-## API key 特性
+## 设置用量上限
 
-### 使用限制
-
-你可以为每个 API key 设置使用限制：
+你可以为每把 API 密钥设置用量上限：
 
 | 设置 | 描述 |
 |---------|-------------|
-| **No Limit** | key 可无限制地使用你的账户余额 |
-| **Fixed Limit** | key 在达到指定金额后将停止工作 |
+| **不限额** | API 密钥可以使用全部账户余额 |
+| **固定额度** | 用量达到指定金额后，这把密钥会停止工作 |
 
-### key 前缀
+## 密钥前缀
 
-所有 TokenLab API key 都以 `sk-` 开头。
+所有 TokenLab API 密钥都以 `sk-` 开头。
 
 ## Anthropic 兼容性
 
@@ -95,24 +107,24 @@ curl https://api.tokenlab.sh/v1/messages \
   -H "anthropic-version: 2023-06-01" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "claude-sonnet-4-6",
+    "model": "claude-sonnet-5",
     "max_tokens": 1024,
     "messages": [{"role": "user", "content": "Hello!"}]
   }'
 ```
 
 <Note>
-对于兼容 OpenAI 的端点，例如 `/v1/responses`、`/v1/chat/completions`、`/v1/models` 以及大多数其他 TokenLab 路由，请使用 `Authorization: Bearer ...`。
+OpenAI 兼容接口（包括 `/v1/responses`、`/v1/chat/completions` 和 `/v1/models`）使用 `Authorization: Bearer ...`。
 </Note>
 
 ## 错误响应
 
 | 状态码 | 类型 | 代码 | 描述 |
 |-------------|------|------|-------------|
-| 401 | `invalid_api_key` | `invalid_api_key` | 缺少或无效的 API key |
-| 401 | `expired_api_key` | `expired_api_key` | API key 已被撤销 |
+| 401 | `invalid_api_key` | `invalid_api_key` | 缺少或无效的 API 密钥 |
+| 401 | `expired_api_key` | `expired_api_key` | API 密钥已过期 |
 | 402 | `insufficient_balance` | `insufficient_balance` | 账户余额不足 |
-| 402 | `quota_exceeded` | `quota_exceeded` | 已达到 API key 使用限制 |
+| 402 | `quota_exceeded` | `quota_exceeded` | 已达到 API 密钥用量上限 |
 
 示例：
 

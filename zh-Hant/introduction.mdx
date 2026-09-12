@@ -28,9 +28,9 @@ TokenLab 是一個 AI API 聚合平台，使您能夠統一存取來自 OpenAI�
 
 | 能力 | 說明 | 範例模型 |
 |---|---|---|
-| 聊天與推理 | 文字生成、規劃、工具呼叫 | `gpt-5.4`, `claude-sonnet-4-6`, `deepseek-r1` |
+| 聊天與推理 | 文字生成、規劃、工具呼叫 | `gpt-5.4`, `claude-sonnet-4-6` |
 | 視覺與多模態 | 圖像理解與多模態對話 | `gpt-4o`, `claude-sonnet-4-6`, `gemini-3.5-flash` |
-| 圖像生成與編輯 | 文生圖與圖像編輯 | `gpt-image-2`, `flux-pro`, `qwen-image-plus` |
+| 圖像生成與編輯 | 文生圖與圖像編輯 | `gpt-image-2`, `flux-pro` |
 | 影片生成 | 文生影片、圖生影片、參考影片與動作控制 | `veo3.1`, `wan-2.7`, `kling-3.0-video`, `happyhorse-1.0` |
 | 音訊與 Realtime WebSocket | TTS、轉寫、音訊翻譯和即時 WebSocket 會話 | `gpt-4o-mini-tts`, `whisper-1`, `gpt-realtime` |
 | 嵌入與 rerank | 文字向量化與重排序 | `text-embedding-3-small`, `qwen3-vl-rerank` |
@@ -49,7 +49,7 @@ curl https://api.tokenlab.sh/v1/chat/completions \
   -H "Authorization: Bearer sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-5.4",
+    "model": "gpt-5.6-terra",
     "messages": [
       {"role": "user", "content": "Explain what TokenLab does in one sentence."}
     ]
@@ -65,7 +65,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="gpt-5.4",
+    model="gpt-5.6-terra",
     messages=[{"role": "user", "content": "Explain what TokenLab does in one sentence."}]
 )
 
@@ -81,7 +81,7 @@ const client = new OpenAI({
 });
 
 const response = await client.chat.completions.create({
-  model: 'gpt-5.4',
+  model: 'gpt-5.6-terra',
   messages: [{ role: 'user', content: 'Explain what TokenLab does in one sentence.' }],
 });
 

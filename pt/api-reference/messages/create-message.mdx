@@ -118,7 +118,7 @@ curl -X POST "https://api.tokenlab.sh/v1/messages" \
   -H "anthropic-version: 2023-06-01" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "claude-sonnet-4-6",
+    "model": "claude-sonnet-5",
     "max_tokens": 1024,
     "system": "You are a helpful assistant.",
     "messages": [
@@ -136,7 +136,7 @@ client = Anthropic(
 )
 
 message = client.messages.create(
-    model="claude-sonnet-4-6",
+    model="claude-sonnet-5",
     max_tokens=1024,
     system="You are a helpful assistant.",
     messages=[
@@ -156,7 +156,7 @@ const client = new Anthropic({
 });
 
 const message = await client.messages.create({
-  model: 'claude-sonnet-4-6',
+  model: 'claude-sonnet-5',
   max_tokens: 1024,
   system: 'You are a helpful assistant.',
   messages: [
@@ -180,7 +180,7 @@ import (
 
 func main() {
     payload := map[string]interface{}{
-        "model":      "claude-sonnet-4-6",
+        "model":      "claude-sonnet-5",
         "max_tokens": 1024,
         "system":     "You are a helpful assistant.",
         "messages": []map[string]string{
@@ -206,7 +206,7 @@ func main() {
 ```php PHP
 <?php
 $payload = [
-    'model' => 'claude-sonnet-4-6',
+    'model' => 'claude-sonnet-5',
     'max_tokens' => 1024,
     'system' => 'You are a helpful assistant.',
     'messages' => [
@@ -247,7 +247,7 @@ echo $data['content'][0]['text'];
       "text": "Hello! How can I help you today?"
     }
   ],
-  "model": "claude-sonnet-4-6",
+  "model": "claude-sonnet-5",
   "stop_reason": "end_turn",
   "usage": {
     "input_tokens": 15,
@@ -263,7 +263,7 @@ Para modelos Claude com suporte a visão, coloque imagens dentro de `messages[].
 
 ```json
 {
-  "model": "claude-sonnet-4-6",
+  "model": "claude-sonnet-5",
   "max_tokens": 1024,
   "messages": [
     {
@@ -288,7 +288,7 @@ Para modelos Claude com suporte a visão, coloque imagens dentro de `messages[].
 
 ```json
 {
-  "model": "claude-sonnet-4-6",
+  "model": "claude-sonnet-5",
   "max_tokens": 1024,
   "messages": [
     {
@@ -317,7 +317,7 @@ Para modelos Claude com suporte a visão, coloque imagens dentro de `messages[].
 
 ```python
 message = client.messages.create(
-    model="claude-opus-4-6",
+    model="claude-opus-5",
     max_tokens=16000,
     thinking={
         "type": "enabled",

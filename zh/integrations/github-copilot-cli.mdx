@@ -5,13 +5,6 @@ description: "通过 BYOK 将 GitHub Copilot CLI 连接到 TokenLab"
 
 ## 概述
 
-<Note>
-**类型**：编码代理 CLI
-
-**主要路径**：OpenAI 兼容 Chat Completions
-
-**支持级别**：官方 BYOK 路径
-</Note>
 
 [GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/use-byok-models) 可以连接任意 OpenAI Chat Completions 兼容端点。TokenLab 使用 Copilot CLI 官方环境变量完成配置。
 
@@ -39,7 +32,7 @@ copilot
 |---|---|
 | `COPILOT_PROVIDER_TYPE` | `openai` |
 | `COPILOT_PROVIDER_BASE_URL` | `https://api.tokenlab.sh/v1` |
-| `COPILOT_PROVIDER_API_KEY` | 你的 TokenLab API Key |
+| `COPILOT_PROVIDER_API_KEY` | 你的 TokenLab API 密钥 |
 | `COPILOT_MODEL` | 实时模型 ID，例如 `kimi-k3` |
 
 Copilot CLI 要求模型同时支持流式输出和工具调用。`kimi-k3` 支持工具调用，且上下文超过 GitHub 建议的 128K。
@@ -52,8 +45,8 @@ Copilot CLI 要求模型同时支持流式输出和工具调用。`kimi-k3` 支�
 检查此仓库并总结顶层目录结构，不要修改文件。
 ```
 
-如果提示认证失败，请重新检查 API Key；如果提示模型不存在，请使用 [TokenLab 实时模型目录](https://tokenlab.sh/zh/models) 中的完整模型 ID，不要给 `kimi-k3` 添加提供商前缀。
+如果提示认证失败，请重新检查 API 密钥；如果提示模型不存在，请使用 [TokenLab 实时模型目录](https://tokenlab.sh/zh/models) 中的完整模型 ID，不要给 `kimi-k3` 添加提供商前缀。
 
 <Warning>
-不要把 API Key 提交到 Git 跟踪的脚本或配置文件。任何出现在终端历史、截图或日志中的 Key 都应立即轮换。
+不要把 API 密钥 提交到 Git 跟踪的脚本或配置文件。任何出现在终端历史、截图或日志中的 Key 都应立即轮换。
 </Warning>

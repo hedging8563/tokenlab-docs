@@ -1,20 +1,20 @@
 ---
-title: "创建图像"
+title: "生成图片"
 openapi: "POST /v1/images/generations"
-description: "根据 prompt 创建图像"
+description: "根据提示词生成图片"
 ---
 
 ## 概述
 
-对于 coding agent，请先通过 `GET /v1/models?recommended_for=image` 找出当前推荐的图片模型清单，然后将选定的 `model` 明确传给这个端点。
+通过 `GET /v1/models?recommended_for=image` 查看当前图片模型，并在请求中明确填写 `model`。
 
-`gpt-image-2` 是按 token 计费的 GPT Image 模型。TokenLab 按 OpenAI 官方 usage 明细结算文本输入、图片输入、已上报的缓存输入以及图片输出 token；它不是固定每张图片计费的模型。
+`gpt-image-2` 按文本输入、图片输入、缓存输入和图片输出 tokens 计费，不是固定每张收费。
 
-对于 `gpt-image-2` 图像生成，公共参数支持 `prompt`、`n`、`size`、`quality`、`response_format`、`async`、`background`、`output_format`、`output_compression` 或 `compression`、`moderation` 和 `user`。`background` 接受 `auto` 或 `opaque`，不支持 `transparent`。不传 `size` 或 `quality` 时 TokenLab 会使用 `auto`；自定义 `size` 必须使用下方说明的弹性 `WIDTHxHEIGHT` 契约。
+`gpt-image-2` 支持 `prompt`、`n`、`size`、`quality`、`response_format`、`async`、`background`、`output_format`、`output_compression` / `compression`、`moderation` 和 `user`。`background` 可以是 `auto` 或 `opaque`，暂不支持 `transparent`。省略 `size` 或 `quality` 时使用 `auto`。
 
 `input_fidelity` 不属于当前 TokenLab 对 `gpt-image-2` 的支持字段；请省略该字段，否则请求会返回 `400 unsupported_parameter`。
 
-### 模型行为说明
+### 不同图片模型的参数
 
 Google Gemini 图片模型并不共用同一套参数选择规则：
 
@@ -23,7 +23,7 @@ Google Gemini 图片模型并不共用同一套参数选择规则：
 - `gemini-2.5-flash-image`、`nano-banana` 和 `nano-banana-edit` 支持 `aspect_ratio`，但不提供公开的 `resolution` 选择。
 - Nano Banana 参考图请求请在本端点（`/v1/images/generations`）使用 `nano-banana-edit` 或 `nano-banana-pro`，并发送 `operation: "image-to-image"` 与 `image_urls`。不要把 Nano Banana 参考图请求发送到 `/v1/images/edits`。
 - Nano Banana 图生图请求中，`nano-banana-pro` 可以发送 `resolution`（`1k`、`2k`、`4k`）；`nano-banana-edit` 必须省略该参数。`nano-banana` 和 `nano-banana-2` 在当前模型说明中是文生图模型。
-- 本端点的参考图可以通过 JSON `image_url` / `image_urls` 传入，也可以通过 multipart `image` 文件直接上传。`/v1/images/generations` 不接受 `images[]` 或 `file_id`；只有明确支持 `images[].file_id` 的 `/v1/images/edits` 模型才使用 `/v1/files` 返回的引用。
+- 参考图可以通过 JSON `image_url` / `image_urls` 传入，也可以通过 multipart `image` 直接上传。`/v1/images/generations` 不接受 `images[]` 或 `file_id`；这些字段只用于明确支持它们的 `/v1/images/edits` 模型。
 
 使用 Google 图片模型时，优先发送 `aspect_ratio`；只有模型明确支持时才发送 `resolution`。
 
@@ -31,10 +31,10 @@ xAI Grok Imagine 图片模型（`grok-imagine-image`、`grok-imagine-image-quali
 
 ## 请求体
 
-**同步请求超时：** 某些图片请求会以内联方式返回最终图片，并等待生成完成。高分辨率或高质量请求可能接近一分钟甚至更久，因此请将 HTTP 客户端超时设置为至少 `120s`。如果创建响应包含 `status: "pending"`、`task_id` 或 `poll_url`，请改为跟随返回的 `poll_url` 轮询。
+**请求超时：** 同步图片请求可能需要较长时间，建议把 HTTP 超时设为至少 `120s`。响应包含 `pending`、`task_id` 或 `poll_url` 时，通过 `poll_url` 查询结果。
 
 <ParamField body="model" type="string" required>
-  要使用的模型（例如 `gpt-image-2`、`flux-pro`、`qwen-image-plus` 或 `nano-banana-pro`）。使用 `GET /v1/models?recommended_for=image` 获取当前推荐列表。
+  要使用的模型（例如 `gpt-image-2`、`flux-pro` 或 `nano-banana-pro`）。使用 `GET /v1/models?recommended_for=image` 获取当前推荐列表。
 </ParamField>
 
 <ParamField body="prompt" type="string" required>
@@ -50,7 +50,7 @@ xAI Grok Imagine 图片模型（`grok-imagine-image`、`grok-imagine-image-quali
 </ParamField>
 
 <ParamField body="reference_image_urls" type="string[]">
-  额外的模型特定参考图 URL，用于区分主输入图和参考图的供应商。
+  模型支持时，用于区分主输入图与其他参考图。
 </ParamField>
 
 <ParamField body="image" type="file">
@@ -66,17 +66,17 @@ xAI Grok Imagine 图片模型（`grok-imagine-image`、`grok-imagine-image-quali
 
   对于 `gpt-image-2`，`size` 接受 `auto` 或 `WIDTHxHEIGHT`。自定义宽高必须都是 16 的倍数，最长边不超过 `3840px`，长边/短边比例不超过 `3:1`，总像素必须在 `655,360` 到 `8,294,400` 之间。`aspect_ratio` 和 `resolution` 目前不属于 TokenLab 对 `gpt-image-2` 的公共契约。
 
-  对于 Google Gemini 图片家族，`size` 会被视为兼容别名，映射到模型公开的 `aspect_ratio` 契约，以及在支持时的 `resolution` 契约。建议对这些模型直接发送 `aspect_ratio`。
+  对于 Google Gemini 图片模型，建议直接使用 `aspect_ratio`；模型支持时也可以填写 `resolution`。
 </ParamField>
 
 <ParamField body="aspect_ratio" type="string">
-  依模型而定的宽高比选择器。
+  图片宽高比，取值由模型决定。
 
   Google 图片家族常见值包括 `1:1`、`16:9`、`9:16`、`3:2`、`2:3`。
 </ParamField>
 
 <ParamField body="resolution" type="string">
-  依模型而定的输出分辨率选择器。
+  输出分辨率，取值由模型决定。
 
   `gemini-3.1-flash-image` 和 `gemini-3-pro-image` 在文生图与图片编辑中支持该参数；`nano-banana-pro` 在文生图与图生图中支持；`nano-banana-2` 仅文生图支持。常见值为 `1k`、`2k`、`4k`。除非模型明确说明，否则不要发送给仅支持比例选择的 Gemini 图片家族。xAI Grok Imagine 图片模型请使用 `1k` 或 `2k`。
 </ParamField>
@@ -88,7 +88,7 @@ xAI Grok Imagine 图片模型（`grok-imagine-image`、`grok-imagine-image-quali
 <ParamField body="response_format" type="string" default="url">
   响应格式：`url` 或 `b64_json`，默认 `url`。
 
-  对于 Azure Official 或 Azure-compatible 的 `gpt-image-2` 请求，TokenLab 会以 `b64_json` 接收图片数据。请求 `url` 时，TokenLab 会把每张图上传到 CDN 并返回 `data[].url`。如果 CDN 存储不可用或上传失败，请求会失败，而不是改为 Base64 响应；请求 `b64_json` 时直接返回原始 Base64。
+  请求 `url` 时，结果位于 `data[].url`；请求 `b64_json` 时，结果直接返回 Base64。URL 生成失败时不会自动改成 Base64。
 </ParamField>
 
 <ParamField body="async" type="boolean" default="false">
@@ -105,7 +105,7 @@ xAI Grok Imagine 图片模型（`grok-imagine-image`、`grok-imagine-image-quali
 
 ## 响应
 
-### 内联响应
+### 直接返回图片
 
 <ResponseField name="created" type="integer">
   创建时的 Unix 时间戳。
@@ -120,9 +120,9 @@ xAI Grok Imagine 图片模型（`grok-imagine-image`、`grok-imagine-image-quali
   - `revised_prompt` (string): 所选模型返回的可选提示词改写结果
 </ResponseField>
 
-### 异步任务响应
+### 返回异步任务
 
-对 `gpt-image-2` 或官方 FLUX/BFL 图片模型设置 `async: true` 后，创建请求会先返回任务，而不是等待最终图片生成完成。响应包含 `status: "pending"`、`task_id` 和 `poll_url`。请轮询 `/v1/tasks/{task_id}`，直到任务进入 `completed` 或 `failed`。
+支持异步生成的模型设置 `async: true` 后，会先返回 `pending`、`task_id` 和 `poll_url`。通过 `poll_url` 查询，直到状态变为 `completed` 或 `failed`。
 
 异步图片任务最终只返回图片 URL。如果你需要原始 `b64_json` 图片数据，请使用同步请求。
 
@@ -133,7 +133,7 @@ xAI Grok Imagine 图片模型（`grok-imagine-image`、`grok-imagine-image-quali
 </ResponseField>
 
 <ResponseField name="task_id" type="string">
-  用于轮询的唯一任务 ID。
+  用于查询状态的任务 ID。
 </ResponseField>
 
 <ResponseField name="status" type="string">
@@ -141,14 +141,14 @@ xAI Grok Imagine 图片模型（`grok-imagine-image`、`grok-imagine-image-quali
 </ResponseField>
 
 <ResponseField name="poll_url" type="string">
-  用于轮询结果的相对 URL，例如 `/v1/tasks/{id}`。
+  状态查询地址，例如 `/v1/tasks/{id}`。
 </ResponseField>
 
 <ResponseField name="data" type="array">
   任务处于 pending 状态时为空。图片任务完成后，生成图片的 URL 会出现在 `data[].url` 中。
 </ResponseField>
 
-收到 `status: "pending"` 后，请使用 `poll_url` 或 `GET /v1/tasks/{task_id}` 获取结果。
+收到 `status: "pending"` 后，使用 `poll_url` 或 `GET /v1/tasks/{task_id}` 获取结果。
 
 <RequestExample>
 ```bash cURL
@@ -293,22 +293,11 @@ curl -X POST "https://api.tokenlab.sh/v1/images/generations" \
 ```
 </ResponseExample>
 
-## 可用模型
+## 查看当前模型
 
-下面是当前常见模型示例，不是固定目录。最新可用性和价格请查询 `GET /v1/models?recommended_for=image` 或模型页面。
+最新模型、能力和价格以 `GET /v1/models?recommended_for=image` 与[模型页](https://tokenlab.sh/zh/models)为准。不要假设某个模型永远同步或异步；响应返回 `pending` 时，按 `poll_url` 查询即可。
 
-| 模型 | 类型 | 特性 |
-|-------|------|------|
-| `gpt-image-2` | 内联或任务式 | 按 token 计费的 GPT Image 模型，支持灵活尺寸 |
-| `flux-pro` | 通常是任务式 | 写实、高质量 |
-| `qwen-image-plus` | 通常是任务式 | 文本渲染和提示词遵循较强 |
-| `nano-banana-pro` | 通常是任务式 | 参考图工作流和高分辨率输出 |
-| `grok-imagine-image` | 通常是任务式 | xAI 图片生成，支持比例和分辨率选择 |
-| `ideogram-v3` | 通常是任务式 | 文本渲染较强 |
-
-不要把某个模型硬编码为总是同步或总是异步。如果创建响应返回 `status: "pending"`，请跟随 `poll_url` 轮询直到完成。
-
-## 处理任务式响应
+## 处理异步响应
 
 对于图片模型，请始终检查响应是否包含 `status: "pending"`：
 

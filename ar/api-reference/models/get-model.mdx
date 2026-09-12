@@ -1,157 +1,52 @@
 ---
-title: "الحصول على النموذج"
+title: "الحصول على نموذج"
 openapi: "GET /v1/models/{model}"
-description: "يسترجع مثيلاً للنموذج"
+description: "الحصول على قدرات النموذج، وتسعيره، وتنسيقات الـ API الخاصة به"
 ---
 
-## معاملات المسار
+## معامل المسار (Path Parameter)
 
 <ParamField path="model" type="string" required>
-  معرّف النموذج المراد استرجاعه (على سبيل المثال، `gpt-5.4` أو `claude-sonnet-4-6`).
+  معرف النموذج (Model ID)، مثل `gpt-5.4` أو `claude-sonnet-4-6`.
 </ParamField>
 
-## الاستجابة
+## الاستجابة (Response)
 
-<ResponseField name="id" type="string">
-  معرّف النموذج.
-ويتضمن أيضًا `lifecycle` و`commercial` و`badges` لحالة الإيقاف/التقاعد وسياسة الرسوم والشارات.
-</ResponseField>
-
-<ResponseField name="object" type="string">
-  دائمًا `model`.
-</ResponseField>
-
-<ResponseField name="created" type="integer">
-  طابع زمني للإنشاء.
-</ResponseField>
-
-<ResponseField name="owned_by" type="string">
-  مزود النموذج.
-</ResponseField>
-
+<ResponseField name="id" type="string">معرف النموذج.</ResponseField>
+<ResponseField name="object" type="string">دائماً `model`.</ResponseField>
+<ResponseField name="owned_by" type="string">الجهة المصنعة للنموذج.</ResponseField>
 <ResponseField name="tokenlab" type="object">
-  بيانات وصفية عامة خاصة بـ TokenLab. قد تتضمن مسار التفاصيل `category` و `pricing_unit` و `capability_flags` و `supported_operations` و `pricing_provenance` و `request_format_summary` و `request_format_details` الكامل و `agent_preferences` على مستوى السيناريو للقطات التوصية غير chat.
+  معلومات نموذج TokenLab، بما في ذلك القدرات، والأسعار، ووحدات الفوترة، وحدود السياق، وتنسيقات الـ API المقبولة، والعمليات، وحالة دورة حياة النموذج.
 </ResponseField>
 
-<RequestExample>
-```bash cURL
-curl "https://api.tokenlab.sh/v1/models/gpt-5.4" \
-  -H "Authorization: Bearer sk-your-api-key"
+تشمل حقول `tokenlab` الشائعة ما يلي:
+
+- `capabilities`: النص، والصورة، والفيديو، والصوت، والقدرات الأخرى.
+- `pricing`: الأسعار العامة الحالية.
+- `max_input_tokens` و `max_output_tokens`: حدود السياق والمخرجات.
+- `accepted_request_formats`: تنسيقات الـ API المدعومة.
+- `supported_operations`: عمليات مثل تحويل النص إلى صورة أو تحويل الصورة إلى فيديو.
+- `lifecycle`: التوفر، وتاريخ الإصدار، وتاريخ الإيقاف، أو النموذج البديل.
+
+تتضمن بعض نماذج الوسائط أيضاً حالة التوصية ووقت التحديث. يمكن أن تتغير التوصيات بناءً على التوفر والأداء، لذا لا تقم ببرمجة ترتيبها بشكل ثابت (hard-code).
+
+## مثال
+
+```bash
+curl "https://api.tokenlab.sh/v1/models/gpt-5.4"
 ```
-
-```python Python
-from openai import OpenAI
-
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
-
-model = client.models.retrieve("gpt-5.4")
-print(f"Model: {model.id}, Provider: {model.owned_by}")
-```
-
-```javascript JavaScript
-import OpenAI from 'openai';
-
-const client = new OpenAI({
-  apiKey: 'sk-your-api-key',
-  baseURL: 'https://api.tokenlab.sh/v1'
-});
-
-const model = await client.models.retrieve('gpt-5.4');
-console.log(`Model: ${model.id}, Provider: ${model.owned_by}`);
-```
-
-```go Go
-package main
-
-import (
-    "encoding/json"
-    "fmt"
-    "net/http"
-)
-
-func main() {
-    req, _ := http.NewRequest("GET", "https://api.tokenlab.sh/v1/models/gpt-5.4", nil)
-    req.Header.Set("Authorization", "Bearer sk-your-api-key")
-
-    resp, _ := http.DefaultClient.Do(req)
-    defer resp.Body.Close()
-
-    var model map[string]interface{}
-    json.NewDecoder(resp.Body).Decode(&model)
-    fmt.Printf("Model: %s, Provider: %s\n", model["id"], model["owned_by"])
-}
-```
-
-```php PHP
-<?php
-$ch = curl_init('https://api.tokenlab.sh/v1/models/gpt-5.4');
-
-curl_setopt_array($ch, [
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_HTTPHEADER => [
-        'Authorization: Bearer sk-your-api-key'
-    ]
-]);
-
-$response = curl_exec($ch);
-curl_close($ch);
-
-$model = json_decode($response, true);
-echo "Model: {$model['id']}, Provider: {$model['owned_by']}\n";
-```
-</RequestExample>
-
-<ResponseExample>
-```json Response
-{
-  "id": "gpt-5.4",
-  "object": "model",
-  "created": 1706000000,
-  "owned_by": "openai"
-}
-```
-</ResponseExample>
-
-## معالجة الأخطاء
-
-إذا لم يكن النموذج موجودًا، فستتلقى خطأ 404:
 
 ```json
 {
-  "error": {
-    "message": "Model 'invalid-model' not found",
-    "type": "invalid_request_error",
-    "code": "model_not_found"
+  "id": "gpt-5.6-terra",
+  "object": "model",
+  "owned_by": "openai",
+  "tokenlab": {
+    "category": "chat",
+    "capabilities": ["text"],
+    "accepted_request_formats": ["responses", "chat_completions"]
   }
 }
 ```
 
-## بيانات التوصية للنماذج غير chat
-
-بالنسبة للنماذج غير chat، تُرجع صفحة التفاصيل أيضًا `tokenlab.agent_preferences.<scene>`.
-
-استخدمها لفحص:
-
-- `preferred_rank`
-- `success_rate_24h`
-- `sample_count_24h`
-- `status`
-- `updated_at`
-
-تلخص الاستجابة العامة مصدر التوصية عبر `basis.source` ولا تكشف معرّفات التوجيه.
-
-## بيانات التفاصيل العامة
-
-بالمقارنة مع `GET /v1/models`، يمكن لصفحة التفاصيل أن تعيد أيضًا:
-
-- `tokenlab.capability_flags`
-- `tokenlab.supported_operations`
-- `tokenlab.pricing_provenance`
-- `tokenlab.request_format_summary`
-- `tokenlab.request_format_details`
-## حذف النماذج
-
-`DELETE /v1/models/{model}` غير مدعوم. نماذج TokenLab كتالوج عام مشترك وليست موارد نماذج fine-tuned يملكها المستخدم.
+النموذج غير المعروف يُرجع `404 model_not_found`.

@@ -1,157 +1,52 @@
 ---
-title: "Lấy Model"
+title: "Lấy thông tin Model"
 openapi: "GET /v1/models/{model}"
-description: "Lấy một phiên bản model"
+description: "Lấy các khả năng, giá cả và định dạng API của một model"
 ---
 
-## Tham số Đường Dẫn
+## Path Parameter
 
 <ParamField path="model" type="string" required>
-  ID của model cần lấy (ví dụ: `gpt-5.4`, `claude-sonnet-4-6`).
+  ID của model, ví dụ như `gpt-5.4` hoặc `claude-sonnet-4-6`.
 </ParamField>
 
-## Phản hồi
+## Response
 
-<ResponseField name="id" type="string">
-  Định danh model.
-Nó cũng bao gồm `lifecycle`, `commercial` và `badges` cho trạng thái ngừng hỗ trợ/retired, chính sách tính phí và huy hiệu.
-</ResponseField>
-
-<ResponseField name="object" type="string">
-  Luôn là `model`.
-</ResponseField>
-
-<ResponseField name="created" type="integer">
-  Dấu thời gian tạo.
-</ResponseField>
-
-<ResponseField name="owned_by" type="string">
-  Nhà cung cấp model.
-</ResponseField>
-
+<ResponseField name="id" type="string">ID của model.</ResponseField>
+<ResponseField name="object" type="string">Luôn là `model`.</ResponseField>
+<ResponseField name="owned_by" type="string">Nhà sản xuất model.</ResponseField>
 <ResponseField name="tokenlab" type="object">
-  Metadata công khai đặc thù của TokenLab. Route chi tiết có thể bao gồm `category`, `pricing_unit`, `capability_flags`, `supported_operations`, `pricing_provenance`, `request_format_summary`, `request_format_details` đầy đủ, và `agent_preferences` ở cấp scene cho các snapshot khuyến nghị phi-chat.
+  Thông tin model TokenLab, bao gồm các khả năng, giá cả, đơn vị tính phí, giới hạn ngữ cảnh, các định dạng API được chấp nhận, các thao tác và trạng thái vòng đời.
 </ResponseField>
 
-<RequestExample>
-```bash cURL
-curl "https://api.tokenlab.sh/v1/models/gpt-5.4" \
-  -H "Authorization: Bearer sk-your-api-key"
+Các trường `tokenlab` phổ biến bao gồm:
+
+- `capabilities`: các khả năng về văn bản, hình ảnh, video, âm thanh và các khả năng khác.
+- `pricing`: giá công khai hiện tại.
+- `max_input_tokens` và `max_output_tokens`: giới hạn ngữ cảnh và đầu ra.
+- `accepted_request_formats`: các định dạng API được hỗ trợ.
+- `supported_operations`: các thao tác như chuyển đổi văn bản thành hình ảnh hoặc hình ảnh thành video.
+- `lifecycle`: tình trạng sẵn có, ngày phát hành, ngày ngừng hỗ trợ hoặc model thay thế.
+
+Một số model đa phương tiện cũng bao gồm trạng thái đề xuất và thời gian cập nhật. Các đề xuất có thể thay đổi theo tình trạng sẵn có và hiệu suất, vì vậy đừng mã hóa cứng (hard-code) thứ tự của chúng.
+
+## Ví dụ
+
+```bash
+curl "https://api.tokenlab.sh/v1/models/gpt-5.4"
 ```
-
-```python Python
-from openai import OpenAI
-
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
-
-model = client.models.retrieve("gpt-5.4")
-print(f"Model: {model.id}, Provider: {model.owned_by}")
-```
-
-```javascript JavaScript
-import OpenAI from 'openai';
-
-const client = new OpenAI({
-  apiKey: 'sk-your-api-key',
-  baseURL: 'https://api.tokenlab.sh/v1'
-});
-
-const model = await client.models.retrieve('gpt-5.4');
-console.log(`Model: ${model.id}, Provider: ${model.owned_by}`);
-```
-
-```go Go
-package main
-
-import (
-    "encoding/json"
-    "fmt"
-    "net/http"
-)
-
-func main() {
-    req, _ := http.NewRequest("GET", "https://api.tokenlab.sh/v1/models/gpt-5.4", nil)
-    req.Header.Set("Authorization", "Bearer sk-your-api-key")
-
-    resp, _ := http.DefaultClient.Do(req)
-    defer resp.Body.Close()
-
-    var model map[string]interface{}
-    json.NewDecoder(resp.Body).Decode(&model)
-    fmt.Printf("Model: %s, Provider: %s\n", model["id"], model["owned_by"])
-}
-```
-
-```php PHP
-<?php
-$ch = curl_init('https://api.tokenlab.sh/v1/models/gpt-5.4');
-
-curl_setopt_array($ch, [
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_HTTPHEADER => [
-        'Authorization: Bearer sk-your-api-key'
-    ]
-]);
-
-$response = curl_exec($ch);
-curl_close($ch);
-
-$model = json_decode($response, true);
-echo "Model: {$model['id']}, Provider: {$model['owned_by']}\n";
-```
-</RequestExample>
-
-<ResponseExample>
-```json Response
-{
-  "id": "gpt-5.4",
-  "object": "model",
-  "created": 1706000000,
-  "owned_by": "openai"
-}
-```
-</ResponseExample>
-
-## Xử Lý Lỗi
-
-Nếu model không tồn tại, bạn sẽ nhận được lỗi 404:
 
 ```json
 {
-  "error": {
-    "message": "Model 'invalid-model' not found",
-    "type": "invalid_request_error",
-    "code": "model_not_found"
+  "id": "gpt-5.6-terra",
+  "object": "model",
+  "owned_by": "openai",
+  "tokenlab": {
+    "category": "chat",
+    "capabilities": ["text"],
+    "accepted_request_formats": ["responses", "chat_completions"]
   }
 }
 ```
 
-## Metadata Khuyến Nghị Phi-Chat
-
-Với các model phi-chat, route chi tiết cũng trả về `tokenlab.agent_preferences.<scene>`.
-
-Dùng nó để xem:
-
-- `preferred_rank`
-- `success_rate_24h`
-- `sample_count_24h`
-- `status`
-- `updated_at`
-
-Phản hồi công khai tóm tắt nguồn khuyến nghị bằng `basis.source` và không expose định danh routing.
-
-## Metadata Chi Tiết Công Khai
-
-So với `GET /v1/models`, route chi tiết cũng có thể trả thêm:
-
-- `tokenlab.capability_flags`
-- `tokenlab.supported_operations`
-- `tokenlab.pricing_provenance`
-- `tokenlab.request_format_summary`
-- `tokenlab.request_format_details`
-## Xóa model
-
-`DELETE /v1/models/{model}` không được hỗ trợ. Model TokenLab là catalog công khai dùng chung, không phải tài nguyên model fine-tuned do người dùng sở hữu.
+Một model không xác định sẽ trả về lỗi `404 model_not_found`.

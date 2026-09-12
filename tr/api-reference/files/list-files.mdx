@@ -39,6 +39,12 @@ Kesin şema için yukarıdaki etkileşimli OpenAPI panelini kullanın.
 - `output_file_id` ve `error_file_id` yalnızca worker batch'i tamamladıktan sonra beklenmelidir.
 - `isBatchRequest=true` indirim kuralları uygulandığı için batch fiyatlandırması senkron fiyatlandırmadan farklı olabilir.
 
+## Filtreler
+
+- `limit` 1 ile 10000 arasında değer kabul eder ve varsayılanı 10000'dir.
+- `purpose` `batch`, `batch_output`, `user_data` veya `vision` olabilir.
+- `user_data` ve `vision`, varsa TokenLab tarafından oluşturulan görüntü referans dosyalarını döndürür.
+
 ## Yanıt örneği
 
 <ResponseExample>

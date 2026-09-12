@@ -1,30 +1,23 @@
 ---
 title: "Portkey Gateway"
-description: "在 Portkey Gateway 中使用 TokenLab 作为上游提供商"
+description: "把 Portkey Gateway 连接到 TokenLab"
 ---
 
 ## 概述
 
-Portkey Gateway 可以将请求路由至 TokenLab 作为上游提供商。最安全的默认方式是使用 OpenAI 兼容的聊天补全（chat completions）；当您的 Portkey 版本为 TokenLab 开放该路径时，请使用 Responses。
+在 Portkey 中添加 TokenLab，即可使用 OpenAI 兼容 Chat Completions。只有当前 Portkey 版本支持自定义 Responses 地址时，才使用 Responses。
 
-<Note>
-**类型**: AI Gateway
 
-**主要路径**: OpenAI 兼容的聊天补全和 Responses
-
-**支持置信度**: 支持的路径
-</Note>
-
-## 提供商配置值
+## 配置值
 
 | 字段 | 值 |
 |-------|-------|
 | Provider | `tokenlab` |
 | Base URL | `https://api.tokenlab.sh/v1` |
-| API key | `sk-your-tokenlab-key` |
-| 默认模型 | `gpt-5.4-mini` |
+| API 密钥 | `sk-your-tokenlab-key` |
+| 模型 | 当前 TokenLab 模型 ID |
 
-## 聊天补全 (Chat Completions)
+## Chat Completions
 
 使用 TokenLab 进行 OpenAI 兼容的聊天请求：
 
@@ -34,15 +27,15 @@ curl https://your-portkey-gateway.example/v1/chat/completions \
   -H "x-portkey-provider: tokenlab" \
   -H "Authorization: Bearer sk-your-tokenlab-key" \
   -d '{
-    "model": "gpt-5.4-mini",
+    "model": "gpt-5.6-luna",
     "messages": [{"role": "user", "content": "Say hello from TokenLab."}]
   }'
 ```
 
-## 响应 (Responses)
+## Responses
 
-如果您的 Portkey 构建版本支持 TokenLab Responses，请使用 `gpt-5.5`、`gpt-5.4` 或 `gpt-5.4-mini` 并配合 `/v1/responses` 路径。
+如果当前 Portkey 版本支持自定义 Responses 地址，请从[模型页](https://tokenlab.sh/zh/models)选择支持 Responses 的模型，并使用 `/v1/responses`。
 
-## 原生端点说明
+## 其他 API 格式
 
-TokenLab 还直接提供了 Anthropic Messages 和 Gemini 兼容的端点。这些端点是否可以通过 Portkey 使用，取决于您所部署版本中 Portkey 对提供商和端点的支持情况。
+Anthropic Messages 和 Gemini 格式能否通过 Portkey 使用，取决于当前 Portkey 版本是否支持自定义对应地址。

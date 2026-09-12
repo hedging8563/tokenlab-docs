@@ -34,7 +34,7 @@ xAI Grok Imagine 画像モデル（`grok-imagine-image`、`grok-imagine-image-qu
 **同期リクエストのタイムアウト:** 一部の画像リクエストでは、生成完了まで待って最終画像をインラインで返します。高解像度または高品質のリクエストは 1 分前後、またはそれ以上かかることがあるため、HTTP クライアントのタイムアウトは少なくとも `120s` に設定してください。作成レスポンスに `status: "pending"`、`task_id`、または `poll_url` が含まれる場合は、返された `poll_url` をポーリングしてください。
 
 <ParamField body="model" type="string" required>
-  使用するモデル（例: `gpt-image-2`、`flux-pro`、`qwen-image-plus`、`nano-banana-pro`）。現在の推奨リストは `GET /v1/models?recommended_for=image` で確認してください。
+  使用するモデル（例: `gpt-image-2`、`flux-pro`、`nano-banana-pro`）。現在の推奨リストは `GET /v1/models?recommended_for=image` で確認してください。
 </ParamField>
 
 <ParamField body="prompt" type="string" required>
@@ -301,7 +301,6 @@ curl -X POST "https://api.tokenlab.sh/v1/images/generations" \
 |-------|------|------|
 | `gpt-image-2` | インラインまたはタスクベース | トークン課金の GPT Image モデル、柔軟なサイズ指定 |
 | `flux-pro` | 多くの場合タスクベース | フォトリアルで高品質 |
-| `qwen-image-plus` | 多くの場合タスクベース | テキストレンダリングとプロンプト追従が強い |
 | `nano-banana-pro` | 多くの場合タスクベース | 参照画像ワークフローと高解像度出力 |
 | `grok-imagine-image` | 多くの場合タスクベース | xAI 画像生成、アスペクト比と解像度選択に対応 |
 | `ideogram-v3` | 多くの場合タスクベース | テキストレンダリングが強い |

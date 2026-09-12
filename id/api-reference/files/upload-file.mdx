@@ -58,7 +58,7 @@ Rute `/v1/files` yang sama ini juga mendukung jalur Anthropic Files API.
 
 - Tambahkan header `anthropic-beta: files-api-2025-04-14` untuk beralih ke mode Anthropic.
 - Dalam mode Anthropic, unggah file asli secara langsung dan jangan kirim `purpose=batch`.
-- `file_id` yang dikembalikan akan terikat ke channel/workspace Anthropic resmi yang sama dan harus digunakan kembali dalam permintaan `/v1/messages`.
+- `file_id` yang dikembalikan akan terikat ke workspace kompatibel Anthropic yang sama dan harus digunakan kembali dalam permintaan `/v1/messages`.
 - Jika Anda berencana merujuk file yang diunggah ini dalam konten pesan Anthropic, tetap gunakan header native Anthropic (`x-api-key`, `anthropic-version`, dan beta header bila diperlukan).
 
 ## Contoh respons

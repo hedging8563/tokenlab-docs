@@ -18,7 +18,7 @@ Do not use `recommended_for=translation` for this endpoint. That recommendation 
 
 ## Request Body
 
-**Synchronous request timeout:** This non-chat endpoint waits for the routed model to finish. Large inputs, long audio, or large batches can exceed common 30s client defaults, so set your HTTP client timeout to at least `120s`.
+This endpoint returns after translation finishes. For longer audio, set your HTTP client timeout to at least `120s`.
 
 <ParamField body="file" type="file" required>
   The audio file to translate. Supported formats: `flac`, `mp3`, `mp4`, `mpeg`, `mpga`, `m4a`, `ogg`, `wav`, `webm`. Maximum file size is 25 MB.

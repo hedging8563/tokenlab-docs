@@ -151,7 +151,7 @@ Tất cả các phản hồi đều tuân theo một định dạng nhất quán
   "id": "chatcmpl-abc123",
   "object": "chat.completion",
   "created": 1234567890,
-  "model": "gpt-4o",
+  "model": "gpt-5.6-terra",
   "choices": [...],
   "usage": {
     "prompt_tokens": 10,
@@ -163,30 +163,16 @@ Tất cả các phản hồi đều tuân theo một định dạng nhất quán
 
 ### Tính minh bạch trong điều hướng (Routing)
 
-Tất cả các phản hồi đều bao gồm trường `_routing` với thông tin kênh:
+TokenLab không hiển thị chi tiết nhà cung cấp, kênh, chính sách hoặc thông tin xác thực trong body phản hồi công khai. Không dựa vào `_routing` hoặc các trường điều hướng nội bộ khác như một phần của hợp đồng API công khai.
 
-```json
-{
-  "id": "chatcmpl-abc123",
-  ...,
-  "_routing": {
-    "channel": {
-      "id": "ch_xxx",
-      "name": "channel-name",
-      "provider": "openai"
-    },
-    "cached": false,
-    "retryCount": 0
-  }
-}
-```
+Khi cần gỡ lỗi hoặc hỗ trợ, hãy dùng các header phản hồi công khai nếu chúng có trong phản hồi:
 
-| Trường | Mô tả |
+| Header | Mô tả |
 |-------|-------------|
-| `channel.id` | Định danh kênh được sử dụng |
-| `channel.provider` | Nhà cung cấp thượng nguồn (openai, anthropic, v.v.) |
-| `cached` | Liệu phản hồi có được cung cấp từ bộ nhớ đệm (cache) hay không |
-| `retryCount` | Số lần thử lại (nếu có) |
+| `X-Routing-Time-MS` | Thời gian chọn route, nếu có |
+| `X-Request-ID` | Định danh yêu cầu để hỗ trợ và gỡ lỗi, nếu có |
+| `X-Task-ID` | Định danh tác vụ async công khai cho phản hồi dạng tác vụ, nếu có |
+| `X-Billing-Transaction-ID` | Định danh giao dịch billing sau khi billing hoàn tất, nếu có |
 
 ### Phản hồi lỗi
 

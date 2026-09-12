@@ -34,7 +34,7 @@ Os modelos de imagem xAI Grok Imagine (`grok-imagine-image`, `grok-imagine-image
 **Timeout de solicitações síncronas:** algumas solicitações de imagem retornam a imagem final inline e aguardam a geração terminar. Solicitações de alta resolução ou alta qualidade podem levar perto de um minuto ou mais, então configure o timeout do seu cliente HTTP para pelo menos `120s`. Se a resposta de criação incluir `status: "pending"`, `task_id` ou `poll_url`, siga o `poll_url` retornado.
 
 <ParamField body="model" type="string" required>
-  Modelo a usar (por exemplo, `gpt-image-2`, `flux-pro`, `qwen-image-plus` ou `nano-banana-pro`). Consulte `GET /v1/models?recommended_for=image` para a lista recomendada atual.
+  Modelo a usar (por exemplo, `gpt-image-2`, `flux-pro` ou `nano-banana-pro`). Consulte `GET /v1/models?recommended_for=image` para a lista recomendada atual.
 </ParamField>
 
 <ParamField body="prompt" type="string" required>
@@ -301,7 +301,6 @@ Estes são exemplos atuais, não um catálogo fixo. Consulte `GET /v1/models?rec
 |-------|------|----------|
 | `gpt-image-2` | Em linha ou baseado em tarefa | Modelo GPT Image com preço por token e tamanhos flexíveis |
 | `flux-pro` | Frequentemente baseado em tarefa | Fotorrealista, alta qualidade |
-| `qwen-image-plus` | Frequentemente baseado em tarefa | Bom render de texto e aderência ao prompt |
 | `nano-banana-pro` | Frequentemente baseado em tarefa | Workflows com imagem de referência e saída em alta resolução |
 | `grok-imagine-image` | Frequentemente baseado em tarefa | Geração de imagem xAI com seleção de aspecto e resolução |
 | `ideogram-v3` | Frequentemente baseado em tarefa | Bom render de texto |

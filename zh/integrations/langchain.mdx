@@ -1,25 +1,16 @@
 ---
 title: "LangChain"
-description: "使用标准 OpenAI 兼容的 chat 和 embeddings 将 TokenLab 集成到 LangChain 中"
+description: "在 LangChain 中使用 TokenLab 聊天与 Embeddings"
 ---
 
 ## 概述
 
-当你使用标准 OpenAI 兼容的 chat 和 embeddings 接口时，TokenLab 可以很好地与 LangChain 的 `ChatOpenAI` 和 `OpenAIEmbeddings` 集成配合使用。
+LangChain 的 `ChatOpenAI` 和 `OpenAIEmbeddings` 可以通过 OpenAI 兼容 API 使用 TokenLab。
 
 <Note>
-当前的 LangChain 文档指出，`ChatOpenAI` 面向官方 OpenAI 兼容的请求/响应格式。如果你需要提供商特定的非标准响应字段，请使用提供商专用的 LangChain 集成，而不要依赖 `ChatOpenAI`。
+`ChatOpenAI` 处理 OpenAI 兼容字段。应用需要 Claude Messages 或 Gemini 专属字段时，请改用 LangChain 中对应的集成。
 </Note>
 
-<Note>
-**类型**: 框架或平台
-
-**主要路径**: OpenAI 兼容 标准 surface
-
-**支持级别**: 支持标准 surface
-</Note>
-
-本页刻意只覆盖标准 OpenAI 兼容 LangChain surface，而不承诺超出该 surface 的 provider-native LangChain 功能。
 
 ## 安装
 
@@ -33,7 +24,7 @@ pip install langchain langchain-openai langchain-community faiss-cpu
 from langchain_openai import ChatOpenAI
 
 llm = ChatOpenAI(
-    model="gpt-5.4",
+    model="gpt-5.6-terra",
     api_key="sk-your-tokenlab-key",
     base_url="https://api.tokenlab.sh/v1",
 )
@@ -48,13 +39,13 @@ print(response.content)
 from langchain_openai import ChatOpenAI
 
 gpt = ChatOpenAI(
-    model="gpt-5.4",
+    model="gpt-5.6-terra",
     api_key="sk-your-key",
     base_url="https://api.tokenlab.sh/v1",
 )
 
 claude = ChatOpenAI(
-    model="claude-sonnet-4-6",
+    model="claude-sonnet-5",
     api_key="sk-your-key",
     base_url="https://api.tokenlab.sh/v1",
 )
@@ -66,7 +57,7 @@ gemini = ChatOpenAI(
 )
 
 deepseek = ChatOpenAI(
-    model="deepseek-r1",
+    model="deepseek-reasoner",
     api_key="sk-your-key",
     base_url="https://api.tokenlab.sh/v1",
 )
@@ -148,7 +139,7 @@ print(response.content)
 ## 智能体
 
 <Note>
-对于新的 agentic 项目，LangChain 建议考虑使用 LangGraph，以便对长时间运行和使用工具的工作流进行更明确的控制。
+需要长时间运行、反复调用工具时，也可以使用 LangGraph 管理状态。
 </Note>
 
 ```python
@@ -176,18 +167,18 @@ result = executor.invoke({"input": "Search for TokenLab pricing"})
 print(result["output"])
 ```
 
-## 最佳实践
+## 配置建议
 
 <AccordionGroup>
-  <Accordion title="显式传递 base_url">
-    最可靠的 TokenLab 配置方式是直接将 `base_url="https://api.tokenlab.sh/v1"` 传递给 `ChatOpenAI` 和 `OpenAIEmbeddings`，而不是依赖旧的环境变量别名。
+  <Accordion title="设置 base_url">
+    将 `base_url="https://api.tokenlab.sh/v1"` 直接传给 `ChatOpenAI` 和 `OpenAIEmbeddings`。
   </Accordion>
 
-  <Accordion title="在这里使用标准功能">
-    请坚持在 `ChatOpenAI` 上使用标准 chat、tool calling、streaming 和 embeddings。如果你需要厂商原生的额外功能，请切换到该厂商自己的 LangChain 集成。
+  <Accordion title="选择 API 格式">
+    `ChatOpenAI` 适用于 Chat Completions、工具调用和流式输出。需要其他 API 格式时，请使用对应的 LangChain 集成。
   </Accordion>
 
-  <Accordion title="为检索使用更便宜的模型">
-    对于检索，请使用像 `text-embedding-3-small` 这样的 embedding 模型，并将更强的 chat 模型保留给最终回答步骤。
+  <Accordion title="检索与回答分开选模型">
+    检索使用 Embedding 模型，最终回答使用聊天模型。当前模型和价格见模型页。
   </Accordion>
 </AccordionGroup>

@@ -38,7 +38,7 @@ Model ảnh, video, nhạc, 3D, audio và world có thể tính theo request, �
 
 | Nhóm | Ví dụ |
 |---|---|
-| Hình ảnh | `flux-pro`, `qwen-image-plus` |
+| Hình ảnh | `flux-pro` |
 | Video | `veo3.1`, `seedance-2.0` |
 | Âm nhạc | `suno-music` |
 | 3D | `tripo-h3.1` |
@@ -93,7 +93,7 @@ def estimate_tokens(text):
 
 # Actual count (for OpenAI models)
 import tiktoken
-encoder = tiktoken.encoding_for_model("gpt-4o")
+encoder = tiktoken.encoding_for_model("gpt-5.6-terra")
 tokens = encoder.encode("Your text here")
 print(f"Token count: {len(tokens)}")
 ```

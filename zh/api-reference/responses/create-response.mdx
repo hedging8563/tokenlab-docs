@@ -4,7 +4,7 @@ openapi: "POST /v1/responses"
 description: "使用 OpenAI Responses API 格式创建响应"
 ---
 
-Responses 是 OpenAI 原生的有状态响应协议。只有模型详情公开 Responses 格式且存在同协议 upstream 路径时，TokenLab 才提供该入口；不会根据模型名或厂商名推断，也绝不回落 Chat Completions。TokenLab 会保留未知字段、显式 `null`、空数组等 JSON 形状，并 best-effort 透传。
+模型详情中的 `accepted_request_formats` 包含 `responses` 时，可以使用该接口。请求和响应保持 Responses API 格式，不会转换成 Chat Completions。
 ## 请求体
 
 <ParamField body="model" type="string" required>
@@ -12,9 +12,7 @@ Responses 是 OpenAI 原生的有状态响应协议。只有模型详情公开 R
 </ParamField>
 
 <ParamField body="input" type="string | array">
-  当请求改用可复用 `prompt`，或通过 `previous_response_id` 继续已存储响应时，可以省略 input。
-
-  由对话组成的输入项列表。
+  输入文本或输入项列表。使用可复用 `prompt`，或通过 `previous_response_id` 继续已保存的响应时，可以省略。
 
   每个项可以是：
   - `message`: 带有角色和内容的对话消息
@@ -42,7 +40,7 @@ Responses 是 OpenAI 原生的有状态响应协议。只有模型详情公开 R
 </ParamField>
 
 <ParamField body="tools" type="array">
-  模型可以调用的工具列表。TokenLab 不维护本地 allowlist，而是原样转发原生工具定义；支持的类型和组合由选中的 upstream 决定。
+  模型可以调用的工具。可用类型和组合取决于所选模型。
 </ParamField>
 
 <ParamField body="stream" type="boolean" default="false">
@@ -58,11 +56,11 @@ Responses 是 OpenAI 原生的有状态响应协议。只有模型详情公开 R
 </ParamField>
 
 <ParamField body="metadata" type="object">
-  附加到响应以用于跟踪的元数据。
+  与响应一起保存的自定义信息。
 </ParamField>
 
 <ParamField body="text" type="object">
-  文本生成的配置选项。`text.format` 的行为取决于所选模型和路由路径；并不保证在每个模型上都一致。
+  文本输出设置。`text.format` 是否可用取决于所选模型。
 </ParamField>
 
 <ParamField body="parallel_tool_calls" type="boolean" default="true">
@@ -107,7 +105,7 @@ curl -X POST "https://api.tokenlab.sh/v1/responses" \
   -H "Authorization: Bearer sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-4o",
+    "model": "gpt-5.6-terra",
     "input": [
       {"type": "message", "role": "user", "content": "Hello!"}
     ],
@@ -124,7 +122,7 @@ client = OpenAI(
 )
 
 response = client.responses.create(
-    model="gpt-4o",
+    model="gpt-5.6-terra",
     input=[
         {"type": "message", "role": "user", "content": "Hello!"}
     ],
@@ -143,7 +141,7 @@ const client = new OpenAI({
 });
 
 const response = await client.responses.create({
-  model: 'gpt-4o',
+  model: 'gpt-5.6-terra',
   input: [
     { type: 'message', role: 'user', content: 'Hello!' }
   ],
@@ -165,7 +163,7 @@ import (
 
 func main() {
     payload := map[string]interface{}{
-        "model": "gpt-4o",
+        "model": "gpt-5.6-terra",
         "input": []map[string]interface{}{
             {"type": "message", "role": "user", "content": "Hello!"},
         },
@@ -199,7 +197,7 @@ curl_setopt_array($ch, [
         'Authorization: Bearer sk-your-api-key'
     ],
     CURLOPT_POSTFIELDS => json_encode([
-        'model' => 'gpt-4o',
+        'model' => 'gpt-5.6-terra',
         'input' => [
             ['type' => 'message', 'role' => 'user', 'content' => 'Hello!']
         ],
@@ -219,7 +217,7 @@ print_r($data['output']);
 
 ```json
 {
-  "model": "gpt-5.4",
+  "model": "gpt-5.6-terra",
   "input": [
     {
       "type": "message",
@@ -241,7 +239,7 @@ print_r($data['output']);
 
 ```json
 {
-  "model": "gpt-5.4",
+  "model": "gpt-5.6-terra",
   "input": [
     {
       "type": "message",
@@ -269,7 +267,7 @@ print_r($data['output']);
   "id": "resp_abc123",
   "object": "response",
   "created": 1706000000,
-  "model": "gpt-4o",
+  "model": "gpt-5.6-terra",
   "output": [
     {
       "type": "message",

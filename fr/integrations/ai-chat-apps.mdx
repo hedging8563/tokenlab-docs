@@ -16,14 +16,6 @@ En pratique, cela signifie :
 Les applications de chat générales sont généralement **orientées chat-completions**, et non des clients WebSocket pour les réponses Codex. Pour Codex CLI/App, Cursor ou d'autres outils de codage nécessitant un comportement spécifique aux réponses, utilisez plutôt les guides d'intégration dédiés.
 </Note>
 
-<Note>
-**Type** : Application de chat
-
-**Chemin principal** : chat-completions compatible OpenAI
-
-**Niveau de support** : Chemin pris en charge
-</Note>
-
 ## Applications prises en charge
 
 | Application | Plateforme | Notes |
@@ -134,7 +126,7 @@ Si une application demande une **URL de point de terminaison complète** au lieu
         apiKey: '${OPENAI_API_KEY}'
         baseURL: 'https://api.tokenlab.sh/v1'
         models:
-          default: ['gpt-5.4-mini', 'gpt-5.4', 'claude-sonnet-5']
+          default: ['gpt-5.6-luna', 'gpt-5.6-terra', 'claude-sonnet-5']
           fetch: false
     ```
   </Tab>

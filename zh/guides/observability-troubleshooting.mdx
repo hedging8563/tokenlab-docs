@@ -1,78 +1,78 @@
 ---
-title: "可观察性与故障排除"
-description: "记录支持所需的公共 TokenLab 标识符、使用对账和异步媒体调试。"
+title: "日志与问题排查"
+description: "保留串联请求、任务与费用所需的 ID"
 ---
 
-良好的 TokenLab 可观察性始于公共标识符。您的日志应帮助您回答“用户请求了什么，TokenLab 创建了什么公共任务，以及如何计费？”而不暴露敏感供应商细节或敏感用户数据。
+日志中请保留 TokenLab 的请求 ID、任务 ID 和 `billing_transaction_id`。不用保存提示词或私密媒体，也能把一次用户操作与结果和费用对应起来。
 
-## 要捕获的公共标识符
+## 建议保留的 ID
 
 | 标识符 | 出现位置 | 用途 |
 |--------|----------|------|
-| `request_id` | 错误主体、仪表板日志、使用记录 | 请求级支持和对账 |
-| `id` / `task_id` | 异步创建和状态响应 | 轮询图像、视频、音乐和 3D 作业 |
-| `poll_url` | 异步创建响应 | 首选状态 URL |
-| `billing_transaction_id` | 结算时的非流式响应、异步任务状态响应、使用记录、`X-Billing-Transaction-ID` | 成本对账 |
-| `X-Task-ID` | 异步任务响应头 | 头级任务关联 |
-| 您自己的作业/用户 ID | 您的应用程序 | 将 TokenLab 活动与用户工作流关联 |
+| `request_id` | 错误内容、Console 日志、Usage | 查询单次请求 |
+| `id` / `task_id` | 异步创建和状态响应 | 查询图片、视频、音乐和 3D 任务 |
+| `poll_url` | 异步创建响应 | 查询任务状态 |
+| `billing_transaction_id` | 已结算响应、异步任务状态、Usage、`X-Billing-Transaction-ID` | 核对费用 |
+| `X-Task-ID` | 异步任务响应头 | 从响应头取得任务 ID |
+| 你自己的任务或用户 ID | 你的应用 | 找到某次用户操作对应的 TokenLab 请求 |
 
-请勿将供应商任务 ID、供应商 URL、供应商标识符、Redis 键或敏感执行元数据存储为面向客户的记录。
+面向用户的记录只使用 TokenLab ID。私有服务地址、缓存键和诊断信息都不能展示给用户。
 
 ## 记录内容
 
-记录足够的信息以诊断请求而不泄露机密：
+下面这些信息足够用于排查，同时不会泄露请求内容：
 
 - 端点、HTTP 方法、模型、状态码、时间戳和延迟。
-- 公共标识符：`request_id`、`task_id`、`poll_url` 和 `billing_transaction_id`（如存在）。
-- 清理后的请求形状：哪些字段存在，而不是完整的提示或私有媒体内容。
-- 终端异步状态响应，包括公共错误字段。
-- 客户端重试计数以及重试是否创建了新任务或恢复了现有任务。
+- `request_id`、`task_id`、`poll_url` 和 `billing_transaction_id`（如有）。
+- 请求中使用了哪些字段，不记录完整提示词或私密媒体。
+- 异步任务的最终状态和可安全保存的错误字段。
+- 客户端重试次数，以及重试是创建了新任务还是继续查询原任务。
 
-除非您获得明确的保留权限，否则始终删除 `Authorization`、API 密钥、管理令牌、签名 URL、私有媒体 URL、完整提示和用户个人数据。
+除非你获得明确的保留权限，否则始终删除 `Authorization`、API 密钥、管理令牌、签名 URL、私有媒体 URL、完整提示和用户个人数据。
 
 ## 故障排除矩阵
 
-| 症状 | 首先检查 | 有用页面 |
+| 问题 | 检查 | 相关文档 |
 |------|----------|----------|
 | `401` 或 `403` | API 密钥、管理令牌、组织访问、密钥范围 | [身份验证](/zh/authentication) |
 | `402` | 余额、API 密钥消费限制、模型价格可用性 | [计费与定价](/zh/guides/billing) |
 | `429` | 账户等级、端点速率限制、重试行为 | [速率限制](/zh/guides/rate-limits) |
 | `400 invalid_request_error` | 不支持的字段、错误的端点、缺少必需字段或模型详情不匹配 | [错误处理](/zh/guides/error-handling) |
-| 找不到异步任务 | 错误的 API 密钥、过期的任务 ID、过期任务或非公共任务 ID | [异步作业与轮询](/zh/guides/async-jobs-polling) |
+| 找不到异步任务 | API 密钥不对、ID 填错或任务已过期 | [异步任务与状态查询](/zh/guides/async-jobs-polling) |
 | 成本与 UI 不匹配 | 结算时间或比较错误的标识符 | [计费与定价](/zh/guides/billing) |
 
-## 使用对账
+## 用量与费用核对
 
-使用管理 API 进行服务器端对账：
+服务端可以通过 Management API 查询：
 
 ```bash
 curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page=1&limit=20&scene=video" \
   -H "Authorization: Bearer mt-your-management-token"
 ```
 
-`GET /v1/management/api-keys/{keyId}/usage` 可以按 `scene`、`model`、`modelVendor`、`startDate` 和 `endDate` 进行过滤。使用这些记录，而不是抓取仪表板页面或依赖供应商任务 ID。
+`GET /v1/management/api-keys/{keyId}/usage` 支持按 `scene`、`model`、`modelVendor`、`startDate` 和 `endDate` 筛选。请使用这些记录，不要抓取 Console 页面，也不要只根据响应 token 数自行计算费用。
 
-流式响应可能在流发送后结算，因此即使使用稍后记录，计费头也可能缺失。异步媒体任务可能在终端轮询后结算。
+流式响应可能在内容发送完后才结算，因此响应里没有账单 ID，Usage 中仍可能稍后出现。异步媒体任务也可能在最终状态后完成费用记录。
 
-## 支持包模板
+## 联系支持时提供什么
 
 联系支持时，请包括：
 
 - `request_id`。
-- 异步工作的 `task_id` 和 `poll_url`。
-- 如果存在，包含 `billing_transaction_id`。
-- 端点、方法、模型、时间戳和状态码。
-- 清理后的请求形状和公共错误主体。
-- 您期望的结果和用户实际看到的内容。
+- 异步任务的 `task_id` 和 `poll_url`。
+- `billing_transaction_id`（如有）。
+- API 地址、方法、模型、时间和状态码。
+- 请求中使用的字段名，以及可安全分享的错误内容。
+- 你期望的结果和用户实际看到的内容。
 
-除非 TokenLab 支持明确要求提供已编辑的示例，否则请勿包含 API 密钥、管理令牌、私有媒体、完整提示、供应商 URL、通道 ID 或私有调试标识符。
+不要发送 API 密钥、管理令牌、私密媒体、完整提示词、私有服务地址或诊断 ID。需要请求示例时，只发送脱敏版本。
 
-## 操作检查
+## 值得自动检查的项目
 
-- 对重复的 `401`、`402`、`429` 和 `5xx` 响应单独发出警报；它们通常有不同的负责人。
-- 跟踪在您的产品 SLA 之上仍然非终端的异步作业。
-- 跟踪同一用户作业 ID 的重复创建尝试。
-- 采样已完成的作业，并验证用户可见资产、使用记录和存储的任务记录是否一致。
+- 分别统计重复出现的 `401`、`402`、`429` 和 `5xx`，它们需要不同的处理方式。
+- 找出超过产品等待时间仍未完成的异步任务。
+- 找出同一个用户任务的重复创建请求。
+- 抽查已完成任务，确认用户看到的文件、Usage 和本地任务记录一致。
 
 ## API 参考
 

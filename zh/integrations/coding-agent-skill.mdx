@@ -1,84 +1,45 @@
 ---
-title: "✨ TokenLab API 集成技能"
-description: "安装维护中的 TokenLab API 集成技能，让 coding agent 能发现模型、读取模型说明并从 API 错误中恢复。"
+title: "给 Coding Agent 安装 TokenLab API Skill"
+description: "让 Coding Agent 使用当前模型、API 示例和错误处理规则"
 ---
 
-<Note>
-本页说明维护中的共享 `tokenlab-api-integration` skill。规范分发源位于 [hedging8563/tokenlab-skills](https://github.com/hedging8563/tokenlab-skills)，公开仓库有意只保留这个 skill。
-</Note>
+`tokenlab-api-integration` Skill 可以帮助 Coding Agent 把 TokenLab 接入应用，不必依赖过期的模型列表。它涵盖聊天、图片、视频、音频、翻译、Embeddings、Rerank、音乐、3D 和 Worlds。
 
-<Note>
-本页用于 skill 安装和 agent 工作流说明。端点、SDK 或客户端配置请查看对应工具的专门集成页或 API Reference。
-</Note>
-
-## 这个技能做什么
-
-- 为 TokenLab 聊天、图像、音频、视频、翻译等 API 家族生成最小可运行示例。
-- OpenAI 兼容客户端使用 `https://api.tokenlab.sh/v1`，并说明何时切到 Anthropic 或 Gemini 原生路由。
-- 通过 `/v1/models`、`/llms.txt` 和 `recommended_for` 推荐列表发现模型，而不是依赖陈旧的本地列表。
-- 非聊天请求重试前读取模型模型说明，避免静默丢弃不支持的字段。
-- 处理 `did_you_mean`、`suggestions`、`retry_after`、`recommended_request` 等 Agent-First 错误提示。
+公开版本位于 [tokenlab-skills](https://github.com/hedging8563/tokenlab-skills)。
 
 ## 安装
 
-<Note>
-请使用规范的非交互式安装命令：
+```bash
+npx skills add https://github.com/hedging8563/tokenlab-skills \
+  --skill tokenlab-api-integration \
+  -y
+```
+
+更新时重新运行同一条命令。Coding 工具不支持安装器时，可以把仓库中的 `skills/tokenlab-api-integration/` 复制到它的共享 Skills 或 Rules 目录。
+
+安装后，让 Agent 列出可用 Skills；出现 `tokenlab-api-integration` 即表示已经识别。
+
+## 它能帮你做什么
+
+- 为某个 TokenLab API 创建可运行示例。
+- 读取当前模型列表和模型专属字段。
+- 选择 Chat Completions、Responses、Anthropic Messages 或 Gemini 格式。
+- 处理模型名建议、请求限额和重试时间。
+- 避免把 API 密钥写进提示词和源码。
+
+Skill 不能代替 API Reference。需要确认准确字段和响应结构时，仍应查看对应 TokenLab 文档。
+
+## 创建 API 密钥
+
+打开 [Console → API 密钥](https://tokenlab.sh/dashboard/api) 创建一枚密钥，并放进环境变量。TokenLab API 密钥以 `sk-` 开头。
 
 ```bash
-npx skills add https://github.com/hedging8563/tokenlab-skills --skill tokenlab-api-integration -y
+export TOKENLAB_API_KEY="sk-your-api-key"
 ```
 
-这会从 TokenLab skills 仓库安装共享的 `tokenlab-api-integration` skill。
+不要把密钥粘贴到 Agent 提示词、前端代码、截图或公开仓库中。让 Agent 从环境变量读取。
 
-如果你的工具不支持安装器，请把仓库里的 `skills/tokenlab-api-integration/` 复制到工具的共享 skills 或 rules 目录。
-</Note>
-
-### 更新既有安装
-
-如果你是在 TokenLab skills 仓库清理前安装的，请重新运行同一条命令。当前公开包更小，也不再依赖生成式本地搜索脚本。
-
-### 验证安装
-
-询问你的 coding agent：
-
-```
-有哪些可用的 skills？
-```
-
-如果能看到 `tokenlab-api-integration`，表示安装成功。
-
-## 获取 API Key
-
-<Steps>
-  <Step title="访问 TokenLab">
-    前往 [tokenlab.sh](https://tokenlab.sh)
-  </Step>
-  <Step title="登录">
-    创建账户或登录
-  </Step>
-  <Step title="获取 API Key">
-    打开 [Dashboard → API Keys](https://tokenlab.sh/dashboard/api) 并创建新 key
-  </Step>
-  <Step title="复制 key">
-    你的 key 以 `sk-...` 开头，请妥善保存。
-  </Step>
-</Steps>
-
-<Tip>
-不要把 API key 粘贴到提示词或源码里。skill 应询问要使用哪个环境变量，并生成从该变量读取 key 的代码。
-</Tip>
-
-## 推荐的 Agent 工作流
-
-1. 先生成匹配用户语言和 API 家族的最小可运行示例。
-2. 模型选择未确定时，先调用 `/v1/models` 或 `https://api.tokenlab.sh/llms.txt`，不要硬编码。
-3. 非聊天任务先调用 `/v1/models?recommended_for=<scene>`，其中 `<scene>` 可为 `image`、`video`、`music`、`3d`、`tts`、`stt`、`embedding`、`rerank` 或 `translation`。
-4. 修改失败的非聊天请求前，读取 `/v1/models/:model`，并对齐 `supported_operations`、`supported_parameters`、`request_endpoint`, `request_endpoint_by_operation`、`request_shape_mode` 和 `recommended_request`。
-5. 如果 API 返回 Agent-First 错误，使用结构化字段修正请求；只有 `retryable` 表示可重试时才重试。
-
-## 最小聊天示例
-
-这个示例使用 OpenAI Python SDK 和 TokenLab base URL：
+## 第一条请求
 
 ```python
 import os
@@ -86,139 +47,82 @@ from openai import OpenAI
 
 client = OpenAI(
     api_key=os.environ["TOKENLAB_API_KEY"],
-    base_url="https://api.tokenlab.sh/v1"
+    base_url="https://api.tokenlab.sh/v1",
 )
 
 response = client.chat.completions.create(
-    model="gpt-4o-mini",
-    messages=[{"role": "user", "content": "Hello!"}]
+    model="gpt-5.6-luna",
+    messages=[{"role": "user", "content": "Hello!"}],
 )
 
 print(response.choices[0].message.content)
 ```
 
-运行方式：
+安装 OpenAI SDK 并运行：
 
 ```bash
 pip install openai
-export TOKENLAB_API_KEY="sk-your-api-key"
 python app.py
 ```
 
-## 模型发现与模型说明
+## 让 Agent 读取当前模型信息
 
-优先使用实时发现，不依赖陈旧的打包列表：
+模型 ID、字段和价格都会变化。Skill 可以读取：
 
 ```bash
-# 机器可读 API 概览
+# 精简 API 概览
 curl https://api.tokenlab.sh/llms.txt
 
-# 列出模型
-curl "https://api.tokenlab.sh/v1/models" -H "Authorization: Bearer sk-KEY"
-curl "https://api.tokenlab.sh/v1/models?category=image" -H "Authorization: Bearer sk-KEY"
+# 当前模型
+curl "https://api.tokenlab.sh/v1/models" \
+  -H "Authorization: Bearer $TOKENLAB_API_KEY"
 
-# 非聊天场景推荐列表
-curl "https://api.tokenlab.sh/v1/models?recommended_for=image" -H "Authorization: Bearer sk-KEY"
-curl "https://api.tokenlab.sh/v1/models?recommended_for=video" -H "Authorization: Bearer sk-KEY"
-curl "https://api.tokenlab.sh/v1/models?recommended_for=translation" -H "Authorization: Bearer sk-KEY"
+# 适合某类非聊天任务的模型
+curl "https://api.tokenlab.sh/v1/models?recommended_for=image" \
+  -H "Authorization: Bearer $TOKENLAB_API_KEY"
 
-# 非聊天请求重试前读取单一模型模型说明
-curl "https://api.tokenlab.sh/v1/models/gpt-image-2" -H "Authorization: Bearer sk-KEY"
-
-# 仅价格详情
-curl "https://api.tokenlab.sh/v1/models/gpt-image-2/pricing" -H "Authorization: Bearer sk-KEY"
+# 单个模型支持的字段和 API 格式
+curl "https://api.tokenlab.sh/v1/models/gpt-image-2" \
+  -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```
 
-## 原生协议选择
+`recommended_for` 支持 `image`、`video`、`music`、`3d`、`tts`、`stt`、`embedding`、`rerank` 和 `translation`。
 
-常见聊天、图像、嵌入、音频和 rerank 示例默认走 OpenAI 兼容 `/v1`。不要根据模型名、提供方名称或 Chat 响应头推断原生协议是否可用；应读取 `GET /v1/models/{model}`，只使用模型详情明确广告的请求格式。
+## 一次对话只用一种 API 格式
 
-应读取的字段是 `tokenlab.accepted_request_formats`。
+生成代码前，从所选模型读取 `tokenlab.accepted_request_formats`。
 
-协议端点分别为 Chat Completions 的 `/v1/chat/completions`、Responses 的 `/v1/responses`、Messages 的 `/v1/messages`，以及 Gemini 的 `/v1beta/models/{model}:generateContent`。
+| 格式 | API |
+| --- | --- |
+| Chat Completions | `/v1/chat/completions` |
+| Responses | `/v1/responses` |
+| Anthropic Messages | `/v1/messages` |
+| Gemini | `/v1beta/models/{model}:generateContent` |
 
-## Agent-First 错误恢复
+同一段对话或工具调用应保持一种格式。模型专属字段不会在这些格式之间自动转换。
 
-错误响应包含 coding agent 可直接解析的字段：
+## 根据错误做安全修改
 
-| 错误 | 有用字段 | Agent 处理方式 |
-|---|---|---|
-| 模型名称错误 | `did_you_mean`, `suggestions`, `hint` | 使用修正后的模型或推荐替代项重试 |
-| 余额不足 | `balance_usd`, `estimated_cost_usd`, `suggestions` | 请求用户确认，或切换到可负担模型 |
-| 速率限制或临时不可用 | `retryable`, `retry_after`, `alternatives` | 等待后重试，或选择列出的替代模型 |
-| 非聊天请求不兼容 | `supported_operations`, `supported_parameters`, `request_endpoint`, `request_endpoint_by_operation`, `request_shape_mode`, `recommended_request` | 按模型详情重建请求；对于会改变意图的字段，返回明确错误 |
+OpenAI 兼容错误可能带有 `did_you_mean`、`suggestions`、`hint`、`retryable` 和 `retry_after`。Agent 仍应以 HTTP 状态和错误 `code` 为主要判断依据。
 
-## 支持的 API 家族
+- 模型名错误时，可以读取 `did_you_mean`；换模型会影响结果或价格时，需要用户同意。
+- `429` 按 `Retry-After` 等待后重试。
+- 参数、鉴权、余额和权限错误需要修改内容，原样重发没有用。
+- 创建任务超时后，必须确认没有产生任务再重新提交。
 
-| 家族 | 主要路径 |
-|---|---|
-| 聊天与 Responses | `/v1/chat/completions`, `/v1/responses` |
-| Claude 原生 messages | `/v1/messages` |
-| Gemini 原生请求 | `/v1beta/models/{model}:generateContent` |
-| 图像 | `/v1/images/generations`, `/v1/images/edits` |
-| 视频 | `/v1/videos/generations` |
-| 音乐 | `/v1/music/generations` |
-| Worlds | `/v1/worlds/generations` 以及 world 状态和媒体资产端点 |
-| 3D | `/v1/3d/generations` |
-| 音频 | `/v1/audio/speech`, `/v1/audio/transcriptions`, `/v1/audio/translations` |
-| Realtime | `/v1/realtime?model={model}` |
-| 嵌入与 rerank | `/v1/embeddings`, `/v1/rerank` |
-| 文本翻译 | `/v1/translations` |
+## 可以这样告诉 Agent
 
-## 最佳实践
+```text
+使用 TokenLab API Skill 给这个 Node.js 应用添加图片生成。
+选择字段前读取当前模型详情。
+API 密钥放在 TOKENLAB_API_KEY，并添加一个可运行测试。
+```
 
-<CardGroup cols={2}>
-  <Card title="API Key 安全" icon="shield">
-    使用环境变量和服务端调用，不要在前端代码里暴露 key。
-  </Card>
-  <Card title="非聊天先看契约" icon="file-code">
-    重试图像、视频、音乐、3D、翻译、音频、嵌入或 rerank 请求前，先读取 `/v1/models?recommended_for=...` 和 `/v1/models/:model`。
-  </Card>
-  <Card title="最小可运行示例" icon="terminal">
-    先生成一个能跑通的调用，再添加抽象、队列或 UI 流程。
-  </Card>
-  <Card title="使用结构化提示" icon="rotate-cw">
-    修改代码前先解析 `did_you_mean`、`retry_after`、`alternatives` 和 `recommended_request`。
-  </Card>
-</CardGroup>
+```text
+在这个 Python 服务中使用 TokenLab Chat Completions。
+保留现有 OpenAI SDK，只修改 Base URL、API 密钥来源和模型。
+```
 
-## FAQ
+## 获取帮助
 
-<AccordionGroup>
-  <Accordion title="skill 没有自动触发？">
-    在请求中提到 “TokenLab” 或 “TokenLab API”，例如：`用 TokenLab 给我的 Node.js 应用添加图像生成`。
-  </Accordion>
-
-  <Accordion title="支持哪些 coding agent？">
-    任何支持共享 skill 或 rules 目录的 coding agent 都可以使用这个文件夹。`skills` 安装器会自动处理支持的 agent。
-  </Accordion>
-
-  <Accordion title="如何更新 skill？">
-    重新运行安装命令即可，它会从规范公开仓库刷新本地副本。
-
-    ```bash
-    npx skills add https://github.com/hedging8563/tokenlab-skills --skill tokenlab-api-integration -y
-    ```
-  </Accordion>
-</AccordionGroup>
-
-## 资源
-
-<CardGroup cols={2}>
-  <Card title="Agent-First API" icon="robot" href="/zh/guides/agent-first-api">
-    结构化错误提示和恢复行为
-  </Card>
-  <Card title="API 文档" icon="book" href="https://docs.tokenlab.sh">
-    端点配置和 API Reference
-  </Card>
-  <Card title="模型" icon="sparkles" href="https://tokenlab.sh/zh/models">
-    浏览可用模型
-  </Card>
-  <Card title="llms.txt" icon="file-lines" href="https://api.tokenlab.sh/llms.txt">
-    面向 agents 的机器可读 API 概览
-  </Card>
-</CardGroup>
-
-<Info>
-有问题？请使用 [GitHub Issues](https://github.com/hedging8563/tokenlab-skills/issues) 或联系 [support@tokenlab.sh](mailto:support@tokenlab.sh)。
-</Info>
+Skill 问题请提交到 [GitHub Issues](https://github.com/hedging8563/tokenlab-skills/issues)。API 和账户问题可以发送到 [support@tokenlab.sh](mailto:support@tokenlab.sh)。

@@ -28,9 +28,9 @@ TokenLabは、OpenAI、Anthropic、Google、DeepSeek、Moonshot、MiniMaxなど�
 
 | 機能 | 説明 | モデル例 |
 |---|---|---|
-| チャットと推論 | テキスト生成、計画、ツール利用 | `gpt-5.4`, `claude-sonnet-4-6`, `deepseek-r1` |
+| チャットと推論 | テキスト生成、計画、ツール利用 | `gpt-5.4`, `claude-sonnet-4-6` |
 | ビジョンとマルチモーダル | 画像理解とマルチモーダルチャット | `gpt-4o`, `claude-sonnet-4-6`, `gemini-3.5-flash` |
-| 画像生成と編集 | テキストから画像生成、画像編集 | `gpt-image-2`, `flux-pro`, `qwen-image-plus` |
+| 画像生成と編集 | テキストから画像生成、画像編集 | `gpt-image-2`, `flux-pro` |
 | 動画生成 | テキスト/画像/参照動画からの生成とモーション制御 | `veo3.1`, `wan-2.7`, `kling-3.0-video`, `happyhorse-1.0` |
 | 音声と Realtime | TTS、文字起こし、翻訳、リアルタイムセッション | `gpt-4o-mini-tts`, `whisper-1`, `gpt-realtime` |
 | Embeddings と rerank | テキストベクトル化と再ランキング | `text-embedding-3-small`, `qwen3-vl-rerank` |
@@ -49,7 +49,7 @@ curl https://api.tokenlab.sh/v1/chat/completions \
   -H "Authorization: Bearer sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-5.4",
+    "model": "gpt-5.6-terra",
     "messages": [
       {"role": "user", "content": "Explain what TokenLab does in one sentence."}
     ]
@@ -65,7 +65,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="gpt-5.4",
+    model="gpt-5.6-terra",
     messages=[{"role": "user", "content": "Explain what TokenLab does in one sentence."}]
 )
 
@@ -81,7 +81,7 @@ const client = new OpenAI({
 });
 
 const response = await client.chat.completions.create({
-  model: 'gpt-5.4',
+  model: 'gpt-5.6-terra',
   messages: [{ role: 'user', content: 'Explain what TokenLab does in one sentence.' }],
 });
 

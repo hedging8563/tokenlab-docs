@@ -7,13 +7,6 @@ description: "Configure TokenLab as an OpenAI-compatible language model in DSPy"
 
 DSPy can call TokenLab by using the `openai/` provider prefix with TokenLab's OpenAI-compatible `/v1` endpoint.
 
-<Note>
-**Type**: Programming Framework
-
-**Primary Path**: OpenAI-compatible language model calls
-
-**Support Confidence**: Supported custom endpoint path
-</Note>
 
 ## Environment
 
@@ -46,6 +39,4 @@ response = qa(question="What should I monitor in an LLM gateway?")
 print(response.answer)
 ```
 
-## Model Suggestions
-
-Use `gpt-5.4-mini` for quick experiments, `claude-sonnet-5` for stronger reasoning traces, and `deepseek-v4-flash` for fast iteration loops.
+Model IDs change over time. Choose a current chat model on the [Models page](https://tokenlab.sh/en/models), then compare it on your own DSPy program.

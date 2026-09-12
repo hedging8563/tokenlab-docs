@@ -1,24 +1,10 @@
 ---
-title: "检索文件"
+title: "获取文件信息"
 openapi: "GET /v1/files/{file_id}"
-description: "检索单个上传文件的元数据。"
+description: "获取一个已上传文件的信息。"
 ---
 
-## 概述
-
-此端点主要服务于 TokenLab 的 OpenAI 兼容 Batch API 文件对象。
-
-当请求选择 Anthropic Files 兼容模式时，同一路由也可以返回绑定工作区的 Anthropic 风格文件元数据。
-
-
-不带 Anthropic 请求头时，此路由可能返回批量文件对象，也可能返回 TokenLab 图像/参考文件对象。
-## 注意事项
-
-- 批处理输入文件必须使用 `purpose=batch`。
-- 使用 `purpose=batch_output` 以聚焦生成的输出文件。
-- `completion_window` 当前为 `24h`。
-- 输出顺序不保证；始终通过 `custom_id` 匹配。
-- 批处理项内不支持流式传输。
+返回文件名、大小、用途和创建时间。不带 Anthropic 请求头时，可查询批处理文件和图片参考文件；携带对应请求头时，可查询 Anthropic 格式文件。
 
 ## 示例
 
@@ -29,15 +15,9 @@ curl -X GET "https://api.tokenlab.sh/v1/files/file_abc123" \
 ```
 </RequestExample>
 
-## 请求 / 响应
+## 图像参考文件
 
-使用上面的交互式OpenAPI面板获取确切的模式。
-
-## 操作提示
-
-- 使用 `custom_id` 进行幂等的下游对账。
-- 仅在工作者完成批处理后，期待 `output_file_id` 和 `error_file_id`。
-- 批处理定价可能与同步定价不同，因为适用 `isBatchRequest=true` 的折扣规则。
+此端点也可以返回 TokenLab 创建的图像参考文件元数据。`status` 字段是可选的；某些文件类型可能不会提供该字段。
 
 ## 响应示例
 
@@ -56,6 +36,6 @@ curl -X GET "https://api.tokenlab.sh/v1/files/file_abc123" \
 
 ## 重要字段
 
-<ResponseField name="id" type="string">供相关 API 使用的文件标识符。</ResponseField>
-<ResponseField name="filename" type="string">原始或生成的文件名。</ResponseField>
-<ResponseField name="purpose" type="string">所属工作流使用的文件用途，例如 `batch`、`batch_output`、`user_data` 或 `vision`。</ResponseField>
+<ResponseField name="id" type="string">文件 ID。</ResponseField>
+<ResponseField name="filename" type="string">文件名。</ResponseField>
+<ResponseField name="purpose" type="string">文件用途，例如 `batch`、`batch_output`、`user_data` 或 `vision`。</ResponseField>
