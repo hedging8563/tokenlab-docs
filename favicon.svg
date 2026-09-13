@@ -1,7 +1,8 @@
-<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="512" height="512" rx="115" fill="#7C3AED"/>
-  <rect x="139" y="116" width="234" height="62" rx="31" fill="#F8FAFC"/>
-  <rect x="225" y="116" width="62" height="244" rx="31" fill="#F8FAFC"/>
-  <circle cx="256" cy="334" r="86" fill="#F8FAFC"/>
-  <circle cx="256" cy="334" r="46" fill="#7C3AED"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" role="img" aria-labelledby="tokenlab-favicon-title tokenlab-favicon-desc">
+  <title id="tokenlab-favicon-title">TokenLab</title>
+  <desc id="tokenlab-favicon-desc">Specimen Split symbol optically corrected for a 16 pixel favicon.</desc>
+  <g fill="#151714">
+    <path d="M1.5 4.6h4.15l5.85 9.9h-10V4.6Z"/>
+    <path d="M7 1.5h7.5v9.9h-2.6L7 1.5Z"/>
+  </g>
 </svg>
