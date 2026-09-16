@@ -19,6 +19,20 @@ Authorization: Bearer sk-your-api-key
 x-api-key: sk-your-api-key
 ```
 
+## Token quản lý
+
+Các endpoint của API quản lý sử dụng một loại token riêng:
+
+```bash
+Authorization: Bearer mt-your-management-token
+```
+
+Chỉ dùng token quản lý với `/v1/management/*`. Mở [API → Tokens](https://tokenlab.sh/dashboard/api?tab=tokens) của không gian làm việc đã chọn để tạo hoặc thay thế token. Hãy lưu token đầy đủ ở nơi an toàn khi nó xuất hiện; token chỉ hiển thị một lần sau khi tạo hoặc thay thế.
+
+<Note>
+Token quản lý không dùng được để gọi mô hình, và khóa API thông thường `sk-...` không dùng được cho API quản lý.
+</Note>
+
 ## Lấy API Key của bạn
 
 1. Đăng nhập vào [TokenLab Dashboard](https://tokenlab.sh/dashboard) của bạn

@@ -3,70 +3,53 @@ title: "Pi Coding Agent"
 description: "Connect Pi Coding Agent to TokenLab"
 ---
 
-## Overview
+## Let my agent set this up
 
+Copy this task to an agent already running on your computer:
 
-
-
-[Pi](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent) is a terminal coding tool that can also be embedded in another application. It supports:
-
-- interactive terminal coding
-- JSON / RPC modes for process integration
-- SDK-style embedding into your own applications
-
-Use Pi's **OpenAI-compatible** settings for Chat Completions. Choose Anthropic or Google settings only when your Pi configuration needs fields from those formats.
-
-## OpenAI-compatible setup
-
-Set the TokenLab API key and Base URL:
-
-```bash
-export OPENAI_API_KEY="sk-your-tokenlab-key"
-export OPENAI_BASE_URL="https://api.tokenlab.sh/v1"
+```text
+Read this guide and help me connect Pi to TokenLab:
+https://docs.tokenlab.sh/integrations/pi-coding-agent
+Check my installed version and active configuration first.
+Preserve existing accounts, providers, permissions and other settings.
+Back up local files and show proposed changes.
+Have me enter any API key locally; never ask for, print or paste it in chat.
+Check configuration loading first.
+Explain any paid request test separately before running it.
 ```
 
-Then configure Pi's provider or custom model settings so its OpenAI-style path points at TokenLab.
+## Install and configure Pi
 
-<Note>
-Pi can also work with Anthropic-style and Google-style providers. If you want Claude-native or Gemini-native behavior, treat that as a provider-specific Pi setup rather than a generic OpenAI-compatible setup.
-</Note>
+Use the current [Pi installation instructions](https://pi.dev/). The npm package is `@earendil-works/pi-coding-agent`. On Windows, follow the [shell setup](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/windows.md); the CLI uses Git Bash by default. Skip installation when Pi is already available.
 
-## Why Pi Is Different
+```bash
+npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+pi --version
+```
 
-Pi is not just "another SDK".
+Merge this into `~/.pi/agent/models.json`, or the active `PI_CODING_AGENT_DIR` directory. Back up the file and preserve other providers. Set `TOKENLAB_API_KEY` locally in the environment that launches Pi; never paste the key into chat. A Base URL environment variable alone does not create this provider.
 
-- If you are using Pi as a terminal agent, evaluate it like a **coding tool**
-- If you are embedding Pi into your own app, evaluate it like an **agent runtime / harness**
+```json
+{
+  "providers": {
+    "tokenlab": {
+      "baseUrl": "https://api.tokenlab.sh/v1",
+      "api": "openai-completions",
+      "apiKey": "$TOKENLAB_API_KEY",
+      "models": [{ "id": "gpt-5.6-luna" }]
+    }
+  }
+}
+```
 
-That is why this page focuses on the practical TokenLab connection path rather than calling Pi a pure SDK.
+The leading `$` in `"$TOKENLAB_API_KEY"` is required: a bare `"TOKENLAB_API_KEY"` is a literal string. Choose a current model with Chat Completions and tool support. Set context, output, image and reasoning options from that model’s details instead of copying another model’s limits.
 
-## Practical Setup Notes
+## Check and restore
 
-<AccordionGroup>
-  <Accordion title="OpenAI-compatible default">
-    Use `https://api.tokenlab.sh/v1` for OpenAI-compatible requests. Choose a different setup only when Pi needs the Anthropic or Gemini API format.
-  </Accordion>
+Run `pi --list-models`, then open `/model` in Pi and select `tokenlab/gpt-5.6-luna`. Opening the picker reloads `models.json`. This checks model registration and credential presence, not credential validity or a completed API request.
 
-  <Accordion title="Anthropic and Gemini use different settings">
-    Test Claude or Gemini with the matching Pi settings. Do not reuse the OpenAI-compatible configuration for those API formats.
-  </Accordion>
+A short text request uses TokenLab balance. Check its reply and the matching [request record](https://tokenlab.sh/dashboard/runs?section=requests) before testing tools. To restore your setup, select the previous provider and remove only the TokenLab entry you added.
 
-  <Accordion title="Keep tool/runtime expectations realistic">
-    Pi is highly configurable. TokenLab can document the connection path, but not every extension, skill, or custom harness behavior should be treated as part of the compatibility contract.
-  </Accordion>
-</AccordionGroup>
+## Skills and MCP
 
-## Troubleshooting
-
-<AccordionGroup>
-  <Accordion title="Connection errors">
-    - Verify the configured OpenAI-style base URL is exactly `https://api.tokenlab.sh/v1`
-    - Verify the key starts with `sk-`
-    - Verify that the selected Pi settings match the API format you intend to use
-  </Accordion>
-
-  <Accordion title="Model mismatch">
-    - Keep the TokenLab model id separate from any Pi-local aliasing
-    - For Anthropic or Gemini formats, confirm that Pi is using the matching settings
-  </Accordion>
-</AccordionGroup>
+Pi loads [Skills natively](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/skills.md). Install the [TokenLab Skill](/integrations/coding-agent-skill) for API integration guidance. MCP requires a separate Pi extension; do not paste an MCP client configuration into `models.json`.

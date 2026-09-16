@@ -1,0 +1,40 @@
+---
+title: "Hermes Agent"
+description: "Hermes Agent を TokenLab に接続"
+---
+
+既存のアカウント、設定、ツール権限を維持しながら、TokenLab を名前付きプロバイダーとして追加します。
+
+## Hermes のインストールと確認
+
+[公式インストールガイド](https://hermes-agent.nousresearch.com/docs/getting-started/installation)を参照してください。Apple Silicon macOS と Windows のデスクトップ版、Linux とネイティブ Windows の CLI に対応する手順があります。システム要件を確認し、導入済みならインストールを省略します。
+
+## プロバイダーを設定
+
+`HERMES_HOME` が設定されていればそのディレクトリ、なければ `~/.hermes`（Windows：`%USERPROFILE%\.hermes`）を使います。`config.yaml` をバックアップし、他の設定を残して以下をマージします。Chat Completions とツール呼び出しに対応する現在のモデルを選んでください。
+
+```yaml
+providers:
+  tokenlab:
+    api: https://api.tokenlab.sh/v1
+    key_env: TOKENLAB_API_KEY
+    transport: chat_completions
+    default_model: gpt-5.6-luna
+model:
+  provider: custom:tokenlab
+  default: gpt-5.6-luna
+```
+
+[API キー](https://tokenlab.sh/dashboard/api?tab=keys)でキーを作成し、Hermes ディレクトリの `.env` または起動プロセスの環境に `TOKENLAB_API_KEY` として保存します。会話やプロバイダー YAML にキーを貼り付けないでください。
+
+## 設定確認と最初のリクエスト
+
+`hermes config get model.provider` と `hermes config get model.default` で `custom:tokenlab` と選択モデルを確認します。その後、新しいセッションを開始します。既存セッションには以前のモデルが残る場合があります。設定確認だけでは認証やモデル呼び出しの成功を証明できません。
+
+TokenLab 残高を使用する準備ができたら短いテキストを送り、応答と[リクエスト記録](https://tokenlab.sh/dashboard/runs?section=requests)を照合します。その後、読み取り専用のツール作業を試します。補助モデルや任意ツールには別のプロバイダーやキーが必要な場合があります。
+
+## 復元とトラブル対処
+
+不明なプロバイダーと表示されたら、バージョンと[現在の設定形式](https://hermes-agent.nousresearch.com/docs/integrations/providers)を確認します。認証エラーではキーを表示せず環境とキーの状態を確認してください。元に戻すには以前のモデル選択を復元し、追加した TokenLab 項目だけを削除します。
+
+MCP と Skills は別の拡張です。[MCP ガイド](/ja/integrations/tokenlab-mcp-server)は API ツール、[Skill ガイド](/ja/integrations/coding-agent-skill)は実装手順を提供します。このプロバイダー設定には必須ではありません。

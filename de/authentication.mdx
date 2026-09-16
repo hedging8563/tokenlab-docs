@@ -19,6 +19,20 @@ Für Anthropic-kompatible `/v1/messages`-Anfragen können Sie außerdem Folgende
 x-api-key: sk-your-api-key
 ```
 
+## Verwaltungstokens
+
+Die Verwaltungs-API verwendet einen eigenen Tokentyp:
+
+```bash
+Authorization: Bearer mt-your-management-token
+```
+
+Verwenden Sie Verwaltungstokens nur für `/v1/management/*`. Öffnen Sie [API → Tokens](https://tokenlab.sh/dashboard/api?tab=tokens) für den ausgewählten Workspace, um ein Token zu erstellen oder zu ersetzen. Speichern Sie das vollständige Token sicher; es wird nach dem Erstellen oder Ersetzen nur einmal angezeigt.
+
+<Note>
+Verwaltungstokens können nicht für Modellinferenz verwendet werden. Normale `sk-...`-API-Schlüssel können nicht für die Verwaltungs-API verwendet werden.
+</Note>
+
 ## Ihren API-Schlüssel erhalten
 
 1. Melden Sie sich in Ihrem [TokenLab Dashboard](https://tokenlab.sh/dashboard) an

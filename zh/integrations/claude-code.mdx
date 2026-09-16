@@ -3,20 +3,40 @@ title: "Claude Code"
 description: "将 TokenLab 与 Anthropic 的 Claude Code CLI 一起使用"
 ---
 
+## 交给我的 Agent 做
+
+把这段任务交给电脑上已经可用的 Agent：
+
+```text
+阅读此教程，帮我将 Claude Code 接入 TokenLab：
+https://docs.tokenlab.sh/zh/integrations/claude-code
+先检查已安装版本和实际配置。
+保留已有账户、提供商、权限及无关设置。
+备份本机文件并展示修改内容。
+让我在本机输入所需 API Key，不要在聊天里索取、打印或粘贴密钥。
+先验证配置能否加载；真实请求测试的费用须单独说明后再运行。
+```
+
 ## 概述
 
 
 
 
-[Claude Code](https://docs.anthropic.com/en/docs/claude-code) 可以使用 TokenLab API 密钥，通过 TokenLab Messages API 调用 Claude 模型。
+[Claude Code](https://code.claude.com/docs/en/setup) 可以使用 TokenLab API 密钥，通过 TokenLab Messages API 调用 Claude 模型。
 
 ## 安装
 
 Anthropic 当前推荐原生安装程序；npm 安装方式仍可用，但已经弃用。
 
-```bash
+<CodeGroup>
+```bash macOS / Linux / WSL
 curl -fsSL https://claude.ai/install.sh | bash
 ```
+
+```powershell Windows
+irm https://claude.ai/install.ps1 | iex
+```
+</CodeGroup>
 
 如果你明确需要 npm 包，请使用：
 
@@ -49,6 +69,8 @@ export ANTHROPIC_BASE_URL="https://api.tokenlab.sh"
 
 或者，创建或编辑 `~/.claude/settings.json`：
 
+备份并合并设置，不覆盖已有账户、权限或无关环境变量。`ANTHROPIC_API_KEY` 发送 `X-Api-Key`，`ANTHROPIC_AUTH_TOKEN` 发送 Bearer token，应明确选择一种认证方式。启动 Claude Code 后用 `/status` 检查当前模型和配置来源，这不能证明付费请求成功。发送简短付费请求后，应核对回复和 TokenLab 请求记录。恢复时仅撤销本次添加的设置。参见[配置优先级](https://code.claude.com/docs/en/settings)。
+
 ```json
 {
   "env": {
@@ -69,8 +91,6 @@ claude
 # Run a single command
 claude "Explain this code" < main.py
 
-# Chat mode
-claude chat
 ```
 
 如有需要，可验证安装是否成功：

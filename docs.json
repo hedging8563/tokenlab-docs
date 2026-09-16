@@ -3,9 +3,19 @@
   "theme": "mint",
   "name": "TokenLab",
   "colors": {
-    "primary": "#7C3AED",
-    "light": "#8B5CF6",
-    "dark": "#6D28D9"
+    "primary": "#875B49",
+    "light": "#D39A80",
+    "dark": "#43463F"
+  },
+  "background": {
+    "color": {
+      "light": "#F8F8F6",
+      "dark": "#0D0E0C"
+    }
+  },
+  "appearance": {
+    "default": "system",
+    "strict": false
   },
   "favicon": "/favicon.svg",
   "logo": {
@@ -14,13 +24,18 @@
     "href": "https://tokenlab.sh"
   },
   "api": {
-    "baseUrl": "https://api.tokenlab.sh",
-    "auth": {
-      "method": "bearer",
-      "name": "Authorization"
+    "openapi": [
+      "openapi.json"
+    ],
+    "mdx": {
+      "server": "https://api.tokenlab.sh",
+      "auth": {
+        "method": "bearer",
+        "name": "Authorization"
+      }
     },
     "playground": {
-      "mode": "interactive"
+      "display": "interactive"
     }
   },
   "navigation": {
@@ -250,6 +265,7 @@
                   "integrations/claude-code",
                   "integrations/codex-cli",
                   "integrations/workbuddy",
+                  "integrations/hermes-agent",
                   "integrations/kilo-code",
                   "integrations/gemini-cli",
                   "integrations/pi-coding-agent",
@@ -522,6 +538,7 @@
                   "zh/integrations/claude-code",
                   "zh/integrations/codex-cli",
                   "zh/integrations/workbuddy",
+                  "zh/integrations/hermes-agent",
                   "zh/integrations/kilo-code",
                   "zh/integrations/gemini-cli",
                   "zh/integrations/pi-coding-agent",
@@ -794,6 +811,7 @@
                   "zh-Hant/integrations/claude-code",
                   "zh-Hant/integrations/codex-cli",
                   "zh-Hant/integrations/workbuddy",
+                  "zh-Hant/integrations/hermes-agent",
                   "zh-Hant/integrations/kilo-code",
                   "zh-Hant/integrations/gemini-cli",
                   "zh-Hant/integrations/pi-coding-agent",
@@ -1066,6 +1084,7 @@
                   "ja/integrations/claude-code",
                   "ja/integrations/codex-cli",
                   "ja/integrations/workbuddy",
+                  "ja/integrations/hermes-agent",
                   "ja/integrations/kilo-code",
                   "ja/integrations/gemini-cli",
                   "ja/integrations/pi-coding-agent",
@@ -1338,6 +1357,7 @@
                   "ko/integrations/claude-code",
                   "ko/integrations/codex-cli",
                   "ko/integrations/workbuddy",
+                  "ko/integrations/hermes-agent",
                   "ko/integrations/kilo-code",
                   "ko/integrations/gemini-cli",
                   "ko/integrations/pi-coding-agent",
@@ -1610,6 +1630,7 @@
                   "de/integrations/claude-code",
                   "de/integrations/codex-cli",
                   "de/integrations/workbuddy",
+                  "de/integrations/hermes-agent",
                   "de/integrations/kilo-code",
                   "de/integrations/gemini-cli",
                   "de/integrations/pi-coding-agent",
@@ -1882,6 +1903,7 @@
                   "fr/integrations/claude-code",
                   "fr/integrations/codex-cli",
                   "fr/integrations/workbuddy",
+                  "fr/integrations/hermes-agent",
                   "fr/integrations/kilo-code",
                   "fr/integrations/gemini-cli",
                   "fr/integrations/pi-coding-agent",
@@ -2154,6 +2176,7 @@
                   "es/integrations/claude-code",
                   "es/integrations/codex-cli",
                   "es/integrations/workbuddy",
+                  "es/integrations/hermes-agent",
                   "es/integrations/kilo-code",
                   "es/integrations/gemini-cli",
                   "es/integrations/pi-coding-agent",
@@ -2426,6 +2449,7 @@
                   "pt/integrations/claude-code",
                   "pt/integrations/codex-cli",
                   "pt/integrations/workbuddy",
+                  "pt/integrations/hermes-agent",
                   "pt/integrations/kilo-code",
                   "pt/integrations/gemini-cli",
                   "pt/integrations/pi-coding-agent",
@@ -2698,6 +2722,7 @@
                   "ar/integrations/claude-code",
                   "ar/integrations/codex-cli",
                   "ar/integrations/workbuddy",
+                  "ar/integrations/hermes-agent",
                   "ar/integrations/kilo-code",
                   "ar/integrations/gemini-cli",
                   "ar/integrations/pi-coding-agent",
@@ -2970,6 +2995,7 @@
                   "vi/integrations/claude-code",
                   "vi/integrations/codex-cli",
                   "vi/integrations/workbuddy",
+                  "vi/integrations/hermes-agent",
                   "vi/integrations/kilo-code",
                   "vi/integrations/gemini-cli",
                   "vi/integrations/pi-coding-agent",
@@ -3242,6 +3268,7 @@
                   "id/integrations/claude-code",
                   "id/integrations/codex-cli",
                   "id/integrations/workbuddy",
+                  "id/integrations/hermes-agent",
                   "id/integrations/kilo-code",
                   "id/integrations/gemini-cli",
                   "id/integrations/pi-coding-agent",
@@ -3514,6 +3541,7 @@
                   "tr/integrations/claude-code",
                   "tr/integrations/codex-cli",
                   "tr/integrations/workbuddy",
+                  "tr/integrations/hermes-agent",
                   "tr/integrations/kilo-code",
                   "tr/integrations/gemini-cli",
                   "tr/integrations/pi-coding-agent",
@@ -3583,11 +3611,16 @@
     ]
   },
   "navbar": {
-    "links": [],
+    "links": [
+      {
+        "label": "Support",
+        "href": "https://tokenlab.sh/dashboard/support"
+      }
+    ],
     "primary": {
       "type": "button",
       "label": "Get API Key",
-      "href": "https://tokenlab.sh/dashboard"
+      "href": "https://tokenlab.sh/dashboard/api?tab=keys"
     }
   },
   "redirects": [
@@ -3600,8 +3633,5 @@
       "destination": "https://api.tokenlab.sh/v1beta/:slug*"
     }
   ],
-  "footer": {},
-  "openapi": [
-    "/openapi.json"
-  ]
+  "footer": {}
 }

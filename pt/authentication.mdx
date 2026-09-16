@@ -19,6 +19,20 @@ Para requisições compatíveis com Anthropic em `/v1/messages`, você também p
 x-api-key: sk-your-api-key
 ```
 
+## Tokens de gerenciamento
+
+Os endpoints da API de gerenciamento usam um tipo de token separado:
+
+```bash
+Authorization: Bearer mt-your-management-token
+```
+
+Use tokens de gerenciamento apenas com `/v1/management/*`. Abra [API → Tokens](https://tokenlab.sh/dashboard/api?tab=tokens) no espaço de trabalho selecionado para criar ou substituir um token. Guarde o token completo com segurança; ele só é exibido uma vez após a criação ou substituição.
+
+<Note>
+Tokens de gerenciamento não podem ser usados para inferência de modelos, e chaves de API comuns `sk-...` não podem ser usadas na API de gerenciamento.
+</Note>
+
 ## Obtendo sua chave de API
 
 1. Faça login no seu [Painel TokenLab](https://tokenlab.sh/dashboard)

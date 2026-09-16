@@ -19,6 +19,20 @@ Anthropic 호환 `/v1/messages` 요청의 경우, 다음 헤더도 사용할 수
 x-api-key: sk-your-api-key
 ```
 
+## 관리 토큰
+
+관리 API 엔드포인트는 별도의 토큰 유형을 사용합니다:
+
+```bash
+Authorization: Bearer mt-your-management-token
+```
+
+관리 토큰은 `/v1/management/*` 엔드포인트에만 사용하세요. 선택한 워크스페이스의 [API → Tokens](https://tokenlab.sh/dashboard/api?tab=tokens)에서 토큰을 생성하거나 교체할 수 있습니다. 생성 또는 교체 후 전체 토큰은 한 번만 표시되므로 즉시 안전하게 저장하세요.
+
+<Note>
+관리 토큰은 모델 추론에 사용할 수 없으며, 일반 `sk-...` API 키는 관리 API에 사용할 수 없습니다.
+</Note>
+
 ## API 키 발급하기
 
 1. [TokenLab Dashboard](https://tokenlab.sh/dashboard)에 로그인합니다

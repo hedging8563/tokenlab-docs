@@ -3,68 +3,52 @@ title: "Pi Coding Agent"
 description: "把 Pi Coding Agent 连接到 TokenLab"
 ---
 
-## 概述
+## 交给我的 Agent 做
 
+把这段任务交给电脑上已经可用的 Agent：
 
-[Pi](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent) 既可以作为终端编程工具使用，也能嵌入其他应用。它支持：
-
-- 交互式终端编程
-- 用于进程集成的 JSON / RPC 模式
-- 嵌入自己的应用
-
-使用 Chat Completions 时，配置 Pi 的 **OpenAI 兼容**服务即可。只有需要 Anthropic 或 Google 专属字段时，才改用对应格式。
-
-## OpenAI 兼容配置
-
-设置 TokenLab API 密钥和 Base URL：
-
-```bash
-export OPENAI_API_KEY="sk-your-tokenlab-key"
-export OPENAI_BASE_URL="https://api.tokenlab.sh/v1"
+```text
+阅读此教程，帮我将 Pi 接入 TokenLab：
+https://docs.tokenlab.sh/zh/integrations/pi-coding-agent
+先检查已安装版本和实际配置。
+保留已有账户、提供商、权限及无关设置。
+备份本机文件并展示修改内容。
+让我在本机输入所需 API Key，不要在聊天里索取、打印或粘贴密钥。
+先验证配置能否加载；真实请求测试的费用须单独说明后再运行。
 ```
 
-然后在 Pi 的 provider 或自定义模型配置中，把它的 OpenAI 风格路径指向 TokenLab。
+## 安装与配置 Pi
 
-<Note>
-Pi 也可以走 Anthropic 风格和 Google 风格的接入配置。如果你需要 Claude-native 或 Gemini-native 行为，请把它视为 Pi 的专用配置，而不是通用的 OpenAI 兼容 配置。
-</Note>
+使用 [Pi 当前官方安装说明](https://pi.dev/)，npm 包为 `@earendil-works/pi-coding-agent`。Windows 请按[官方终端设置](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/windows.md)配置，CLI 默认使用 Git Bash。已有 Pi 时跳过安装。
 
-## 为什么 Pi 不能简单归为 SDK
+```bash
+npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+pi --version
+```
 
-Pi 不只是“另一个 SDK”。
+将下面配置合并到 `~/.pi/agent/models.json`；若设置了 `PI_CODING_AGENT_DIR`，使用该目录。先备份文件并保留其他提供商，在启动 Pi 的本机环境设置 `TOKENLAB_API_KEY`，不要把密钥粘贴进聊天。只设置 Base URL 环境变量不会创建此提供商。
 
-- 如果你把 Pi 当作终端代理使用，它更像 **coding tool**
-- 如果你把 Pi 嵌入自己的应用里，它又更像 **代理运行时 / 执行框架**
+```json
+{
+  "providers": {
+    "tokenlab": {
+      "baseUrl": "https://api.tokenlab.sh/v1",
+      "api": "openai-completions",
+      "apiKey": "$TOKENLAB_API_KEY",
+      "models": [{ "id": "gpt-5.6-luna" }]
+    }
+  }
+}
+```
 
-下面分别给出终端用法和嵌入应用时的配置。
+`"$TOKENLAB_API_KEY"` 开头的 `$` 不能省略；`"TOKENLAB_API_KEY"` 会被当作字面字符串。请选择当前支持 Chat Completions 和工具调用的模型；上下文、输出上限、图片及思考设置应按该模型详情填写，不沿用其他模型的数值。
 
-## 实用配置说明
+## 验证与恢复
 
-<AccordionGroup>
-  <Accordion title="默认先走 OpenAI 兼容">
-    Pi 使用 Chat Completions 时，Base URL 填写 `https://api.tokenlab.sh/v1`。
-  </Accordion>
+运行 `pi --list-models`，再在 Pi 中打开 `/model` 并选择 `tokenlab/gpt-5.6-luna`。打开模型选择器会重新加载 `models.json`。这只能确认模型注册和凭据存在，不能证明密钥有效或真实请求成功。
 
-  <Accordion title="原生接入配置应单独看待">
-    Claude-native 或 Gemini-native 的 Pi 配置应被视为独立的专用路径，不应默认等同于 OpenAI 兼容 路径。
-  </Accordion>
+发送简短文本会使用 TokenLab 余额。核对回复和对应[请求记录](https://tokenlab.sh/dashboard/runs?section=requests)后，再测试工具。恢复时选择原提供商，仅移除本次添加的 TokenLab 配置。
 
-  <Accordion title="不要过度承诺扩展层能力">
-    Pi 的可配置性很强。TokenLab 可以文档化连接路径，但不应把每个 extension、skill 或自定义执行框架行为都视为兼容性契约的一部分。
-  </Accordion>
-</AccordionGroup>
+## Skills 与 MCP
 
-## 故障排查
-
-<AccordionGroup>
-  <Accordion title="连接错误">
-    - 确认配置的 OpenAI 风格 base URL 完全等于 `https://api.tokenlab.sh/v1`
-    - 确认 key 以 `sk-` 开头
-    - 确认 Pi 使用的 API 格式与所选模型一致
-  </Accordion>
-
-  <Accordion title="模型不匹配">
-    - 把 TokenLab 模型 id 和 Pi 本地 alias 分开管理
-    - 如果你在测试原生协议行为，请确认 Pi 实际走的是对应原生路径
-  </Accordion>
-</AccordionGroup>
+Pi [原生支持 Skills](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/skills.md)，可安装 [TokenLab Skill](/zh/integrations/coding-agent-skill)获取接入指导。MCP 需要独立 Pi 扩展，不要把 MCP 客户端配置粘贴到 `models.json`。

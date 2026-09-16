@@ -3,6 +3,13 @@ title: "TokenLab MCP Sunucusu"
 description: "Claude Code, Cursor, VS Code, Codex ve diğer MCP istemcilerini TokenLab'in model, fiyatlandırma, çıkarım, medya, dosya ve görev araçlarına bağlayın."
 ---
 
+## Gereken uzantıyı seçin
+
+- MCP uyumlu istemcilere TokenLab API araçları ekler. Aşağıdaki anahtarsız `catalog` ayarıyla başlayın.
+- [TokenLab Skill](/tr/integrations/coding-agent-skill), `npx skills add` ile entegrasyon yönergeleri kurar; MCP sunucusu başlatmaz.
+
+İkisi de mevcut ajanı genişletir. Ana model sağlayıcısını değiştirmek için istemcinin kendi kılavuzunu kullanın.
+
 [TokenLab MCP sunucusu](https://github.com/hedging8563/tokenlab-mcp-server), TokenLab'in herkese açık OpenAPI sözleşmesinden MCP araçları oluşturur. MCP uyumlu ajanlar; modelleri ve fiyatlandırmayı keşfedebilir, OpenAI uyumlu ve yerel LLM uç noktalarını çağırabilir, çok modlu medya oluşturabilir, dosya yükleyebilir ve asenkron görevleri yönetebilir.
 
 Bir ajanın manuel olarak tutulan bir araç listesi yerine güncel TokenLab API sözleşmesine ihtiyaç duyduğu durumlarda kullanın. Varsayılan `core` profili, 29 adet oluşturulmuş uç nokta aracını ve iki adet bileşik keşif aracını kullanıma sunar. `full` profili ise 78 adet oluşturulmuş uç nokta aracını ve aynı iki bileşik aracı kullanıma sunar.

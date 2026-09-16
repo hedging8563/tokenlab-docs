@@ -1,430 +1,212 @@
-/**
- * TokenLab Docs - Custom Auth Input Injection
- * 在 Mintlify Playground 上方注入 Authorization 输入框
- */
-(function() {
+/** TokenLab Docs: locale metadata and an optional API Playground key input. */
+(function () {
   'use strict';
 
   const AUTH_STORAGE_KEY = 'tokenlab-api-key';
-  const DOC_LOCALES = new Set([
-    'en', 'zh', 'zh-Hant', 'ja', 'ko', 'de', 'fr', 'es', 'pt', 'ar', 'vi', 'id', 'tr'
-  ]);
-  const RTL_LOCALES = new Set(['ar']);
+  const API_ORIGINS = new Set(['https://api.tokenlab.sh', 'https://api.lemondata.cc']);
+  // Only explicit Playground hooks are supported. Never infer a container from
+  // a translated Send button, which can also belong to search or the assistant.
+  const PLAYGROUND_SELECTOR = '[data-testid="playground"], [class*="PlaygroundContainer"], [class*="playground-container"], [class*="Playground_"]';
+  const COPY = {
+    en: { label: 'API key', required: 'Required', show: 'Show', hide: 'Hide', showKey: 'Show API key', hideKey: 'Hide API key', getKey: 'Get an API key', saved: 'Saved in this browser. Clear the field to remove it.' },
+    zh: { label: 'API 密钥', required: '必填', show: '显示', hide: '隐藏', showKey: '显示 API 密钥', hideKey: '隐藏 API 密钥', getKey: '获取 API 密钥', saved: '保存在此浏览器中。清空输入框即可移除。' },
+    'zh-Hant': { label: 'API 金鑰', required: '必填', show: '顯示', hide: '隱藏', showKey: '顯示 API 金鑰', hideKey: '隱藏 API 金鑰', getKey: '取得 API 金鑰', saved: '儲存在此瀏覽器中。清空輸入框即可移除。' },
+    ja: { label: 'API キー', required: '必須', show: '表示', hide: '非表示', showKey: 'API キーを表示', hideKey: 'API キーを非表示', getKey: 'API キーを取得', saved: 'このブラウザーに保存されます。入力欄を空にすると削除されます。' },
+    ko: { label: 'API 키', required: '필수', show: '표시', hide: '숨기기', showKey: 'API 키 표시', hideKey: 'API 키 숨기기', getKey: 'API 키 발급', saved: '이 브라우저에 저장됩니다. 입력란을 비우면 삭제됩니다.' },
+    de: { label: 'API-Schlüssel', required: 'Erforderlich', show: 'Anzeigen', hide: 'Verbergen', showKey: 'API-Schlüssel anzeigen', hideKey: 'API-Schlüssel verbergen', getKey: 'API-Schlüssel erstellen', saved: 'In diesem Browser gespeichert. Zum Entfernen das Feld leeren.' },
+    fr: { label: 'Clé API', required: 'Requis', show: 'Afficher', hide: 'Masquer', showKey: 'Afficher la clé API', hideKey: 'Masquer la clé API', getKey: 'Obtenir une clé API', saved: 'Enregistrée dans ce navigateur. Videz le champ pour la supprimer.' },
+    es: { label: 'Clave API', required: 'Obligatorio', show: 'Mostrar', hide: 'Ocultar', showKey: 'Mostrar clave API', hideKey: 'Ocultar clave API', getKey: 'Obtener una clave API', saved: 'Guardada en este navegador. Vacía el campo para eliminarla.' },
+    pt: { label: 'Chave de API', required: 'Obrigatório', show: 'Mostrar', hide: 'Ocultar', showKey: 'Mostrar chave de API', hideKey: 'Ocultar chave de API', getKey: 'Obter uma chave de API', saved: 'Salva neste navegador. Limpe o campo para removê-la.' },
+    ar: { label: 'مفتاح API', required: 'مطلوب', show: 'إظهار', hide: 'إخفاء', showKey: 'إظهار مفتاح API', hideKey: 'إخفاء مفتاح API', getKey: 'الحصول على مفتاح API', saved: 'محفوظ في هذا المتصفح. أفرغ الحقل لإزالته.' },
+    vi: { label: 'Khóa API', required: 'Bắt buộc', show: 'Hiện', hide: 'Ẩn', showKey: 'Hiện khóa API', hideKey: 'Ẩn khóa API', getKey: 'Lấy khóa API', saved: 'Được lưu trong trình duyệt này. Xóa nội dung ô để gỡ khóa.' },
+    id: { label: 'Kunci API', required: 'Wajib', show: 'Tampilkan', hide: 'Sembunyikan', showKey: 'Tampilkan kunci API', hideKey: 'Sembunyikan kunci API', getKey: 'Dapatkan kunci API', saved: 'Disimpan di browser ini. Kosongkan kolom untuk menghapusnya.' },
+    tr: { label: 'API anahtarı', required: 'Zorunlu', show: 'Göster', hide: 'Gizle', showKey: 'API anahtarını göster', hideKey: 'API anahtarını gizle', getKey: 'API anahtarı oluştur', saved: 'Bu tarayıcıda kaydedilir. Kaldırmak için alanı temizleyin.' },
+  };
 
-  function syncDocumentLang() {
-    const path = window.location.pathname.replace(/^\/+/, '');
-    const locale = path.split('/')[0];
-    const resolvedLocale = DOC_LOCALES.has(locale) ? locale : 'en';
-    document.documentElement.lang = resolvedLocale;
-    document.documentElement.dir = RTL_LOCALES.has(resolvedLocale) ? 'rtl' : 'ltr';
+  function routeInfo() {
+    const segments = window.location.pathname.split('/').filter(Boolean);
+    const locale = Object.hasOwn(COPY, segments[0]) ? segments.shift() : 'en';
+    // Management credentials have a different authority and must use Mintlify's
+    // native auth field. A saved inference key must never fill that surface.
+    return { locale, apiPage: segments[0] === 'api-reference' && segments[1] !== 'management' };
+  }
+
+  function syncDocumentLang(locale) {
+    const html = document.documentElement;
+    const dir = locale === 'ar' ? 'rtl' : 'ltr';
+    if (html.lang !== locale) html.lang = locale;
+    if (html.dir !== dir) html.dir = dir;
   }
 
   function redirectApiShadowPaths() {
     const { pathname, search, hash } = window.location;
-    if (
-      pathname === '/v1' ||
-      pathname.startsWith('/v1/') ||
-      pathname === '/v1beta' ||
-      pathname.startsWith('/v1beta/')
-    ) {
+    if (/^\/(v1|v1beta)(\/|$)/.test(pathname)) {
       window.location.replace(`https://api.tokenlab.sh${pathname}${search}${hash}`);
       return true;
     }
     return false;
   }
 
-  function attachRouteObservers() {
-    const wrapHistory = (methodName) => {
-      const original = history[methodName];
-      history[methodName] = function(...args) {
-        const result = original.apply(this, args);
-        setTimeout(() => {
-          if (!redirectApiShadowPaths()) {
-            syncDocumentLang();
-          }
-        }, 0);
-        return result;
-      };
-    };
-
-    wrapHistory('pushState');
-    wrapHistory('replaceState');
-    window.addEventListener('popstate', () => {
-      if (!redirectApiShadowPaths()) {
-        syncDocumentLang();
-      }
-    });
-  }
-
-  if (redirectApiShadowPaths()) {
-    return;
-  }
-
-  syncDocumentLang();
-  attachRouteObservers();
-
-  // 从 localStorage 读取保存的 API Key
+  let storageAvailable = true;
   function getSavedApiKey() {
-    try {
-      return localStorage.getItem(AUTH_STORAGE_KEY) || '';
-    } catch (e) {
-      return '';
-    }
+    try { return localStorage.getItem(AUTH_STORAGE_KEY) || ''; }
+    catch { storageAvailable = false; return ''; }
   }
 
-  // 保存 API Key 到 localStorage
   function saveApiKey(key) {
     try {
-      if (key) {
-        localStorage.setItem(AUTH_STORAGE_KEY, key);
-      } else {
-        localStorage.removeItem(AUTH_STORAGE_KEY);
-      }
-    } catch (e) {
-      // ignore
-    }
+      if (key) localStorage.setItem(AUTH_STORAGE_KEY, key);
+      else localStorage.removeItem(AUTH_STORAGE_KEY);
+    } catch { storageAvailable = false; }
   }
 
-  // 使用安全的 DOM 方法创建元素
-  function createElement(tag, attrs, children) {
-    const el = document.createElement(tag);
-    if (attrs) {
-      Object.entries(attrs).forEach(([key, value]) => {
-        if (key === 'style' && typeof value === 'object') {
-          Object.assign(el.style, value);
-        } else if (key.startsWith('on') && typeof value === 'function') {
-          el.addEventListener(key.slice(2).toLowerCase(), value);
-        } else {
-          el.setAttribute(key, value);
-        }
-      });
-    }
-    if (children) {
-      children.forEach(child => {
-        if (typeof child === 'string') {
-          el.appendChild(document.createTextNode(child));
-        } else if (child) {
-          el.appendChild(child);
-        }
-      });
-    }
-    return el;
+  function createElement(tag, attrs, children = []) {
+    const element = document.createElement(tag);
+    for (const [key, value] of Object.entries(attrs || {})) element.setAttribute(key, value);
+    element.append(...children);
+    return element;
   }
 
-  // 创建 Auth 输入框
-  function createAuthInput() {
-    const savedKey = getSavedApiKey();
+  function updateCopy(container, locale) {
+    if (container.dataset.locale === locale) return;
+    container.dataset.locale = locale;
+    const copy = COPY[locale];
+    for (const name of ['label', 'required', 'getKey', 'saved']) {
+      container.querySelector(`[data-auth-copy="${name}"]`).textContent = copy[name];
+    }
+    container.querySelector('[data-auth-copy="saved"]').hidden = !storageAvailable;
+    updateVisibility(container);
+  }
 
-    // 容器
+  function updateVisibility(container) {
+    const input = container.querySelector('input');
+    const toggle = container.querySelector('button');
+    const copy = COPY[container.dataset.locale];
+    const visible = input.type === 'text';
+    toggle.textContent = visible ? copy.hide : copy.show;
+    toggle.setAttribute('aria-label', visible ? copy.hideKey : copy.showKey);
+    toggle.setAttribute('aria-pressed', String(visible));
+  }
+
+  function createAuthInput(locale) {
     const container = createElement('div', { id: 'tokenlab-auth-input' });
-
-    // 内部包装
-    const wrapper = createElement('div', {
-      style: {
-        padding: '16px',
-        background: 'rgba(255, 255, 255, 0.92)',
-        border: '1px solid #e2e8f0',
-        borderRadius: '10px',
-        boxShadow: '0 18px 48px -42px rgba(15, 23, 42, 0.5)',
-        marginBottom: '16px',
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-      }
-    });
-
-    // 标题行
-    const titleRow = createElement('div', {
-      style: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-        marginBottom: '8px'
-      }
-    }, [
-      createElement('span', {
-        style: {
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: '22px',
-          height: '22px',
-          borderRadius: '6px',
-          background: '#0f172a',
-          color: '#ffffff',
-          fontSize: '11px',
-          fontWeight: '700'
-        },
-        'aria-hidden': 'true'
-      }, ['API']),
-      createElement('label', {
-        for: 'tokenlab-api-key-input',
-        style: { fontWeight: '600', fontSize: '14px', color: '#0f172a' }
-      }, ['Authorization']),
-      createElement('span', {
-        style: {
-          fontSize: '11px',
-          background: '#fee2e2',
-          color: '#991b1b',
-          padding: '3px 7px',
-          borderRadius: '999px',
-          fontWeight: '500'
-        }
-      }, ['required'])
-    ]);
-
-    // 输入行
-    const inputRow = createElement('div', {
-      style: {
-        display: 'grid',
-        gridTemplateColumns: 'minmax(0, 1fr) auto',
-        gap: '10px',
-        alignItems: 'stretch'
-      }
-    });
-
-    // API Key 输入框
     const input = createElement('input', {
-      type: 'password',
-      id: 'tokenlab-api-key-input',
-      placeholder: 'sk-your-api-key',
-      value: savedKey,
-      style: {
-        flex: '1',
-        minWidth: '0',
-        minHeight: '44px',
-        padding: '10px 12px',
-        border: '1px solid #cbd5e1',
-        borderRadius: '8px',
-        fontSize: '14px',
-        fontFamily: "'Monaco', 'Menlo', monospace",
-        outline: 'none',
-        color: '#0f172a',
-        background: '#ffffff',
-        transition: 'border-color 160ms ease, box-shadow 160ms ease'
-      },
-      onfocus: function() {
-        this.style.borderColor = '#475569';
-        this.style.boxShadow = '0 0 0 3px rgba(71, 85, 105, 0.14)';
-      },
-      onblur: function() {
-        this.style.borderColor = '#cbd5e1';
-        this.style.boxShadow = 'none';
-      },
-      oninput: function(e) {
-        saveApiKey(e.target.value);
-      }
+      type: 'password', id: 'tokenlab-api-key-input', placeholder: 'sk-…',
+      autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', dir: 'ltr',
+      'aria-describedby': 'tokenlab-api-key-help',
     });
-
-    // 显示/隐藏按钮
-    const toggleBtn = createElement('button', {
-      type: 'button',
-      id: 'tokenlab-toggle-visibility',
-      title: 'Show/Hide API Key',
-      'aria-label': 'Show API key',
-      style: {
-        minWidth: '64px',
-        minHeight: '44px',
-        padding: '10px 14px',
-        background: '#0f172a',
-        color: '#ffffff',
-        border: '1px solid #0f172a',
-        borderRadius: '8px',
-        cursor: 'pointer',
-        fontSize: '13px',
-        fontWeight: '600',
-        transition: 'background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease'
-      },
-      onmouseover: function() {
-        this.style.background = '#1e293b';
-        this.style.borderColor = '#1e293b';
-      },
-      onmouseout: function() {
-        this.style.background = '#0f172a';
-        this.style.borderColor = '#0f172a';
-      },
-      onfocus: function() {
-        this.style.boxShadow = '0 0 0 3px rgba(71, 85, 105, 0.18)';
-      },
-      onblur: function() {
-        this.style.boxShadow = 'none';
-      },
-      onclick: function() {
-        if (input.type === 'password') {
-          input.type = 'text';
-          this.textContent = 'Hide';
-          this.setAttribute('aria-label', 'Hide API key');
-        } else {
-          input.type = 'password';
-          this.textContent = 'Show';
-          this.setAttribute('aria-label', 'Show API key');
-        }
-      }
-    }, ['Show']);
-
-    inputRow.appendChild(input);
-    inputRow.appendChild(toggleBtn);
-
-    // 底部提示
-    const footer = createElement('div', {
-      style: { marginTop: '8px', fontSize: '12px', color: '#6c757d' }
-    }, [
-      'Get your API key from ',
-      createElement('a', {
-        href: 'https://tokenlab.sh/dashboard',
-        target: '_blank',
-        rel: 'noopener noreferrer',
-        style: { color: '#334155', fontWeight: '600', textDecoration: 'none' }
-      }, ['Dashboard →']),
-      createElement('span', { style: { marginLeft: '12px' } }, ['Auto-saved in browser'])
-    ]);
-
-    wrapper.appendChild(titleRow);
-    wrapper.appendChild(inputRow);
-    wrapper.appendChild(footer);
-    container.appendChild(wrapper);
-
+    // Set the property rather than serializing a saved credential into HTML.
+    input.value = getSavedApiKey();
+    input.addEventListener('input', () => {
+      saveApiKey(input.value.trim());
+      container.querySelector('[data-auth-copy="saved"]').hidden = !storageAvailable;
+    });
+    const toggle = createElement('button', { type: 'button', id: 'tokenlab-toggle-visibility', 'aria-controls': input.id });
+    toggle.addEventListener('click', () => {
+      input.type = input.type === 'password' ? 'text' : 'password';
+      updateVisibility(container);
+    });
+    container.append(
+      createElement('div', { class: 'tokenlab-auth-title' }, [
+        createElement('label', { for: input.id, 'data-auth-copy': 'label' }),
+        createElement('span', { class: 'tokenlab-auth-required', 'data-auth-copy': 'required' }),
+      ]),
+      createElement('div', { class: 'tokenlab-auth-controls' }, [input, toggle]),
+      createElement('div', { class: 'tokenlab-auth-help', id: 'tokenlab-api-key-help' }, [
+        createElement('a', { href: 'https://tokenlab.sh/dashboard/api?tab=keys', target: '_blank', rel: 'noopener noreferrer', 'data-auth-copy': 'getKey' }),
+        createElement('span', { 'data-auth-copy': 'saved' }),
+      ]),
+    );
+    updateCopy(container, locale);
     return container;
   }
 
-  // 注入 Auth 输入框到 Playground
-  function injectAuthInput() {
-    // 检查是否已注入
-    if (document.getElementById('tokenlab-auth-input')) {
-      return;
-    }
-
-    // 查找 Playground 容器 - 尝试多种选择器
-    const selectors = [
-      '[data-testid="playground"]',
-      '[class*="PlaygroundContainer"]',
-      '[class*="playground-container"]',
-      '[class*="Playground_"]',
-    ];
-
-    let playground = null;
-    for (const selector of selectors) {
-      playground = document.querySelector(selector);
-      if (playground) break;
-    }
-
-    // 备选：查找包含 "Send" 按钮的容器
-    if (!playground) {
-      const sendButton = Array.from(document.querySelectorAll('button')).find(
-        btn => btn.textContent && btn.textContent.trim() === 'Send'
-      );
-      if (sendButton) {
-        // 向上查找合适的容器
-        playground = sendButton.closest('[class*="playground"]') ||
-                     sendButton.closest('[class*="Playground"]') ||
-                     sendButton.parentElement;
-        // 继续向上找到更合适的容器
-        let parent = playground;
-        for (let i = 0; i < 5 && parent; i++) {
-          if (parent.querySelector('input') || parent.querySelector('button')) {
-            playground = parent;
-          }
-          parent = parent.parentElement;
-        }
-      }
-    }
-
-    if (playground) {
-      const authInput = createAuthInput();
-
-      // 在 playground 顶部插入
-      const firstChild = playground.firstElementChild;
-      if (firstChild) {
-        playground.insertBefore(authInput, firstChild);
-      } else {
-        playground.prepend(authInput);
-      }
-
-      // 拦截请求
-      interceptPlaygroundRequests();
-      console.log('[TokenLab] Auth input injected successfully');
-    }
+  function hasNativeAuth(playground) {
+    // Prefer a native credential control if Mintlify provides one. Exclude our
+    // own field so repeated DOM observations do not remove and reinsert it.
+    return [...playground.querySelectorAll('input')].some(input =>
+      !input.closest('#tokenlab-auth-input') && (
+        input.type === 'password' ||
+        /^(authorization|x-api-key|x-goog-api-key)$/i.test(input.name)
+      ));
   }
 
-  // 拦截 Playground 的 fetch 请求，注入 Authorization header
+  let fetchIntercepted = false;
   function interceptPlaygroundRequests() {
-    if (window._tokenlabFetchIntercepted) return;
-    window._tokenlabFetchIntercepted = true;
-
+    if (fetchIntercepted || typeof window.fetch !== 'function') return;
+    fetchIntercepted = true;
     const originalFetch = window.fetch;
-
-    window.fetch = function(url, options) {
-      options = options || {};
-      const apiKey = document.getElementById('tokenlab-api-key-input');
-      const apiKeyValue = apiKey ? apiKey.value : '';
-
-      // 检查是否是发往 TokenLab API 的请求
-      if (apiKeyValue && typeof url === 'string' &&
-          (url.includes('api.tokenlab.sh') || url.includes('api.lemondata.cc'))) {
-
-        // 确保 headers 是普通对象
-        let headers = options.headers || {};
-        if (headers instanceof Headers) {
-          const headersObj = {};
-          headers.forEach(function(value, key) {
-            headersObj[key] = value;
-          });
-          headers = headersObj;
-        }
-
-        // 注入 Authorization header
-        if (!headers['Authorization'] && !headers['authorization']) {
-          headers['Authorization'] = 'Bearer ' + apiKeyValue;
-          options.headers = headers;
-          console.log('[TokenLab] Authorization header injected');
-        }
+    window.fetch = function (resource, options) {
+      const field = document.getElementById('tokenlab-api-key-input');
+      const key = field?.value.trim();
+      const playground = field?.closest(PLAYGROUND_SELECTOR);
+      if (!key || !routeInfo().apiPage || !playground || hasNativeAuth(playground)) {
+        return originalFetch.call(this, resource, options);
       }
-
-      return originalFetch.call(this, url, options);
+      const request = typeof Request !== 'undefined' && resource instanceof Request ? resource : null;
+      let target;
+      let pathname;
+      try {
+        target = new URL(request ? request.url : resource, window.location.href);
+        pathname = decodeURIComponent(target.pathname);
+      }
+      catch { return originalFetch.call(this, resource, options); }
+      if (!API_ORIGINS.has(target.origin) || target.username || target.password ||
+          !/^\/(v1|v1beta)\//.test(pathname) ||
+          /^\/v1\/management(\/|$)/.test(pathname) || target.searchParams.has('key')) {
+        return originalFetch.call(this, resource, options);
+      }
+      const headers = new Headers(options?.headers ?? request?.headers);
+      if (['Authorization', 'x-api-key', 'x-goog-api-key'].some(name => headers.has(name))) {
+        return originalFetch.call(this, resource, options);
+      }
+      headers.set('Authorization', `Bearer ${key}`);
+      // Respect caller headers and Request bodies; do not mutate the caller's init.
+      return originalFetch.call(this, resource, { ...options, headers });
     };
   }
 
-  // 使用 MutationObserver 监听 DOM 变化
-  function observeDOM() {
-    const observer = new MutationObserver(function() {
-      // 检查是否在 API Reference 页面
-      if (window.location.pathname.includes('api-reference')) {
-        injectAuthInput();
-      }
-    });
-
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true
-    });
-
-    // 初始检查
-    if (document.readyState === 'complete') {
-      setTimeout(injectAuthInput, 500);
-    } else {
-      window.addEventListener('load', function() {
-        setTimeout(injectAuthInput, 500);
-      });
+  function syncPage() {
+    if (redirectApiShadowPaths()) return;
+    const { locale, apiPage } = routeInfo();
+    syncDocumentLang(locale);
+    const existing = document.getElementById('tokenlab-auth-input');
+    const playground = apiPage ? document.querySelector(PLAYGROUND_SELECTOR) : null;
+    if (!playground || hasNativeAuth(playground)) {
+      existing?.remove();
+      return;
     }
+    if (existing && playground.contains(existing)) {
+      updateCopy(existing, locale);
+      return;
+    }
+    existing?.remove();
+    playground.prepend(createAuthInput(locale));
+    interceptPlaygroundRequests();
   }
 
-  // 页面导航时重新注入（SPA 支持）
-  function handleNavigation() {
-    let lastPath = window.location.pathname;
-
-    setInterval(function() {
-      if (window.location.pathname !== lastPath) {
-        lastPath = window.location.pathname;
-        // 移除旧的注入
-        const oldInput = document.getElementById('tokenlab-auth-input');
-        if (oldInput) oldInput.remove();
-        // 延迟重新注入
-        setTimeout(injectAuthInput, 500);
-      }
-    }, 500);
+  let scheduled = false;
+  function scheduleSync() {
+    if (scheduled) return;
+    scheduled = true;
+    setTimeout(() => { scheduled = false; syncPage(); }, 0);
   }
 
-  // 启动
-  observeDOM();
-  handleNavigation();
+  function start() {
+    if (redirectApiShadowPaths()) return;
+    syncPage();
+    new MutationObserver(scheduleSync).observe(document.body, { childList: true, subtree: true });
+    for (const methodName of ['pushState', 'replaceState']) {
+      const original = history[methodName];
+      history[methodName] = function (...args) {
+        const result = original.apply(this, args);
+        scheduleSync();
+        return result;
+      };
+    }
+    window.addEventListener('popstate', scheduleSync);
+  }
 
-  console.log('[TokenLab] Custom auth script loaded');
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
+  else start();
 })();

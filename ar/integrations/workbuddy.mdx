@@ -13,7 +13,7 @@ description: "أضف TokenLab كنموذج مخصص في WorkBuddy"
 **الدعم**: مسار نموذج مخصص رسمي
 </Note>
 
-يوفر [WorkBuddy](https://www.workbuddy.ai/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model) محررًا مرئيًا للنماذج المتوافقة مع OpenAI، من دون الحاجة إلى تعديل ملف النموذج المحلي يدويًا.
+يوفر [WorkBuddy](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model) محررًا مرئيًا للنماذج المتوافقة مع OpenAI، من دون الحاجة إلى تعديل ملف النموذج المحلي يدويًا.
 
 ## تهيئة TokenLab
 
@@ -30,6 +30,12 @@ description: "أضف TokenLab كنموذج مخصص في WorkBuddy"
 اترك Custom Protocol متوقفًا. يتحقق الوضع القياسي من Base URL ويضيف `/chat/completions`. إذا فعّلته وأدخلت `/v1` فقط، فسيُستخدم مسار خاطئ.
 </Warning>
 
-في الإعدادات المتقدمة، فعّل استدعاء الأدوات وإدخال الصور ووضع الاستدلال. عطّل وضع الاستدلال فقط، واترك الجهد على Auto، واستخدم `1048576` للإدخال و`131072` للإخراج.
+اضبط الأدوات والصور والتفكير والحدود وفق تفاصيل النموذج الحالية في TokenLab. لا تفعّلها لجميع النماذج ولا تنسخ حدود 1M/128K من نموذج آخر. استخدم معرّف النموذج المعروض.
 
 احفظ واختر `kimi-k3` ثم اختبر فحص مجلد للقراءة فقط. أخفِ المفاتيح وendpoints الخاصة قبل مشاركة لقطات الشاشة.
+
+الحفظ والاختيار يؤكدان الإعداد المحلي فقط. المهام النصية والأدوات تستخدم رصيد TokenLab؛ طابق الرد مع [سجل الطلب](https://tokenlab.sh/dashboard/runs?section=requests). للتراجع اختر النموذج السابق واحذف عنصر TokenLab الذي أضفته فقط.
+
+التطبيق الرسمي متاح لنظامي macOS وWindows. استخدم [محرر النماذج الرسمي](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model)؛ لا يفترض الدليل وجود إصدار Linux أو تنسيق ملف قابل للكتابة مباشرة.
+
+تُثبّت [أدوات MCP API](/ar/integrations/tokenlab-mcp-server) و[إرشادات Skill](/ar/integrations/coding-agent-skill) بشكل منفصل ولا تغيّر النموذج الرئيسي.

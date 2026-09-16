@@ -1,0 +1,40 @@
+---
+title: "Hermes Agent"
+description: "將 Hermes Agent 接入 TokenLab"
+---
+
+將 TokenLab 新增為 Hermes 的獨立模型供應商，保留既有帳戶、設定與工具權限。
+
+## 安裝或檢查 Hermes
+
+參閱[官方安裝指南](https://hermes-agent.nousresearch.com/docs/getting-started/installation)。官方提供 Apple Silicon macOS、Windows 桌面安裝程式，以及 Linux 和原生 Windows 的 CLI 安裝方式。請核對系統需求；已安裝時跳過。
+
+## 設定獨立供應商
+
+先確認 Hermes 目錄：若設定了 `HERMES_HOME`，使用該目錄；否則為 `~/.hermes`（Windows：`%USERPROFILE%\.hermes`）。備份 `config.yaml` 後合併以下項目，保留其他設定。此範例使用 Chat Completions，請選擇目前支援此格式及工具呼叫的模型。
+
+```yaml
+providers:
+  tokenlab:
+    api: https://api.tokenlab.sh/v1
+    key_env: TOKENLAB_API_KEY
+    transport: chat_completions
+    default_model: gpt-5.6-luna
+model:
+  provider: custom:tokenlab
+  default: gpt-5.6-luna
+```
+
+在 [API 金鑰](https://tokenlab.sh/dashboard/api?tab=keys)建立金鑰，再於本機將 `TOKENLAB_API_KEY` 存入 Hermes 目錄的 `.env` 或啟動 Hermes 的程序環境。請勿將金鑰貼入對話或供應商 YAML。
+
+## 先檢查設定，再發出請求
+
+執行 `hermes config get model.provider` 與 `hermes config get model.default`，應顯示 `custom:tokenlab` 與所選模型。接著建立新對話；既有對話可能保留原模型。設定檢查不代表金鑰有效或呼叫成功。
+
+準備好使用 TokenLab 餘額後，發送簡短文字請求，核對回覆及[請求記錄](https://tokenlab.sh/dashboard/runs?section=requests)，再嘗試唯讀工具任務。輔助模型及選用工具可能使用其他供應商或金鑰。
+
+## 還原與疑難排解
+
+若顯示未知供應商，核對版本與[目前設定格式](https://hermes-agent.nousresearch.com/docs/integrations/providers)。驗證失敗時檢查本機環境及金鑰狀態，不要印出金鑰。要撤銷設定，還原原模型選擇，僅移除本次加入的 TokenLab 項目。
+
+MCP 與 Skills 為獨立擴充：[MCP 教程](/zh-Hant/integrations/tokenlab-mcp-server)提供 API 工具；[Skill 教程](/zh-Hant/integrations/coding-agent-skill)提供接入指引。此供應商設定不依賴它們。

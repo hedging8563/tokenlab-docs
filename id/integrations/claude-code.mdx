@@ -5,7 +5,7 @@ description: "Gunakan TokenLab dengan CLI Claude Code milik Anthropic"
 
 ## Gambaran Umum
 
-[Claude Code](https://docs.anthropic.com/en/docs/claude-code) adalah alat CLI resmi Anthropic untuk coding dengan bantuan AI. Anda dapat mengonfigurasinya untuk menggunakan TokenLab sebagai penyedia API.
+[Claude Code](https://code.claude.com/docs/en/setup) adalah alat CLI resmi Anthropic untuk coding dengan bantuan AI. Anda dapat mengonfigurasinya untuk menggunakan TokenLab sebagai penyedia API.
 
 
 <Note>
@@ -20,9 +20,15 @@ description: "Gunakan TokenLab dengan CLI Claude Code milik Anthropic"
 
 Anthropic sekarang merekomendasikan installer native. Instalasi npm masih tersedia untuk kompatibilitas, tetapi sudah deprecated di upstream.
 
-```bash
+<CodeGroup>
+```bash macOS / Linux / WSL
 curl -fsSL https://claude.ai/install.sh | bash
 ```
+
+```powershell Windows
+irm https://claude.ai/install.ps1 | iex
+```
+</CodeGroup>
 
 Jika Anda secara khusus memerlukan package npm, gunakan:
 
@@ -55,6 +61,8 @@ Untuk TokenLab, pertahankan `ANTHROPIC_BASE_URL` pada `https://api.tokenlab.sh` 
 
 Sebagai alternatif, buat atau edit `~/.claude/settings.json`:
 
+Cadangkan dan gabungkan pengaturan tanpa mengganti akun atau izin. `ANTHROPIC_API_KEY` mengirim `X-Api-Key`, sedangkan `ANTHROPIC_AUTH_TOKEN` mengirim token Bearer. Pilih satu cara autentikasi. `/status` menunjukkan model dan sumber konfigurasi, bukan keberhasilan permintaan berbayar. Setelah uji singkat, cocokkan balasan dan catatan TokenLab. Untuk memulihkan, batalkan tambahan Anda saja. Lihat [prioritas](https://code.claude.com/docs/en/settings).
+
 ```json
 {
   "env": {
@@ -75,8 +83,6 @@ claude
 # Run a single command
 claude "Explain this code" < main.py
 
-# Chat mode
-claude chat
 ```
 
 Verifikasi instalasi jika diperlukan:

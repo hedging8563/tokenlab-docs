@@ -23,9 +23,7 @@ Codex CLI 遠端壓縮支援 `POST /v1/responses/compact`。Codex 在 `/compact`
 
 ## 系統需求
 
-- **OS**: macOS、Linux（官方支援）、透過 WSL 的 Windows
-- **Node.js**: 版本 18+
-- **npm**: 版本 10.x.x 或更高
+macOS、Linux 或 Windows 請依[官方 CLI 指南](https://learn.chatgpt.com/docs/codex/cli)安裝。原生 Windows 與 WSL 為不同環境，參閱 [Windows 指南](https://learn.chatgpt.com/docs/windows/windows-sandbox)。下方 npm 是一種安裝方式，並非原生二進位檔的前置需求。
 
 ## 安裝
 
@@ -46,7 +44,7 @@ codex --version
 **暫時（當前工作階段）:**
 
 ```bash
-export OPENAI_API_KEY="sk-your-tokenlab-key"
+export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 ```
 
 **永久設定:**
@@ -54,7 +52,7 @@ export OPENAI_API_KEY="sk-your-tokenlab-key"
 加入至 `~/.bashrc`、`~/.zshrc` 或 `~/.bash_profile`：
 
 ```bash
-export OPENAI_API_KEY="sk-your-tokenlab-key"
+export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 ```
 
 然後重新載入：
@@ -65,42 +63,33 @@ source ~/.zshrc  # or source ~/.bashrc
 
 ### 第 2 步：設定 config.toml
 
-編輯 `~/.codex/config.toml`：
+將這些設定合併至使用者層級的 `~/.codex/config.toml`，不要覆寫整個檔案。保留其他 provider、帳戶、沙箱設定與核准規則。Provider 與驗證設定應放在使用者設定中，不要放進專案的 `.codex/config.toml`。請參閱[官方設定指南](https://learn.chatgpt.com/docs/config-file/config-advanced#custom-model-providers)。
+
+若要保留目前預設供應商，Codex 0.134.0 以後請將下方設定存為 `~/.codex/tokenlab.config.toml`，以 `codex --profile tokenlab` 啟動。若有自訂 `CODEX_HOME`，使用實際目錄。勿新增舊版 `[profiles.tokenlab]`、覆蓋 `auth.json`、登出既有帳戶或修改審批設定。還原時不帶此 profile 啟動。
+
+下方每組命令請依實際設定位置擇一：存為 `tokenlab.config.toml` 時選 **TokenLab profile**；只有已將設定合併至 `config.toml` 時才選 **TokenLab 預設設定**。單獨執行 `codex` 會使用預設設定，不會繼承上一個工作階段選過的 profile。
 
 ```toml
 model_provider = "tokenlab"
 model = "gpt-5.6-sol"
 model_reasoning_effort = "xhigh"
-plan_mode_reasoning_effort = "xhigh"
-model_context_window = 258000
-model_auto_compact_token_limit = 232200
-sandbox_mode = "danger-full-access"
-approval_policy = "never"
-
-personality = "friendly"
-service_tier = "fast"
 
 [model_providers.tokenlab]
-env_key = "OPENAI_API_KEY"
+env_key = "TOKENLAB_API_KEY"
 name = "TokenLab"
 base_url = "https://api.tokenlab.sh/v1"
 wire_api = "responses"
 supports_websockets = true
 websocket_connect_timeout_ms = 15000
-
-[features]
-fast_mode = true
 ```
 
 此 WebSocket 模式是面向 Codex 用戶端的 Responses-over-WebSocket 橋接層。它只接受官方 `response.create` 事件；`stream` 為隱含行為，此 transport 不提供 `background` 或 `response.cancel`。它不是 OpenAI Realtime API，也不接受 `session.update`、`conversation.item.*`、`input_audio_buffer.*`、二進位音訊或巢狀 Realtime `response.create.response` 信封。
 
 <Note>
-如果配置檔不存在，請先執行一次 `codex` 以產生它，然後編輯該檔案。修改 `config.toml` 後請完全重新啟動 Codex，以便重新載入新的提供者設定。
+若所選設定檔不存在，請建立該檔案。修改後，使用下方對應命令啟動新的工作階段。
 </Note>
 
-<Warning>
-Codex 正在逐步淘汰對自訂提供者的 `chat/completions` 支援。除非您刻意使用舊的相容路徑，否則對 TokenLab 保持 `wire_api = "responses"`。
-</Warning>
+目前 Codex 使用 `wire_api = "responses"`，勿設定 `chat/completions`。此供應商的 `requires_openai_auth` 應省略或為 false，以使用 `env_key`。
 
 <Note>
 TokenLab 會 best-effort 透傳未知 Responses 欄位，不會將請求悄悄降級成 Chat Completions；欄位或組合是否支援由選中的 upstream 決定。
@@ -110,21 +99,39 @@ TokenLab 會 best-effort 透傳未知 Responses 欄位，不會將請求悄悄�
 
 **啟動互動模式:**
 
-```bash
+<CodeGroup>
+```bash TokenLab profile
+codex --profile tokenlab
+```
+
+```bash TokenLab 預設設定
 codex
 ```
+</CodeGroup>
 
 **直接指令:**
 
-```bash
+<CodeGroup>
+```bash TokenLab profile
+codex --profile tokenlab "Fix the bug in main.py line 42"
+```
+
+```bash TokenLab 預設設定
 codex "Fix the bug in main.py line 42"
 ```
+</CodeGroup>
 
 **指定模型:**
 
-```bash
+<CodeGroup>
+```bash TokenLab profile
+codex --profile tokenlab -m gpt-5.6-sol "Build a REST API server"
+```
+
+```bash TokenLab 預設設定
 codex -m gpt-5.6-sol "Build a REST API server"
 ```
+</CodeGroup>
 
 ## 推薦模型
 
@@ -141,48 +148,84 @@ codex -m gpt-5.6-sol "Build a REST API server"
 | `/help` | 顯示說明 |
 | `/exit` 或 `Ctrl+C` | 退出 |
 | `/clear` | 清除對話 |
-| `/config` | 檢視設定 |
+| `/status` | 檢視目前模型、權限與 token 用量 |
 | `/model <name>` | 切換模型 |
-| `/tokens` | 檢視 token 使用情況 |
 
 ## 驗證設定
 
+只檢查環境變數是否已設定，不輸出其值。這項檢查無法判斷金鑰是否有效：
+
 ```bash
-# Check environment variable
-echo $OPENAI_API_KEY
-
-# Test API connection
-codex "Hello, Codex!"
-
-# View configuration
-cat ~/.codex/config.toml
+if [ -n "${TOKENLAB_API_KEY:-}" ]; then
+  printf '%s\n' 'TOKENLAB_API_KEY is set'
+else
+  printf '%s\n' 'TOKENLAB_API_KEY is not set'
+fi
 ```
+
+啟動 Codex 後執行 `/status`，核對目前模型與權限。如果使用 profile，請啟動相同的 profile。請參閱[官方狀態命令說明](https://learn.chatgpt.com/docs/developer-commands?surface=cli#inspect-the-session-with-status)。
+
+準備好發出真實請求後，再執行下列命令；它會使用 TokenLab 餘額。核對回覆與[請求記錄](https://tokenlab.sh/dashboard/runs?section=requests)中的對應記錄。環境檢查通過或用戶端成功啟動，都不等於請求已成功。
+
+<CodeGroup>
+```bash TokenLab profile
+codex --profile tokenlab "Reply only with OK. Do not use tools or modify files."
+```
+
+```bash TokenLab 預設設定
+codex "Reply only with OK. Do not use tools or modify files."
+```
+</CodeGroup>
 
 ## 常見用例
 
 **程式碼審查:**
 
-```bash
+<CodeGroup>
+```bash TokenLab profile
+git diff | codex --profile tokenlab "Review these code changes"
+```
+
+```bash TokenLab 預設設定
 git diff | codex "Review these code changes"
 ```
+</CodeGroup>
 
 **產生 commit 訊息:**
 
-```bash
+<CodeGroup>
+```bash TokenLab profile
+git diff --staged | codex --profile tokenlab "Generate a commit message for these changes"
+```
+
+```bash TokenLab 預設設定
 git diff --staged | codex "Generate a commit message for these changes"
 ```
+</CodeGroup>
 
 **修復錯誤:**
 
-```bash
+<CodeGroup>
+```bash TokenLab profile
+codex --profile tokenlab "Fix the TypeScript errors in src/components/"
+```
+
+```bash TokenLab 預設設定
 codex "Fix the TypeScript errors in src/components/"
 ```
+</CodeGroup>
 
 **解釋程式碼:**
 
-```bash
+<CodeGroup>
+```bash TokenLab profile
+cat main.py | codex --profile tokenlab "Explain what this code does"
+```
+
+```bash TokenLab 預設設定
 cat main.py | codex "Explain what this code does"
 ```
+</CodeGroup>
 
 ## 故障排除
 
@@ -194,8 +237,8 @@ cat main.py | codex "Explain what this code does"
   </Accordion>
 
   <Accordion title="認證失敗">
-    - 驗證 `env_key = "OPENAI_API_KEY"` 是否存在於 `~/.codex/config.toml`
-    - 驗證 `OPENAI_API_KEY` 環境變數是否已設定
+    - 驗證 `env_key = "TOKENLAB_API_KEY"` 是否存在於 `~/.codex/tokenlab.config.toml` / `~/.codex/config.toml`
+    - 驗證 `TOKENLAB_API_KEY` 環境變數是否已設定
     - 檢查金鑰是否以 `sk-` 開頭
     - 確保該金鑰在 TokenLab 儀表板中為啟用狀態
   </Accordion>

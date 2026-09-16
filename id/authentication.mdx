@@ -19,6 +19,20 @@ Untuk permintaan `/v1/messages` yang kompatibel dengan Anthropic, Anda juga dapa
 x-api-key: sk-your-api-key
 ```
 
+## Token manajemen
+
+Endpoint API manajemen menggunakan jenis token tersendiri:
+
+```bash
+Authorization: Bearer mt-your-management-token
+```
+
+Gunakan token manajemen hanya untuk `/v1/management/*`. Buka [API → Tokens](https://tokenlab.sh/dashboard/api?tab=tokens) pada workspace yang dipilih untuk membuat atau mengganti token. Simpan token lengkap dengan aman saat ditampilkan; token hanya ditampilkan sekali setelah dibuat atau diganti.
+
+<Note>
+Token manajemen tidak dapat digunakan untuk inferensi model, dan API key biasa `sk-...` tidak dapat digunakan untuk API manajemen.
+</Note>
+
 ## Mendapatkan API Key Anda
 
 1. Masuk ke [TokenLab Dashboard](https://tokenlab.sh/dashboard) Anda

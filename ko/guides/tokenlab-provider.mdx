@@ -13,8 +13,10 @@ description: "OpenAI, Responses, Anthropic 및 Gemini 호환 경로를 사용하
 
 ```bash
 openclaw plugins install @tokenlabai/openclaw-provider
-openclaw onboard --tokenlab-api-key "$TOKENLAB_API_KEY"
+openclaw onboard
 ```
+
+설치 후 `openclaw onboard`에서 TokenLab을 선택하고 로컬 자격 증명 입력란에만 키를 넣으세요. 플러그인이 로드되지 않으면 아래 수동 설정을 사용하고 버전 호환성을 확인합니다.
 
 플러그인은 TokenLab의 실시간 채팅 모델 카탈로그를 가져오며, 오프라인 검색을 위한 18개의 폴백 모델도 유지합니다. 모델은 `tokenlab/<model-id>` 형식을 사용합니다.
 
@@ -43,7 +45,7 @@ openclaw onboard --tokenlab-api-key "$TOKENLAB_API_KEY"
 ## 사전 요구사항
 
 - self-hosted OpenClaw 인스턴스
-- TokenLab API Key — [Get one here](https://tokenlab.sh/dashboard)
+- TokenLab API Key — [Get one here](https://tokenlab.sh/dashboard/api?tab=keys)
 
 ## 구성
 
@@ -53,12 +55,14 @@ OpenClaw 구성 파일을 편집하세요:
 
 `models.providers` 아래에 TokenLab 프로바이더를 추가합니다:
 
+실행 중인 Gateway와 같은 profile, `OPENCLAW_STATE_DIR`, `OPENCLAW_CONFIG_PATH`를 사용하고 설정을 백업하세요. `TOKENLAB_API_KEY`는 해당 인스턴스의 신뢰할 수 있는 전역 `.env`나 서비스 환경에 둡니다. 터미널 export나 프로젝트 `.env`만으로는 백그라운드에 전달되지 않을 수 있습니다. [환경 안내](https://docs.openclaw.ai/help/environment)를 참고하세요.
+
 ```json5
 {
   agents: {
     defaults: {
       model: {
-        primary: "tokenlab-claude/claude-sonnet-4-6"
+        primary: "tokenlab-claude/claude-sonnet-5"
       }
     }
   },
@@ -68,7 +72,7 @@ OpenClaw 구성 파일을 편집하세요:
       tokenlab: {
         api: "openai-completions",
         baseUrl: "https://api.tokenlab.sh/v1",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "gpt-5.6-terra", name: "GPT-5.6 Terra" },
           { id: "deepseek-reasoner", name: "DeepSeek Reasoner" },
@@ -78,7 +82,7 @@ OpenClaw 구성 파일을 편집하세요:
       "tokenlab-responses": {
         api: "openai-responses",
         baseUrl: "https://api.tokenlab.sh/v1",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "gpt-5.6-terra", name: "GPT-5.6 Terra (Responses)" },
           { id: "gpt-5.2", name: "GPT-5.2 (Responses)" }
@@ -87,7 +91,7 @@ OpenClaw 구성 파일을 편집하세요:
       "tokenlab-claude": {
         api: "anthropic-messages",
         baseUrl: "https://api.tokenlab.sh",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "claude-sonnet-5", name: "Claude Sonnet 5" },
           { id: "claude-opus-5", name: "Claude Opus 5" }
@@ -96,7 +100,7 @@ OpenClaw 구성 파일을 편집하세요:
       "tokenlab-gemini": {
         api: "google-generative-ai",
         baseUrl: "https://api.tokenlab.sh",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "gemini-3.5-flash", name: "Gemini 3.5 Flash" },
           { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" }
@@ -105,7 +109,7 @@ OpenClaw 구성 파일을 편집하세요:
       "tokenlab-minimax": {
         api: "anthropic-messages",
         baseUrl: "https://api.tokenlab.sh",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "minimax-m3", name: "MiniMax M3" }
         ]
@@ -143,9 +147,9 @@ OpenClaw은 여전히 `provider/model` 형식으로 모델을 참조합니다:
 
 | 제공업체 | 모델 참조 | 설명 |
 |----------|-----------|------|
-| `tokenlab` | `tokenlab/gpt-4o` | OpenAI 호환 경로 |
-| `tokenlab-responses` | `tokenlab-responses/gpt-4o` | Responses API 경로 |
-| `tokenlab-claude` | `tokenlab-claude/claude-sonnet-4-6` | Claude Messages 네이티브 경로 |
+| `tokenlab` | `tokenlab/gpt-5.6-terra` | OpenAI 호환 경로 |
+| `tokenlab-responses` | `tokenlab-responses/gpt-5.6-terra` | Responses API 경로 |
+| `tokenlab-claude` | `tokenlab-claude/claude-sonnet-5` | Claude Messages 네이티브 경로 |
 | `tokenlab-gemini` | `tokenlab-gemini/gemini-3.5-flash` | Gemini 네이티브 경로 |
 | `tokenlab-minimax` | `tokenlab-minimax/minimax-m3` | MiniMax 네이티브 경로 |
 
@@ -180,12 +184,11 @@ Gemini 네이티브 동작이 필요하지 않다면 OpenAI 호환 경로를 통
 
 ## 설정 확인
 
-구성 파일을 저장한 후 OpenClaw 인스턴스를 재시작하고 간단한 메시지로 테스트하세요. 응답을 받으면 프로바이더가 올바르게 구성된 것입니다.
+같은 인스턴스를 재시작하고 모델과 제공자를 확인하세요. `--probe` 없는 `models status`는 모델 호출 테스트가 아닙니다. 실제 탐색이나 대화는 token을 사용할 수 있습니다. 응답과 TokenLab 기록을 비교하세요. 복구할 때는 이전 모델을 선택하고 추가한 항목만 제거합니다.
 
 ```bash
-# 셀프 호스트: 서비스를 다시 시작
-systemctl --user restart openclaw    # Linux
-launchctl stop cc.tokenlab.openclaw && launchctl start cc.tokenlab.openclaw  # macOS
+openclaw gateway restart
+openclaw models status
 ```
 
 ## 다음 단계

@@ -3,20 +3,41 @@ title: "Claude Code"
 description: "Use TokenLab with Anthropic's Claude Code CLI"
 ---
 
+## Let my agent set this up
+
+Copy this task to an agent already running on your computer:
+
+```text
+Read this guide and help me connect Claude Code to TokenLab:
+https://docs.tokenlab.sh/integrations/claude-code
+Check my installed version and active configuration first.
+Preserve existing accounts, providers, permissions and other settings.
+Back up local files and show proposed changes.
+Have me enter any API key locally; never ask for, print or paste it in chat.
+Check configuration loading first.
+Explain any paid request test separately before running it.
+```
+
 ## Overview
 
 
 
 
-[Claude Code](https://docs.anthropic.com/en/docs/claude-code) can use a TokenLab API key and the TokenLab Messages API for Claude models.
+[Claude Code](https://code.claude.com/docs/en/setup) can use a TokenLab API key and the TokenLab Messages API for Claude models.
 
 ## Installation
 
 Anthropic now recommends the native installer. The npm package still works, but Anthropic has deprecated that installation method.
 
-```bash
+<CodeGroup>
+```bash macOS / Linux / WSL
 curl -fsSL https://claude.ai/install.sh | bash
 ```
+
+```powershell Windows
+irm https://claude.ai/install.ps1 | iex
+```
+</CodeGroup>
 
 If you specifically need the npm package, use:
 
@@ -49,6 +70,8 @@ For TokenLab, keep `ANTHROPIC_BASE_URL` at `https://api.tokenlab.sh` without a `
 
 Alternatively, create or edit `~/.claude/settings.json`:
 
+Back up and merge settings; do not replace existing accounts, permissions or unrelated environment values. `ANTHROPIC_API_KEY` sends `X-Api-Key`, while `ANTHROPIC_AUTH_TOKEN` sends a Bearer token. Keep the TokenLab setup on one intentional auth path. Start Claude Code and use `/status` to inspect the active model and configuration source; this is not a paid-request success check. After a short paid request, compare its reply with TokenLab Requests. Restore only your added settings to switch back. See [settings precedence](https://code.claude.com/docs/en/settings).
+
 ```json
 {
   "env": {
@@ -69,8 +92,6 @@ claude
 # Run a single command
 claude "Explain this code" < main.py
 
-# Chat mode
-claude chat
 ```
 
 Verify the installation if needed:

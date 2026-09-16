@@ -3,37 +3,38 @@ title: "Pi Coding Agent"
 description: "Dùng Pi với TokenLab. Pi là một công cụ coding tối giản trên terminal hỗ trợ nhà cung cấp kiểu OpenAI, Anthropic và Google"
 ---
 
-## Tổng quan
+## Cài đặt và cấu hình Pi
 
-
-
-<Note>
-**Loại**: Công cụ coding
-
-**Đường chính**: đường tương thích OpenAI
-
-**Mức hỗ trợ**: Đường được hỗ trợ
-</Note>
-
-[Pi](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent) là một công cụ coding tối giản trên terminal. Trong IA tài liệu của TokenLab, nó thuộc nhóm **Coding Tools**, không phải native SDK.
-
-Pi nằm giữa nhiều kiểu sử dụng:
-
-- quy trình coding tương tác trong terminal
-- các chế độ JSON / RPC để tích hợp tiến trình
-- môi trường chạy kiểu SDK để nhúng vào ứng dụng của riêng bạn
-
-Với TokenLab, điểm bắt đầu đơn giản nhất thường là đường **tương thích OpenAI**, trừ khi bạn cố ý muốn hành vi Anthropic-native hoặc Google-native.
-
-## Đường khuyến nghị
+Dùng [hướng dẫn cài đặt chính thức](https://pi.dev/). Gói npm là `@earendil-works/pi-coding-agent`. Windows mặc định dùng Git Bash; xem [thiết lập shell](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/windows.md). Bỏ qua cài đặt nếu đã có Pi.
 
 ```bash
-export OPENAI_API_KEY="sk-your-tokenlab-key"
-export OPENAI_BASE_URL="https://api.tokenlab.sh/v1"
+npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+pi --version
 ```
 
-Sau đó, trỏ nhà cung cấp hoặc đường dẫn model tùy chỉnh của Pi về TokenLab.
+Hợp nhất vào `~/.pi/agent/models.json` hoặc thư mục `PI_CODING_AGENT_DIR`. Sao lưu và giữ nguyên nhà cung cấp khác. Đặt `TOKENLAB_API_KEY` cục bộ trong môi trường khởi chạy, không dán vào chat. Chỉ đặt biến Base URL không tạo được nhà cung cấp.
 
-<Note>
-Nếu bạn cần hành vi Claude-native hoặc Gemini-native, hãy coi đó là cấu hình Pi theo từng provider, không phải cấu hình tương thích OpenAI chung.
-</Note>
+```json
+{
+  "providers": {
+    "tokenlab": {
+      "baseUrl": "https://api.tokenlab.sh/v1",
+      "api": "openai-completions",
+      "apiKey": "$TOKENLAB_API_KEY",
+      "models": [{ "id": "gpt-5.6-luna" }]
+    }
+  }
+}
+```
+
+Dấu `$` trong `"$TOKENLAB_API_KEY"` là bắt buộc; thiếu dấu này sẽ thành chuỗi nguyên văn. Chọn mô hình hiện hỗ trợ Chat Completions và công cụ. Dùng chi tiết mô hình để đặt giới hạn, hình ảnh và suy luận.
+
+## Kiểm tra và khôi phục
+
+Chạy `pi --list-models`, rồi chọn `tokenlab/gpt-5.6-luna` trong `/model`. Bộ chọn tải lại `models.json`. Việc này xác nhận đăng ký mô hình và có thông tin xác thực, không chứng minh khóa hợp lệ hay gọi API thành công.
+
+Yêu cầu văn bản dùng số dư TokenLab. Đối chiếu phản hồi với [bản ghi](https://tokenlab.sh/dashboard/runs?section=requests) trước khi thử công cụ. Để khôi phục, chọn nhà cung cấp cũ và chỉ xóa mục TokenLab đã thêm.
+
+## Skills và MCP
+
+Pi [hỗ trợ Skills trực tiếp](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/skills.md). Cài [TokenLab Skill](/vi/integrations/coding-agent-skill). MCP cần phần mở rộng riêng; không đặt cấu hình MCP vào `models.json`.

@@ -3,35 +3,38 @@ title: "Pi Coding Agent"
 description: "Pi'yi TokenLab ile kullanın. Pi, OpenAI, Anthropic ve Google tarzı yapılandırmaları destekleyen minimal bir terminal kodlama aracıdır"
 ---
 
-## Genel Bakış
+## Pi kurulumu ve yapılandırması
 
-<Note>
-**Tür**: Kodlama aracı
-
-**Birincil yol**: OpenAI ile uyumlu yol
-
-**Destek seviyesi**: Desteklenen yol
-</Note>
-
-[Pi](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent) minimal bir terminal kodlama aracıdır. TokenLab dokümantasyon IA'sında yeri **Kodlama araçları** grubudur; native SDK değildir.
-
-Pi şu kullanım tarzlarının arasında durur:
-
-- etkileşimli terminal kodlama iş akışı
-- süreç entegrasyonu için JSON / RPC modları
-- kendi uygulamalarınıza gömülebilen SDK tarzı çalışma ortamı
-
-TokenLab ile en basit başlangıç noktası genelde **OpenAI ile uyumlu** yoludur; Anthropic-native veya Google-native davranışı bilerek istemiyorsanız buradan başlayın.
-
-## Önerilen yol
+[Resmî kurulumu](https://pi.dev/) kullanın. npm paketi `@earendil-works/pi-coding-agent` adını taşır. Windows varsayılan olarak Git Bash kullanır; [kabuk ayarlarına](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/windows.md) bakın. Pi kuruluysa kurulumu atlayın.
 
 ```bash
-export OPENAI_API_KEY="sk-your-tokenlab-key"
-export OPENAI_BASE_URL="https://api.tokenlab.sh/v1"
+npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+pi --version
 ```
 
-Ardından Pi'nin sağlayıcı veya özel model yolunu TokenLab'ya yönlendirin.
+Bunları `~/.pi/agent/models.json` dosyasına veya `PI_CODING_AGENT_DIR` dizinine birleştirin. Dosyayı yedekleyin ve diğer sağlayıcıları koruyun. `TOKENLAB_API_KEY` değişkenini yerel başlatma ortamında tanımlayın, sohbete yapıştırmayın. Yalnızca Base URL değişkeni sağlayıcıyı oluşturmaz.
 
-<Note>
-Claude-native veya Gemini-native davranış gerekiyorsa, bunu genel OpenAI ile uyumlu ayar olarak değil, sağlayıcıya özel Pi yapılandırması olarak ele alın.
-</Note>
+```json
+{
+  "providers": {
+    "tokenlab": {
+      "baseUrl": "https://api.tokenlab.sh/v1",
+      "api": "openai-completions",
+      "apiKey": "$TOKENLAB_API_KEY",
+      "models": [{ "id": "gpt-5.6-luna" }]
+    }
+  }
+}
+```
+
+`"$TOKENLAB_API_KEY"` içindeki `$` zorunludur; olmazsa değer düz metin sayılır. Chat Completions ve araçları destekleyen güncel bir model seçin. Sınırları, görüntü ve akıl yürütme seçeneklerini model ayrıntılarına göre ayarlayın.
+
+## Kontrol ve geri alma
+
+`pi --list-models` komutunu çalıştırıp `/model` içinde `tokenlab/gpt-5.6-luna` seçin. Seçici `models.json` dosyasını yeniden yükler. Bu, model kaydını ve kimlik bilgilerinin varlığını kontrol eder; geçerliliği veya API başarısını kanıtlamaz.
+
+Metin isteği TokenLab bakiyesini kullanır. Araçları denemeden önce yanıtı [istek kaydıyla](https://tokenlab.sh/dashboard/runs?section=requests) karşılaştırın. Geri almak için önceki sağlayıcıyı seçip yalnızca eklenen TokenLab girdisini kaldırın.
+
+## Skills ve MCP
+
+Pi [Skills desteğini yerleşik sunar](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/skills.md). [TokenLab Skill](/tr/integrations/coding-agent-skill) yükleyebilirsiniz. MCP ayrı bir uzantı gerektirir; yapılandırmasını `models.json` içine koymayın.

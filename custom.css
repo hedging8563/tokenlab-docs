@@ -1,0 +1,134 @@
+/* TokenLab 2.0 semantics, from apps/web/design-system/tokenlab-tokens.json.
+   Keep these scoped values in sync with that owner; docs-theme.test.mjs checks it. */
+:root {
+  --tokenlab-docs-surface: #FFFFFF;
+  --tokenlab-docs-text: #151714;
+  --tokenlab-docs-muted: #686B65;
+  --tokenlab-docs-line: #E4E5E0;
+  --tokenlab-docs-control-border: #8E9289;
+  --tokenlab-docs-action: #43463F;
+  --tokenlab-docs-action-hover: #34362F;
+  --tokenlab-docs-action-text: #FFFFFF;
+  --tokenlab-docs-brand: #875B49;
+  --tokenlab-docs-focus: #7B7E76;
+  --tokenlab-docs-danger: #B64135;
+}
+
+.dark {
+  --tokenlab-docs-surface: #141613;
+  --tokenlab-docs-text: #F2F2EE;
+  --tokenlab-docs-muted: #B6B8B0;
+  --tokenlab-docs-line: #292C26;
+  --tokenlab-docs-control-border: #62665D;
+  --tokenlab-docs-action: #D39A80;
+  --tokenlab-docs-action-hover: #DFAB92;
+  --tokenlab-docs-action-text: #151714;
+  --tokenlab-docs-brand: #D39A80;
+  --tokenlab-docs-focus: #D39A80;
+  --tokenlab-docs-danger: #E47D70;
+}
+
+/* Mintlify colors.dark is shared by button themes. Use the matching 2.0
+   action semantics for this documented hook in both light and dark mode. */
+#topbar-cta-button > a > span {
+  background-color: var(--tokenlab-docs-action);
+}
+
+#topbar-cta-button > a:hover > span {
+  background-color: var(--tokenlab-docs-action-hover);
+}
+
+#topbar-cta-button > a > div,
+#topbar-cta-button > a > div > * { color: var(--tokenlab-docs-action-text); }
+
+#tokenlab-auth-input {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  margin-block-end: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--tokenlab-docs-line);
+  border-radius: 0.625rem;
+  background: var(--tokenlab-docs-surface);
+  color: var(--tokenlab-docs-text);
+  font-family: inherit;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+#tokenlab-auth-input *,
+#tokenlab-auth-input *::before,
+#tokenlab-auth-input *::after {
+  box-sizing: border-box;
+}
+
+#tokenlab-auth-input .tokenlab-auth-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-block-end: 0.5rem;
+}
+
+#tokenlab-auth-input label { font-weight: 600; }
+#tokenlab-auth-input .tokenlab-auth-required { color: var(--tokenlab-docs-danger); font-size: 0.75rem; }
+
+#tokenlab-auth-input .tokenlab-auth-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+}
+
+#tokenlab-api-key-input {
+  flex: 1 1 8rem;
+  width: 0;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 2.75rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--tokenlab-docs-control-border);
+  border-radius: 0.4375rem;
+  background: var(--tokenlab-docs-surface);
+  color: var(--tokenlab-docs-text);
+  font-family: 'IBM Plex Mono', SFMono-Regular, Consolas, monospace;
+  font-size: 0.875rem;
+}
+
+#tokenlab-api-key-input::placeholder { color: var(--tokenlab-docs-muted); }
+
+#tokenlab-toggle-visibility {
+  flex: 0 1 auto;
+  min-height: 2.75rem;
+  max-width: 100%;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid transparent;
+  border-radius: 0.4375rem;
+  background: var(--tokenlab-docs-action);
+  color: var(--tokenlab-docs-action-text);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+#tokenlab-toggle-visibility:hover { background: var(--tokenlab-docs-action-hover); }
+
+#tokenlab-auth-input input:focus-visible,
+#tokenlab-auth-input button:focus-visible,
+#tokenlab-auth-input a:focus-visible,
+#topbar-cta-button > a:focus-visible {
+  outline: 2px solid var(--tokenlab-docs-focus);
+  outline-offset: 2px;
+}
+
+#tokenlab-auth-input .tokenlab-auth-help {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  margin-block-start: 0.5rem;
+  color: var(--tokenlab-docs-muted);
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+#tokenlab-auth-input a { color: var(--tokenlab-docs-brand); text-decoration: underline; text-underline-offset: 2px; }

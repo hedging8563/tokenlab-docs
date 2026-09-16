@@ -3,6 +3,28 @@ title: "TokenLab MCP Server"
 description: "Give Claude Code, Cursor, VS Code, Codex, and other MCP clients access to TokenLab models and APIs"
 ---
 
+## Choose what your agent needs
+
+- MCP adds TokenLab API tools to a compatible client. Start with the key-free `catalog` setup below.
+- The [TokenLab Skill](/integrations/coding-agent-skill) installs integration instructions with `npx skills add`; it does not start an MCP server.
+
+Both extend an existing agent. Changing its main model provider uses that client’s own setup guide.
+
+## Let my agent set this up
+
+Copy this task to an agent already running on your computer:
+
+```text
+Read this guide and choose MCP catalog tools or a Skill for my task:
+https://docs.tokenlab.sh/integrations/tokenlab-mcp-server
+Check my installed version and active configuration first.
+Preserve existing accounts, providers, permissions and other settings.
+Back up local files and show proposed changes.
+Have me enter any API key locally; never ask for, print or paste it in chat.
+Check configuration loading first.
+Explain any paid request test separately before running it.
+```
+
 The [TokenLab MCP Server](https://github.com/hedging8563/tokenlab-mcp-server) lets an MCP client browse current models and prices, send model requests, create media, work with files, and check async tasks.
 
 Use the `catalog` profile to browse models and prices without an API key. Add `TOKENLAB_API_KEY` when the client should make paid model or media requests.

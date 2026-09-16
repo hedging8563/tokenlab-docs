@@ -19,6 +19,20 @@ Pour les requêtes Anthropic-compatibles `/v1/messages`, vous pouvez également 
 x-api-key: sk-your-api-key
 ```
 
+## Jetons de gestion
+
+Les endpoints de l’API de gestion utilisent un type de jeton distinct :
+
+```bash
+Authorization: Bearer mt-your-management-token
+```
+
+Utilisez les jetons de gestion uniquement avec `/v1/management/*`. Ouvrez [API → Tokens](https://tokenlab.sh/dashboard/api?tab=tokens) pour l’espace de travail sélectionné afin de créer ou de remplacer un jeton. Conservez sa valeur complète en lieu sûr : elle ne s’affiche qu’une seule fois après la création ou le remplacement.
+
+<Note>
+Les jetons de gestion ne permettent pas d’appeler les modèles, et les clés API standard `sk-...` ne permettent pas d’utiliser l’API de gestion.
+</Note>
+
 ## Obtenir votre clé API
 
 1. Connectez-vous à votre [TokenLab Dashboard](https://tokenlab.sh/dashboard)

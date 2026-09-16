@@ -3,35 +3,38 @@ title: "Pi Coding Agent"
 description: "Gunakan Pi dengan TokenLab. Pi adalah alat coding terminal minimal yang mendukung konfigurasi bergaya OpenAI, Anthropic, dan Google"
 ---
 
-## Ikhtisar
+## Instal dan konfigurasi Pi
 
-<Note>
-**Jenis**: Alat coding
-
-**Jalur utama**: jalur yang kompatibel dengan OpenAI
-
-**Tingkat dukungan**: Jalur didukung
-</Note>
-
-[Pi](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent) adalah alat coding terminal minimal. Dalam IA dokumentasi TokenLab, Pi lebih tepat ditempatkan di **Coding Tools**, bukan di native SDK.
-
-Pi berada di antara beberapa pola penggunaan:
-
-- alur kerja coding interaktif di terminal
-- mode JSON / RPC untuk integrasi proses
-- lingkungan eksekusi bergaya SDK yang bisa ditanam ke aplikasi Anda sendiri
-
-Dengan TokenLab, titik awal paling sederhana biasanya adalah jalur **yang kompatibel dengan OpenAI**, kecuali Anda memang ingin perilaku Anthropic-native atau Google-native.
-
-## Jalur yang direkomendasikan
+Gunakan [instalasi resmi](https://pi.dev/). Paket npm saat ini adalah `@earendil-works/pi-coding-agent`. Windows memakai Git Bash secara default; lihat [pengaturan shell](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/windows.md). Lewati instalasi jika Pi sudah ada.
 
 ```bash
-export OPENAI_API_KEY="sk-your-tokenlab-key"
-export OPENAI_BASE_URL="https://api.tokenlab.sh/v1"
+npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+pi --version
 ```
 
-Setelah itu, arahkan konfigurasi penyedia atau jalur model kustom Pi ke TokenLab.
+Gabungkan ke `~/.pi/agent/models.json` atau direktori `PI_CODING_AGENT_DIR`. Cadangkan file dan pertahankan penyedia lain. Atur `TOKENLAB_API_KEY` secara lokal pada lingkungan peluncuran, bukan dalam chat. Variabel Base URL saja tidak membuat penyedia ini.
 
-<Note>
-Jika Anda membutuhkan perilaku Claude-native atau Gemini-native, perlakukan itu sebagai konfigurasi Pi yang spesifik untuk penyedia, bukan konfigurasi kompatibel OpenAI umum.
-</Note>
+```json
+{
+  "providers": {
+    "tokenlab": {
+      "baseUrl": "https://api.tokenlab.sh/v1",
+      "api": "openai-completions",
+      "apiKey": "$TOKENLAB_API_KEY",
+      "models": [{ "id": "gpt-5.6-luna" }]
+    }
+  }
+}
+```
+
+Tanda `$` dalam `"$TOKENLAB_API_KEY"` wajib; tanpanya nilai menjadi teks literal. Pilih model saat ini yang mendukung Chat Completions dan alat. Batas serta opsi gambar dan penalaran mengikuti detail model tersebut.
+
+## Periksa dan pulihkan
+
+Jalankan `pi --list-models`, lalu pilih `tokenlab/gpt-5.6-luna` di `/model`. Pemilih memuat ulang `models.json`. Ini memeriksa pendaftaran dan keberadaan kredensial, bukan validitasnya atau keberhasilan panggilan API.
+
+Permintaan teks menggunakan saldo TokenLab. Cocokkan balasan dan [catatan permintaan](https://tokenlab.sh/dashboard/runs?section=requests) sebelum mencoba alat. Untuk memulihkan, pilih penyedia sebelumnya dan hapus hanya entri TokenLab yang ditambahkan.
+
+## Skills dan MCP
+
+Pi mendukung [Skills secara native](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/skills.md). Instal [TokenLab Skill](/id/integrations/coding-agent-skill). MCP memerlukan ekstensi terpisah; jangan masukkan konfigurasinya ke `models.json`.

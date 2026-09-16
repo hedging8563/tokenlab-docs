@@ -1,5 +1,5 @@
 {
-  "openapi": "3.0.3",
+  "openapi": "3.1.0",
   "info": {
     "title": "TokenLab AI Gateway",
     "description": "Organization balance, API key management, and key-level usage/billing via management token",
@@ -3353,6 +3353,11 @@
           "404": {
             "$ref": "#/components/responses/NotFound"
           }
+        },
+        "x-mint": {
+          "metadata": {
+            "playground": "simple"
+          }
         }
       }
     },
@@ -3385,6 +3390,11 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          }
+        },
+        "x-mint": {
+          "metadata": {
+            "playground": "simple"
           }
         }
       },
@@ -3487,6 +3497,11 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          }
+        },
+        "x-mint": {
+          "metadata": {
+            "playground": "simple"
           }
         }
       }
@@ -3612,6 +3627,11 @@
           "404": {
             "$ref": "#/components/responses/NotFound"
           }
+        },
+        "x-mint": {
+          "metadata": {
+            "playground": "simple"
+          }
         }
       }
     },
@@ -3736,6 +3756,11 @@
           "404": {
             "$ref": "#/components/responses/NotFound"
           }
+        },
+        "x-mint": {
+          "metadata": {
+            "playground": "simple"
+          }
         }
       }
     },
@@ -3836,6 +3861,11 @@
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
+          }
+        },
+        "x-mint": {
+          "metadata": {
+            "playground": "simple"
           }
         }
       }
@@ -5189,14 +5219,18 @@
                     "description": "High-level media type."
                   },
                   "extension": {
-                    "type": "string",
-                    "nullable": true,
+                    "type": [
+                      "string",
+                      "null"
+                    ],
                     "description": "File extension without dot, such as jpg, png, or mp4."
                   },
                   "metadata": {
-                    "type": "object",
+                    "type": [
+                      "object",
+                      "null"
+                    ],
                     "additionalProperties": true,
-                    "nullable": true,
                     "description": "Optional application metadata."
                   }
                 }
@@ -5241,18 +5275,24 @@
                           "type": "string"
                         },
                         "extension": {
-                          "type": "string",
-                          "nullable": true
+                          "type": [
+                            "string",
+                            "null"
+                          ]
                         },
                         "metadata": {
-                          "type": "object",
-                          "additionalProperties": true,
-                          "nullable": true
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "additionalProperties": true
                         },
                         "updated_at": {
-                          "type": "string",
-                          "format": "date-time",
-                          "nullable": true
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "date-time"
                         }
                       },
                       "additionalProperties": true
@@ -5346,18 +5386,24 @@
                       "type": "string"
                     },
                     "extension": {
-                      "type": "string",
-                      "nullable": true
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "metadata": {
-                      "type": "object",
-                      "additionalProperties": true,
-                      "nullable": true
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "additionalProperties": true
                     },
                     "updated_at": {
-                      "type": "string",
-                      "format": "date-time",
-                      "nullable": true
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
                     }
                   },
                   "additionalProperties": true
@@ -5728,49 +5774,63 @@
                     "default": 20
                   },
                   "page_token": {
-                    "type": "string",
-                    "nullable": true
+                    "type": [
+                      "string",
+                      "null"
+                    ]
                   },
                   "status": {
-                    "type": "string",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
                     "enum": [
                       "SUCCEEDED",
                       "PENDING",
                       "FAILED",
                       "RUNNING"
-                    ],
-                    "nullable": true
+                    ]
                   },
                   "model": {
-                    "type": "string",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
                     "enum": [
                       "marble-1.0",
                       "marble-1.1",
                       "marble-1.1-plus",
                       "marble-1.0-draft"
-                    ],
-                    "nullable": true
+                    ]
                   },
                   "tags": {
-                    "type": "array",
+                    "type": [
+                      "array",
+                      "null"
+                    ],
                     "items": {
                       "type": "string"
-                    },
-                    "nullable": true
+                    }
                   },
                   "is_public": {
-                    "type": "boolean",
-                    "nullable": true
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
                   },
                   "created_after": {
-                    "type": "string",
-                    "format": "date-time",
-                    "nullable": true
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
                   },
                   "created_before": {
-                    "type": "string",
-                    "format": "date-time",
-                    "nullable": true
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
                   },
                   "sort_by": {
                     "type": "string",
@@ -5828,29 +5888,37 @@
                             "additionalProperties": true
                           },
                           "created_at": {
-                            "type": "string",
-                            "format": "date-time",
-                            "nullable": true
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "date-time"
                           },
                           "model": {
-                            "type": "string",
-                            "nullable": true
+                            "type": [
+                              "string",
+                              "null"
+                            ]
                           },
                           "permission": {
                             "type": "object",
                             "additionalProperties": true
                           },
                           "tags": {
-                            "type": "array",
+                            "type": [
+                              "array",
+                              "null"
+                            ],
                             "items": {
                               "type": "string"
-                            },
-                            "nullable": true
+                            }
                           },
                           "updated_at": {
-                            "type": "string",
-                            "format": "date-time",
-                            "nullable": true
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "date-time"
                           },
                           "world_prompt": {
                             "type": "object",
@@ -5861,8 +5929,10 @@
                       }
                     },
                     "next_page_token": {
-                      "type": "string",
-                      "nullable": true
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     }
                   },
                   "additionalProperties": true
@@ -5924,29 +5994,37 @@
                       "additionalProperties": true
                     },
                     "created_at": {
-                      "type": "string",
-                      "format": "date-time",
-                      "nullable": true
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
                     },
                     "model": {
-                      "type": "string",
-                      "nullable": true
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "permission": {
                       "type": "object",
                       "additionalProperties": true
                     },
                     "tags": {
-                      "type": "array",
+                      "type": [
+                        "array",
+                        "null"
+                      ],
                       "items": {
                         "type": "string"
-                      },
-                      "nullable": true
+                      }
                     },
                     "updated_at": {
-                      "type": "string",
-                      "format": "date-time",
-                      "nullable": true
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
                     },
                     "world_prompt": {
                       "type": "object",
@@ -7147,13 +7225,13 @@
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "API Key",
-        "description": "API Key authentication. Get your API key from the dashboard."
+        "description": "API Key authentication. Create or manage API keys in [Dashboard > API > API Keys](https://tokenlab.sh/dashboard/api?tab=keys)."
       },
       "ManagementTokenAuth": {
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "Management Token",
-        "description": "Management token authentication. Get your management token from Dashboard Settings."
+        "description": "Management token authentication. Create or manage Management Tokens in [Dashboard > API > Management Tokens](https://tokenlab.sh/dashboard/api?tab=tokens)."
       }
     },
     "schemas": {
@@ -7701,8 +7779,10 @@
                 ]
               },
               "content": {
-                "type": "string",
-                "nullable": true
+                "type": [
+                  "string",
+                  "null"
+                ]
               },
               "tool_calls": {
                 "type": "array",
@@ -7711,20 +7791,24 @@
                 }
               },
               "refusal": {
-                "type": "string",
-                "nullable": true
+                "type": [
+                  "string",
+                  "null"
+                ]
               }
             }
           },
           "finish_reason": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "enum": [
               "stop",
               "length",
               "tool_calls",
               "content_filter"
             ],
-            "nullable": true,
             "description": "Reason for completion"
           }
         },
@@ -9016,8 +9100,10 @@
             "description": "Project scope for the material asset. Assets and groups are isolated by project inside the authenticated organization."
           },
           "metadata": {
-            "type": "object",
-            "nullable": true,
+            "type": [
+              "object",
+              "null"
+            ],
             "additionalProperties": true,
             "description": "Optional client metadata stored with the material asset."
           }
@@ -9046,8 +9132,10 @@
             ]
           },
           "group_id": {
-            "type": "string",
-            "nullable": true,
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "TokenLab material group ID that owns this material asset."
           },
           "project_name": {
@@ -9062,8 +9150,10 @@
             ]
           },
           "asset_name": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "asset_type": {
             "type": "string",
@@ -9087,13 +9177,17 @@
             "description": "True when the asset is active and not deleted."
           },
           "error_message": {
-            "type": "string",
-            "nullable": true,
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Public-safe terminal processing error. Permanent source validation failures include the rejected dimension constraint."
           },
           "metadata": {
-            "type": "object",
-            "nullable": true,
+            "type": [
+              "object",
+              "null"
+            ],
             "additionalProperties": true
           },
           "created_at": {
@@ -9119,8 +9213,10 @@
             }
           },
           "next_page_token": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "additionalProperties": true
@@ -9795,8 +9891,10 @@
             ]
           },
           "stop_sequence": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "usage": {
             "type": "object",
@@ -11090,8 +11188,10 @@
             "type": "boolean"
           },
           "scope": {
-            "type": "object",
-            "nullable": true,
+            "type": [
+              "object",
+              "null"
+            ],
             "required": [
               "id",
               "type"
@@ -11862,8 +11962,10 @@
             "description": "Upstream request count summary for the batch"
           },
           "ended_at": {
-            "type": "string",
-            "nullable": true,
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "ISO timestamp when processing ended, when available"
           },
           "created_at": {
@@ -11875,18 +11977,24 @@
             "description": "ISO timestamp when the batch expires, when available"
           },
           "cancel_initiated_at": {
-            "type": "string",
-            "nullable": true,
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "ISO timestamp when cancellation was initiated, when available"
           },
           "archived_at": {
-            "type": "string",
-            "nullable": true,
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "ISO timestamp when the batch was archived, when available"
           },
           "results_url": {
-            "type": "string",
-            "nullable": true,
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Upstream results URL, when available"
           }
         },
@@ -11931,12 +12039,16 @@
             "type": "boolean"
           },
           "first_id": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "last_id": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "additionalProperties": true
@@ -12657,8 +12769,10 @@
             "description": "Optional display name for the material group."
           },
           "description": {
-            "type": "string",
-            "nullable": true,
+            "type": [
+              "string",
+              "null"
+            ],
             "maxLength": 500
           },
           "library_type": {
@@ -12678,8 +12792,10 @@
             "description": "Project scope for the material group."
           },
           "metadata": {
-            "type": "object",
-            "nullable": true,
+            "type": [
+              "object",
+              "null"
+            ],
             "additionalProperties": true
           }
         }
@@ -12693,8 +12809,10 @@
             "maxLength": 128
           },
           "description": {
-            "type": "string",
-            "nullable": true,
+            "type": [
+              "string",
+              "null"
+            ],
             "maxLength": 500
           },
           "project_name": {
@@ -12704,8 +12822,10 @@
             "default": "default"
           },
           "metadata": {
-            "type": "object",
-            "nullable": true,
+            "type": [
+              "object",
+              "null"
+            ],
             "additionalProperties": true
           }
         }
@@ -12741,19 +12861,25 @@
             "description": "Project scope for this material group."
           },
           "group_name": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "description": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "status": {
             "type": "string"
           },
           "metadata": {
-            "type": "object",
-            "nullable": true,
+            "type": [
+              "object",
+              "null"
+            ],
             "additionalProperties": true
           },
           "created_at": {
@@ -12779,8 +12905,10 @@
             }
           },
           "next_page_token": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           }
         }
       },
@@ -12814,8 +12942,10 @@
             "default": "default"
           },
           "metadata": {
-            "type": "object",
-            "nullable": true,
+            "type": [
+              "object",
+              "null"
+            ],
             "additionalProperties": true,
             "description": "Updated client metadata stored with the material asset."
           }

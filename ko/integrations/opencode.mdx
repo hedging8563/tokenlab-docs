@@ -9,28 +9,11 @@ OpenCode는 터미널에서 실행되는 오픈소스 AI 코딩 도우미입니�
 
 ## 설치
 
-<Tabs>
-  <Tab title="설치 스크립트">
-    ```bash
-    curl -fsSL https://opencode.ai/install | bash
-    ```
-  </Tab>
-  <Tab title="Homebrew">
-    ```bash
-    brew install opencode-ai/tap/opencode
-    ```
+[OpenCode](https://opencode.ai/docs/)
 
-    또는 커뮤니티 tap을 사용하세요(더 자주 업데이트됨):
-    ```bash
-    brew install anomalyco/tap/opencode
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```bash
-    go install github.com/opencode-ai/opencode@latest
-    ```
-  </Tab>
-</Tabs>
+```bash
+npm install -g opencode-ai
+```
 
 설치 확인:
 
@@ -43,19 +26,21 @@ opencode --version
 ### 1단계: 환경 변수 설정
 
 ```bash
-export OPENAI_API_KEY="sk-your-tokenlab-key"
+export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 ```
 
 영구적으로 구성하려면 `~/.bashrc` 또는 `~/.zshrc`에 추가하세요:
 
 ```bash
-echo 'export OPENAI_API_KEY="sk-your-tokenlab-key"' >> ~/.zshrc
+echo 'export TOKENLAB_API_KEY="sk-your-tokenlab-key"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
 ### 2단계: OpenCode 구성
 
 OpenCode의 현재 문서는 `opencode.json` 또는 `opencode.jsonc`를 통해 제공자를 구성할 것을 권장합니다. TokenLab의 경우, 내장된 `openai` 제공자를 덮어쓰는 대신 사용자 지정 제공자를 사용하세요:
+
+지원되는 V1 제공자 형식의 예입니다. `~/.config/opencode/opencode.json`에 병합하고 기존 제공자와 권한을 유지하세요. V2도 지원되는 V1 설정을 읽지만 한 제공자 안에서 형식을 섞으면 안 됩니다. [공식 이전 안내](https://opencode.ai/v2/docs/migrate-v1/)를 참고하세요. `/models`로 등록을 확인한 뒤 유료 테스트와 TokenLab 기록을 비교합니다. 복구 시 이전 모델을 선택하고 이 항목만 제거하세요.
 
 ```jsonc
 {
@@ -66,19 +51,19 @@ OpenCode의 현재 문서는 `opencode.json` 또는 `opencode.jsonc`를 통해 �
       "name": "TokenLab",
       "options": {
         "baseURL": "https://api.tokenlab.sh/v1",
-        "apiKey": "{env:OPENAI_API_KEY}"
+        "apiKey": "{env:TOKENLAB_API_KEY}"
       },
       "models": {
         "gpt-5.6-terra": {
-          "name": "GPT-5.4"
+          "name": "GPT-5.6 Terra"
         },
         "gpt-5.6-luna": {
-          "name": "GPT-5 Mini"
+          "name": "GPT-5.6 Luna"
         }
       }
     }
   },
-  "model": "tokenlab/gpt-5.4"
+  "model": "tokenlab/gpt-5.6-terra"
 }
 ```
 
@@ -97,21 +82,21 @@ opencode
 **프롬프트와 함께 실행:**
 
 ```bash
-opencode "Explain this codebase"
+opencode run "Explain this codebase"
 ```
 
 **모델 지정:**
 
 ```bash
-opencode --model tokenlab/gpt-5.4 "Fix the bugs in main.py"
+opencode run --model tokenlab/gpt-5.6-terra "Fix the bugs in main.py"
 ```
 
 ## 사용 가능한 모델
 
 | 모델 | 적합한 용도 |
 |-------|----------|
-| `gpt-5.4` | 복잡한 작업, 코드 아키텍처 |
-| `gpt-5-mini` | 빠른 수정, 간단한 질의 |
+| `gpt-5.6-terra` | 복잡한 작업, 코드 아키텍처 |
+| `gpt-5.6-luna` | 빠른 수정, 간단한 질의 |
 | `claude-sonnet-4-6` | 코드 리뷰, 문서화 |
 | `claude-opus-4-6` | 복잡한 추론 |
 | `gemini-3.5-flash` | 빠른 응답 |
@@ -121,25 +106,25 @@ opencode --model tokenlab/gpt-5.4 "Fix the bugs in main.py"
 **코드 분석:**
 
 ```bash
-opencode "What does this function do?" < src/utils.ts
+opencode run "What does this function do?" < src/utils.ts
 ```
 
 **코드 생성:**
 
 ```bash
-opencode "Create a REST API with Express"
+opencode run "Create a REST API with Express"
 ```
 
 **변경 사항 검토:**
 
 ```bash
-git diff | opencode "Review these changes"
+git diff | opencode run "Review these changes"
 ```
 
 **오류 수정:**
 
 ```bash
-opencode "Fix the TypeScript errors in this project"
+opencode run "Fix the TypeScript errors in this project"
 ```
 
 ## 대화형 명령어
@@ -147,7 +132,7 @@ opencode "Fix the TypeScript errors in this project"
 | 명령어 | 설명 |
 |---------|-------------|
 | `/help` | 사용 가능한 명령어 표시 |
-| `/model <name>` | 다른 모델로 전환 |
+| `/models` | 다른 모델로 전환 |
 | `/clear` | 대화 기록 지우기 |
 | `/exit` | OpenCode 종료 |
 
@@ -161,8 +146,8 @@ opencode "Fix the TypeScript errors in this project"
   </Accordion>
 
   <Accordion title="인증 실패">
-    - `OPENAI_API_KEY` 환경 변수가 설정되어 있는지 확인하세요
-    - `options.apiKey`가 `{env:OPENAI_API_KEY}` 또는 다른 유효한 secret source를 참조하는지 확인하세요
+    - `TOKENLAB_API_KEY` 환경 변수가 설정되어 있는지 확인하세요
+    - `options.apiKey`가 `{env:TOKENLAB_API_KEY}` 또는 다른 유효한 secret source를 참조하는지 확인하세요
     - 키가 `sk-`로 시작하는지 확인하세요
     - TokenLab dashboard에서 키가 활성 상태인지 확인하세요
   </Accordion>
@@ -181,7 +166,7 @@ opencode "Fix the TypeScript errors in this project"
   </Accordion>
 
   <Accordion title="적절한 모델 선택">
-    간단한 작업에는 더 빠른 모델(`gpt-5-mini`)을 사용하고, 복잡한 작업에는 더 강력한 모델(`gpt-5.4`, `claude-sonnet-4-6`)을 사용하세요.
+    간단한 작업에는 더 빠른 모델(`gpt-5.6-luna`)을 사용하고, 복잡한 작업에는 더 강력한 모델(`gpt-5.6-terra`, `claude-sonnet-4-6`)을 사용하세요.
   </Accordion>
 
   <Accordion title="생성된 코드 검토">

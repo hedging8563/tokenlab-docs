@@ -1,0 +1,40 @@
+---
+title: "Hermes Agent"
+description: "Kết nối Hermes Agent với TokenLab"
+---
+
+Thêm TokenLab làm nhà cung cấp riêng có tên, giữ nguyên tài khoản, cấu hình và quyền công cụ hiện có.
+
+## Cài đặt hoặc kiểm tra Hermes
+
+[Hướng dẫn chính thức](https://hermes-agent.nousresearch.com/docs/getting-started/installation) có bộ cài máy tính cho macOS Apple Silicon và Windows, cùng CLI cho Linux và Windows nguyên bản. Kiểm tra yêu cầu hệ thống; bỏ qua cài đặt nếu đã có Hermes.
+
+## Cấu hình nhà cung cấp
+
+Dùng thư mục `HERMES_HOME` nếu đã đặt, nếu không dùng `~/.hermes` (Windows: `%USERPROFILE%\.hermes`). Sao lưu `config.yaml` rồi hợp nhất các mục dưới đây, giữ nguyên thiết lập khác. Chọn mô hình hiện hỗ trợ Chat Completions và gọi công cụ.
+
+```yaml
+providers:
+  tokenlab:
+    api: https://api.tokenlab.sh/v1
+    key_env: TOKENLAB_API_KEY
+    transport: chat_completions
+    default_model: gpt-5.6-luna
+model:
+  provider: custom:tokenlab
+  default: gpt-5.6-luna
+```
+
+Tạo khóa tại [Khóa API](https://tokenlab.sh/dashboard/api?tab=keys). Lưu cục bộ thành `TOKENLAB_API_KEY` trong `.env` của thư mục Hermes hoặc môi trường tiến trình khởi chạy. Không dán khóa vào hội thoại hay YAML của nhà cung cấp.
+
+## Kiểm tra rồi gửi yêu cầu
+
+Chạy `hermes config get model.provider` và `hermes config get model.default` để kiểm tra `custom:tokenlab` và mô hình đã chọn. Mở phiên mới vì phiên cũ có thể giữ mô hình trước đó. Kiểm tra cấu hình không xác nhận khóa hợp lệ hay gọi mô hình thành công.
+
+Khi sẵn sàng dùng số dư TokenLab, gửi văn bản ngắn rồi đối chiếu phản hồi với [bản ghi yêu cầu](https://tokenlab.sh/dashboard/runs?section=requests). Sau đó thử tác vụ công cụ chỉ đọc. Mô hình phụ và công cụ tùy chọn có thể dùng nhà cung cấp hoặc khóa riêng.
+
+## Khôi phục và xử lý lỗi
+
+Nếu không nhận diện nhà cung cấp, kiểm tra phiên bản và [định dạng hiện tại](https://hermes-agent.nousresearch.com/docs/integrations/providers). Với lỗi xác thực, kiểm tra môi trường và trạng thái khóa mà không in khóa. Để hoàn tác, khôi phục mô hình cũ và chỉ xóa các mục TokenLab vừa thêm.
+
+MCP và Skills là các phần mở rộng riêng: [hướng dẫn MCP](/vi/integrations/tokenlab-mcp-server) thêm công cụ API, [hướng dẫn Skill](/vi/integrations/coding-agent-skill) cung cấp chỉ dẫn tích hợp. Chúng không bắt buộc cho cấu hình nhà cung cấp này.

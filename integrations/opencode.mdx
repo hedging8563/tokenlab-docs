@@ -3,6 +3,21 @@ title: "OpenCode"
 description: "Configure OpenCode to use TokenLab API"
 ---
 
+## Let my agent set this up
+
+Copy this task to an agent already running on your computer:
+
+```text
+Read this guide and help me connect OpenCode to TokenLab:
+https://docs.tokenlab.sh/integrations/opencode
+Check my installed version and active configuration first.
+Preserve existing accounts, providers, permissions and other settings.
+Back up local files and show proposed changes.
+Have me enter any API key locally; never ask for, print or paste it in chat.
+Check configuration loading first.
+Explain any paid request test separately before running it.
+```
+
 ## Overview
 
 
@@ -12,28 +27,11 @@ OpenCode can use TokenLab through a custom OpenAI-compatible provider. Add the T
 
 ## Installation
 
-<Tabs>
-  <Tab title="Install Script">
-    ```bash
-    curl -fsSL https://opencode.ai/install | bash
-    ```
-  </Tab>
-  <Tab title="Homebrew">
-    ```bash
-    brew install opencode-ai/tap/opencode
-    ```
+[OpenCode](https://opencode.ai/docs/)
 
-    Or use the community tap (more frequent updates):
-    ```bash
-    brew install anomalyco/tap/opencode
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```bash
-    go install github.com/opencode-ai/opencode@latest
-    ```
-  </Tab>
-</Tabs>
+```bash
+npm install -g opencode-ai
+```
 
 Verify installation:
 
@@ -46,19 +44,21 @@ opencode --version
 ### Step 1: Set Environment Variables
 
 ```bash
-export OPENAI_API_KEY="sk-your-tokenlab-key"
+export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 ```
 
 For permanent configuration, add to `~/.bashrc` or `~/.zshrc`:
 
 ```bash
-echo 'export OPENAI_API_KEY="sk-your-tokenlab-key"' >> ~/.zshrc
+echo 'export TOKENLAB_API_KEY="sk-your-tokenlab-key"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
 ### Step 2: Configure OpenCode
 
 OpenCode's current docs recommend configuring providers through `opencode.json` or `opencode.jsonc`. For TokenLab, use a custom provider instead of overloading the built-in `openai` provider:
+
+This example uses the supported V1 provider shape. Merge it into `~/.config/opencode/opencode.json` and keep existing providers and permissions. V2 can read supported V1 settings; do not mix V2 fields inside this provider entry. See the [official migration guide](https://opencode.ai/v2/docs/migrate-v1/). Use `/models` to confirm registration, then check a paid test against TokenLab Requests. To undo, select your previous model and remove only this entry.
 
 ```jsonc
 {
@@ -69,19 +69,19 @@ OpenCode's current docs recommend configuring providers through `opencode.json` 
       "name": "TokenLab",
       "options": {
         "baseURL": "https://api.tokenlab.sh/v1",
-        "apiKey": "{env:OPENAI_API_KEY}"
+        "apiKey": "{env:TOKENLAB_API_KEY}"
       },
       "models": {
         "gpt-5.6-terra": {
-          "name": "GPT-5.4"
+          "name": "GPT-5.6 Terra"
         },
         "gpt-5.6-luna": {
-          "name": "GPT-5 Mini"
+          "name": "GPT-5.6 Luna"
         }
       }
     }
   },
-  "model": "tokenlab/gpt-5.4"
+  "model": "tokenlab/gpt-5.6-terra"
 }
 ```
 
@@ -100,13 +100,13 @@ opencode
 **Run with a prompt:**
 
 ```bash
-opencode "Explain this codebase"
+opencode run "Explain this codebase"
 ```
 
 **Specify model:**
 
 ```bash
-opencode --model tokenlab/gpt-5.4 "Fix the bugs in main.py"
+opencode run --model tokenlab/gpt-5.6-terra "Fix the bugs in main.py"
 ```
 
 ## Choose a Model
@@ -118,25 +118,25 @@ Copy a current coding model ID from the [Models page](https://tokenlab.sh/en/mod
 **Analyze code:**
 
 ```bash
-opencode "What does this function do?" < src/utils.ts
+opencode run "What does this function do?" < src/utils.ts
 ```
 
 **Generate code:**
 
 ```bash
-opencode "Create a REST API with Express"
+opencode run "Create a REST API with Express"
 ```
 
 **Review changes:**
 
 ```bash
-git diff | opencode "Review these changes"
+git diff | opencode run "Review these changes"
 ```
 
 **Fix errors:**
 
 ```bash
-opencode "Fix the TypeScript errors in this project"
+opencode run "Fix the TypeScript errors in this project"
 ```
 
 ## Interactive Commands
@@ -144,7 +144,7 @@ opencode "Fix the TypeScript errors in this project"
 | Command | Description |
 |---------|-------------|
 | `/help` | Show available commands |
-| `/model <name>` | Switch to a different model |
+| `/models` | Switch to a different model |
 | `/clear` | Clear conversation history |
 | `/exit` | Exit OpenCode |
 
@@ -158,8 +158,8 @@ opencode "Fix the TypeScript errors in this project"
   </Accordion>
 
   <Accordion title="Authentication Failed">
-    - Verify `OPENAI_API_KEY` environment variable is set
-    - Verify `options.apiKey` references `{env:OPENAI_API_KEY}` or another valid secret source
+    - Verify `TOKENLAB_API_KEY` environment variable is set
+    - Verify `options.apiKey` references `{env:TOKENLAB_API_KEY}` or another valid secret source
     - Check that the key starts with `sk-`
     - Ensure the key is active in TokenLab dashboard
   </Accordion>

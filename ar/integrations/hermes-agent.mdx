@@ -1,0 +1,40 @@
+---
+title: "Hermes Agent"
+description: "ربط Hermes Agent مع TokenLab"
+---
+
+أضف TokenLab كمزود مسمى مع الاحتفاظ بالحسابات والإعدادات وأذونات الأدوات الحالية.
+
+## تثبيت Hermes أو التحقق منه
+
+يوفر [دليل التثبيت الرسمي](https://hermes-agent.nousresearch.com/docs/getting-started/installation) مثبتات سطح المكتب لنظامي macOS بمعالجات Apple Silicon وWindows، ومسار CLI لنظامي Linux وWindows الأصلي. تحقق من المتطلبات وتجاوز التثبيت إذا كان Hermes مثبتًا.
+
+## إعداد مزود مسمى
+
+استخدم مجلد `HERMES_HOME` إن كان محددًا، وإلا `~/.hermes` (Windows: `%USERPROFILE%\.hermes`). انسخ `config.yaml` احتياطيًا ثم ادمج العناصر التالية دون استبدال بقية الإعدادات. اختر نموذجًا حاليًا يدعم Chat Completions واستدعاء الأدوات.
+
+```yaml
+providers:
+  tokenlab:
+    api: https://api.tokenlab.sh/v1
+    key_env: TOKENLAB_API_KEY
+    transport: chat_completions
+    default_model: gpt-5.6-luna
+model:
+  provider: custom:tokenlab
+  default: gpt-5.6-luna
+```
+
+أنشئ مفتاحًا من [مفاتيح API](https://tokenlab.sh/dashboard/api?tab=keys). خزنه محليًا باسم `TOKENLAB_API_KEY` في ملف `.env` بمجلد Hermes أو في بيئة العملية التي تشغله. لا تلصق المفتاح في المحادثة أو YAML الخاص بالمزود.
+
+## التحقق ثم إرسال طلب
+
+شغّل `hermes config get model.provider` و`hermes config get model.default`؛ ينبغي أن يعرضا `custom:tokenlab` والنموذج المختار. ابدأ جلسة جديدة لأن الجلسات القديمة قد تحتفظ بالنموذج السابق. فحص الإعدادات لا يثبت صلاحية المفتاح أو نجاح استدعاء النموذج.
+
+عندما تكون مستعدًا لاستخدام رصيد TokenLab، أرسل نصًا قصيرًا وطابق الرد مع [سجل الطلب](https://tokenlab.sh/dashboard/runs?section=requests). جرّب بعدها مهمة أداة للقراءة فقط. قد تستخدم النماذج المساعدة والأدوات الاختيارية مزودات أو مفاتيح منفصلة.
+
+## الاستعادة وحل المشكلات
+
+إذا كان المزود غير معروف، تحقق من الإصدار و[التنسيق الحالي](https://hermes-agent.nousresearch.com/docs/integrations/providers). عند فشل المصادقة، تحقق من البيئة وحالة المفتاح دون طباعته. للتراجع، استعد اختيار النموذج السابق واحذف عناصر TokenLab التي أضفتها فقط.
+
+MCP وSkills امتدادان مستقلان: يضيف [دليل MCP](/ar/integrations/tokenlab-mcp-server) أدوات API، ويوفر [دليل Skill](/ar/integrations/coding-agent-skill) إرشادات الربط. لا يلزمان لاختيار هذا المزود.

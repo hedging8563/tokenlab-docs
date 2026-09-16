@@ -13,8 +13,10 @@ Para a execução padrão de agentes no OpenClaw, instale o plugin de provedor d
 
 ```bash
 openclaw plugins install @tokenlabai/openclaw-provider
-openclaw onboard --tokenlab-api-key "$TOKENLAB_API_KEY"
+openclaw onboard
 ```
+
+Após instalar, execute `openclaw onboard`, escolha TokenLab e digite a chave apenas no diálogo local. Se o plugin não carregar, use a configuração manual e confira a compatibilidade da versão.
 
 O plugin consulta o catálogo ativo de modelos de chat do TokenLab e mantém 18 modelos de fallback para descoberta offline. Os modelos usam o formato `tokenlab/<model-id>`.
 
@@ -43,7 +45,7 @@ Provedores nativos como `anthropic-messages` e `google-generative-ai` devem usar
 ## Pré-requisitos
 
 - Uma instância OpenClaw self-hosted
-- Uma API Key do TokenLab — [Obtenha uma aqui](https://tokenlab.sh/dashboard)
+- Uma API Key do TokenLab — [Obtenha uma aqui](https://tokenlab.sh/dashboard/api?tab=keys)
 
 ## Configuração
 
@@ -53,12 +55,14 @@ Edite sua configuração do OpenClaw:
 
 Adicione os provedores TokenLab em `models.providers`:
 
+Use o mesmo perfil, `OPENCLAW_STATE_DIR` e `OPENCLAW_CONFIG_PATH` do Gateway ativo e faça uma cópia da configuração. Guarde `TOKENLAB_API_KEY` no `.env` global confiável ou ambiente do serviço. Export no terminal ou `.env` do projeto pode não chegar ao processo em segundo plano. Veja o [ambiente](https://docs.openclaw.ai/help/environment).
+
 ```json5
 {
   agents: {
     defaults: {
       model: {
-        primary: "tokenlab-claude/claude-sonnet-4-6"
+        primary: "tokenlab-claude/claude-sonnet-5"
       }
     }
   },
@@ -68,7 +72,7 @@ Adicione os provedores TokenLab em `models.providers`:
       tokenlab: {
         api: "openai-completions",
         baseUrl: "https://api.tokenlab.sh/v1",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "gpt-5.6-terra", name: "GPT-5.6 Terra" },
           { id: "deepseek-reasoner", name: "DeepSeek Reasoner" },
@@ -78,7 +82,7 @@ Adicione os provedores TokenLab em `models.providers`:
       "tokenlab-responses": {
         api: "openai-responses",
         baseUrl: "https://api.tokenlab.sh/v1",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "gpt-5.6-terra", name: "GPT-5.6 Terra (Responses)" },
           { id: "gpt-5.2", name: "GPT-5.2 (Responses)" }
@@ -87,7 +91,7 @@ Adicione os provedores TokenLab em `models.providers`:
       "tokenlab-claude": {
         api: "anthropic-messages",
         baseUrl: "https://api.tokenlab.sh",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "claude-sonnet-5", name: "Claude Sonnet 5" },
           { id: "claude-opus-5", name: "Claude Opus 5" }
@@ -96,7 +100,7 @@ Adicione os provedores TokenLab em `models.providers`:
       "tokenlab-gemini": {
         api: "google-generative-ai",
         baseUrl: "https://api.tokenlab.sh",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "gemini-3.5-flash", name: "Gemini 3.5 Flash" },
           { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" }
@@ -105,7 +109,7 @@ Adicione os provedores TokenLab em `models.providers`:
       "tokenlab-minimax": {
         api: "anthropic-messages",
         baseUrl: "https://api.tokenlab.sh",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "minimax-m3", name: "MiniMax M3" }
         ]
@@ -143,9 +147,9 @@ O OpenClaw continua referenciando modelos no formato `provider/model`:
 
 | Provedor | Referência do modelo | Descrição |
 |----------|----------------------|----------|
-| `tokenlab` | `tokenlab/gpt-4o` | Rota compatível com OpenAI |
-| `tokenlab-responses` | `tokenlab-responses/gpt-4o` | Rota Responses API |
-| `tokenlab-claude` | `tokenlab-claude/claude-sonnet-4-6` | Rota nativa Claude Messages |
+| `tokenlab` | `tokenlab/gpt-5.6-terra` | Rota compatível com OpenAI |
+| `tokenlab-responses` | `tokenlab-responses/gpt-5.6-terra` | Rota Responses API |
+| `tokenlab-claude` | `tokenlab-claude/claude-sonnet-5` | Rota nativa Claude Messages |
 | `tokenlab-gemini` | `tokenlab-gemini/gemini-3.5-flash` | Rota nativa Gemini |
 | `tokenlab-minimax` | `tokenlab-minimax/minimax-m3` | Rota nativa MiniMax |
 
@@ -180,12 +184,11 @@ Se você não precisa do comportamento nativo do Gemini, ainda pode chamar model
 
 ## Verificar a configuração
 
-Após salvar a configuração, reinicie sua instância OpenClaw e teste com uma mensagem simples. Se você receber uma resposta, o provedor está configurado corretamente.
+Reinicie a mesma instância e confira modelo e provedor. `models status` sem `--probe` não testa chamada de modelo. Sondas reais e mensagens podem consumir tokens. Compare resposta e registro TokenLab. Para restaurar, selecione o modelo anterior e remova somente entradas adicionadas.
 
 ```bash
-# Auto-hospedado: reinicie o serviço
-systemctl --user restart openclaw    # Linux
-launchctl stop cc.tokenlab.openclaw && launchctl start cc.tokenlab.openclaw  # macOS
+openclaw gateway restart
+openclaw models status
 ```
 
 ## Próximos passos

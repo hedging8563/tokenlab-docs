@@ -13,9 +13,7 @@ La compactación remota de Codex CLI es compatible en `POST /v1/responses/compac
 
 ## Requisitos del sistema
 
-- **OS**: macOS, Linux (soporte oficial), Windows vía WSL
-- **Node.js**: Versión 18+
-- **npm**: Versión 10.x.x o superior
+Sigue la [guía CLI oficial](https://learn.chatgpt.com/docs/codex/cli) para macOS, Linux o Windows. Windows nativo y WSL son entornos distintos; consulta la [guía Windows](https://learn.chatgpt.com/docs/windows/windows-sandbox). npm es una opción, no un requisito de los binarios nativos.
 
 ## Instalación
 
@@ -36,7 +34,7 @@ codex --version
 **Temporal (sesión actual):**
 
 ```bash
-export OPENAI_API_KEY="sk-your-tokenlab-key"
+export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 ```
 
 **Configuración permanente:**
@@ -44,7 +42,7 @@ export OPENAI_API_KEY="sk-your-tokenlab-key"
 Añade a `~/.bashrc`, `~/.zshrc`, o `~/.bash_profile`:
 
 ```bash
-export OPENAI_API_KEY="sk-your-tokenlab-key"
+export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 ```
 
 Luego recarga:
@@ -55,42 +53,33 @@ source ~/.zshrc  # or source ~/.bashrc
 
 ### Paso 2: Configurar config.toml
 
-Edita `~/.codex/config.toml`:
+Integra estos ajustes en tu archivo de usuario `~/.codex/config.toml`; no reemplaces todo el archivo. Conserva los demás proveedores, cuentas, ajustes de sandbox y reglas de aprobación. La configuración del proveedor y la autenticación debe estar en la configuración de usuario, no en el archivo `.codex/config.toml` de un proyecto. Consulta la [guía oficial de configuración](https://learn.chatgpt.com/docs/config-file/config-advanced#custom-model-providers).
+
+Para conservar el proveedor predeterminado, desde Codex 0.134.0 guarda el ejemplo en `~/.codex/tokenlab.config.toml` e inicia `codex --profile tokenlab`. Usa el directorio real si personalizaste `CODEX_HOME`. No crees la antigua tabla `[profiles.tokenlab]`, sobrescribas `auth.json`, cierres sesión ni cambies permisos. Inicia sin este perfil para restaurar.
+
+En cada grupo de comandos de abajo, elige **Perfil TokenLab** para `tokenlab.config.toml`. Usa **TokenLab predeterminado** solo después de integrar los ajustes en `config.toml`. El comando `codex` sin opciones usa la configuración predeterminada; no recuerda el perfil elegido en una sesión anterior.
 
 ```toml
 model_provider = "tokenlab"
 model = "gpt-5.6-sol"
 model_reasoning_effort = "xhigh"
-plan_mode_reasoning_effort = "xhigh"
-model_context_window = 258000
-model_auto_compact_token_limit = 232200
-sandbox_mode = "danger-full-access"
-approval_policy = "never"
-
-personality = "friendly"
-service_tier = "fast"
 
 [model_providers.tokenlab]
-env_key = "OPENAI_API_KEY"
+env_key = "TOKENLAB_API_KEY"
 name = "TokenLab"
 base_url = "https://api.tokenlab.sh/v1"
 wire_api = "responses"
 supports_websockets = true
 websocket_connect_timeout_ms = 15000
-
-[features]
-fast_mode = true
 ```
 
 Este modo WebSocket es un puente Responses-over-WebSocket para clientes Codex. Solo acepta eventos oficiales `response.create`; `stream` es implícito y `background` y `response.cancel` no están disponibles en este transporte. No es la API OpenAI Realtime y no acepta `session.update`, `conversation.item.*`, `input_audio_buffer.*`, audio binario ni sobres Realtime anidados `response.create.response`.
 
 <Note>
-Si el archivo de configuración no existe, ejecuta `codex` una vez para generarlo y luego edita el archivo. Reinicia Codex completamente después de cambiar `config.toml` para que se recarguen los nuevos ajustes del proveedor.
+Crea el archivo de configuración elegido si no existe. Tras editarlo, inicia una nueva sesión con el comando correspondiente de abajo.
 </Note>
 
-<Warning>
-Codex está desaprobando el soporte de `chat/completions` para proveedores personalizados. Mantén `wire_api = "responses"` para TokenLab a menos que estés utilizando intencionalmente una ruta de compatibilidad más antigua.
-</Warning>
+Codex actual usa `wire_api = "responses"`, no `chat/completions`. Omite `requires_openai_auth` o usa false para que el proveedor utilice `env_key`.
 
 <Note>
 TokenLab reenvía los campos Responses desconocidos con el mejor esfuerzo sin degradar silenciosamente la solicitud a Chat Completions. El upstream seleccionado decide si admite el campo o la combinación.
@@ -100,21 +89,39 @@ TokenLab reenvía los campos Responses desconocidos con el mejor esfuerzo sin de
 
 **Iniciar modo interactivo:**
 
-```bash
+<CodeGroup>
+```bash Perfil TokenLab
+codex --profile tokenlab
+```
+
+```bash TokenLab predeterminado
 codex
 ```
+</CodeGroup>
 
 **Comando directo:**
 
-```bash
+<CodeGroup>
+```bash Perfil TokenLab
+codex --profile tokenlab "Fix the bug in main.py line 42"
+```
+
+```bash TokenLab predeterminado
 codex "Fix the bug in main.py line 42"
 ```
+</CodeGroup>
 
 **Especificar modelo:**
 
-```bash
+<CodeGroup>
+```bash Perfil TokenLab
+codex --profile tokenlab -m gpt-5.6-sol "Build a REST API server"
+```
+
+```bash TokenLab predeterminado
 codex -m gpt-5.6-sol "Build a REST API server"
 ```
+</CodeGroup>
 
 ## Modelos recomendados
 
@@ -131,48 +138,84 @@ codex -m gpt-5.6-sol "Build a REST API server"
 | `/help` | Mostrar ayuda |
 | `/exit` or `Ctrl+C` | Salir |
 | `/clear` | Borrar conversación |
-| `/config` | Ver configuración |
+| `/status` | Mostrar el modelo activo, los permisos y el uso de tokens |
 | `/model <name>` | Cambiar modelo |
-| `/tokens` | Ver uso de tokens |
 
 ## Verificar configuración
 
+Comprueba solo si la variable de entorno está definida, sin imprimir su valor. Esta comprobación no valida la clave:
+
 ```bash
-# Check environment variable
-echo $OPENAI_API_KEY
-
-# Test API connection
-codex "Hello, Codex!"
-
-# View configuration
-cat ~/.codex/config.toml
+if [ -n "${TOKENLAB_API_KEY:-}" ]; then
+  printf '%s\n' 'TOKENLAB_API_KEY is set'
+else
+  printf '%s\n' 'TOKENLAB_API_KEY is not set'
+fi
 ```
+
+Inicia Codex y ejecuta `/status` para comprobar el modelo activo y los permisos. Si usas un perfil, inicia ese mismo perfil. Consulta el [comando oficial de estado](https://learn.chatgpt.com/docs/developer-commands?surface=cli#inspect-the-session-with-status).
+
+Cuando quieras enviar una solicitud real, ejecuta el siguiente comando. Utiliza tu saldo de TokenLab. Comprueba la respuesta y su registro en [Solicitudes](https://tokenlab.sh/dashboard/runs?section=requests). Una variable definida o un inicio correcto no demuestra por sí solo que una solicitud haya finalizado correctamente.
+
+<CodeGroup>
+```bash Perfil TokenLab
+codex --profile tokenlab "Reply only with OK. Do not use tools or modify files."
+```
+
+```bash TokenLab predeterminado
+codex "Reply only with OK. Do not use tools or modify files."
+```
+</CodeGroup>
 
 ## Casos de uso comunes
 
 **Revisión de código:**
 
-```bash
+<CodeGroup>
+```bash Perfil TokenLab
+git diff | codex --profile tokenlab "Review these code changes"
+```
+
+```bash TokenLab predeterminado
 git diff | codex "Review these code changes"
 ```
+</CodeGroup>
 
 **Generar mensajes de commit:**
 
-```bash
+<CodeGroup>
+```bash Perfil TokenLab
+git diff --staged | codex --profile tokenlab "Generate a commit message for these changes"
+```
+
+```bash TokenLab predeterminado
 git diff --staged | codex "Generate a commit message for these changes"
 ```
+</CodeGroup>
 
 **Corregir errores:**
 
-```bash
+<CodeGroup>
+```bash Perfil TokenLab
+codex --profile tokenlab "Fix the TypeScript errors in src/components/"
+```
+
+```bash TokenLab predeterminado
 codex "Fix the TypeScript errors in src/components/"
 ```
+</CodeGroup>
 
 **Explicar código:**
 
-```bash
+<CodeGroup>
+```bash Perfil TokenLab
+cat main.py | codex --profile tokenlab "Explain what this code does"
+```
+
+```bash TokenLab predeterminado
 cat main.py | codex "Explain what this code does"
 ```
+</CodeGroup>
 
 ## Solución de problemas
 
@@ -184,8 +227,8 @@ cat main.py | codex "Explain what this code does"
   </Accordion>
 
   <Accordion title="Autenticación fallida">
-    - Verifica que `env_key = "OPENAI_API_KEY"` esté presente en `~/.codex/config.toml`
-    - Verifica que la variable de entorno `OPENAI_API_KEY` esté configurada
+    - Verifica que `env_key = "TOKENLAB_API_KEY"` esté presente en `~/.codex/tokenlab.config.toml` / `~/.codex/config.toml`
+    - Verifica que la variable de entorno `TOKENLAB_API_KEY` esté configurada
     - Comprueba que la clave comience con `sk-`
     - Asegúrate de que la clave esté activa en el panel de TokenLab
   </Accordion>

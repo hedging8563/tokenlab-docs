@@ -94,6 +94,8 @@ TokenLab provides access to OpenAI models. Total: **49 models** available.
 
 ## Usage
 
+This example uses one model's declared request format. Other models on this page may accept different formats.
+
 ```python
 from openai import OpenAI
 
@@ -107,6 +109,8 @@ response = client.chat.completions.create(
     messages=[{"role": "user", "content": "Hello!"}]
 )
 ```
+
+Check the [model details](/api-reference/models/get-model) for `gpt-4.1` with `GET /v1/models/gpt-4.1` and your API key.
 
 <Note>
 The table shows current public pricing as input/output rates, a unit price, or a price range. See your dashboard for complete option-specific pricing.

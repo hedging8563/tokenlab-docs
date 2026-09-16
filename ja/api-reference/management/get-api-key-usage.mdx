@@ -2,6 +2,8 @@
 title: "API Key の使用量を取得"
 openapi: "GET /v1/management/api-keys/{keyId}/usage"
 description: "ユーザー API Key ごとの使用量明細をページネーション付きで返します。"
+# Synced from canonical OpenAPI x-mint.metadata.playground.
+playground: simple
 ---
 
 ## 概要
@@ -42,7 +44,7 @@ curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page
 
 ## リクエスト / レスポンス
 
-正確な schema とレスポンス項目は、上部のインタラクティブな OpenAPI パネルを参照してください。
+このページでは OpenAPI スキーマとコピー可能なリクエスト例を提供します。管理リクエストは、Management Token を使ってターミナルまたはクライアントから送信してください。このページから直接送信することはできません。
 
 ## レスポンス例
 

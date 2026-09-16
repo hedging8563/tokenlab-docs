@@ -13,8 +13,10 @@ Standart OpenClaw agent çalıştırma için TokenLab sağlayıcı eklentisini y
 
 ```bash
 openclaw plugins install @tokenlabai/openclaw-provider
-openclaw onboard --tokenlab-api-key "$TOKENLAB_API_KEY"
+openclaw onboard
 ```
+
+Kurulumdan sonra `openclaw onboard` çalıştırıp TokenLab seçin ve anahtarı yalnızca yerel iletişim kutusuna girin. Eklenti yüklenmezse aşağıdaki elle ayarları kullanıp sürüm uyumluluğunu kontrol edin.
 
 Eklenti, TokenLab'ın canlı sohbet modeli kataloğunu getirir ve çevrimdışı keşif için 18 yedek model tutar. Modeller `tokenlab/<model-id>` biçimini kullanır.
 
@@ -43,7 +45,7 @@ Sadece `openai-completions` ve `openai-responses` için `/v1` son ekini kullanı
 ## Önkoşullar
 
 - Bir self-hosted OpenClaw örneği
-- Bir TokenLab API Key — [Get one here](https://tokenlab.sh/dashboard)
+- Bir TokenLab API Key — [Get one here](https://tokenlab.sh/dashboard/api?tab=keys)
 
 ## Yapılandırma
 
@@ -53,12 +55,14 @@ OpenClaw yapılandırmanızı düzenleyin:
 
 TokenLab sağlayıcılarını `models.providers` altında ekleyin:
 
+Çalışan Gateway ile aynı profil, `OPENCLAW_STATE_DIR` ve `OPENCLAW_CONFIG_PATH` değerlerini kullanıp ayarları yedekleyin. `TOKENLAB_API_KEY` değerini bu örneğin güvenilir genel `.env` dosyasına veya hizmet ortamına koyun. Terminal export veya proje `.env` dosyası arka plana ulaşmayabilir. [Ortam açıklamasına](https://docs.openclaw.ai/help/environment) bakın.
+
 ```json5
 {
   agents: {
     defaults: {
       model: {
-        primary: "tokenlab-claude/claude-sonnet-4-6"
+        primary: "tokenlab-claude/claude-sonnet-5"
       }
     }
   },
@@ -68,7 +72,7 @@ TokenLab sağlayıcılarını `models.providers` altında ekleyin:
       tokenlab: {
         api: "openai-completions",
         baseUrl: "https://api.tokenlab.sh/v1",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "gpt-5.6-terra", name: "GPT-5.6 Terra" },
           { id: "deepseek-reasoner", name: "DeepSeek Reasoner" },
@@ -78,7 +82,7 @@ TokenLab sağlayıcılarını `models.providers` altında ekleyin:
       "tokenlab-responses": {
         api: "openai-responses",
         baseUrl: "https://api.tokenlab.sh/v1",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "gpt-5.6-terra", name: "GPT-5.6 Terra (Responses)" },
           { id: "gpt-5.2", name: "GPT-5.2 (Responses)" }
@@ -87,7 +91,7 @@ TokenLab sağlayıcılarını `models.providers` altında ekleyin:
       "tokenlab-claude": {
         api: "anthropic-messages",
         baseUrl: "https://api.tokenlab.sh",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "claude-sonnet-5", name: "Claude Sonnet 5" },
           { id: "claude-opus-5", name: "Claude Opus 5" }
@@ -96,7 +100,7 @@ TokenLab sağlayıcılarını `models.providers` altında ekleyin:
       "tokenlab-gemini": {
         api: "google-generative-ai",
         baseUrl: "https://api.tokenlab.sh",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "gemini-3.5-flash", name: "Gemini 3.5 Flash" },
           { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" }
@@ -105,7 +109,7 @@ TokenLab sağlayıcılarını `models.providers` altında ekleyin:
       "tokenlab-minimax": {
         api: "anthropic-messages",
         baseUrl: "https://api.tokenlab.sh",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "minimax-m3", name: "MiniMax M3" }
         ]
@@ -143,9 +147,9 @@ OpenClaw hâlâ modelleri `provider/model` formatıyla referans gösterir:
 
 | Sağlayıcı | Model referansı | Açıklama |
 |----------|-----------------|-------------|
-| `tokenlab` | `tokenlab/gpt-4o` | OpenAI-uyumlu rota |
-| `tokenlab-responses` | `tokenlab-responses/gpt-4o` | Responses API rotası |
-| `tokenlab-claude` | `tokenlab-claude/claude-sonnet-4-6` | Claude Messages için yerel rota |
+| `tokenlab` | `tokenlab/gpt-5.6-terra` | OpenAI-uyumlu rota |
+| `tokenlab-responses` | `tokenlab-responses/gpt-5.6-terra` | Responses API rotası |
+| `tokenlab-claude` | `tokenlab-claude/claude-sonnet-5` | Claude Messages için yerel rota |
 | `tokenlab-gemini` | `tokenlab-gemini/gemini-3.5-flash` | Gemini için yerel rota |
 | `tokenlab-minimax` | `tokenlab-minimax/minimax-m3` | MiniMax için yerel rota |
 
@@ -180,12 +184,11 @@ Gemini'ye özgü davranışa ihtiyacınız yoksa, Gemini modellerini yine de Ope
 
 ## Kurulumu Doğrulama
 
-Yapılandırmayı kaydettikten sonra OpenClaw örneğinizi yeniden başlatın ve basit bir mesajla test edin. Bir yanıt görüyorsanız, sağlayıcı doğru şekilde yapılandırılmış demektir.
+Aynı örneği yeniden başlatıp model ve sağlayıcıyı kontrol edin. `--probe` olmadan `models status` model çağrısı testi değildir. Canlı denemeler ve mesajlar token tüketebilir. Yanıtı TokenLab kaydıyla karşılaştırın. Geri almak için eski modeli seçip yalnızca eklenen girdileri kaldırın.
 
 ```bash
-# Kendi barındırılan: servisi yeniden başlat
-systemctl --user restart openclaw    # Linux
-launchctl stop cc.tokenlab.openclaw && launchctl start cc.tokenlab.openclaw  # macOS
+openclaw gateway restart
+openclaw models status
 ```
 
 ## Sonraki Adımlar

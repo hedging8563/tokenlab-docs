@@ -3,6 +3,20 @@ title: "Codex CLI"
 description: "配置 OpenAI Codex CLI 以使用 TokenLab API"
 ---
 
+## 交给我的 Agent 做
+
+把这段任务交给电脑上已经可用的 Agent：
+
+```text
+阅读此教程，帮我将 Codex CLI 接入 TokenLab：
+https://docs.tokenlab.sh/zh/integrations/codex-cli
+先检查已安装版本和实际配置。
+保留已有账户、提供商、权限及无关设置。
+备份本机文件并展示修改内容。
+让我在本机输入所需 API Key，不要在聊天里索取、打印或粘贴密钥。
+先验证配置能否加载；真实请求测试的费用须单独说明后再运行。
+```
+
 ## 概述
 
 
@@ -14,9 +28,7 @@ Codex CLI 可以通过 `/v1/responses` 连接 TokenLab。所选模型的 `accept
 
 ## 系统要求
 
-- **OS**：macOS、Linux（官方支持）、Windows 通过 WSL
-- **Node.js**：版本 18+
-- **npm**：版本 10.x.x 或更高
+macOS、Linux 或 Windows 请按[官方 CLI 安装指南](https://learn.chatgpt.com/docs/codex/cli)选择安装方式。原生 Windows 与 WSL 是不同环境，参见 [Windows 指南](https://learn.chatgpt.com/docs/windows/windows-sandbox)。下方 npm 命令是一种安装方式，不是原生二进制的前置要求。
 
 ## 安装
 
@@ -37,7 +49,7 @@ codex --version
 **临时（当前会话）：**
 
 ```bash
-export OPENAI_API_KEY="sk-your-tokenlab-key"
+export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 ```
 
 **永久配置：**
@@ -45,7 +57,7 @@ export OPENAI_API_KEY="sk-your-tokenlab-key"
 添加到 `~/.bashrc`、`~/.zshrc` 或 `~/.bash_profile`：
 
 ```bash
-export OPENAI_API_KEY="sk-your-tokenlab-key"
+export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 ```
 
 然后重新加载：
@@ -56,42 +68,33 @@ source ~/.zshrc  # or source ~/.bashrc
 
 ### 第 2 步：配置 config.toml
 
-编辑 `~/.codex/config.toml`：
+将这些设置合并到用户级 `~/.codex/config.toml`，不要覆盖整个文件。保留其他 provider、账号、沙箱设置和审批规则。Provider 与认证设置应放在用户配置中，不要放进项目的 `.codex/config.toml`。参见[官方配置说明](https://learn.chatgpt.com/docs/config-file/config-advanced#custom-model-providers)。
+
+如需保留当前默认提供商，在 Codex 0.134.0 及以后版本中将下方配置保存为 `~/.codex/tokenlab.config.toml`，使用 `codex --profile tokenlab` 启动。自定义过 `CODEX_HOME` 时使用实际目录。不要创建旧版 `[profiles.tokenlab]` 表、覆盖 `auth.json`、退出已有账户或更改审批设置。恢复时不带此 profile 启动。
+
+下面每组命令按实际配置位置二选一：保存为 `tokenlab.config.toml` 时选 **TokenLab profile**；只有已将设置合并到 `config.toml` 时才选 **TokenLab 默认配置**。单独运行 `codex` 使用默认配置，不会继承上一会话选过的 profile。
 
 ```toml
 model_provider = "tokenlab"
 model = "gpt-5.6-sol"
 model_reasoning_effort = "xhigh"
-plan_mode_reasoning_effort = "xhigh"
-model_context_window = 258000
-model_auto_compact_token_limit = 232200
-sandbox_mode = "danger-full-access"
-approval_policy = "never"
-
-personality = "friendly"
-service_tier = "fast"
 
 [model_providers.tokenlab]
-env_key = "OPENAI_API_KEY"
+env_key = "TOKENLAB_API_KEY"
 name = "TokenLab"
 base_url = "https://api.tokenlab.sh/v1"
 wire_api = "responses"
 supports_websockets = true
 websocket_connect_timeout_ms = 15000
-
-[features]
-fast_mode = true
 ```
 
 此 WebSocket 模式是面向 Codex 客户端的 Responses-over-WebSocket 桥接层。它只接受官方 `response.create` 事件；`stream` 是隐含行为，该 transport 不提供 `background` 或 `response.cancel`。它不是 OpenAI Realtime API，也不接受 `session.update`、`conversation.item.*`、`input_audio_buffer.*`、二进制音频或嵌套的 Realtime `response.create.response` 信封。
 
 <Note>
-如果配置文件不存在，请运行 `codex` 一次以生成该文件，然后编辑该文件。在更改 `config.toml` 后需完全重启 Codex，以便重新加载新的提供者设置。
+如果所选配置文件不存在，请创建该文件。修改后，使用下方对应命令启动新会话。
 </Note>
 
-<Warning>
-Codex 正在弃用对自定义提供者的 `chat/completions` 支持。对于 TokenLab，请保持 `wire_api = "responses"`，除非你有意使用较旧的兼容路径。
-</Warning>
+当前 Codex 使用 `wire_api = "responses"`，不要配置 `chat/completions`。此自定义提供商的 `requires_openai_auth` 应省略或为 false，以便使用 `env_key`。
 
 <Note>
 未知的 Responses 字段可能会继续发送给模型服务，但不保证受支持。TokenLab 不会把 Responses 请求自动改成 Chat Completions。
@@ -101,21 +104,39 @@ Codex 正在弃用对自定义提供者的 `chat/completions` 支持。对于 To
 
 **启动交互模式：**
 
-```bash
+<CodeGroup>
+```bash TokenLab profile
+codex --profile tokenlab
+```
+
+```bash TokenLab 默认配置
 codex
 ```
+</CodeGroup>
 
 **直接命令：**
 
-```bash
+<CodeGroup>
+```bash TokenLab profile
+codex --profile tokenlab "Fix the bug in main.py line 42"
+```
+
+```bash TokenLab 默认配置
 codex "Fix the bug in main.py line 42"
 ```
+</CodeGroup>
 
 **指定模型：**
 
-```bash
+<CodeGroup>
+```bash TokenLab profile
+codex --profile tokenlab -m gpt-5.6-sol "Build a REST API server"
+```
+
+```bash TokenLab 默认配置
 codex -m gpt-5.6-sol "Build a REST API server"
 ```
+</CodeGroup>
 
 ## 选择模型
 
@@ -128,48 +149,84 @@ codex -m gpt-5.6-sol "Build a REST API server"
 | `/help` | 显示帮助 |
 | `/exit` 或 `Ctrl+C` | 退出 |
 | `/clear` | 清除会话 |
-| `/config` | 查看配置 |
+| `/status` | 查看当前模型、权限和 token 用量 |
 | `/model <name>` | 切换模型 |
-| `/tokens` | 查看 token 使用情况 |
 
 ## 验证配置
 
+只检查环境变量是否已设置，不输出其值。这个检查不能判断密钥是否有效：
+
 ```bash
-# Check environment variable
-echo $OPENAI_API_KEY
-
-# Test API connection
-codex "Hello, Codex!"
-
-# View configuration
-cat ~/.codex/config.toml
+if [ -n "${TOKENLAB_API_KEY:-}" ]; then
+  printf '%s\n' 'TOKENLAB_API_KEY is set'
+else
+  printf '%s\n' 'TOKENLAB_API_KEY is not set'
+fi
 ```
+
+启动 Codex 后运行 `/status`，核对当前模型和权限。如果使用 profile，请启动同一个 profile。参见[官方状态命令说明](https://learn.chatgpt.com/docs/developer-commands?surface=cli#inspect-the-session-with-status)。
+
+准备好发起真实请求后，再运行下面的命令；它会使用 TokenLab 余额。核对回答和[请求记录](https://tokenlab.sh/dashboard/runs?section=requests)中的对应记录。环境检查通过或客户端成功启动，都不等于请求已经成功。
+
+<CodeGroup>
+```bash TokenLab profile
+codex --profile tokenlab "Reply only with OK. Do not use tools or modify files."
+```
+
+```bash TokenLab 默认配置
+codex "Reply only with OK. Do not use tools or modify files."
+```
+</CodeGroup>
 
 ## 常见用例
 
 **代码审查：**
 
-```bash
+<CodeGroup>
+```bash TokenLab profile
+git diff | codex --profile tokenlab "Review these code changes"
+```
+
+```bash TokenLab 默认配置
 git diff | codex "Review these code changes"
 ```
+</CodeGroup>
 
 **生成提交信息：**
 
-```bash
+<CodeGroup>
+```bash TokenLab profile
+git diff --staged | codex --profile tokenlab "Generate a commit message for these changes"
+```
+
+```bash TokenLab 默认配置
 git diff --staged | codex "Generate a commit message for these changes"
 ```
+</CodeGroup>
 
 **修复错误：**
 
-```bash
+<CodeGroup>
+```bash TokenLab profile
+codex --profile tokenlab "Fix the TypeScript errors in src/components/"
+```
+
+```bash TokenLab 默认配置
 codex "Fix the TypeScript errors in src/components/"
 ```
+</CodeGroup>
 
 **解释代码：**
 
-```bash
+<CodeGroup>
+```bash TokenLab profile
+cat main.py | codex --profile tokenlab "Explain what this code does"
+```
+
+```bash TokenLab 默认配置
 cat main.py | codex "Explain what this code does"
 ```
+</CodeGroup>
 
 ## 故障排除
 
@@ -181,8 +238,8 @@ cat main.py | codex "Explain what this code does"
   </Accordion>
 
   <Accordion title="身份验证失败">
-    - 验证 `env_key = "OPENAI_API_KEY"` 是否存在于 `~/.codex/config.toml`
-    - 验证已设置 `OPENAI_API_KEY` 环境变量
+    - 验证 `env_key = "TOKENLAB_API_KEY"` 是否存在于 `~/.codex/tokenlab.config.toml` / `~/.codex/config.toml`
+    - 验证已设置 `TOKENLAB_API_KEY` 环境变量
     - 检查密钥是否以 `sk-` 开头
     - 确保密钥在 TokenLab Console中处于激活状态
   </Accordion>

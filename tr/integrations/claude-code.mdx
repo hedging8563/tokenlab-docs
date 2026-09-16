@@ -15,15 +15,21 @@ description: "TokenLab'yı Anthropic'in Claude Code CLI aracıyla kullanın"
 **Destek seviyesi**: Güçlü native path
 </Note>
 
-[Claude Code](https://docs.anthropic.com/en/docs/claude-code), AI destekli kodlama için Anthropic'in resmi CLI aracıdır. API sağlayıcısı olarak TokenLab'yı kullanacak şekilde yapılandırabilirsiniz.
+[Claude Code](https://code.claude.com/docs/en/setup), AI destekli kodlama için Anthropic'in resmi CLI aracıdır. API sağlayıcısı olarak TokenLab'yı kullanacak şekilde yapılandırabilirsiniz.
 
 ## Kurulum
 
 Anthropic artık yerel yükleyiciyi önermektedir. npm kurulumu uyumluluk için hâlâ mevcuttur, ancak upstream tarafta kullanımdan kaldırılmıştır.
 
-```bash
+<CodeGroup>
+```bash macOS / Linux / WSL
 curl -fsSL https://claude.ai/install.sh | bash
 ```
+
+```powershell Windows
+irm https://claude.ai/install.ps1 | iex
+```
+</CodeGroup>
 
 Özellikle npm paketine ihtiyacınız varsa, şunu kullanın:
 
@@ -56,6 +62,8 @@ TokenLab için `ANTHROPIC_BASE_URL` değerini `/v1` son eki olmadan `https://api
 
 Alternatif olarak, `~/.claude/settings.json` dosyasını oluşturun veya düzenleyin:
 
+Hesapları veya izinleri değiştirmeden ayarları yedekleyip birleştirin. `ANTHROPIC_API_KEY`, `X-Api-Key`; `ANTHROPIC_AUTH_TOKEN` ise Bearer token gönderir. Bir kimlik doğrulama yolu seçin. `/status` model ve ayar kaynağını gösterir, ücretli istek başarısını kanıtlamaz. Kısa testten sonra yanıtı TokenLab kaydıyla karşılaştırın. Geri almak için yalnızca eklediklerinizi kaldırın. [Öncelik sırasına](https://code.claude.com/docs/en/settings) bakın.
+
 ```json
 {
   "env": {
@@ -76,8 +84,6 @@ claude
 # Run a single command
 claude "Explain this code" < main.py
 
-# Chat mode
-claude chat
 ```
 
 Gerekirse kurulumu doğrulayın:

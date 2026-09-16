@@ -23,9 +23,7 @@ Kompaksi jarak jauh Codex CLI didukung di `POST /v1/responses/compact`. Codex me
 
 ## Persyaratan Sistem
 
-- **OS**: macOS, Linux (dukungan resmi), Windows melalui WSL
-- **Node.js**: Versi 18+
-- **npm**: Versi 10.x.x atau lebih tinggi
+Ikuti [panduan CLI resmi](https://learn.chatgpt.com/docs/codex/cli) untuk macOS, Linux, atau Windows. Windows native dan WSL adalah lingkungan terpisah; lihat [panduan Windows](https://learn.chatgpt.com/docs/windows/windows-sandbox). npm adalah pilihan instalasi, bukan syarat biner native.
 
 ## Instalasi
 
@@ -46,7 +44,7 @@ codex --version
 **Sementara (sesi saat ini):**
 
 ```bash
-export OPENAI_API_KEY="sk-your-tokenlab-key"
+export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 ```
 
 **Konfigurasi permanen:**
@@ -54,7 +52,7 @@ export OPENAI_API_KEY="sk-your-tokenlab-key"
 Tambahkan ke `~/.bashrc`, `~/.zshrc`, atau `~/.bash_profile`:
 
 ```bash
-export OPENAI_API_KEY="sk-your-tokenlab-key"
+export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 ```
 
 Kemudian muat ulang:
@@ -65,42 +63,33 @@ source ~/.zshrc  # or source ~/.bashrc
 
 ### Langkah 2: Konfigurasi config.toml
 
-Edit `~/.codex/config.toml`:
+Gabungkan pengaturan ini ke `~/.codex/config.toml` tingkat pengguna; jangan mengganti seluruh file. Pertahankan penyedia, akun, pengaturan sandbox, dan aturan persetujuan lainnya. Pengaturan penyedia dan autentikasi harus berada dalam konfigurasi pengguna, bukan `.codex/config.toml` milik proyek. Lihat [panduan konfigurasi resmi](https://learn.chatgpt.com/docs/config-file/config-advanced#custom-model-providers).
+
+Untuk mempertahankan penyedia default, pada Codex 0.134.0 ke atas simpan contoh di `~/.codex/tokenlab.config.toml`, lalu jalankan `codex --profile tokenlab`. Gunakan direktori sebenarnya jika `CODEX_HOME` diubah. Jangan buat tabel `[profiles.tokenlab]` lama, timpa `auth.json`, keluar akun, atau ubah izin. Jalankan tanpa profil ini untuk memulihkan.
+
+Pada setiap grup perintah di bawah, pilih **Profil TokenLab** untuk `tokenlab.config.toml`. Gunakan **TokenLab default** hanya setelah menggabungkan pengaturan ke `config.toml`. Perintah `codex` tanpa opsi memakai konfigurasi default dan tidak mengingat profil yang dipilih pada sesi sebelumnya.
 
 ```toml
 model_provider = "tokenlab"
 model = "gpt-5.6-sol"
 model_reasoning_effort = "xhigh"
-plan_mode_reasoning_effort = "xhigh"
-model_context_window = 258000
-model_auto_compact_token_limit = 232200
-sandbox_mode = "danger-full-access"
-approval_policy = "never"
-
-personality = "friendly"
-service_tier = "fast"
 
 [model_providers.tokenlab]
-env_key = "OPENAI_API_KEY"
+env_key = "TOKENLAB_API_KEY"
 name = "TokenLab"
 base_url = "https://api.tokenlab.sh/v1"
 wire_api = "responses"
 supports_websockets = true
 websocket_connect_timeout_ms = 15000
-
-[features]
-fast_mode = true
 ```
 
 Mode WebSocket ini adalah bridge Responses-over-WebSocket untuk klien Codex. Mode ini hanya menerima event resmi `response.create`; `stream` bersifat implisit, sedangkan `background` dan `response.cancel` tidak tersedia pada transport ini. Ini bukan OpenAI Realtime API dan tidak menerima `session.update`, `conversation.item.*`, `input_audio_buffer.*`, audio biner, atau envelope Realtime bertingkat `response.create.response`.
 
 <Note>
-Jika file konfigurasi tidak ada, jalankan `codex` sekali untuk menghasilkannya, lalu edit file tersebut. Restart Codex sepenuhnya setelah mengubah `config.toml` agar pengaturan provider baru dimuat ulang.
+Buat file konfigurasi yang dipilih jika belum ada. Setelah mengeditnya, mulai sesi baru dengan perintah yang sesuai di bawah.
 </Note>
 
-<Warning>
-Codex sedang menghentikan dukungan `chat/completions` untuk custom providers. Pertahankan `wire_api = "responses"` untuk TokenLab kecuali Anda sengaja menggunakan jalur kompatibilitas yang lebih lama.
-</Warning>
+Codex saat ini memakai `wire_api = "responses"`, bukan `chat/completions`. Hilangkan `requires_openai_auth` atau isi false agar penyedia memakai `env_key`.
 
 <Note>
 TokenLab meneruskan field Responses yang tidak dikenal secara best-effort tanpa diam-diam menurunkan request ke Chat Completions. Upstream yang dipilih menentukan apakah field atau kombinasi tersebut didukung.
@@ -110,21 +99,39 @@ TokenLab meneruskan field Responses yang tidak dikenal secara best-effort tanpa 
 
 **Mulai mode interaktif:**
 
-```bash
+<CodeGroup>
+```bash Profil TokenLab
+codex --profile tokenlab
+```
+
+```bash TokenLab default
 codex
 ```
+</CodeGroup>
 
 **Perintah langsung:**
 
-```bash
+<CodeGroup>
+```bash Profil TokenLab
+codex --profile tokenlab "Fix the bug in main.py line 42"
+```
+
+```bash TokenLab default
 codex "Fix the bug in main.py line 42"
 ```
+</CodeGroup>
 
 **Menentukan model:**
 
-```bash
+<CodeGroup>
+```bash Profil TokenLab
+codex --profile tokenlab -m gpt-5.6-sol "Build a REST API server"
+```
+
+```bash TokenLab default
 codex -m gpt-5.6-sol "Build a REST API server"
 ```
+</CodeGroup>
 
 ## Model yang Direkomendasikan
 
@@ -141,48 +148,84 @@ codex -m gpt-5.6-sol "Build a REST API server"
 | `/help` | Tampilkan bantuan |
 | `/exit` or `Ctrl+C` | Keluar |
 | `/clear` | Bersihkan percakapan |
-| `/config` | Lihat konfigurasi |
+| `/status` | Tampilkan model aktif, izin, dan penggunaan token |
 | `/model <name>` | Ganti model |
-| `/tokens` | Lihat penggunaan token |
 
 ## Verifikasi Konfigurasi
 
+Periksa hanya apakah variabel lingkungan sudah diatur tanpa mencetak nilainya. Pemeriksaan ini tidak memvalidasi key:
+
 ```bash
-# Check environment variable
-echo $OPENAI_API_KEY
-
-# Test API connection
-codex "Hello, Codex!"
-
-# View configuration
-cat ~/.codex/config.toml
+if [ -n "${TOKENLAB_API_KEY:-}" ]; then
+  printf '%s\n' 'TOKENLAB_API_KEY is set'
+else
+  printf '%s\n' 'TOKENLAB_API_KEY is not set'
+fi
 ```
+
+Jalankan Codex lalu `/status` untuk memeriksa model aktif dan izin. Jika menggunakan profil, jalankan profil yang sama. Lihat [perintah status resmi](https://learn.chatgpt.com/docs/developer-commands?surface=cli#inspect-the-session-with-status).
+
+Saat siap mengirim request nyata, jalankan perintah berikut. Perintah ini menggunakan saldo TokenLab. Periksa balasan dan catatan yang sesuai di [Request](https://tokenlab.sh/dashboard/runs?section=requests). Variabel yang sudah diatur atau aplikasi yang berhasil dimulai belum membuktikan request berhasil.
+
+<CodeGroup>
+```bash Profil TokenLab
+codex --profile tokenlab "Reply only with OK. Do not use tools or modify files."
+```
+
+```bash TokenLab default
+codex "Reply only with OK. Do not use tools or modify files."
+```
+</CodeGroup>
 
 ## Kasus Penggunaan Umum
 
 **Tinjauan kode:**
 
-```bash
+<CodeGroup>
+```bash Profil TokenLab
+git diff | codex --profile tokenlab "Review these code changes"
+```
+
+```bash TokenLab default
 git diff | codex "Review these code changes"
 ```
+</CodeGroup>
 
 **Hasilkan pesan commit:**
 
-```bash
+<CodeGroup>
+```bash Profil TokenLab
+git diff --staged | codex --profile tokenlab "Generate a commit message for these changes"
+```
+
+```bash TokenLab default
 git diff --staged | codex "Generate a commit message for these changes"
 ```
+</CodeGroup>
 
 **Perbaiki kesalahan:**
 
-```bash
+<CodeGroup>
+```bash Profil TokenLab
+codex --profile tokenlab "Fix the TypeScript errors in src/components/"
+```
+
+```bash TokenLab default
 codex "Fix the TypeScript errors in src/components/"
 ```
+</CodeGroup>
 
 **Jelaskan kode:**
 
-```bash
+<CodeGroup>
+```bash Profil TokenLab
+cat main.py | codex --profile tokenlab "Explain what this code does"
+```
+
+```bash TokenLab default
 cat main.py | codex "Explain what this code does"
 ```
+</CodeGroup>
 
 ## Pemecahan Masalah
 
@@ -194,8 +237,8 @@ cat main.py | codex "Explain what this code does"
   </Accordion>
 
   <Accordion title="Autentikasi Gagal">
-    - Periksa bahwa `env_key = "OPENAI_API_KEY"` ada di `~/.codex/config.toml`
-    - Periksa bahwa variabel lingkungan `OPENAI_API_KEY` telah diatur
+    - Periksa bahwa `env_key = "TOKENLAB_API_KEY"` ada di `~/.codex/tokenlab.config.toml` / `~/.codex/config.toml`
+    - Periksa bahwa variabel lingkungan `TOKENLAB_API_KEY` telah diatur
     - Periksa bahwa kunci dimulai dengan `sk-`
     - Pastikan kunci aktif di dashboard TokenLab
   </Accordion>

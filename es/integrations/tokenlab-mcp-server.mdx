@@ -3,6 +3,13 @@ title: "Servidor MCP de TokenLab"
 description: "Conecta Claude Code, Cursor, VS Code, Codex y otros clientes MCP con las herramientas de modelos, precios, inferencia, medios, archivos y tareas de TokenLab."
 ---
 
+## Elegir una extensión
+
+- MCP añade herramientas API de TokenLab a clientes compatibles. Empieza con `catalog` sin clave API, como se explica abajo.
+- El [Skill TokenLab](/es/integrations/coding-agent-skill) instala instrucciones mediante `npx skills add`; no inicia un servidor MCP.
+
+Ambos amplían un agente existente. Para cambiar su proveedor principal, sigue la guía de ese cliente.
+
 El [servidor MCP de TokenLab](https://github.com/hedging8563/tokenlab-mcp-server) genera herramientas MCP a partir del contrato OpenAPI público de TokenLab. Los agentes compatibles con MCP pueden descubrir modelos y precios, llamar a endpoints de LLM nativos y compatibles con OpenAI, crear medios multimodales, subir archivos y gestionar tareas asíncronas.
 
 Úsalo cuando un agente necesite el contrato actual de la API de TokenLab en lugar de una lista de herramientas mantenida manualmente. El perfil `core` predeterminado expone 29 herramientas de endpoint generadas más dos herramientas de descubrimiento compuestas. El perfil `full` expone 78 herramientas de endpoint generadas más las mismas dos herramientas compuestas.

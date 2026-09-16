@@ -13,7 +13,7 @@ description: "Thêm TokenLab làm mô hình tùy chỉnh trong WorkBuddy"
 **Mức hỗ trợ**: đường dẫn mô hình tùy chỉnh chính thức
 </Note>
 
-[WorkBuddy](https://www.workbuddy.ai/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model) cung cấp trình chỉnh sửa trực quan cho mô hình tương thích OpenAI, không cần sửa tệp mô hình cục bộ bằng tay.
+[WorkBuddy](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model) cung cấp trình chỉnh sửa trực quan cho mô hình tương thích OpenAI, không cần sửa tệp mô hình cục bộ bằng tay.
 
 ## Cấu hình TokenLab
 
@@ -30,6 +30,12 @@ Mở **Settings → Model**, thêm mô hình rồi chọn **Custom**.
 Giữ Custom Protocol ở trạng thái tắt. Chế độ chuẩn xác thực Base URL và tự thêm `/chat/completions`. Nếu bật nhưng chỉ nhập `/v1`, yêu cầu sẽ đi sai đường dẫn.
 </Warning>
 
-Trong phần nâng cao, bật gọi công cụ, đầu vào hình ảnh và chế độ suy luận. Tắt chế độ chỉ suy luận, để mức suy luận là Auto, đặt đầu vào `1048576` và đầu ra `131072`.
+Đặt công cụ, hình ảnh, suy luận và giới hạn theo chi tiết hiện tại của mô hình trên TokenLab. Không bật tất cả hoặc sao chép giới hạn 1M/128K từ mô hình khác. Dùng đúng ID hiển thị.
 
 Lưu, chọn `kimi-k3` và thử kiểm tra thư mục chỉ đọc. Che API Key và endpoint riêng trước khi chia sẻ ảnh chụp.
+
+Lưu và chọn chỉ xác nhận cấu hình cục bộ. Tác vụ văn bản hay công cụ dùng số dư TokenLab; đối chiếu phản hồi với [bản ghi](https://tokenlab.sh/dashboard/runs?section=requests). Để hoàn tác, chọn mô hình cũ và chỉ xóa mục TokenLab đã thêm.
+
+Ứng dụng chính thức có trên macOS và Windows. Dùng [trình chỉnh sửa chính thức](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model); hướng dẫn không giả định có bản Linux hay định dạng tệp có thể ghi trực tiếp.
+
+[Công cụ MCP API](/vi/integrations/tokenlab-mcp-server) và [hướng dẫn Skill](/vi/integrations/coding-agent-skill) được cài riêng, không đổi mô hình chính.

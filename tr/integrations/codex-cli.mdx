@@ -23,9 +23,7 @@ Codex CLI uzaktan sıkıştırma `POST /v1/responses/compact` üzerinde destekle
 
 ## Sistem Gereksinimleri
 
-- **OS**: macOS, Linux (resmi destek), WSL üzerinden Windows
-- **Node.js**: Sürüm 18+
-- **npm**: Sürüm 10.x.x veya daha yüksek
+macOS, Linux veya Windows için [resmî CLI kılavuzunu](https://learn.chatgpt.com/docs/codex/cli) izleyin. Yerel Windows ve WSL ayrı ortamlardır; [Windows kılavuzuna](https://learn.chatgpt.com/docs/windows/windows-sandbox) bakın. npm bir kurulum seçeneğidir, yerel ikili dosyalar için zorunlu değildir.
 
 ## Kurulum
 
@@ -46,7 +44,7 @@ codex --version
 **Geçici (mevcut oturum):**
 
 ```bash
-export OPENAI_API_KEY="sk-your-tokenlab-key"
+export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 ```
 
 **Kalıcı yapılandırma:**
@@ -54,7 +52,7 @@ export OPENAI_API_KEY="sk-your-tokenlab-key"
 Şunlara ekleyin: `~/.bashrc`, `~/.zshrc` veya `~/.bash_profile`:
 
 ```bash
-export OPENAI_API_KEY="sk-your-tokenlab-key"
+export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 ```
 
 Sonra yeniden yükleyin:
@@ -65,42 +63,33 @@ source ~/.zshrc  # or source ~/.bashrc
 
 ### Adım 2: config.toml'u Yapılandırma
 
-Edit `~/.codex/config.toml`:
+Bu ayarları kullanıcı düzeyindeki `~/.codex/config.toml` dosyanızla birleştirin; dosyanın tamamını değiştirmeyin. Diğer sağlayıcıları, hesapları, sandbox ayarlarını ve onay kurallarını koruyun. Sağlayıcı ve kimlik doğrulama ayarları projenin `.codex/config.toml` dosyasında değil, kullanıcı yapılandırmasında olmalıdır. [Resmî yapılandırma kılavuzuna](https://learn.chatgpt.com/docs/config-file/config-advanced#custom-model-providers) bakın.
+
+Varsayılan sağlayıcıyı korumak için Codex 0.134.0 ve sonrasında örneği `~/.codex/tokenlab.config.toml` olarak kaydedip `codex --profile tokenlab` çalıştırın. Özelleştirilmişse gerçek `CODEX_HOME` dizinini kullanın. Eski `[profiles.tokenlab]` tablosu oluşturmayın, `auth.json` üzerine yazmayın, oturumu kapatmayın veya izinleri değiştirmeyin. Geri almak için bu profil olmadan başlatın.
+
+Aşağıdaki her komut grubunda `tokenlab.config.toml` için **TokenLab profili** seçeneğini kullanın. **Varsayılan TokenLab** seçeneğini yalnızca ayarları `config.toml` ile birleştirdikten sonra kullanın. Tek başına `codex`, varsayılan yapılandırmayı kullanır; önceki oturumda seçilen profili hatırlamaz.
 
 ```toml
 model_provider = "tokenlab"
 model = "gpt-5.6-sol"
 model_reasoning_effort = "xhigh"
-plan_mode_reasoning_effort = "xhigh"
-model_context_window = 258000
-model_auto_compact_token_limit = 232200
-sandbox_mode = "danger-full-access"
-approval_policy = "never"
-
-personality = "friendly"
-service_tier = "fast"
 
 [model_providers.tokenlab]
-env_key = "OPENAI_API_KEY"
+env_key = "TOKENLAB_API_KEY"
 name = "TokenLab"
 base_url = "https://api.tokenlab.sh/v1"
 wire_api = "responses"
 supports_websockets = true
 websocket_connect_timeout_ms = 15000
-
-[features]
-fast_mode = true
 ```
 
 Bu WebSocket modu, Codex istemcileri için bir Responses-over-WebSocket köprüsüdür. Yalnızca resmi `response.create` olaylarını kabul eder; `stream` örtüktür ve bu transport üzerinde `background` ile `response.cancel` kullanılamaz. OpenAI Realtime API değildir ve `session.update`, `conversation.item.*`, `input_audio_buffer.*`, ikili ses veya iç içe Realtime `response.create.response` zarflarını kabul etmez.
 
 <Note>
-Eğer yapılandırma dosyası mevcut değilse, dosyayı oluşturmak için bir kez `codex` çalıştırın, ardından dosyayı düzenleyin. `config.toml` değiştirildikten sonra yeni sağlayıcı ayarlarının yeniden yüklenmesi için Codex'i tamamen yeniden başlatın.
+Seçtiğiniz yapılandırma dosyası yoksa oluşturun. Düzenledikten sonra aşağıdaki ilgili komutla yeni bir oturum başlatın.
 </Note>
 
-<Warning>
-Codex, özel sağlayıcılar için `chat/completions` desteğini kullanımdan kaldırıyor. TokenLab için `wire_api = "responses"` tutun, eğer kasıtlı olarak daha eski bir uyumluluk yolunu kullanmıyorsanız.
-</Warning>
+Güncel Codex `chat/completions` yerine `wire_api = "responses"` kullanır. Sağlayıcının `env_key` kullanması için `requires_openai_auth` ayarını yazmayın veya false yapın.
 
 <Note>
 TokenLab bilinmeyen Responses alanlarını best-effort iletir ve isteği sessizce Chat Completions’a düşürmez. Alanın veya kombinasyonun desteklenip desteklenmediğine seçilen upstream karar verir.
@@ -110,21 +99,39 @@ TokenLab bilinmeyen Responses alanlarını best-effort iletir ve isteği sessizc
 
 **Etkileşimli modu başlatın:**
 
-```bash
+<CodeGroup>
+```bash TokenLab profili
+codex --profile tokenlab
+```
+
+```bash Varsayılan TokenLab
 codex
 ```
+</CodeGroup>
 
 **Doğrudan komut:**
 
-```bash
+<CodeGroup>
+```bash TokenLab profili
+codex --profile tokenlab "Fix the bug in main.py line 42"
+```
+
+```bash Varsayılan TokenLab
 codex "Fix the bug in main.py line 42"
 ```
+</CodeGroup>
 
 **Model belirtin:**
 
-```bash
+<CodeGroup>
+```bash TokenLab profili
+codex --profile tokenlab -m gpt-5.6-sol "Build a REST API server"
+```
+
+```bash Varsayılan TokenLab
 codex -m gpt-5.6-sol "Build a REST API server"
 ```
+</CodeGroup>
 
 ## Önerilen Modeller
 
@@ -141,48 +148,84 @@ codex -m gpt-5.6-sol "Build a REST API server"
 | `/help` | Yardımı görüntüle |
 | `/exit` or `Ctrl+C` | Çıkış |
 | `/clear` | Konuşmayı temizle |
-| `/config` | Yapılandırmayı görüntüle |
+| `/status` | Etkin modeli, izinleri ve token kullanımını göster |
 | `/model <name>` | Modeli değiştir |
-| `/tokens` | Token kullanımını görüntüle |
 
 ## Yapılandırmayı Doğrulayın
 
+Değerini yazdırmadan yalnızca ortam değişkeninin ayarlanıp ayarlanmadığını kontrol edin. Bu kontrol anahtarın geçerliliğini doğrulamaz:
+
 ```bash
-# Check environment variable
-echo $OPENAI_API_KEY
-
-# Test API connection
-codex "Hello, Codex!"
-
-# View configuration
-cat ~/.codex/config.toml
+if [ -n "${TOKENLAB_API_KEY:-}" ]; then
+  printf '%s\n' 'TOKENLAB_API_KEY is set'
+else
+  printf '%s\n' 'TOKENLAB_API_KEY is not set'
+fi
 ```
+
+Codex’i başlatıp etkin modeli ve izinleri kontrol etmek için `/status` çalıştırın. Bir profil kullanıyorsanız aynı profili başlatın. [Resmî durum komutuna](https://learn.chatgpt.com/docs/developer-commands?surface=cli#inspect-the-session-with-status) bakın.
+
+Gerçek bir istek göndermeye hazır olduğunuzda aşağıdaki komutu çalıştırın. Bu işlem TokenLab bakiyenizi kullanır. Yanıtı ve [İstekler](https://tokenlab.sh/dashboard/runs?section=requests) sayfasındaki ilgili kaydı kontrol edin. Değişkenin ayarlanmış olması veya uygulamanın başlaması, isteğin başarılı olduğunu tek başına kanıtlamaz.
+
+<CodeGroup>
+```bash TokenLab profili
+codex --profile tokenlab "Reply only with OK. Do not use tools or modify files."
+```
+
+```bash Varsayılan TokenLab
+codex "Reply only with OK. Do not use tools or modify files."
+```
+</CodeGroup>
 
 ## Yaygın Kullanım Durumları
 
 **Kod incelemesi:**
 
-```bash
+<CodeGroup>
+```bash TokenLab profili
+git diff | codex --profile tokenlab "Review these code changes"
+```
+
+```bash Varsayılan TokenLab
 git diff | codex "Review these code changes"
 ```
+</CodeGroup>
 
 **Commit mesajı oluşturma:**
 
-```bash
+<CodeGroup>
+```bash TokenLab profili
+git diff --staged | codex --profile tokenlab "Generate a commit message for these changes"
+```
+
+```bash Varsayılan TokenLab
 git diff --staged | codex "Generate a commit message for these changes"
 ```
+</CodeGroup>
 
 **Hataları düzeltme:**
 
-```bash
+<CodeGroup>
+```bash TokenLab profili
+codex --profile tokenlab "Fix the TypeScript errors in src/components/"
+```
+
+```bash Varsayılan TokenLab
 codex "Fix the TypeScript errors in src/components/"
 ```
+</CodeGroup>
 
 **Kodu açıklama:**
 
-```bash
+<CodeGroup>
+```bash TokenLab profili
+cat main.py | codex --profile tokenlab "Explain what this code does"
+```
+
+```bash Varsayılan TokenLab
 cat main.py | codex "Explain what this code does"
 ```
+</CodeGroup>
 
 ## Sorun Giderme
 
@@ -194,8 +237,8 @@ cat main.py | codex "Explain what this code does"
   </Accordion>
 
   <Accordion title="Kimlik Doğrulama Başarısız">
-    - `~/.codex/config.toml` içinde `env_key = "OPENAI_API_KEY"` satırının bulunduğunu doğrulayın
-    - `OPENAI_API_KEY` ortam değişkeninin ayarlı olduğundan emin olun
+    - `~/.codex/tokenlab.config.toml` / `~/.codex/config.toml` içinde `env_key = "TOKENLAB_API_KEY"` satırının bulunduğunu doğrulayın
+    - `TOKENLAB_API_KEY` ortam değişkeninin ayarlı olduğundan emin olun
     - Anahtarın `sk-` ile başladığını kontrol edin
     - Anahtarın TokenLab kontrol panelinde aktif olduğundan emin olun
   </Accordion>

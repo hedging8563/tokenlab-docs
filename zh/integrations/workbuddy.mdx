@@ -3,10 +3,24 @@ title: "WorkBuddy"
 description: "在 WorkBuddy 中添加 TokenLab 自定义模型"
 ---
 
+## 交给我的 Agent 做
+
+把这段任务交给电脑上已经可用的 Agent：
+
+```text
+阅读此教程，帮我将 WorkBuddy 接入 TokenLab：
+https://docs.tokenlab.sh/zh/integrations/workbuddy
+先检查已安装版本和实际配置。
+保留已有账户、提供商、权限及无关设置。
+备份本机文件并展示修改内容。
+让我在本机输入所需 API Key，不要在聊天里索取、打印或粘贴密钥。
+先验证配置能否加载；真实请求测试的费用须单独说明后再运行。
+```
+
 ## 概述
 
 
-[WorkBuddy](https://www.workbuddy.ai/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model) 可以通过可视化的自定义模型编辑器添加 TokenLab。
+[WorkBuddy](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model) 可以通过可视化的自定义模型编辑器添加 TokenLab。
 
 ## 配置 TokenLab
 
@@ -27,18 +41,11 @@ description: "在 WorkBuddy 中添加 TokenLab 自定义模型"
 
 ## 高级配置
 
-| 设置 | 值 |
-|---|---|
-| 工具调用 | 开启 |
-| 图片输入 | 开启 |
-| 思考模式 | 开启 |
-| 仅思考模式 | 关闭 |
-| 默认思考强度 | 自动 |
-| 输入上限 | `1048576` |
-| 输出上限 | `131072` |
+工具、图片、思考开关及上下文/输出上限应按所选模型的当前 TokenLab 详情设置。不要为所有模型开启图片和思考，也不要把 1M/128K 上限复制到其他模型。模型 ID 按 TokenLab 展示值填写。
 
-保存后，在 WorkBuddy 选择刚添加的模型并发送一条简单消息。出现 404 时，确认接口地址为 `/v1`，并且“自定义协议”处于关闭状态。
+保存并选中模型只能证明本机配置已设置。文本或工具任务会使用 TokenLab 余额；请核对回复与对应[请求记录](https://tokenlab.sh/dashboard/runs?section=requests)。恢复时选回原模型，在编辑器中仅移除本次添加的 TokenLab 项目。
 
-<Warning>
-分享模型设置截图前请遮盖 API 密钥 和私有端点；已经暴露的 Key 应立即轮换。
-</Warning>
+
+官方桌面应用支持 macOS 和 Windows。请通过[官方模型编辑界面](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model)配置；此教程不假定存在 Linux 版本或可直接写入的文件格式。
+
+MCP 和 Skills 分别有独立安装路径：[API 工具](/zh/integrations/tokenlab-mcp-server)与[接入指导](/zh/integrations/coding-agent-skill)，它们不会切换 WorkBuddy 的主模型。

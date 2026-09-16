@@ -23,9 +23,7 @@ OpenAI Codex هو أداة مفتوحة المصدر لسطر الأوامر (CL
 
 ## متطلبات النظام
 
-- **OS**: macOS, Linux (دعم رسمي)، Windows عبر WSL
-- **Node.js**: الإصدار 18+
-- **npm**: الإصدار 10.x.x أو أعلى
+اتبع [دليل CLI الرسمي](https://learn.chatgpt.com/docs/codex/cli) لنظام macOS أو Linux أو Windows. Windows الأصلي وWSL بيئتان منفصلتان؛ راجع [دليل Windows](https://learn.chatgpt.com/docs/windows/windows-sandbox). npm خيار تثبيت وليس شرطًا للملفات التنفيذية الأصلية.
 
 ## التثبيت
 
@@ -46,7 +44,7 @@ codex --version
 **مؤقت (الجلسة الحالية):**
 
 ```bash
-export OPENAI_API_KEY="sk-your-tokenlab-key"
+export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 ```
 
 **تكوين دائم:**
@@ -54,7 +52,7 @@ export OPENAI_API_KEY="sk-your-tokenlab-key"
 أضف إلى `~/.bashrc`، `~/.zshrc`، أو `~/.bash_profile`:
 
 ```bash
-export OPENAI_API_KEY="sk-your-tokenlab-key"
+export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 ```
 
 ثم أعد التحميل:
@@ -65,42 +63,33 @@ source ~/.zshrc  # or source ~/.bashrc
 
 ### الخطوة 2: تكوين config.toml
 
-حرر `~/.codex/config.toml`:
+ادمج هذه الإعدادات في ملف المستخدم `~/.codex/config.toml` دون استبدال الملف بالكامل. احتفظ بموفري الخدمة والحسابات وإعدادات العزل وقواعد الموافقة الأخرى. يجب وضع إعدادات موفر الخدمة والمصادقة في إعدادات المستخدم، وليس في ملف `.codex/config.toml` الخاص بالمشروع. راجع [دليل الإعداد الرسمي](https://learn.chatgpt.com/docs/config-file/config-advanced#custom-model-providers).
+
+لإبقاء المزود الافتراضي، احفظ المثال في `~/.codex/tokenlab.config.toml` على Codex 0.134.0 أو أحدث وشغّل `codex --profile tokenlab`. استخدم المجلد الفعلي إن خصصت `CODEX_HOME`. لا تنشئ جدول `[profiles.tokenlab]` القديم ولا تستبدل `auth.json` أو تسجل الخروج أو تغيّر الأذونات. شغّل دون هذا الملف الشخصي للاستعادة.
+
+في كل مجموعة أوامر أدناه، اختر **ملف تعريف TokenLab** عند استخدام `tokenlab.config.toml`. استخدم **TokenLab افتراضي** فقط بعد دمج الإعدادات في `config.toml`. يستخدم الأمر `codex` وحده الإعداد الافتراضي ولا يتذكر ملف التعريف المحدد في جلسة سابقة.
 
 ```toml
 model_provider = "tokenlab"
 model = "gpt-5.6-sol"
 model_reasoning_effort = "xhigh"
-plan_mode_reasoning_effort = "xhigh"
-model_context_window = 258000
-model_auto_compact_token_limit = 232200
-sandbox_mode = "danger-full-access"
-approval_policy = "never"
-
-personality = "friendly"
-service_tier = "fast"
 
 [model_providers.tokenlab]
-env_key = "OPENAI_API_KEY"
+env_key = "TOKENLAB_API_KEY"
 name = "TokenLab"
 base_url = "https://api.tokenlab.sh/v1"
 wire_api = "responses"
 supports_websockets = true
 websocket_connect_timeout_ms = 15000
-
-[features]
-fast_mode = true
 ```
 
 وضع WebSocket هذا هو جسر Responses-over-WebSocket لعملاء Codex. يقبل أحداث `response.create` الرسمية فقط؛ يكون `stream` ضمنيًا، ولا تتوفر `background` أو `response.cancel` على هذا النقل. وهو ليس OpenAI Realtime API ولا يقبل `session.update` أو `conversation.item.*` أو `input_audio_buffer.*` أو الصوت الثنائي أو أغلفة Realtime المتداخلة `response.create.response`.
 
 <Note>
-إذا لم يكن ملف التكوين موجودًا، شغّل `codex` مرة واحدة لتوليده، ثم حرر الملف. أعد تشغيل Codex بالكامل بعد تغيير `config.toml` حتى تُعاد تحميل إعدادات الموفر الجديدة.
+أنشئ ملف الإعداد المختار إذا لم يكن موجودًا. بعد تعديله، ابدأ جلسة جديدة باستخدام الأمر المطابق أدناه.
 </Note>
 
-<Warning>
-Codex يتخلى تدريجيًا عن دعم `chat/completions` لمزودي الخدمات المخصصين. احتفظ بـ `wire_api = "responses"` لـ TokenLab ما لم تكن تستخدم عن قصد مسار توافق قديم.
-</Warning>
+يستخدم Codex الحالي `wire_api = "responses"` وليس `chat/completions`. احذف إعداد `requires_openai_auth` أو اجعله false كي يستخدم هذا المزود `env_key`.
 
 <Note>
 تمرر TokenLab حقول Responses غير المعروفة بأفضل جهد من دون تخفيض الطلب بصمت إلى Chat Completions. يقرر upstream المحدد ما إذا كان الحقل أو التركيب مدعومًا.
@@ -110,21 +99,39 @@ Codex يتخلى تدريجيًا عن دعم `chat/completions` لمزودي ا
 
 **بدء الوضع التفاعلي:**
 
-```bash
+<CodeGroup>
+```bash ملف تعريف TokenLab
+codex --profile tokenlab
+```
+
+```bash TokenLab افتراضي
 codex
 ```
+</CodeGroup>
 
 **أمر مباشر:**
 
-```bash
+<CodeGroup>
+```bash ملف تعريف TokenLab
+codex --profile tokenlab "Fix the bug in main.py line 42"
+```
+
+```bash TokenLab افتراضي
 codex "Fix the bug in main.py line 42"
 ```
+</CodeGroup>
 
 **تحديد النموذج:**
 
-```bash
+<CodeGroup>
+```bash ملف تعريف TokenLab
+codex --profile tokenlab -m gpt-5.6-sol "Build a REST API server"
+```
+
+```bash TokenLab افتراضي
 codex -m gpt-5.6-sol "Build a REST API server"
 ```
+</CodeGroup>
 
 ## النماذج الموصى بها
 
@@ -141,48 +148,84 @@ codex -m gpt-5.6-sol "Build a REST API server"
 | `/help` | عرض المساعدة |
 | `/exit` or `Ctrl+C` | الخروج |
 | `/clear` | مسح المحادثة |
-| `/config` | عرض التكوين |
+| `/status` | عرض النموذج النشط والصلاحيات واستخدام الرموز |
 | `/model <name>` | تبديل النموذج |
-| `/tokens` | عرض استخدام التوكنات |
 
 ## التحقق من التكوين
 
+تحقق فقط من تعيين متغير البيئة دون طباعة قيمته. هذا الفحص لا يتحقق من صلاحية المفتاح:
+
 ```bash
-# Check environment variable
-echo $OPENAI_API_KEY
-
-# Test API connection
-codex "Hello, Codex!"
-
-# View configuration
-cat ~/.codex/config.toml
+if [ -n "${TOKENLAB_API_KEY:-}" ]; then
+  printf '%s\n' 'TOKENLAB_API_KEY is set'
+else
+  printf '%s\n' 'TOKENLAB_API_KEY is not set'
+fi
 ```
+
+شغّل Codex ونفّذ `/status` للتحقق من النموذج النشط والصلاحيات. إذا كنت تستخدم ملف تعريف، فشغّل ملف التعريف نفسه. راجع [أمر الحالة الرسمي](https://learn.chatgpt.com/docs/developer-commands?surface=cli#inspect-the-session-with-status).
+
+عندما تكون مستعدًا لإرسال طلب حقيقي، نفّذ الأمر التالي. سيستخدم رصيدك في TokenLab. تحقق من الرد والسجل المطابق في [الطلبات](https://tokenlab.sh/dashboard/runs?section=requests). تعيين المتغير أو نجاح بدء التشغيل وحده لا يثبت نجاح الطلب.
+
+<CodeGroup>
+```bash ملف تعريف TokenLab
+codex --profile tokenlab "Reply only with OK. Do not use tools or modify files."
+```
+
+```bash TokenLab افتراضي
+codex "Reply only with OK. Do not use tools or modify files."
+```
+</CodeGroup>
 
 ## حالات استخدام شائعة
 
 **مراجعة الشيفرة:**
 
-```bash
+<CodeGroup>
+```bash ملف تعريف TokenLab
+git diff | codex --profile tokenlab "Review these code changes"
+```
+
+```bash TokenLab افتراضي
 git diff | codex "Review these code changes"
 ```
+</CodeGroup>
 
 **توليد رسائل الالتزام:**
 
-```bash
+<CodeGroup>
+```bash ملف تعريف TokenLab
+git diff --staged | codex --profile tokenlab "Generate a commit message for these changes"
+```
+
+```bash TokenLab افتراضي
 git diff --staged | codex "Generate a commit message for these changes"
 ```
+</CodeGroup>
 
 **إصلاح الأخطاء:**
 
-```bash
+<CodeGroup>
+```bash ملف تعريف TokenLab
+codex --profile tokenlab "Fix the TypeScript errors in src/components/"
+```
+
+```bash TokenLab افتراضي
 codex "Fix the TypeScript errors in src/components/"
 ```
+</CodeGroup>
 
 **شرح الشيفرة:**
 
-```bash
+<CodeGroup>
+```bash ملف تعريف TokenLab
+cat main.py | codex --profile tokenlab "Explain what this code does"
+```
+
+```bash TokenLab افتراضي
 cat main.py | codex "Explain what this code does"
 ```
+</CodeGroup>
 
 ## استكشاف الأخطاء وإصلاحها
 
@@ -194,8 +237,8 @@ cat main.py | codex "Explain what this code does"
   </Accordion>
 
   <Accordion title="فشل المصادقة">
-    - تحقق من وجود `env_key = \"OPENAI_API_KEY\"` في `~/.codex/config.toml`
-    - تحقق من تعيين متغير البيئة `OPENAI_API_KEY`
+    - تحقق من وجود `env_key = "TOKENLAB_API_KEY"` في `~/.codex/tokenlab.config.toml` / `~/.codex/config.toml`
+    - تحقق من تعيين متغير البيئة `TOKENLAB_API_KEY`
     - تأكد من أن المفتاح يبدأ بـ `sk-`
     - تأكد من أن المفتاح نشط في لوحة تحكم TokenLab
   </Accordion>

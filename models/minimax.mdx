@@ -37,19 +37,24 @@ TokenLab provides access to MiniMax models. Total: **12 models** available.
 
 ## Usage
 
-```python
-from openai import OpenAI
+This example uses one model's declared request format. Other models on this page may accept different formats.
 
-client = OpenAI(
+```python
+from anthropic import Anthropic
+
+client = Anthropic(
     api_key="sk-your-tokenlab-key",
-    base_url="https://api.tokenlab.sh/v1"
+    base_url="https://api.tokenlab.sh"
 )
 
-response = client.chat.completions.create(
+response = client.messages.create(
     model="minimax-m2",
+    max_tokens=1024,
     messages=[{"role": "user", "content": "Hello!"}]
 )
 ```
+
+Check the [model details](/api-reference/models/get-model) for `minimax-m2` with `GET /v1/models/minimax-m2` and your API key.
 
 <Note>
 The table shows current public pricing as input/output rates, a unit price, or a price range. See your dashboard for complete option-specific pricing.

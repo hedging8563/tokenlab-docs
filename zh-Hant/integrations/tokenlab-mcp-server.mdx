@@ -3,6 +3,13 @@ title: "TokenLab MCP Server"
 description: "將 Claude Code、Cursor、VS Code、Codex 及其他 MCP 客戶端連接到 TokenLab 的模型、定價、推論、媒體、檔案和任務工具。"
 ---
 
+## 選擇需要的能力
+
+- MCP 為相容客戶端新增 TokenLab API 工具，可從下方免金鑰的 `catalog` 設定開始。
+- [TokenLab Skill](/zh-Hant/integrations/coding-agent-skill) 透過 `npx skills add` 安裝接入指引，不會啟動 MCP 服務。
+
+兩者均擴充既有 Agent。切換主模型供應商時，請參閱相應客戶端教程。
+
 [TokenLab MCP server](https://github.com/hedging8563/tokenlab-mcp-server) 從 TokenLab 的公開 OpenAPI 合約中生成 MCP 工具。支援 MCP 的代理程式 (Agents) 可以探索模型與定價、呼叫 OpenAI 相容及原生 LLM 端點、建立多模態媒體、上傳檔案以及管理非同步任務。
 
 當代理程式需要最新的 TokenLab API 合約而非手動維護的工具列表時，請使用此伺服器。預設的 `core` 設定檔會公開 29 個生成的端點工具以及兩個複合式探索工具。`full` 設定檔則會公開 78 個生成的端點工具以及相同的兩個複合式工具。

@@ -9,28 +9,11 @@ OpenCode é um assistente de programação com AI de código aberto que roda no 
 
 ## Instalação
 
-<Tabs>
-  <Tab title="Script de instalação">
-    ```bash
-    curl -fsSL https://opencode.ai/install | bash
-    ```
-  </Tab>
-  <Tab title="Homebrew">
-    ```bash
-    brew install opencode-ai/tap/opencode
-    ```
+[OpenCode](https://opencode.ai/docs/)
 
-    Ou use o tap da comunidade (atualizações mais frequentes):
-    ```bash
-    brew install anomalyco/tap/opencode
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```bash
-    go install github.com/opencode-ai/opencode@latest
-    ```
-  </Tab>
-</Tabs>
+```bash
+npm install -g opencode-ai
+```
 
 Verifique a instalação:
 
@@ -43,19 +26,21 @@ opencode --version
 ### Etapa 1: Definir variáveis de ambiente
 
 ```bash
-export OPENAI_API_KEY="sk-your-tokenlab-key"
+export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 ```
 
 Para configuração permanente, adicione a `~/.bashrc` ou `~/.zshrc`:
 
 ```bash
-echo 'export OPENAI_API_KEY="sk-your-tokenlab-key"' >> ~/.zshrc
+echo 'export TOKENLAB_API_KEY="sk-your-tokenlab-key"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
 ### Etapa 2: Configurar o OpenCode
 
 A documentação atual do OpenCode recomenda configurar provedores por meio de `opencode.json` ou `opencode.jsonc`. Para o TokenLab, use um provedor personalizado em vez de sobrescrever o provedor `openai` integrado:
+
+O exemplo usa o formato V1 compatível. Mescle em `~/.config/opencode/opencode.json`, mantendo provedores e permissões. V2 lê configurações V1 compatíveis; não misture formatos dentro de um provedor. Veja a [migração oficial](https://opencode.ai/v2/docs/migrate-v1/). Confira `/models` e depois um teste pago no registro TokenLab. Para desfazer, volte ao modelo anterior e remova apenas esta entrada.
 
 ```jsonc
 {
@@ -66,19 +51,19 @@ A documentação atual do OpenCode recomenda configurar provedores por meio de `
       "name": "TokenLab",
       "options": {
         "baseURL": "https://api.tokenlab.sh/v1",
-        "apiKey": "{env:OPENAI_API_KEY}"
+        "apiKey": "{env:TOKENLAB_API_KEY}"
       },
       "models": {
         "gpt-5.6-terra": {
-          "name": "GPT-5.4"
+          "name": "GPT-5.6 Terra"
         },
         "gpt-5.6-luna": {
-          "name": "GPT-5 Mini"
+          "name": "GPT-5.6 Luna"
         }
       }
     }
   },
-  "model": "tokenlab/gpt-5.4"
+  "model": "tokenlab/gpt-5.6-terra"
 }
 ```
 
@@ -97,21 +82,21 @@ opencode
 **Executar com um prompt:**
 
 ```bash
-opencode "Explain this codebase"
+opencode run "Explain this codebase"
 ```
 
 **Especificar modelo:**
 
 ```bash
-opencode --model tokenlab/gpt-5.4 "Fix the bugs in main.py"
+opencode run --model tokenlab/gpt-5.6-terra "Fix the bugs in main.py"
 ```
 
 ## Modelos disponíveis
 
 | Modelo | Melhor para |
 |-------|-------------|
-| `gpt-5.4` | Tarefas complexas, arquitetura de código |
-| `gpt-5-mini` | Correções rápidas, consultas simples |
+| `gpt-5.6-terra` | Tarefas complexas, arquitetura de código |
+| `gpt-5.6-luna` | Correções rápidas, consultas simples |
 | `claude-sonnet-4-6` | Revisão de código, documentação |
 | `claude-opus-4-6` | Raciocínio complexo |
 | `gemini-3.5-flash` | Respostas rápidas |
@@ -121,25 +106,25 @@ opencode --model tokenlab/gpt-5.4 "Fix the bugs in main.py"
 **Analisar código:**
 
 ```bash
-opencode "What does this function do?" < src/utils.ts
+opencode run "What does this function do?" < src/utils.ts
 ```
 
 **Gerar código:**
 
 ```bash
-opencode "Create a REST API with Express"
+opencode run "Create a REST API with Express"
 ```
 
 **Revisar alterações:**
 
 ```bash
-git diff | opencode "Review these changes"
+git diff | opencode run "Review these changes"
 ```
 
 **Corrigir erros:**
 
 ```bash
-opencode "Fix the TypeScript errors in this project"
+opencode run "Fix the TypeScript errors in this project"
 ```
 
 ## Comandos interativos
@@ -147,7 +132,7 @@ opencode "Fix the TypeScript errors in this project"
 | Command | Descrição |
 |---------|-----------|
 | `/help` | Mostrar comandos disponíveis |
-| `/model <name>` | Alternar para um modelo diferente |
+| `/models` | Alternar para um modelo diferente |
 | `/clear` | Limpar o histórico da conversa |
 | `/exit` | Sair do OpenCode |
 
@@ -161,8 +146,8 @@ opencode "Fix the TypeScript errors in this project"
   </Accordion>
 
   <Accordion title="Falha na autenticação">
-    - Verifique se a variável de ambiente `OPENAI_API_KEY` está definida
-    - Verifique se `options.apiKey` referencia `{env:OPENAI_API_KEY}` ou outra fonte de segredo válida
+    - Verifique se a variável de ambiente `TOKENLAB_API_KEY` está definida
+    - Verifique se `options.apiKey` referencia `{env:TOKENLAB_API_KEY}` ou outra fonte de segredo válida
     - Verifique se a chave começa com `sk-`
     - Certifique-se de que a chave está ativa no dashboard do TokenLab
   </Accordion>
@@ -181,7 +166,7 @@ opencode "Fix the TypeScript errors in this project"
   </Accordion>
 
   <Accordion title="Escolha modelos apropriados">
-    Use modelos mais rápidos (`gpt-5-mini`) para tarefas simples e modelos mais robustos (`gpt-5.4`, `claude-sonnet-4-6`) para tarefas complexas.
+    Use modelos mais rápidos (`gpt-5.6-luna`) para tarefas simples e modelos mais robustos (`gpt-5.6-terra`, `claude-sonnet-4-6`) para tarefas complexas.
   </Accordion>
 
   <Accordion title="Revise o código gerado">

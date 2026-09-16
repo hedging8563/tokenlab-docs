@@ -13,7 +13,7 @@ description: "Tambahkan TokenLab sebagai model khusus di WorkBuddy"
 **Dukungan**: jalur model khusus resmi
 </Note>
 
-[WorkBuddy](https://www.workbuddy.ai/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model) menyediakan editor visual untuk model kompatibel OpenAI, tanpa perlu mengedit berkas model lokal secara manual.
+[WorkBuddy](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model) menyediakan editor visual untuk model kompatibel OpenAI, tanpa perlu mengedit berkas model lokal secara manual.
 
 ## Konfigurasi TokenLab
 
@@ -30,6 +30,12 @@ Buka **Settings → Model**, tambahkan model lalu pilih **Custom**.
 Biarkan Custom Protocol nonaktif. Mode standar memvalidasi Base URL dan menambahkan `/chat/completions`. Jika diaktifkan dengan hanya `/v1`, permintaan akan memakai jalur yang salah.
 </Warning>
 
-Pada pengaturan lanjutan, aktifkan pemanggilan alat, input gambar, dan mode penalaran. Nonaktifkan mode hanya-penalaran, biarkan upaya pada Auto, gunakan input `1048576` dan output `131072`.
+Atur alat, gambar, penalaran, dan batas sesuai detail model terbaru di TokenLab. Jangan aktifkan semuanya atau menyalin batas 1M/128K model lain. Gunakan ID yang ditampilkan.
 
 Simpan, pilih `kimi-k3`, lalu uji pemeriksaan folder hanya-baca. Tutupi Key dan endpoint privat sebelum membagikan tangkapan layar.
+
+Menyimpan dan memilih hanya memastikan pengaturan lokal. Tugas teks atau alat memakai saldo TokenLab; cocokkan balasan dan [catatan permintaan](https://tokenlab.sh/dashboard/runs?section=requests). Untuk membatalkan, pilih model sebelumnya dan hapus hanya entri TokenLab yang ditambahkan.
+
+Aplikasi resmi tersedia untuk macOS dan Windows. Gunakan [editor model resmi](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model); panduan ini tidak mengasumsikan versi Linux atau format file yang dapat ditulis langsung.
+
+[Alat MCP API](/id/integrations/tokenlab-mcp-server) dan [petunjuk Skill](/id/integrations/coding-agent-skill) dipasang terpisah dan tidak mengganti model utama.

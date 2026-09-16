@@ -13,7 +13,7 @@ description: "TokenLab als benutzerdefiniertes Modell in WorkBuddy hinzufügen"
 **Support**: Offizieller Pfad für benutzerdefinierte Modelle
 </Note>
 
-[WorkBuddy](https://www.workbuddy.ai/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model) bietet einen visuellen Editor für OpenAI-kompatible Modelle. Die lokale Modelldatei muss nicht manuell bearbeitet werden.
+[WorkBuddy](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model) bietet einen visuellen Editor für OpenAI-kompatible Modelle. Die lokale Modelldatei muss nicht manuell bearbeitet werden.
 
 ## TokenLab konfigurieren
 
@@ -30,6 +30,12 @@ description: "TokenLab als benutzerdefiniertes Modell in WorkBuddy hinzufügen"
 Lasse Custom Protocol ausgeschaltet. Im Standardmodus validiert WorkBuddy die Base URL und ergänzt `/chat/completions`. Mit aktiviertem Schalter und nur `/v1` wird der falsche Pfad aufgerufen.
 </Warning>
 
-Aktiviere in den erweiterten Einstellungen Tool Calling, Bildeingabe und Reasoning. „Reasoning only“ bleibt aus, die Reasoning-Stärke auf Auto. Eingabelimit: `1048576`; Ausgabelimit: `131072`.
+Richten Sie Werkzeuge, Bildeingabe, Reasoning und Grenzwerte nach den aktuellen TokenLab-Details des gewählten Modells. Aktivieren Sie nicht alles pauschal und kopieren Sie keine 1M/128K-Grenzen anderer Modelle. Verwenden Sie die angezeigte Modell-ID.
 
 Wähle nach dem Speichern `kimi-k3` und teste zuerst eine schreibgeschützte Ordneranalyse. Verberge API-Schlüssel und private Endpunkte in Screenshots.
+
+Speichern und Auswählen bestätigt nur die lokale Einstellung. Text- und Werkzeugaufgaben verbrauchen TokenLab-Guthaben; prüfen Sie Antwort und [Anfrageprotokoll](https://tokenlab.sh/dashboard/runs?section=requests). Zum Rückgängigmachen wählen Sie das alte Modell und entfernen nur den hinzugefügten TokenLab-Eintrag.
+
+Die offizielle Desktop-App gibt es für macOS und Windows. Nutzen Sie den [offiziellen Modelleditor](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model). Eine Linux-Version oder ein direkt beschreibbares Dateiformat wird hier nicht vorausgesetzt.
+
+MCP-[API-Werkzeuge](/de/integrations/tokenlab-mcp-server) und [Skill-Anweisungen](/de/integrations/coding-agent-skill) werden separat installiert und ändern nicht das Hauptmodell.

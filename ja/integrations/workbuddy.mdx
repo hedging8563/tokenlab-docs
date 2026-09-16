@@ -5,7 +5,7 @@ description: "WorkBuddy に TokenLab カスタムモデルを追加する"
 
 ## 概要
 
-[WorkBuddy](https://www.workbuddy.ai/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model) は OpenAI 互換 API 用のカスタムモデル画面を提供します。ローカル設定ファイルの手動編集は不要です。
+[WorkBuddy](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model) は OpenAI 互換 API 用のカスタムモデル画面を提供します。ローカル設定ファイルの手動編集は不要です。
 
 ## TokenLab の設定
 
@@ -22,6 +22,12 @@ description: "WorkBuddy に TokenLab カスタムモデルを追加する"
 Custom Protocol はオフにします。標準モードは Base URL を検証し、`/chat/completions` を自動追加します。オンのまま `/v1` だけを入力すると誤ったパスへ送信されます。
 </Warning>
 
-詳細設定ではツール呼び出し、画像入力、推論モードを有効にし、推論のみは無効、推論強度は Auto にします。入力上限は `1048576`、出力上限は `131072` です。
+ツール、画像、推論の対応と容量は、選択モデルの現在の TokenLab 情報で確認してください。すべてのモデルで有効にしたり、別モデルの 1M/128K 制限をコピーしたりしないでください。表示されたモデル ID を使います。
 
 保存後に `kimi-k3` を選択し、読み取り専用のフォルダー確認で検証してください。設定画面を共有する前に API Key と非公開エンドポイントを隠してください。
+
+保存と選択はローカル設定の確認です。テキストやツールの実行には TokenLab 残高を使います。応答と[リクエスト記録](https://tokenlab.sh/dashboard/runs?section=requests)を確認してください。元に戻すには以前のモデルを選び、追加した TokenLab 項目だけを削除します。
+
+公式デスクトップ版は macOS と Windows 向けです。[公式モデル編集画面](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model)を使います。Linux 版や直接編集可能なファイル形式は前提にしていません。
+
+MCP の [API ツール](/ja/integrations/tokenlab-mcp-server)と Skill の[実装手順](/ja/integrations/coding-agent-skill)は別々に導入します。主モデルは変更しません。

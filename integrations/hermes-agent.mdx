@@ -1,0 +1,55 @@
+---
+title: "Hermes Agent"
+description: "Connect Hermes Agent to TokenLab"
+---
+
+Use TokenLab as a named model provider in Hermes while keeping your existing accounts and tool permissions.
+
+## Let my agent set this up
+
+Copy this task to an agent already running on your computer:
+
+```text
+Read this guide and help me connect Hermes to TokenLab:
+https://docs.tokenlab.sh/integrations/hermes-agent
+Check my installed version and active configuration first.
+Preserve existing accounts, providers, permissions and other settings.
+Back up local files and show proposed changes.
+Have me enter any API key locally; never ask for, print or paste it in chat.
+Check configuration loading first.
+Explain any paid request test separately before running it.
+```
+
+## Install or check Hermes
+
+Follow the [official installation guide](https://hermes-agent.nousresearch.com/docs/getting-started/installation). It offers desktop installers for Apple Silicon macOS and Windows, and a CLI path for Linux and native Windows. Check the requirements for your system; skip installation if Hermes is already installed.
+
+## Configure a named provider
+
+Find the active Hermes directory: `HERMES_HOME` when set, otherwise `~/.hermes` (Windows: `%USERPROFILE%\.hermes`). Back up `config.yaml`, then merge the following entries without replacing other settings. The example uses Chat Completions; choose a current model that supports this format and tool calling.
+
+```yaml
+providers:
+  tokenlab:
+    api: https://api.tokenlab.sh/v1
+    key_env: TOKENLAB_API_KEY
+    transport: chat_completions
+    default_model: gpt-5.6-luna
+model:
+  provider: custom:tokenlab
+  default: gpt-5.6-luna
+```
+
+Create a key in [API keys](https://tokenlab.sh/dashboard/api?tab=keys). Enter it locally as `TOKENLAB_API_KEY` in the Hermes directory’s `.env` or in the environment of the process that starts Hermes. Never paste the key into a conversation or put it in the provider YAML.
+
+## Check configuration, then make a request
+
+Run `hermes config get model.provider` and `hermes config get model.default`. They should show `custom:tokenlab` and the selected model. Start a new session; an existing session can keep its earlier model. Configuration checks do not validate the key or make a successful model call.
+
+When ready to spend TokenLab balance, send a short text request. Check the response and its matching record in [Requests](https://tokenlab.sh/dashboard/runs?section=requests). Only then try a read-only tool task. Auxiliary models and optional tools can have separate providers or keys.
+
+## Restore or troubleshoot
+
+If the provider is unknown, check the installed version and the [current provider format](https://hermes-agent.nousresearch.com/docs/integrations/providers). For authentication errors, check the local environment and key status without printing the key. To undo setup, restore the previous model selection and remove only the TokenLab entries you added.
+
+MCP and Skills are separate extensions: use the [MCP guide](/integrations/tokenlab-mcp-server) for API tools or the [Skill guide](/integrations/coding-agent-skill) for integration guidance. Neither is required to select this provider.

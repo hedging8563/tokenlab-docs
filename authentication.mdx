@@ -27,7 +27,7 @@ Management API endpoints use a separate token type:
 Authorization: Bearer mt-your-management-token
 ```
 
-Use management tokens only with `/v1/management/*` endpoints. Create them on the **Settings** page in Console. The full token is shown only once when you generate or rotate it.
+Use management tokens only with `/v1/management/*` endpoints. Open [API → Tokens](https://tokenlab.sh/dashboard/api?tab=tokens) for the selected workspace to create or replace a token. Save the full token when it is shown; it is displayed only once after creation or replacement.
 
 <Note>
 Management tokens cannot be used for model inference, and standard `sk-...` API keys cannot be used for the Management API.

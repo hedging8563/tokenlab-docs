@@ -19,28 +19,11 @@ OpenCode 是一個在終端機中執行的開源 AI 程式設計助理。它支�
 
 ## 安裝
 
-<Tabs>
-  <Tab title="安裝腳本">
-    ```bash
-    curl -fsSL https://opencode.ai/install | bash
-    ```
-  </Tab>
-  <Tab title="Homebrew">
-    ```bash
-    brew install opencode-ai/tap/opencode
-    ```
+[OpenCode](https://opencode.ai/docs/)
 
-    或使用社群 tap（更新更頻繁）：
-    ```bash
-    brew install anomalyco/tap/opencode
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```bash
-    go install github.com/opencode-ai/opencode@latest
-    ```
-  </Tab>
-</Tabs>
+```bash
+npm install -g opencode-ai
+```
 
 驗證安裝：
 
@@ -53,19 +36,21 @@ opencode --version
 ### 步驟 1：設定環境變數
 
 ```bash
-export OPENAI_API_KEY="sk-your-tokenlab-key"
+export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 ```
 
 如需永久設定，請加入至 `~/.bashrc` 或 `~/.zshrc`：
 
 ```bash
-echo 'export OPENAI_API_KEY="sk-your-tokenlab-key"' >> ~/.zshrc
+echo 'export TOKENLAB_API_KEY="sk-your-tokenlab-key"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
 ### 步驟 2：設定 OpenCode
 
 OpenCode 目前的文件建議透過 `opencode.json` 或 `opencode.jsonc` 設定供應商。對於 TokenLab，請使用自訂供應商，而不是覆寫內建的 `openai` 供應商：
+
+範例使用仍受支援的 V1 供應商格式，合併至 `~/.config/opencode/opencode.json` 並保留既有供應商與權限。V2 可讀取受支援的 V1 設定，勿在同一供應商內混入 V2 欄位，參閱[官方遷移說明](https://opencode.ai/v2/docs/migrate-v1/)。先以 `/models` 確認註冊，再核對付費測試及 TokenLab 請求記錄。還原時選回原模型，僅移除新增項目。
 
 ```jsonc
 {
@@ -76,19 +61,19 @@ OpenCode 目前的文件建議透過 `opencode.json` 或 `opencode.jsonc` 設定
       "name": "TokenLab",
       "options": {
         "baseURL": "https://api.tokenlab.sh/v1",
-        "apiKey": "{env:OPENAI_API_KEY}"
+        "apiKey": "{env:TOKENLAB_API_KEY}"
       },
       "models": {
         "gpt-5.6-terra": {
-          "name": "GPT-5.4"
+          "name": "GPT-5.6 Terra"
         },
         "gpt-5.6-luna": {
-          "name": "GPT-5 Mini"
+          "name": "GPT-5.6 Luna"
         }
       }
     }
   },
-  "model": "tokenlab/gpt-5.4"
+  "model": "tokenlab/gpt-5.6-terra"
 }
 ```
 
@@ -107,21 +92,21 @@ opencode
 **搭配 prompt 執行：**
 
 ```bash
-opencode "Explain this codebase"
+opencode run "Explain this codebase"
 ```
 
 **指定模型：**
 
 ```bash
-opencode --model tokenlab/gpt-5.4 "Fix the bugs in main.py"
+opencode run --model tokenlab/gpt-5.6-terra "Fix the bugs in main.py"
 ```
 
 ## 可用模型
 
 | 模型 | 最適合用途 |
 |-------|----------|
-| `gpt-5.4` | 複雜任務、程式碼架構 |
-| `gpt-5-mini` | 快速修正、簡單查詢 |
+| `gpt-5.6-terra` | 複雜任務、程式碼架構 |
+| `gpt-5.6-luna` | 快速修正、簡單查詢 |
 | `claude-sonnet-4-6` | 程式碼審查、文件撰寫 |
 | `claude-opus-4-6` | 複雜推理 |
 | `gemini-3.5-flash` | 快速回應 |
@@ -131,25 +116,25 @@ opencode --model tokenlab/gpt-5.4 "Fix the bugs in main.py"
 **分析程式碼：**
 
 ```bash
-opencode "What does this function do?" < src/utils.ts
+opencode run "What does this function do?" < src/utils.ts
 ```
 
 **產生程式碼：**
 
 ```bash
-opencode "Create a REST API with Express"
+opencode run "Create a REST API with Express"
 ```
 
 **檢查變更：**
 
 ```bash
-git diff | opencode "Review these changes"
+git diff | opencode run "Review these changes"
 ```
 
 **修正錯誤：**
 
 ```bash
-opencode "Fix the TypeScript errors in this project"
+opencode run "Fix the TypeScript errors in this project"
 ```
 
 ## 互動指令
@@ -157,7 +142,7 @@ opencode "Fix the TypeScript errors in this project"
 | 指令 | 說明 |
 |---------|-------------|
 | `/help` | 顯示可用指令 |
-| `/model <name>` | 切換至不同模型 |
+| `/models` | 切換至不同模型 |
 | `/clear` | 清除對話歷史 |
 | `/exit` | 結束 OpenCode |
 
@@ -171,8 +156,8 @@ opencode "Fix the TypeScript errors in this project"
   </Accordion>
 
   <Accordion title="驗證失敗">
-    - 確認已設定 `OPENAI_API_KEY` 環境變數
-    - 確認 `options.apiKey` 參照的是 `{env:OPENAI_API_KEY}` 或其他有效的 secret 來源
+    - 確認已設定 `TOKENLAB_API_KEY` 環境變數
+    - 確認 `options.apiKey` 參照的是 `{env:TOKENLAB_API_KEY}` 或其他有效的 secret 來源
     - 檢查 key 是否以 `sk-` 開頭
     - 確保該 key 已在 TokenLab dashboard 中啟用
   </Accordion>
@@ -191,7 +176,7 @@ opencode "Fix the TypeScript errors in this project"
   </Accordion>
 
   <Accordion title="選擇合適的模型">
-    對於簡單任務使用較快的模型（`gpt-5-mini`），對於複雜任務則使用較強的模型（`gpt-5.4`、`claude-sonnet-4-6`）。
+    對於簡單任務使用較快的模型（`gpt-5.6-luna`），對於複雜任務則使用較強的模型（`gpt-5.6-terra`、`claude-sonnet-4-6`）。
   </Accordion>
 
   <Accordion title="審查產生的程式碼">

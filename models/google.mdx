@@ -51,6 +51,8 @@ TokenLab provides access to Google models. Total: **21 models** available.
 
 ## Usage
 
+This example uses one model's declared request format. Other models on this page may accept different formats.
+
 ```python
 from openai import OpenAI
 
@@ -64,6 +66,8 @@ response = client.chat.completions.create(
     messages=[{"role": "user", "content": "Hello!"}]
 )
 ```
+
+Check the [model details](/api-reference/models/get-model) for `gemini-2.5-pro` with `GET /v1/models/gemini-2.5-pro` and your API key.
 
 <Note>
 The table shows current public pricing as input/output rates, a unit price, or a price range. See your dashboard for complete option-specific pricing.

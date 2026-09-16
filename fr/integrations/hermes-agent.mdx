@@ -1,0 +1,40 @@
+---
+title: "Hermes Agent"
+description: "Connecter Hermes Agent à TokenLab"
+---
+
+Ajoutez TokenLab comme fournisseur nommé en conservant vos comptes, paramètres et autorisations existants.
+
+## Installer ou vérifier Hermes
+
+Le [guide officiel](https://hermes-agent.nousresearch.com/docs/getting-started/installation) propose des installateurs de bureau pour macOS Apple Silicon et Windows, ainsi que la CLI pour Linux et Windows natif. Vérifiez les prérequis ; ignorez cette étape si Hermes est installé.
+
+## Configurer un fournisseur nommé
+
+Utilisez le dossier `HERMES_HOME` s’il est défini, sinon `~/.hermes` (Windows : `%USERPROFILE%\.hermes`). Sauvegardez `config.yaml` puis fusionnez les entrées suivantes sans remplacer les autres paramètres. Choisissez un modèle actuel prenant en charge Chat Completions et les outils.
+
+```yaml
+providers:
+  tokenlab:
+    api: https://api.tokenlab.sh/v1
+    key_env: TOKENLAB_API_KEY
+    transport: chat_completions
+    default_model: gpt-5.6-luna
+model:
+  provider: custom:tokenlab
+  default: gpt-5.6-luna
+```
+
+Créez une clé dans [Clés API](https://tokenlab.sh/dashboard/api?tab=keys). Enregistrez-la localement sous `TOKENLAB_API_KEY` dans le `.env` du dossier Hermes ou dans l’environnement du processus de lancement. Ne la collez ni dans une conversation ni dans le YAML du fournisseur.
+
+## Vérifier puis envoyer une requête
+
+Exécutez `hermes config get model.provider` et `hermes config get model.default` pour vérifier `custom:tokenlab` et le modèle choisi. Ouvrez une nouvelle session ; une session existante peut garder son ancien modèle. Cette vérification ne valide ni la clé ni un appel au modèle.
+
+Quand vous souhaitez utiliser votre solde TokenLab, envoyez un court message et vérifiez la réponse et la [requête correspondante](https://tokenlab.sh/dashboard/runs?section=requests). Essayez ensuite une tâche avec outil en lecture seule. Les modèles auxiliaires et outils facultatifs peuvent avoir leurs propres fournisseurs ou clés.
+
+## Restaurer et dépanner
+
+Si le fournisseur est inconnu, vérifiez la version et le [format actuel](https://hermes-agent.nousresearch.com/docs/integrations/providers). En cas d’erreur d’authentification, vérifiez l’environnement et l’état de la clé sans l’afficher. Pour annuler, restaurez le modèle précédent et retirez uniquement les entrées TokenLab ajoutées.
+
+MCP et Skills sont des extensions distinctes : le [guide MCP](/fr/integrations/tokenlab-mcp-server) ajoute des outils API et le [guide Skill](/fr/integrations/coding-agent-skill) des instructions d’intégration. Ils ne sont pas nécessaires à ce fournisseur.

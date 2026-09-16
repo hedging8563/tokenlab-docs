@@ -9,28 +9,11 @@ OpenCode は、ターミナルで動作するオープンソースの AI コー�
 
 ## インストール
 
-<Tabs>
-  <Tab title="インストールスクリプト">
-    ```bash
-    curl -fsSL https://opencode.ai/install | bash
-    ```
-  </Tab>
-  <Tab title="Homebrew">
-    ```bash
-    brew install opencode-ai/tap/opencode
-    ```
+[OpenCode](https://opencode.ai/docs/)
 
-    またはコミュニティ tap を使用します（より頻繁に更新されます）:
-    ```bash
-    brew install anomalyco/tap/opencode
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```bash
-    go install github.com/opencode-ai/opencode@latest
-    ```
-  </Tab>
-</Tabs>
+```bash
+npm install -g opencode-ai
+```
 
 インストールを確認します:
 
@@ -43,19 +26,21 @@ opencode --version
 ### ステップ 1: 環境変数を設定する
 
 ```bash
-export OPENAI_API_KEY="sk-your-tokenlab-key"
+export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 ```
 
 永続的に設定するには、`~/.bashrc` または `~/.zshrc` に追加します:
 
 ```bash
-echo 'export OPENAI_API_KEY="sk-your-tokenlab-key"' >> ~/.zshrc
+echo 'export TOKENLAB_API_KEY="sk-your-tokenlab-key"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
 ### ステップ 2: OpenCode を設定する
 
 OpenCode の現在のドキュメントでは、`opencode.json` または `opencode.jsonc` を通じてプロバイダーを設定することが推奨されています。TokenLab では、組み込みの `openai` プロバイダーを流用するのではなく、カスタムプロバイダーを使用してください:
+
+この例は対応している V1 形式です。`~/.config/opencode/opencode.json` にマージし、既存のプロバイダーと権限を残します。V2 は対応する V1 設定を読めますが、同一プロバイダー内で形式を混ぜないでください。[公式移行ガイド](https://opencode.ai/v2/docs/migrate-v1/)を参照してください。`/models` で登録を確認し、有料テストを TokenLab の記録と照合します。復元時は元のモデルに戻し、この項目だけを削除します。
 
 ```jsonc
 {
@@ -66,19 +51,19 @@ OpenCode の現在のドキュメントでは、`opencode.json` または `openc
       "name": "TokenLab",
       "options": {
         "baseURL": "https://api.tokenlab.sh/v1",
-        "apiKey": "{env:OPENAI_API_KEY}"
+        "apiKey": "{env:TOKENLAB_API_KEY}"
       },
       "models": {
         "gpt-5.6-terra": {
-          "name": "GPT-5.4"
+          "name": "GPT-5.6 Terra"
         },
         "gpt-5.6-luna": {
-          "name": "GPT-5 Mini"
+          "name": "GPT-5.6 Luna"
         }
       }
     }
   },
-  "model": "tokenlab/gpt-5.4"
+  "model": "tokenlab/gpt-5.6-terra"
 }
 ```
 
@@ -97,21 +82,21 @@ opencode
 **プロンプトを指定して実行する:**
 
 ```bash
-opencode "Explain this codebase"
+opencode run "Explain this codebase"
 ```
 
 **モデルを指定する:**
 
 ```bash
-opencode --model tokenlab/gpt-5.4 "Fix the bugs in main.py"
+opencode run --model tokenlab/gpt-5.6-terra "Fix the bugs in main.py"
 ```
 
 ## 利用可能なモデル
 
 | モデル | 最適用途 |
 |-------|----------|
-| `gpt-5.4` | 複雑なタスク、コードアーキテクチャ |
-| `gpt-5-mini` | 素早い修正、簡単な問い合わせ |
+| `gpt-5.6-terra` | 複雑なタスク、コードアーキテクチャ |
+| `gpt-5.6-luna` | 素早い修正、簡単な問い合わせ |
 | `claude-sonnet-4-6` | コードレビュー、ドキュメント作成 |
 | `claude-opus-4-6` | 複雑な推論 |
 | `gemini-3.5-flash` | 高速な応答 |
@@ -121,25 +106,25 @@ opencode --model tokenlab/gpt-5.4 "Fix the bugs in main.py"
 **コードを解析する:**
 
 ```bash
-opencode "What does this function do?" < src/utils.ts
+opencode run "What does this function do?" < src/utils.ts
 ```
 
 **コードを生成する:**
 
 ```bash
-opencode "Create a REST API with Express"
+opencode run "Create a REST API with Express"
 ```
 
 **変更をレビューする:**
 
 ```bash
-git diff | opencode "Review these changes"
+git diff | opencode run "Review these changes"
 ```
 
 **エラーを修正する:**
 
 ```bash
-opencode "Fix the TypeScript errors in this project"
+opencode run "Fix the TypeScript errors in this project"
 ```
 
 ## 対話コマンド
@@ -147,7 +132,7 @@ opencode "Fix the TypeScript errors in this project"
 | コマンド | 説明 |
 |---------|-------------|
 | `/help` | 利用可能なコマンドを表示 |
-| `/model <name>` | 別のモデルに切り替える |
+| `/models` | 別のモデルに切り替える |
 | `/clear` | 会話履歴をクリアする |
 | `/exit` | OpenCode を終了する |
 
@@ -161,8 +146,8 @@ opencode "Fix the TypeScript errors in this project"
   </Accordion>
 
   <Accordion title="認証に失敗しました">
-    - `OPENAI_API_KEY` 環境変数が設定されていることを確認してください
-    - `options.apiKey` が `{env:OPENAI_API_KEY}` または別の有効な secret ソースを参照していることを確認してください
+    - `TOKENLAB_API_KEY` 環境変数が設定されていることを確認してください
+    - `options.apiKey` が `{env:TOKENLAB_API_KEY}` または別の有効な secret ソースを参照していることを確認してください
     - キーが `sk-` で始まっていることを確認してください
     - TokenLab ダッシュボードでキーが有効になっていることを確認してください
   </Accordion>
@@ -181,7 +166,7 @@ opencode "Fix the TypeScript errors in this project"
   </Accordion>
 
   <Accordion title="適切なモデルを選択する">
-    簡単なタスクには高速なモデル（`gpt-5-mini`）を使用し、複雑なタスクにはより高性能なモデル（`gpt-5.4`、`claude-sonnet-4-6`）を使用してください。
+    簡単なタスクには高速なモデル（`gpt-5.6-luna`）を使用し、複雑なタスクにはより高性能なモデル（`gpt-5.6-terra`、`claude-sonnet-4-6`）を使用してください。
   </Accordion>
 
   <Accordion title="生成されたコードをレビューする">

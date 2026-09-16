@@ -13,8 +13,10 @@ description: "OpenAI、Responses、Anthropic、Gemini 互換ルートを使用�
 
 ```bash
 openclaw plugins install @tokenlabai/openclaw-provider
-openclaw onboard --tokenlab-api-key "$TOKENLAB_API_KEY"
+openclaw onboard
 ```
+
+導入後に `openclaw onboard` を実行し、表示された TokenLab を選び、ローカルの認証入力にだけキーを入れます。プラグインを読み込めない場合は下記の手動設定を使い、バージョン互換性を確認します。
 
 プラグインは TokenLab のライブチャットモデルカタログを取得し、オフライン検出用に 18 個のフォールバックモデルも保持します。モデルは `tokenlab/<model-id>` 形式で指定します。
 
@@ -43,7 +45,7 @@ openclaw onboard --tokenlab-api-key "$TOKENLAB_API_KEY"
 ## 前提条件
 
 - セルフホストの OpenClaw インスタンス
-- TokenLab API Key — [Get one here](https://tokenlab.sh/dashboard)
+- TokenLab API Key — [Get one here](https://tokenlab.sh/dashboard/api?tab=keys)
 
 ## 設定
 
@@ -53,12 +55,14 @@ OpenClaw の設定を編集します:
 
 `models.providers` の下に TokenLab プロバイダを追加します:
 
+稼働中 Gateway と同じ profile、`OPENCLAW_STATE_DIR`、`OPENCLAW_CONFIG_PATH` を使い、設定をバックアップします。`TOKENLAB_API_KEY` はそのインスタンスの信頼されたグローバル `.env` またはサービス環境に保存します。端末の export やプロジェクト `.env` だけではバックグラウンドに届かない場合があります。[環境の説明](https://docs.openclaw.ai/help/environment)を参照してください。
+
 ```json5
 {
   agents: {
     defaults: {
       model: {
-        primary: "tokenlab-claude/claude-sonnet-4-6"
+        primary: "tokenlab-claude/claude-sonnet-5"
       }
     }
   },
@@ -68,7 +72,7 @@ OpenClaw の設定を編集します:
       tokenlab: {
         api: "openai-completions",
         baseUrl: "https://api.tokenlab.sh/v1",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "gpt-5.6-terra", name: "GPT-5.6 Terra" },
           { id: "deepseek-reasoner", name: "DeepSeek Reasoner" },
@@ -78,7 +82,7 @@ OpenClaw の設定を編集します:
       "tokenlab-responses": {
         api: "openai-responses",
         baseUrl: "https://api.tokenlab.sh/v1",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "gpt-5.6-terra", name: "GPT-5.6 Terra (Responses)" },
           { id: "gpt-5.2", name: "GPT-5.2 (Responses)" }
@@ -87,7 +91,7 @@ OpenClaw の設定を編集します:
       "tokenlab-claude": {
         api: "anthropic-messages",
         baseUrl: "https://api.tokenlab.sh",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "claude-sonnet-5", name: "Claude Sonnet 5" },
           { id: "claude-opus-5", name: "Claude Opus 5" }
@@ -96,7 +100,7 @@ OpenClaw の設定を編集します:
       "tokenlab-gemini": {
         api: "google-generative-ai",
         baseUrl: "https://api.tokenlab.sh",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "gemini-3.5-flash", name: "Gemini 3.5 Flash" },
           { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" }
@@ -105,7 +109,7 @@ OpenClaw の設定を編集します:
       "tokenlab-minimax": {
         api: "anthropic-messages",
         baseUrl: "https://api.tokenlab.sh",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "minimax-m3", name: "MiniMax M3" }
         ]
@@ -143,9 +147,9 @@ OpenClaw は引き続き `provider/model` 形式でモデルを参照します:
 
 | プロバイダー | モデル参照 | 説明 |
 |----------|-----------------|-------------|
-| `tokenlab` | `tokenlab/gpt-4o` | OpenAI 互換ルート |
-| `tokenlab-responses` | `tokenlab-responses/gpt-4o` | Responses API ルート |
-| `tokenlab-claude` | `tokenlab-claude/claude-sonnet-4-6` | ネイティブ Claude Messages ルート |
+| `tokenlab` | `tokenlab/gpt-5.6-terra` | OpenAI 互換ルート |
+| `tokenlab-responses` | `tokenlab-responses/gpt-5.6-terra` | Responses API ルート |
+| `tokenlab-claude` | `tokenlab-claude/claude-sonnet-5` | ネイティブ Claude Messages ルート |
 | `tokenlab-gemini` | `tokenlab-gemini/gemini-3.5-flash` | ネイティブ Gemini ルート |
 | `tokenlab-minimax` | `tokenlab-minimax/minimax-m3` | ネイティブ MiniMax ルート |
 
@@ -180,12 +184,11 @@ Gemini ネイティブの動作が不要な場合でも、OpenAI 互換ルート
 
 ## 設定の検証
 
-設定を保存したら、OpenClaw インスタンスを再起動し、簡単なメッセージでテストしてください。レスポンスが返ってくれば、プロバイダは正しく構成されています。
+同じインスタンスを再起動してモデルとプロバイダーを確認します。`--probe` なしの `models status` はモデル呼び出しを検証しません。実際の探測や会話には token を使う場合があります。応答と TokenLab の記録を照合してください。復元時は元のモデルを選び、追加した項目だけを削除します。
 
 ```bash
-# セルフホスト: サービスを再起動
-systemctl --user restart openclaw    # Linux
-launchctl stop cc.tokenlab.openclaw && launchctl start cc.tokenlab.openclaw  # macOS
+openclaw gateway restart
+openclaw models status
 ```
 
 ## 次のステップ

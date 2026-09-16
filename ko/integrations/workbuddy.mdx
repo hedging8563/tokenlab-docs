@@ -5,7 +5,7 @@ description: "WorkBuddy에 TokenLab 사용자 지정 모델을 추가합니다"
 
 ## 개요
 
-[WorkBuddy](https://www.workbuddy.ai/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model)는 OpenAI 호환 API를 위한 시각적 사용자 지정 모델 편집기를 제공합니다.
+[WorkBuddy](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model)는 OpenAI 호환 API를 위한 시각적 사용자 지정 모델 편집기를 제공합니다.
 
 ## TokenLab 설정
 
@@ -22,6 +22,12 @@ description: "WorkBuddy에 TokenLab 사용자 지정 모델을 추가합니다"
 Custom Protocol을 끄세요. 표준 모드는 Base URL을 검사하고 `/chat/completions`를 자동으로 추가합니다. 켠 상태에서 `/v1`만 입력하면 잘못된 경로로 요청합니다.
 </Warning>
 
-고급 설정에서 도구 호출, 이미지 입력, 추론 모드를 켜고 추론 전용은 끄세요. 기본 추론 강도는 Auto, 입력 한도는 `1048576`, 출력 한도는 `131072`입니다.
+도구, 이미지, 추론 기능과 용량 제한은 선택 모델의 현재 TokenLab 정보를 따르세요. 모든 모델에서 기능을 켜거나 다른 모델의 1M/128K 제한을 복사하지 마세요. 표시된 모델 ID를 그대로 사용합니다.
 
 저장한 뒤 `kimi-k3`를 선택하고 읽기 전용 폴더 검사로 검증하세요. 설정 스크린샷을 공유하기 전에 API Key와 비공개 엔드포인트를 가리세요.
+
+저장과 선택은 로컬 설정만 확인합니다. 텍스트나 도구 작업은 TokenLab 잔액을 사용하므로 응답과 [요청 기록](https://tokenlab.sh/dashboard/runs?section=requests)을 비교하세요. 복구하려면 이전 모델로 돌아가 추가한 TokenLab 항목만 제거합니다.
+
+공식 데스크톱 앱은 macOS와 Windows를 지원합니다. [공식 모델 편집기](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model)를 사용하며 Linux 버전이나 직접 쓸 수 있는 파일 형식을 가정하지 않습니다.
+
+MCP [API 도구](/ko/integrations/tokenlab-mcp-server)와 Skill [통합 지침](/ko/integrations/coding-agent-skill)은 별도 설치이며 주 모델을 바꾸지 않습니다.

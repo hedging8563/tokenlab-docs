@@ -3,6 +3,13 @@ title: "TokenLab MCP Server"
 description: "Kết nối Claude Code, Cursor, VS Code, Codex và các MCP client khác với công cụ mô hình, giá, suy luận, phương tiện, tệp và tác vụ của TokenLab."
 ---
 
+## Chọn phần mở rộng
+
+- MCP thêm công cụ TokenLab API vào máy khách tương thích. Bắt đầu với cấu hình `catalog` không cần khóa bên dưới.
+- [TokenLab Skill](/vi/integrations/coding-agent-skill) cài hướng dẫn tích hợp qua `npx skills add`, không khởi chạy máy chủ MCP.
+
+Cả hai mở rộng agent hiện có. Để đổi nhà cung cấp mô hình chính, hãy dùng hướng dẫn của máy khách đó.
+
 [TokenLab MCP server](https://github.com/hedging8563/tokenlab-mcp-server) tạo ra các công cụ MCP từ hợp đồng OpenAPI công khai của TokenLab. Các tác nhân (agent) tương thích với MCP có thể khám phá các mô hình và giá cả, gọi các endpoint LLM gốc và tương thích với OpenAI, tạo phương tiện đa phương thức, tải lên tệp tin và quản lý các tác vụ bất đồng bộ.
 
 Hãy sử dụng nó khi một tác nhân cần hợp đồng API TokenLab hiện tại thay vì danh sách công cụ được duy trì thủ công. Cấu hình `core` mặc định cung cấp 29 công cụ endpoint được tạo sẵn cộng với hai công cụ khám phá tổng hợp. Cấu hình `full` cung cấp 78 công cụ endpoint được tạo sẵn cộng với hai công cụ tổng hợp tương tự.

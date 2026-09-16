@@ -19,28 +19,11 @@ OpenCode, terminalinizde çalışan açık kaynaklı bir AI kodlama asistanıdı
 
 ## Kurulum
 
-<Tabs>
-  <Tab title="Kurulum Script'i">
-    ```bash
-    curl -fsSL https://opencode.ai/install | bash
-    ```
-  </Tab>
-  <Tab title="Homebrew">
-    ```bash
-    brew install opencode-ai/tap/opencode
-    ```
+[OpenCode](https://opencode.ai/docs/)
 
-    Veya topluluk tap'ini kullanın (daha sık güncellemeler):
-    ```bash
-    brew install anomalyco/tap/opencode
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```bash
-    go install github.com/opencode-ai/opencode@latest
-    ```
-  </Tab>
-</Tabs>
+```bash
+npm install -g opencode-ai
+```
 
 Kurulumu doğrulayın:
 
@@ -53,19 +36,21 @@ opencode --version
 ### Adım 1: Environment Variable'ları Ayarlayın
 
 ```bash
-export OPENAI_API_KEY="sk-your-tokenlab-key"
+export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 ```
 
 Kalıcı yapılandırma için, `~/.bashrc` veya `~/.zshrc` dosyanıza ekleyin:
 
 ```bash
-echo 'export OPENAI_API_KEY="sk-your-tokenlab-key"' >> ~/.zshrc
+echo 'export TOKENLAB_API_KEY="sk-your-tokenlab-key"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
 ### Adım 2: OpenCode'u Yapılandırın
 
 OpenCode'un mevcut dokümantasyonu, sağlayıcıların `opencode.json` veya `opencode.jsonc` üzerinden yapılandırılmasını önerir. TokenLab için, yerleşik `openai` sağlayıcısını aşırı yüklemek yerine özel bir sağlayıcı kullanın:
+
+Örnek desteklenen V1 biçimini kullanır. Sağlayıcıları ve izinleri koruyarak `~/.config/opencode/opencode.json` içine birleştirin. V2 desteklenen V1 ayarlarını okur; sağlayıcı içinde biçimleri karıştırmayın. [Resmî geçiş kılavuzuna](https://opencode.ai/v2/docs/migrate-v1/) bakın. `/models` kaydını kontrol edip ücretli testi TokenLab kaydıyla karşılaştırın. Geri almak için eski modeli seçip yalnızca bu girdiyi kaldırın.
 
 ```jsonc
 {
@@ -76,19 +61,19 @@ OpenCode'un mevcut dokümantasyonu, sağlayıcıların `opencode.json` veya `ope
       "name": "TokenLab",
       "options": {
         "baseURL": "https://api.tokenlab.sh/v1",
-        "apiKey": "{env:OPENAI_API_KEY}"
+        "apiKey": "{env:TOKENLAB_API_KEY}"
       },
       "models": {
         "gpt-5.6-terra": {
-          "name": "GPT-5.4"
+          "name": "GPT-5.6 Terra"
         },
         "gpt-5.6-luna": {
-          "name": "GPT-5 Mini"
+          "name": "GPT-5.6 Luna"
         }
       }
     }
   },
-  "model": "tokenlab/gpt-5.4"
+  "model": "tokenlab/gpt-5.6-terra"
 }
 ```
 
@@ -107,21 +92,21 @@ opencode
 **Bir prompt ile çalıştırın:**
 
 ```bash
-opencode "Explain this codebase"
+opencode run "Explain this codebase"
 ```
 
 **Model belirtin:**
 
 ```bash
-opencode --model tokenlab/gpt-5.4 "Fix the bugs in main.py"
+opencode run --model tokenlab/gpt-5.6-terra "Fix the bugs in main.py"
 ```
 
 ## Kullanılabilir Modeller
 
 | Model | En Uygun Olduğu Alan |
 |-------|----------|
-| `gpt-5.4` | Karmaşık görevler, kod mimarisi |
-| `gpt-5-mini` | Hızlı düzeltmeler, basit sorgular |
+| `gpt-5.6-terra` | Karmaşık görevler, kod mimarisi |
+| `gpt-5.6-luna` | Hızlı düzeltmeler, basit sorgular |
 | `claude-sonnet-4-6` | Kod inceleme, dokümantasyon |
 | `claude-opus-4-6` | Karmaşık muhakeme |
 | `gemini-3.5-flash` | Hızlı yanıtlar |
@@ -131,25 +116,25 @@ opencode --model tokenlab/gpt-5.4 "Fix the bugs in main.py"
 **Kodu analiz edin:**
 
 ```bash
-opencode "What does this function do?" < src/utils.ts
+opencode run "What does this function do?" < src/utils.ts
 ```
 
 **Kod üretin:**
 
 ```bash
-opencode "Create a REST API with Express"
+opencode run "Create a REST API with Express"
 ```
 
 **Değişiklikleri inceleyin:**
 
 ```bash
-git diff | opencode "Review these changes"
+git diff | opencode run "Review these changes"
 ```
 
 **Hataları düzeltin:**
 
 ```bash
-opencode "Fix the TypeScript errors in this project"
+opencode run "Fix the TypeScript errors in this project"
 ```
 
 ## Etkileşimli Komutlar
@@ -157,7 +142,7 @@ opencode "Fix the TypeScript errors in this project"
 | Komut | Açıklama |
 |---------|-------------|
 | `/help` | Kullanılabilir komutları göster |
-| `/model <name>` | Farklı bir modele geç |
+| `/models` | Farklı bir modele geç |
 | `/clear` | Konuşma geçmişini temizle |
 | `/exit` | OpenCode'dan çık |
 
@@ -171,8 +156,8 @@ opencode "Fix the TypeScript errors in this project"
   </Accordion>
 
   <Accordion title="Kimlik Doğrulama Başarısız Oldu">
-    - `OPENAI_API_KEY` environment variable'ının ayarlandığını doğrulayın
-    - `options.apiKey` değerinin `{env:OPENAI_API_KEY}` veya başka bir geçerli secret kaynağına başvurduğunu doğrulayın
+    - `TOKENLAB_API_KEY` environment variable'ının ayarlandığını doğrulayın
+    - `options.apiKey` değerinin `{env:TOKENLAB_API_KEY}` veya başka bir geçerli secret kaynağına başvurduğunu doğrulayın
     - Anahtarın `sk-` ile başladığını kontrol edin
     - Anahtarın TokenLab dashboard'unda aktif olduğundan emin olun
   </Accordion>
@@ -191,7 +176,7 @@ opencode "Fix the TypeScript errors in this project"
   </Accordion>
 
   <Accordion title="Uygun modelleri seçin">
-    Basit görevler için daha hızlı modelleri (`gpt-5-mini`), karmaşık görevler için ise daha güçlü modelleri (`gpt-5.4`, `claude-sonnet-4-6`) kullanın.
+    Basit görevler için daha hızlı modelleri (`gpt-5.6-luna`), karmaşık görevler için ise daha güçlü modelleri (`gpt-5.6-terra`, `claude-sonnet-4-6`) kullanın.
   </Accordion>
 
   <Accordion title="Üretilen kodu inceleyin">

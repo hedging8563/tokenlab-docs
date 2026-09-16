@@ -13,7 +13,7 @@ description: "TokenLab'i WorkBuddy'de özel model olarak ekleyin"
 **Destek**: resmi özel model yolu
 </Note>
 
-[WorkBuddy](https://www.workbuddy.ai/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model), OpenAI uyumlu modeller için görsel bir düzenleyici sunar; yerel model dosyasını elle düzenlemek gerekmez.
+[WorkBuddy](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model), OpenAI uyumlu modeller için görsel bir düzenleyici sunar; yerel model dosyasını elle düzenlemek gerekmez.
 
 ## TokenLab'i yapılandırma
 
@@ -30,6 +30,12 @@ description: "TokenLab'i WorkBuddy'de özel model olarak ekleyin"
 Custom Protocol kapalı kalmalıdır. Standart mod Base URL'yi doğrular ve `/chat/completions` ekler. Açıkken yalnızca `/v1` girilirse istek yanlış yola gönderilir.
 </Warning>
 
-Gelişmiş ayarlarda araç çağrısını, görüntü girişini ve akıl yürütmeyi etkinleştirin. Yalnızca akıl yürütme modunu kapatın, çabayı Auto bırakın; giriş `1048576`, çıkış `131072` olsun.
+Araçları, görüntüleri, akıl yürütmeyi ve sınırları modelin güncel TokenLab ayrıntılarına göre ayarlayın. Hepsini açmayın veya başka modelin 1M/128K sınırlarını kopyalamayın. Gösterilen model kimliğini kullanın.
 
 Kaydedip `kimi-k3` seçin ve salt okunur klasör incelemesiyle test edin. Ekran görüntüsü paylaşmadan önce Key ve özel endpoint'leri gizleyin.
+
+Kaydetmek ve seçmek yalnızca yerel ayarı doğrular. Metin veya araç görevleri TokenLab bakiyesini kullanır; yanıtı [istek kaydıyla](https://tokenlab.sh/dashboard/runs?section=requests) karşılaştırın. Geri almak için önceki modeli seçip yalnızca eklenen TokenLab girdisini kaldırın.
+
+Resmî uygulama macOS ve Windows için sunulur. [Resmî model düzenleyicisini](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model) kullanın; Linux sürümü veya doğrudan yazılabilir dosya biçimi varsayılmaz.
+
+[MCP API araçları](/tr/integrations/tokenlab-mcp-server) ve [Skill yönergeleri](/tr/integrations/coding-agent-skill) ayrı kurulur ve ana modeli değiştirmez.

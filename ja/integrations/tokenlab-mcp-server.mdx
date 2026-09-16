@@ -3,6 +3,13 @@ title: "TokenLab MCP Server"
 description: "Claude Code、Cursor、VS Code、CodexなどのMCPクライアントを、TokenLabのモデル、価格、推論、メディア、ファイル、タスク用ツールに接続します。"
 ---
 
+## 必要な機能を選ぶ
+
+- MCP は対応クライアントに TokenLab API ツールを追加します。以下のキー不要な `catalog` 設定から始められます。
+- [TokenLab Skill](/ja/integrations/coding-agent-skill) は `npx skills add` で統合手順を追加します。MCP サーバーは起動しません。
+
+どちらも既存のエージェントを拡張します。主モデルの変更は各クライアントの接続ガイドで行います。
+
 [TokenLab MCP server](https://github.com/hedging8563/tokenlab-mcp-server)は、TokenLabの公開OpenAPIコントラクトからMCPツールを生成します。MCP互換エージェントは、モデルや価格の検索、OpenAI互換およびネイティブLLMエンドポイントの呼び出し、マルチモーダルメディアの作成、ファイルのアップロード、非同期タスクの管理を行うことができます。
 
 手動で管理されたツールリストではなく、最新のTokenLab APIコントラクトをエージェントが必要とする場合に使用してください。デフォルトの `core` プロファイルでは、29個の生成済みエンドポイントツールと2個の複合検索ツールが公開されます。`full` プロファイルでは、78個の生成済みエンドポイントツールと、同じ2個の複合ツールが公開されます。

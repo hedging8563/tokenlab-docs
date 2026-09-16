@@ -1,0 +1,40 @@
+---
+title: "Hermes Agent"
+description: "Hermes Agent ile TokenLab bağlantısı"
+---
+
+Mevcut hesapları, ayarları ve araç izinlerini koruyarak TokenLab adlı ayrı bir sağlayıcı ekleyin.
+
+## Hermes kurulumu ve kontrolü
+
+[Resmî kurulum kılavuzu](https://hermes-agent.nousresearch.com/docs/getting-started/installation), Apple Silicon macOS ve Windows masaüstü yükleyicileri ile Linux ve yerel Windows CLI kurulumunu sunar. Sistem gereksinimlerini kontrol edin; Hermes kuruluysa kurulumu atlayın.
+
+## Adlandırılmış sağlayıcıyı yapılandırın
+
+Tanımlıysa `HERMES_HOME` dizinini, değilse `~/.hermes` dizinini kullanın (Windows: `%USERPROFILE%\.hermes`). `config.yaml` dosyasını yedekleyip diğer ayarları değiştirmeden aşağıdaki girdileri birleştirin. Chat Completions ve araç çağrılarını destekleyen güncel bir model seçin.
+
+```yaml
+providers:
+  tokenlab:
+    api: https://api.tokenlab.sh/v1
+    key_env: TOKENLAB_API_KEY
+    transport: chat_completions
+    default_model: gpt-5.6-luna
+model:
+  provider: custom:tokenlab
+  default: gpt-5.6-luna
+```
+
+[API anahtarları](https://tokenlab.sh/dashboard/api?tab=keys) sayfasında anahtar oluşturun. Anahtarı Hermes dizinindeki `.env` dosyasına veya başlatan sürecin ortamına `TOKENLAB_API_KEY` olarak yerel biçimde kaydedin. Sohbete veya sağlayıcının YAML dosyasına yapıştırmayın.
+
+## Önce kontrol, sonra istek
+
+`hermes config get model.provider` ve `hermes config get model.default` komutları `custom:tokenlab` ile seçili modeli göstermelidir. Eski oturumlar önceki modeli koruyabileceğinden yeni oturum başlatın. Yapılandırma kontrolü anahtarın geçerliliğini veya başarılı model çağrısını kanıtlamaz.
+
+TokenLab bakiyesini kullanmaya hazır olduğunuzda kısa bir metin gönderip yanıtı [istek kaydıyla](https://tokenlab.sh/dashboard/runs?section=requests) karşılaştırın. Ardından salt okunur bir araç görevi deneyin. Yardımcı modeller ve isteğe bağlı araçlar ayrı sağlayıcılar veya anahtarlar kullanabilir.
+
+## Geri alma ve sorun giderme
+
+Sağlayıcı tanınmıyorsa sürümü ve [güncel biçimi](https://hermes-agent.nousresearch.com/docs/integrations/providers) kontrol edin. Kimlik doğrulama hatasında anahtarı yazdırmadan ortamı ve anahtar durumunu inceleyin. Geri almak için önceki model seçimini geri yükleyip yalnızca eklediğiniz TokenLab girdilerini kaldırın.
+
+MCP ve Skills ayrı uzantılardır: [MCP kılavuzu](/tr/integrations/tokenlab-mcp-server) API araçları, [Skill kılavuzu](/tr/integrations/coding-agent-skill) entegrasyon yönergeleri sağlar. Bu sağlayıcı ayarı için gerekli değildir.

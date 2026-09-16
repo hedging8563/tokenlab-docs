@@ -3,10 +3,25 @@ title: "WorkBuddy"
 description: "Add TokenLab as a custom model provider in WorkBuddy"
 ---
 
+## Let my agent set this up
+
+Copy this task to an agent already running on your computer:
+
+```text
+Read this guide and help me connect WorkBuddy to TokenLab:
+https://docs.tokenlab.sh/integrations/workbuddy
+Check my installed version and active configuration first.
+Preserve existing accounts, providers, permissions and other settings.
+Back up local files and show proposed changes.
+Have me enter any API key locally; never ask for, print or paste it in chat.
+Check configuration loading first.
+Explain any paid request test separately before running it.
+```
+
 ## Overview
 
 
-[WorkBuddy](https://www.workbuddy.ai/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model) can add TokenLab through its visual custom-model editor.
+[WorkBuddy](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model) can add TokenLab through its visual custom-model editor.
 
 ## Configure TokenLab
 
@@ -27,19 +42,9 @@ Keep **Custom Protocol** off. In standard mode WorkBuddy validates the base URL 
 
 ## Advanced model settings
 
-For the `kimi-k3` example, use TokenLab's current public capability metadata:
+Choose capability flags and context/output limits from the selected model’s current TokenLab details. Do not enable image input or reasoning for every model, and do not copy a 1M/128K limit to a different model. Use the model ID exactly as shown by TokenLab.
 
-| Setting | Value |
-|---|---|
-| Tool calling | Enabled |
-| Image input | Enabled |
-| Reasoning mode | Enabled |
-| Reasoning only | Disabled |
-| Default reasoning effort | Auto |
-| Input limit | `1048576` |
-| Output limit | `131072` |
-
-Click **Save**, then select `kimi-k3` from WorkBuddy's model picker.
+Saving and selecting a model confirms only local configuration. A text or tool task uses TokenLab balance; compare its reply with the matching [request record](https://tokenlab.sh/dashboard/runs?section=requests). To undo setup, select your previous model and remove only the TokenLab entry in the editor.
 
 ## Verify
 
@@ -56,7 +61,7 @@ Inspect this folder, list its top-level files, and summarize what the project do
     Confirm the endpoint is `https://api.tokenlab.sh/v1` and **Custom Protocol** is off. Do not paste `/chat/completions` when standard mode is selected.
   </Accordion>
   <Accordion title="Model not found">
-    Use `kimi-k3`, not `kimi/kimi-k3`. TokenLab exposes model IDs without a provider prefix.
+    Copy the exact model ID from TokenLab and check that it supports Chat Completions and tools.
   </Accordion>
   <Accordion title="Agent replies but cannot use tools">
     Enable **Tool calling** and make sure the selected TokenLab model advertises tool-use support.
@@ -66,3 +71,7 @@ Inspect this folder, list its top-level files, and summarize what the project do
 <Warning>
 Screenshots of the model dialog can reveal endpoints or API keys. Mask credentials before sharing them and rotate any exposed key.
 </Warning>
+
+The official desktop app is available for macOS and Windows. Use the [official model editor](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model); this guide does not assume a Linux build or a writable configuration-file schema.
+
+MCP and Skills have separate installation paths: [API tools](/integrations/tokenlab-mcp-server) and [integration instructions](/integrations/coding-agent-skill). They do not change WorkBuddy’s main model.

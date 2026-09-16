@@ -5,15 +5,21 @@ description: "Utilisez TokenLab avec le CLI Claude Code d'Anthropic"
 
 ## Vue d’ensemble
 
-[Claude Code](https://docs.anthropic.com/en/docs/claude-code) est l’outil CLI officiel d’Anthropic pour le développement assisté par IA. Vous pouvez le configurer pour utiliser TokenLab comme fournisseur d’API.
+[Claude Code](https://code.claude.com/docs/en/setup) est l’outil CLI officiel d’Anthropic pour le développement assisté par IA. Vous pouvez le configurer pour utiliser TokenLab comme fournisseur d’API.
 
 ## Installation
 
 Anthropic recommande désormais l’installateur natif. L’installation via npm existe toujours pour des raisons de compatibilité, mais elle est dépréciée en amont.
 
-```bash
+<CodeGroup>
+```bash macOS / Linux / WSL
 curl -fsSL https://claude.ai/install.sh | bash
 ```
+
+```powershell Windows
+irm https://claude.ai/install.ps1 | iex
+```
+</CodeGroup>
 
 Si vous avez spécifiquement besoin du package npm, utilisez :
 
@@ -46,6 +52,8 @@ Pour TokenLab, conservez `ANTHROPIC_BASE_URL` à `https://api.tokenlab.sh` sans 
 
 Vous pouvez aussi créer ou modifier `~/.claude/settings.json` :
 
+Sauvegardez et fusionnez les paramètres sans remplacer comptes ou autorisations. `ANTHROPIC_API_KEY` envoie `X-Api-Key`, et `ANTHROPIC_AUTH_TOKEN` un jeton Bearer. Choisissez une méthode. `/status` affiche modèle et source de configuration, mais ne valide pas une requête payante. Après un court test, comparez réponse et journal TokenLab. Pour restaurer, annulez uniquement vos ajouts. Voir la [priorité](https://code.claude.com/docs/en/settings).
+
 ```json
 {
   "env": {
@@ -66,8 +74,6 @@ claude
 # Run a single command
 claude "Explain this code" < main.py
 
-# Chat mode
-claude chat
 ```
 
 Vérifiez l’installation si nécessaire :

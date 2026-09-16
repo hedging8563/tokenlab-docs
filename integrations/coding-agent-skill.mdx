@@ -3,6 +3,21 @@ title: "TokenLab API skill for coding agents"
 description: "Give a coding agent current TokenLab models, API examples, and error-handling guidance"
 ---
 
+## Let my agent set this up
+
+Copy this task to an agent already running on your computer:
+
+```text
+Read this guide and add the TokenLab Skill to my current agent:
+https://docs.tokenlab.sh/integrations/coding-agent-skill
+Check my installed version and active configuration first.
+Preserve existing accounts, providers, permissions and other settings.
+Back up local files and show proposed changes.
+Have me enter any API key locally; never ask for, print or paste it in chat.
+Check configuration loading first.
+Explain any paid request test separately before running it.
+```
+
 The `tokenlab-api-integration` skill helps coding agents add TokenLab to an application without relying on an old model list. It covers chat, images, video, audio, translation, embeddings, rerank, music, 3D, and Worlds.
 
 The public skill is available in [tokenlab-skills](https://github.com/hedging8563/tokenlab-skills).
@@ -31,7 +46,7 @@ The skill does not replace the API reference. For exact fields and response obje
 
 ## Create an API key
 
-Open [Console → API keys](https://tokenlab.sh/dashboard/api), create a key, and store it in an environment variable. A TokenLab API key starts with `sk-`.
+Open [Console → API keys](https://tokenlab.sh/dashboard/api?tab=keys&createKey=1&docsTopic=codingAgents), create a key, and store it in an environment variable. A TokenLab API key starts with `sk-`.
 
 ```bash
 export TOKENLAB_API_KEY="sk-your-api-key"

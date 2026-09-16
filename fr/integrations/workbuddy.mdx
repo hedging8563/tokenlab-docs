@@ -5,7 +5,7 @@ description: "Ajouter TokenLab comme modèle personnalisé dans WorkBuddy"
 
 ## Aperçu
 
-[WorkBuddy](https://www.workbuddy.ai/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model) propose un éditeur visuel pour les modèles compatibles OpenAI. Il n'est pas nécessaire de modifier manuellement le fichier local.
+[WorkBuddy](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model) propose un éditeur visuel pour les modèles compatibles OpenAI. Il n'est pas nécessaire de modifier manuellement le fichier local.
 
 ## Configurer TokenLab
 
@@ -22,6 +22,12 @@ Ouvrez **Settings → Model**, ajoutez un modèle et choisissez **Custom**.
 Laissez Custom Protocol désactivé. Le mode standard valide la Base URL et ajoute `/chat/completions`. S'il est activé avec seulement `/v1`, la requête utilise un mauvais chemin.
 </Warning>
 
-Dans les réglages avancés, activez les appels d'outils, les images et le raisonnement. Désactivez le mode raisonnement seul, laissez l'effort sur Auto, puis utilisez `1048576` en entrée et `131072` en sortie.
+Réglez outils, images, raisonnement et limites selon les détails TokenLab actuels du modèle choisi. Ne les activez pas systématiquement et ne copiez pas des limites 1M/128K d’un autre modèle. Utilisez l’identifiant affiché.
 
 Après enregistrement, choisissez `kimi-k3` et testez une inspection de dossier en lecture seule. Masquez les clés et endpoints privés avant de partager une capture.
+
+Enregistrer et sélectionner confirme uniquement le réglage local. Les tâches texte ou outils utilisent le solde TokenLab ; vérifiez la réponse et son [enregistrement](https://tokenlab.sh/dashboard/runs?section=requests). Pour annuler, sélectionnez l’ancien modèle et retirez seulement l’entrée TokenLab ajoutée.
+
+L’application officielle existe pour macOS et Windows. Utilisez [l’éditeur officiel](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model). Ce guide ne suppose ni version Linux ni format de fichier directement modifiable.
+
+Les [outils API MCP](/fr/integrations/tokenlab-mcp-server) et [instructions Skill](/fr/integrations/coding-agent-skill) s’installent séparément et ne changent pas le modèle principal.

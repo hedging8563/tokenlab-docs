@@ -13,8 +13,10 @@ Untuk eksekusi agen OpenClaw standar, instal plugin penyedia TokenLab:
 
 ```bash
 openclaw plugins install @tokenlabai/openclaw-provider
-openclaw onboard --tokenlab-api-key "$TOKENLAB_API_KEY"
+openclaw onboard
 ```
+
+Setelah instalasi, jalankan `openclaw onboard`, pilih TokenLab, dan masukkan kunci hanya pada dialog lokal. Jika plugin gagal dimuat, gunakan pengaturan manual berikut dan periksa kompatibilitas versi.
 
 Plugin mengambil katalog model chat aktif TokenLab dan menyimpan 18 model fallback untuk penemuan offline. Model menggunakan format `tokenlab/<model-id>`.
 
@@ -43,7 +45,7 @@ Penyedia native seperti `anthropic-messages` dan `google-generative-ai` harus me
 ## Prasyarat
 
 - Instance OpenClaw self-hosted
-- Kunci API TokenLab — [Dapatkan satu di sini](https://tokenlab.sh/dashboard)
+- Kunci API TokenLab — [Dapatkan satu di sini](https://tokenlab.sh/dashboard/api?tab=keys)
 
 ## Konfigurasi
 
@@ -53,12 +55,14 @@ Edit konfigurasi OpenClaw Anda:
 
 Tambahkan penyedia TokenLab di bawah `models.providers`:
 
+Gunakan profil, `OPENCLAW_STATE_DIR`, dan `OPENCLAW_CONFIG_PATH` yang sama dengan Gateway aktif, lalu cadangkan konfigurasi. Simpan `TOKENLAB_API_KEY` di `.env` global tepercaya atau lingkungan layanan instansi itu. Export terminal atau `.env` proyek mungkin tidak diteruskan ke proses latar. Lihat [lingkungan](https://docs.openclaw.ai/help/environment).
+
 ```json5
 {
   agents: {
     defaults: {
       model: {
-        primary: "tokenlab-claude/claude-sonnet-4-6"
+        primary: "tokenlab-claude/claude-sonnet-5"
       }
     }
   },
@@ -68,7 +72,7 @@ Tambahkan penyedia TokenLab di bawah `models.providers`:
       tokenlab: {
         api: "openai-completions",
         baseUrl: "https://api.tokenlab.sh/v1",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "gpt-5.6-terra", name: "GPT-5.6 Terra" },
           { id: "deepseek-reasoner", name: "DeepSeek Reasoner" },
@@ -78,7 +82,7 @@ Tambahkan penyedia TokenLab di bawah `models.providers`:
       "tokenlab-responses": {
         api: "openai-responses",
         baseUrl: "https://api.tokenlab.sh/v1",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "gpt-5.6-terra", name: "GPT-5.6 Terra (Responses)" },
           { id: "gpt-5.2", name: "GPT-5.2 (Responses)" }
@@ -87,7 +91,7 @@ Tambahkan penyedia TokenLab di bawah `models.providers`:
       "tokenlab-claude": {
         api: "anthropic-messages",
         baseUrl: "https://api.tokenlab.sh",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "claude-sonnet-5", name: "Claude Sonnet 5" },
           { id: "claude-opus-5", name: "Claude Opus 5" }
@@ -96,7 +100,7 @@ Tambahkan penyedia TokenLab di bawah `models.providers`:
       "tokenlab-gemini": {
         api: "google-generative-ai",
         baseUrl: "https://api.tokenlab.sh",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "gemini-3.5-flash", name: "Gemini 3.5 Flash" },
           { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" }
@@ -105,7 +109,7 @@ Tambahkan penyedia TokenLab di bawah `models.providers`:
       "tokenlab-minimax": {
         api: "anthropic-messages",
         baseUrl: "https://api.tokenlab.sh",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "minimax-m3", name: "MiniMax M3" }
         ]
@@ -143,9 +147,9 @@ OpenClaw masih merujuk model dengan format `provider/model`:
 
 | Penyedia | Referensi model | Deskripsi |
 |----------|-----------------|-----------|
-| `tokenlab` | `tokenlab/gpt-4o` | Rute yang kompatibel dengan OpenAI |
-| `tokenlab-responses` | `tokenlab-responses/gpt-4o` | Rute Responses API |
-| `tokenlab-claude` | `tokenlab-claude/claude-sonnet-4-6` | Rute native Claude Messages |
+| `tokenlab` | `tokenlab/gpt-5.6-terra` | Rute yang kompatibel dengan OpenAI |
+| `tokenlab-responses` | `tokenlab-responses/gpt-5.6-terra` | Rute Responses API |
+| `tokenlab-claude` | `tokenlab-claude/claude-sonnet-5` | Rute native Claude Messages |
 | `tokenlab-gemini` | `tokenlab-gemini/gemini-3.5-flash` | Rute native Gemini |
 | `tokenlab-minimax` | `tokenlab-minimax/minimax-m3` | Rute native MiniMax |
 
@@ -180,12 +184,11 @@ Jika Anda tidak memerlukan perilaku Gemini-native, Anda masih dapat memanggil mo
 
 ## Verifikasi Pengaturan
 
-Setelah menyimpan konfigurasi, restart instance OpenClaw Anda dan uji dengan pesan sederhana. Jika Anda melihat respons, penyedia dikonfigurasi dengan benar.
+Mulai ulang instansi yang sama dan periksa model serta penyedia. `models status` tanpa `--probe` bukan uji panggilan model. Probe langsung dan pesan dapat memakai token. Cocokkan balasan dengan catatan TokenLab. Untuk memulihkan, pilih model lama dan hapus hanya entri tambahan.
 
 ```bash
-# Hosting sendiri: mulai ulang layanan
-systemctl --user restart openclaw    # Linux
-launchctl stop cc.tokenlab.openclaw && launchctl start cc.tokenlab.openclaw  # macOS
+openclaw gateway restart
+openclaw models status
 ```
 
 ## Langkah Selanjutnya

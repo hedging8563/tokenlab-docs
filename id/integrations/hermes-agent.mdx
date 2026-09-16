@@ -1,0 +1,40 @@
+---
+title: "Hermes Agent"
+description: "Hubungkan Hermes Agent ke TokenLab"
+---
+
+Tambahkan TokenLab sebagai penyedia bernama tanpa mengganti akun, pengaturan, dan izin alat yang sudah ada.
+
+## Instal atau periksa Hermes
+
+[Panduan resmi](https://hermes-agent.nousresearch.com/docs/getting-started/installation) menyediakan pemasang desktop untuk macOS Apple Silicon dan Windows, serta CLI untuk Linux dan Windows native. Periksa persyaratan sistem; lewati instalasi jika Hermes sudah tersedia.
+
+## Atur penyedia bernama
+
+Gunakan direktori `HERMES_HOME` jika diatur, atau `~/.hermes` (Windows: `%USERPROFILE%\.hermes`). Cadangkan `config.yaml`, lalu gabungkan entri berikut tanpa mengganti pengaturan lain. Pilih model saat ini yang mendukung Chat Completions dan pemanggilan alat.
+
+```yaml
+providers:
+  tokenlab:
+    api: https://api.tokenlab.sh/v1
+    key_env: TOKENLAB_API_KEY
+    transport: chat_completions
+    default_model: gpt-5.6-luna
+model:
+  provider: custom:tokenlab
+  default: gpt-5.6-luna
+```
+
+Buat kunci di [Kunci API](https://tokenlab.sh/dashboard/api?tab=keys). Simpan secara lokal sebagai `TOKENLAB_API_KEY` dalam `.env` di direktori Hermes atau lingkungan proses yang menjalankannya. Jangan tempelkan kunci ke percakapan atau YAML penyedia.
+
+## Periksa lalu kirim permintaan
+
+Jalankan `hermes config get model.provider` dan `hermes config get model.default`; hasilnya harus `custom:tokenlab` dan model pilihan. Mulai sesi baru karena sesi lama dapat mempertahankan model sebelumnya. Pemeriksaan konfigurasi tidak membuktikan kunci valid atau panggilan model berhasil.
+
+Saat siap memakai saldo TokenLab, kirim teks singkat lalu cocokkan balasan dengan [catatan permintaan](https://tokenlab.sh/dashboard/runs?section=requests). Setelah itu coba tugas alat hanya baca. Model pendukung dan alat opsional dapat memakai penyedia atau kunci tersendiri.
+
+## Pulihkan dan atasi masalah
+
+Jika penyedia tidak dikenal, periksa versi dan [format terbaru](https://hermes-agent.nousresearch.com/docs/integrations/providers). Untuk kegagalan autentikasi, periksa lingkungan dan status kunci tanpa mencetaknya. Untuk membatalkan, pulihkan model sebelumnya dan hapus hanya entri TokenLab yang ditambahkan.
+
+MCP dan Skills adalah ekstensi terpisah: [panduan MCP](/id/integrations/tokenlab-mcp-server) menambahkan alat API, sedangkan [panduan Skill](/id/integrations/coding-agent-skill) memberi petunjuk integrasi. Keduanya tidak wajib untuk penyedia ini.

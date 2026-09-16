@@ -19,6 +19,20 @@ Authorization: Bearer sk-your-api-key
 x-api-key: sk-your-api-key
 ```
 
+## رموز الإدارة
+
+تستخدم نقاط نهاية واجهة إدارة API نوعًا منفصلًا من الرموز:
+
+```bash
+Authorization: Bearer mt-your-management-token
+```
+
+استخدم رموز الإدارة فقط مع `/v1/management/*`. افتح [API → Tokens](https://tokenlab.sh/dashboard/api?tab=tokens) لمساحة العمل المحددة لإنشاء رمز أو استبداله. احفظ الرمز الكامل بأمان عند ظهوره؛ فهو يُعرض مرة واحدة فقط بعد الإنشاء أو الاستبدال.
+
+<Note>
+لا يمكن استخدام رموز الإدارة لاستدلال النماذج، ولا يمكن استخدام مفاتيح API العادية `sk-...` مع واجهة إدارة API.
+</Note>
+
 ## الحصول على مفتاح API الخاص بك
 
 1. سجّل الدخول إلى [لوحة تحكم TokenLab](https://tokenlab.sh/dashboard)

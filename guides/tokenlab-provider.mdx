@@ -3,6 +3,21 @@ title: "TokenLab Provider Setup"
 description: "Connect a self-hosted OpenClaw instance to TokenLab"
 ---
 
+## Let my agent set this up
+
+Copy this task to an agent already running on your computer:
+
+```text
+Read this guide and help me connect OpenClaw to TokenLab:
+https://docs.tokenlab.sh/guides/tokenlab-provider
+Check my installed version and active configuration first.
+Preserve existing accounts, providers, permissions and other settings.
+Back up local files and show proposed changes.
+Have me enter any API key locally; never ask for, print or paste it in chat.
+Check configuration loading first.
+Explain any paid request test separately before running it.
+```
+
 <Note>
 This guide is for **self-hosted OpenClaw**. The TokenLab plugin is the shortest setup; manual configuration is available when you need a specific API format.
 </Note>
@@ -13,8 +28,10 @@ Install the TokenLab provider plugin and add your API key:
 
 ```bash
 openclaw plugins install @tokenlabai/openclaw-provider
-openclaw onboard --tokenlab-api-key "$TOKENLAB_API_KEY"
+openclaw onboard
 ```
+
+After plugin installation, run `openclaw onboard` and select TokenLab when offered. Enter the key only in the local credential prompt. If the installed plugin does not load on your OpenClaw version, use the manual provider settings below and check the plugin’s compatibility before retrying.
 
 The plugin loads the current chat-model list from TokenLab. OpenClaw refers to them as `tokenlab/<model-id>`.
 
@@ -41,7 +58,7 @@ Native providers such as `anthropic-messages` and `google-generative-ai` should 
 ## Prerequisites
 
 - A self-hosted OpenClaw instance
-- A TokenLab API Key — [Get one here](https://tokenlab.sh/dashboard)
+- A TokenLab API Key — [Get one here](https://tokenlab.sh/dashboard/api?tab=keys)
 
 ## Configuration
 
@@ -51,12 +68,14 @@ Edit your OpenClaw config:
 
 Add TokenLab providers under `models.providers`:
 
+Use the same profile, `OPENCLAW_STATE_DIR` and `OPENCLAW_CONFIG_PATH` as the running Gateway. Back up the active configuration before merging. Put `TOKENLAB_API_KEY` in that instance’s trusted global `.env` or service environment; a terminal export or project `.env` alone may not reach the background Gateway. See [environment handling](https://docs.openclaw.ai/help/environment).
+
 ```json5
 {
   agents: {
     defaults: {
       model: {
-        primary: "tokenlab-claude/claude-sonnet-4-6"
+        primary: "tokenlab-claude/claude-sonnet-5"
       }
     }
   },
@@ -66,7 +85,7 @@ Add TokenLab providers under `models.providers`:
       tokenlab: {
         api: "openai-completions",
         baseUrl: "https://api.tokenlab.sh/v1",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "gpt-5.6-terra", name: "GPT-5.6 Terra" },
           { id: "deepseek-reasoner", name: "DeepSeek Reasoner" },
@@ -76,7 +95,7 @@ Add TokenLab providers under `models.providers`:
       "tokenlab-responses": {
         api: "openai-responses",
         baseUrl: "https://api.tokenlab.sh/v1",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "gpt-5.6-terra", name: "GPT-5.6 Terra (Responses)" },
           { id: "gpt-5.2", name: "GPT-5.2 (Responses)" }
@@ -85,7 +104,7 @@ Add TokenLab providers under `models.providers`:
       "tokenlab-claude": {
         api: "anthropic-messages",
         baseUrl: "https://api.tokenlab.sh",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "claude-sonnet-5", name: "Claude Sonnet 5" },
           { id: "claude-opus-5", name: "Claude Opus 5" }
@@ -94,7 +113,7 @@ Add TokenLab providers under `models.providers`:
       "tokenlab-gemini": {
         api: "google-generative-ai",
         baseUrl: "https://api.tokenlab.sh",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "gemini-3.5-flash", name: "Gemini 3.5 Flash" },
           { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" }
@@ -103,7 +122,7 @@ Add TokenLab providers under `models.providers`:
       "tokenlab-minimax": {
         api: "anthropic-messages",
         baseUrl: "https://api.tokenlab.sh",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "minimax-m3", name: "MiniMax M3" }
         ]
@@ -141,9 +160,9 @@ OpenClaw still references models with the `provider/model` format:
 
 | Provider | Model reference | Description |
 |----------|-----------------|-------------|
-| `tokenlab` | `tokenlab/gpt-4o` | OpenAI-compatible route |
-| `tokenlab-responses` | `tokenlab-responses/gpt-4o` | Responses API route |
-| `tokenlab-claude` | `tokenlab-claude/claude-sonnet-4-6` | Native Claude Messages route |
+| `tokenlab` | `tokenlab/gpt-5.6-terra` | OpenAI-compatible route |
+| `tokenlab-responses` | `tokenlab-responses/gpt-5.6-terra` | Responses API route |
+| `tokenlab-claude` | `tokenlab-claude/claude-sonnet-5` | Native Claude Messages route |
 | `tokenlab-gemini` | `tokenlab-gemini/gemini-3.5-flash` | Native Gemini route |
 | `tokenlab-minimax` | `tokenlab-minimax/minimax-m3` | Native MiniMax route |
 
@@ -178,12 +197,11 @@ If you do not need Gemini-native behavior, you can still call Gemini models thro
 
 ## Verify Setup
 
-After saving the config, restart your OpenClaw instance and test with a simple message. If you see a response, the provider is configured correctly.
+Restart that instance, then inspect its selected model and provider. `models status` without `--probe` does not make a model-call test. A live `--probe` or a chat message can consume tokens. Check a real reply against the matching TokenLab request before declaring the setup working. To restore, choose the previous model and remove only the TokenLab entries you added.
 
 ```bash
-# Self-hosted: restart the service
-systemctl --user restart openclaw    # Linux
-launchctl stop cc.tokenlab.openclaw && launchctl start cc.tokenlab.openclaw  # macOS
+openclaw gateway restart
+openclaw models status
 ```
 
 ## Next Steps

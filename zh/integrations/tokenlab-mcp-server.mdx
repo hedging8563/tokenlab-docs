@@ -3,6 +3,27 @@ title: "TokenLab MCP Server"
 description: "让 Claude Code、Cursor、VS Code、Codex 等 MCP 客户端使用 TokenLab 模型和 API"
 ---
 
+## 选择你需要的能力
+
+- MCP 为兼容客户端添加 TokenLab API 工具，可从下方无需密钥的 `catalog` 配置开始。
+- [TokenLab Skill](/zh/integrations/coding-agent-skill) 通过 `npx skills add` 安装接入指导，不会启动 MCP 服务。
+
+两者都用于扩展已有 Agent。切换主模型提供商，请使用对应客户端的接入教程。
+
+## 交给我的 Agent 做
+
+把这段任务交给电脑上已经可用的 Agent：
+
+```text
+阅读此教程，按我的任务选择 MCP 目录工具或 TokenLab Skill：
+https://docs.tokenlab.sh/zh/integrations/tokenlab-mcp-server
+先检查已安装版本和实际配置。
+保留已有账户、提供商、权限及无关设置。
+备份本机文件并展示修改内容。
+让我在本机输入所需 API Key，不要在聊天里索取、打印或粘贴密钥。
+先验证配置能否加载；真实请求测试的费用须单独说明后再运行。
+```
+
 [TokenLab MCP Server](https://github.com/hedging8563/tokenlab-mcp-server) 可以让 MCP 客户端查询当前模型和价格、调用模型、生成媒体、处理文件，并查看异步任务。
 
 只想查询模型和价格时使用 `catalog`，不需要 API 密钥。客户端需要发送付费请求时，再添加 `TOKENLAB_API_KEY`。

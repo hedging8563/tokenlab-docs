@@ -5,7 +5,7 @@ description: "Adicione o TokenLab como modelo personalizado no WorkBuddy"
 
 ## Visão geral
 
-O [WorkBuddy](https://www.workbuddy.ai/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model) oferece um editor visual para modelos compatíveis com OpenAI. Não é necessário editar o arquivo local manualmente.
+O [WorkBuddy](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model) oferece um editor visual para modelos compatíveis com OpenAI. Não é necessário editar o arquivo local manualmente.
 
 ## Configurar o TokenLab
 
@@ -22,6 +22,12 @@ Abra **Settings → Model**, adicione um modelo e escolha **Custom**.
 Mantenha Custom Protocol desativado. O modo padrão valida a Base URL e adiciona `/chat/completions`. Se estiver ativado com apenas `/v1`, a solicitação usa o caminho errado.
 </Warning>
 
-Nas opções avançadas, ative chamadas de ferramentas, entrada de imagens e raciocínio. Desative o modo apenas raciocínio, deixe o esforço em Auto e use `1048576` para entrada e `131072` para saída.
+Configure ferramentas, imagens, raciocínio e limites conforme os detalhes atuais do modelo no TokenLab. Não ative tudo nem copie limites 1M/128K de outro modelo. Use o ID exibido.
 
 Salve, selecione `kimi-k3` e teste primeiro uma inspeção de pasta somente leitura. Oculte chaves e endpoints privados antes de compartilhar capturas.
+
+Salvar e selecionar só confirma a configuração local. Tarefas de texto ou ferramentas usam saldo TokenLab; confira a resposta e seu [registro](https://tokenlab.sh/dashboard/runs?section=requests). Para desfazer, selecione o modelo anterior e remova apenas a entrada TokenLab adicionada.
+
+O aplicativo oficial está disponível para macOS e Windows. Use o [editor oficial](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model); não se presume versão Linux nem formato de arquivo editável diretamente.
+
+As [ferramentas API MCP](/pt/integrations/tokenlab-mcp-server) e [instruções Skill](/pt/integrations/coding-agent-skill) são instaladas separadamente e não mudam o modelo principal.

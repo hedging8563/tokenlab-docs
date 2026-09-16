@@ -19,6 +19,20 @@ Anthropic uyumlu `/v1/messages` istekleri için şunu da kullanabilirsiniz:
 x-api-key: sk-your-api-key
 ```
 
+## Yönetim tokenları
+
+Yönetim API uç noktaları ayrı bir token türü kullanır:
+
+```bash
+Authorization: Bearer mt-your-management-token
+```
+
+Yönetim tokenlarını yalnızca `/v1/management/*` uç noktalarıyla kullanın. Seçili çalışma alanında token oluşturmak veya değiştirmek için [API → Tokens](https://tokenlab.sh/dashboard/api?tab=tokens) sayfasını açın. Tam token oluşturma veya değiştirme sonrasında yalnızca bir kez gösterilir; bu sırada güvenli bir yere kaydedin.
+
+<Note>
+Yönetim tokenları model çıkarımı için, normal `sk-...` API anahtarları ise Yönetim API için kullanılamaz.
+</Note>
+
 ## API Anahtarınızı Alma
 
 1. [TokenLab Dashboard](https://tokenlab.sh/dashboard) hesabınıza giriş yapın

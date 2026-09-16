@@ -13,7 +13,7 @@ description: "在 WorkBuddy 中加入 TokenLab 自訂模型"
 **支援級別**：官方自訂模型路徑
 </Note>
 
-[WorkBuddy](https://www.workbuddy.ai/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model) 提供視覺化的 OpenAI 相容自訂模型編輯器，不必手動編輯本機模型檔案。
+[WorkBuddy](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model) 提供視覺化的 OpenAI 相容自訂模型編輯器，不必手動編輯本機模型檔案。
 
 ## 設定 TokenLab
 
@@ -32,6 +32,11 @@ description: "在 WorkBuddy 中加入 TokenLab 自訂模型"
 
 ## 進階設定
 
-開啟工具呼叫、圖片輸入與思考模式；關閉僅思考模式；預設思考強度選自動。輸入上限設為 `1048576`，輸出上限設為 `131072`。
+工具、圖片、思考開關及上下文/輸出上限應依所選模型的目前 TokenLab 詳情設定。不要一律開啟圖片與思考，也不要複製其他模型的 1M/128K 上限。請使用 TokenLab 顯示的模型 ID。
 
-儲存後選擇 `kimi-k3`，先執行唯讀目錄檢查。分享設定截圖前請遮蓋 API Key 和私人端點。
+儲存及選取模型只確認本機設定。文字或工具任務會使用 TokenLab 餘額；請核對回覆與[請求記錄](https://tokenlab.sh/dashboard/runs?section=requests)。還原時選回原模型，僅移除新增的 TokenLab 項目。
+
+
+官方桌面應用支援 macOS 和 Windows。請使用[官方模型編輯器](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model)；本教程不假定有 Linux 版本或可直接寫入的檔案格式。
+
+MCP 與 Skills 各有安裝路徑：[API 工具](/zh-Hant/integrations/tokenlab-mcp-server)與[接入指引](/zh-Hant/integrations/coding-agent-skill)，不會切換主模型。

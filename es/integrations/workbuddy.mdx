@@ -5,7 +5,7 @@ description: "Añade TokenLab como modelo personalizado en WorkBuddy"
 
 ## Descripción general
 
-[WorkBuddy](https://www.workbuddy.ai/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model) ofrece un editor visual para modelos compatibles con OpenAI. No hace falta editar manualmente el archivo local.
+[WorkBuddy](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model) ofrece un editor visual para modelos compatibles con OpenAI. No hace falta editar manualmente el archivo local.
 
 ## Configurar TokenLab
 
@@ -22,6 +22,12 @@ Abre **Settings → Model**, añade un modelo y elige **Custom**.
 Mantén Custom Protocol desactivado. El modo estándar valida la Base URL y añade `/chat/completions`. Si lo activas y solo introduces `/v1`, la solicitud usa una ruta incorrecta.
 </Warning>
 
-En los ajustes avanzados, activa llamadas a herramientas, entrada de imágenes y razonamiento. Desactiva el modo solo razonamiento, deja el esfuerzo en Auto y usa `1048576` como entrada y `131072` como salida.
+Configura herramientas, imágenes, razonamiento y límites según los detalles actuales del modelo en TokenLab. No actives todo ni copies límites 1M/128K de otro modelo. Usa el ID mostrado.
 
 Guarda, selecciona `kimi-k3` y prueba primero una inspección de carpeta de solo lectura. Oculta claves y endpoints privados antes de compartir capturas.
+
+Guardar y seleccionar solo confirma ajustes locales. Las tareas de texto o herramientas usan saldo TokenLab; comprueba la respuesta y su [registro](https://tokenlab.sh/dashboard/runs?section=requests). Para deshacer, selecciona el modelo anterior y elimina solo la entrada TokenLab añadida.
+
+La aplicación oficial está disponible para macOS y Windows. Usa el [editor oficial](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model); no se presupone una versión Linux ni un formato de archivo editable directamente.
+
+Las [herramientas API MCP](/es/integrations/tokenlab-mcp-server) y las [instrucciones Skill](/es/integrations/coding-agent-skill) se instalan por separado y no cambian el modelo principal.

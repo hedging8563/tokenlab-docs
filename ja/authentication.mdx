@@ -19,6 +19,20 @@ Anthropic 互換の `/v1/messages` リクエストでは、次も使用できま
 x-api-key: sk-your-api-key
 ```
 
+## 管理トークン
+
+管理 API は別の種類のトークンを使用します：
+
+```bash
+Authorization: Bearer mt-your-management-token
+```
+
+管理トークンは `/v1/management/*` エンドポイントでのみ使用してください。選択中のワークスペースの [API → Tokens](https://tokenlab.sh/dashboard/api?tab=tokens) を開き、トークンを作成または置き換えます。完全なトークンは作成または置き換え後に一度だけ表示されるため、その場で安全に保存してください。
+
+<Note>
+管理トークンはモデル推論には使えません。また、通常の `sk-...` API キーは管理 API には使えません。
+</Note>
+
 ## API Key の取得
 
 1. [TokenLab Dashboard](https://tokenlab.sh/dashboard) にログインします

@@ -3,27 +3,38 @@ title: "Pi Coding Agent"
 description: "Pi と TokenLab を組み合わせて使います。Pi は OpenAI・Anthropic・Google 風の設定を扱える最小限のターミナル向けコーディングツールです"
 ---
 
-## 概要
+## Pi のインストールと設定
 
-[Pi](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent) は最小限のターミナル向けコーディングツールです。TokenLab の IA では **コーディングツール** に置くのが適切で、native SDK ではありません。
-
-Pi は次の中間にある存在です。
-
-- 対話型のターミナル作業フロー
-- プロセス統合向けの JSON / RPC モード
-- 自分のアプリへ埋め込める SDK 風の実行環境
-
-TokenLab では、特別な理由がない限り **OpenAI 互換** の経路から始めるのが一番扱いやすいです。
-
-## 推奨パス
+[Pi 公式手順](https://pi.dev/)を使います。npm パッケージは `@earendil-works/pi-coding-agent` です。Windows は[シェル設定](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/windows.md)を確認してください。標準は Git Bash です。導入済みならインストールは不要です。
 
 ```bash
-export OPENAI_API_KEY="sk-your-tokenlab-key"
-export OPENAI_BASE_URL="https://api.tokenlab.sh/v1"
+npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+pi --version
 ```
 
-その上で、Pi のプロバイダー設定または custom model 設定を TokenLab に向けてください。
+以下を `~/.pi/agent/models.json`、または `PI_CODING_AGENT_DIR` の同名ファイルにマージします。バックアップし、他のプロバイダーを残してください。起動環境に `TOKENLAB_API_KEY` を設定し、キーを会話に貼らないでください。Base URL の環境変数だけではプロバイダーは作成されません。
 
-<Note>
-Claude-native や Gemini-native の挙動が必要なら、それは OpenAI 互換 共通設定ではなく、Pi ごとの専用設定として扱うべきです。
-</Note>
+```json
+{
+  "providers": {
+    "tokenlab": {
+      "baseUrl": "https://api.tokenlab.sh/v1",
+      "api": "openai-completions",
+      "apiKey": "$TOKENLAB_API_KEY",
+      "models": [{ "id": "gpt-5.6-luna" }]
+    }
+  }
+}
+```
+
+`"$TOKENLAB_API_KEY"` の `$` は必須です。省略すると文字列として扱われます。Chat Completions とツールに対応する現在のモデルを選び、容量、画像、推論設定はそのモデルの情報で確認します。
+
+## 確認と復元
+
+`pi --list-models` を実行し、Pi の `/model` で `tokenlab/gpt-5.6-luna` を選びます。選択画面で `models.json` が再読込されます。登録と認証情報の存在の確認であり、認証や API 呼び出しの成功確認ではありません。
+
+短いテキストの送信にも TokenLab 残高を使います。応答と[リクエスト記録](https://tokenlab.sh/dashboard/runs?section=requests)を照合してからツールを試してください。復元時は元のプロバイダーを選び、追加した TokenLab 項目だけを削除します。
+
+## Skills と MCP
+
+Pi は [Skills に標準対応](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/skills.md)しています。[TokenLab Skill](/ja/integrations/coding-agent-skill)を追加できます。MCP は別の拡張が必要です。MCP 設定を `models.json` に入れないでください。

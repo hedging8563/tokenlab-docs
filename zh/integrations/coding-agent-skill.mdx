@@ -3,6 +3,20 @@ title: "给 Coding Agent 安装 TokenLab API Skill"
 description: "让 Coding Agent 使用当前模型、API 示例和错误处理规则"
 ---
 
+## 交给我的 Agent 做
+
+把这段任务交给电脑上已经可用的 Agent：
+
+```text
+阅读此教程，将 TokenLab Skill 安装到我正在使用的 Agent：
+https://docs.tokenlab.sh/zh/integrations/coding-agent-skill
+先检查已安装版本和实际配置。
+保留已有账户、提供商、权限及无关设置。
+备份本机文件并展示修改内容。
+让我在本机输入所需 API Key，不要在聊天里索取、打印或粘贴密钥。
+先验证配置能否加载；真实请求测试的费用须单独说明后再运行。
+```
+
 `tokenlab-api-integration` Skill 可以帮助 Coding Agent 把 TokenLab 接入应用，不必依赖过期的模型列表。它涵盖聊天、图片、视频、音频、翻译、Embeddings、Rerank、音乐、3D 和 Worlds。
 
 公开版本位于 [tokenlab-skills](https://github.com/hedging8563/tokenlab-skills)。
@@ -31,7 +45,7 @@ Skill 不能代替 API Reference。需要确认准确字段和响应结构时，
 
 ## 创建 API 密钥
 
-打开 [Console → API 密钥](https://tokenlab.sh/dashboard/api) 创建一枚密钥，并放进环境变量。TokenLab API 密钥以 `sk-` 开头。
+打开 [Console → API 密钥](https://tokenlab.sh/dashboard/api?tab=keys&createKey=1&docsTopic=codingAgents) 创建一枚密钥，并放进环境变量。TokenLab API 密钥以 `sk-` 开头。
 
 ```bash
 export TOKENLAB_API_KEY="sk-your-api-key"

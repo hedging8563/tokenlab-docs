@@ -19,6 +19,20 @@ Authorization: Bearer sk-your-api-key
 x-api-key: sk-your-api-key
 ```
 
+## 管理權杖
+
+管理 API 使用獨立的權杖類型：
+
+```bash
+Authorization: Bearer mt-your-management-token
+```
+
+管理權杖僅用於 `/v1/management/*`。開啟所選工作區的 [API → Tokens](https://tokenlab.sh/dashboard/api?tab=tokens)，建立或替換權杖。建立或替換後，完整權杖只顯示一次，請立即安全保存。
+
+<Note>
+管理權杖不能用於模型推論，一般的 `sk-...` API 金鑰也不能用於管理 API。
+</Note>
+
 ## 取得您的 API Key
 
 1. 登入您的 [TokenLab Dashboard](https://tokenlab.sh/dashboard)

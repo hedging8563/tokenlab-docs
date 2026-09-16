@@ -13,8 +13,10 @@ description: "تكوين TokenLab كموفر مخصص في OpenClaw باستخد
 
 ```bash
 openclaw plugins install @tokenlabai/openclaw-provider
-openclaw onboard --tokenlab-api-key "$TOKENLAB_API_KEY"
+openclaw onboard
 ```
+
+بعد التثبيت شغّل `openclaw onboard` واختر TokenLab وأدخل المفتاح في النافذة المحلية فقط. إن لم تُحمّل الإضافة، استخدم الإعداد اليدوي أدناه وتحقق من توافق الإصدار.
 
 تجلب الإضافة دليل نماذج المحادثة المباشر من TokenLab، وتحتفظ بـ 18 نموذجًا احتياطيًا للاكتشاف دون اتصال. تستخدم النماذج التنسيق `tokenlab/<model-id>`.
 
@@ -43,7 +45,7 @@ openclaw onboard --tokenlab-api-key "$TOKENLAB_API_KEY"
 ## المتطلبات المسبقة
 
 - مثيل OpenClaw مستضاف محليًا (self-hosted)
-- مفتاح API من TokenLab — [Get one here](https://tokenlab.sh/dashboard)
+- مفتاح API من TokenLab — [Get one here](https://tokenlab.sh/dashboard/api?tab=keys)
 
 ## التكوين
 
@@ -53,12 +55,14 @@ openclaw onboard --tokenlab-api-key "$TOKENLAB_API_KEY"
 
 أضف موفري TokenLab تحت `models.providers`:
 
+استخدم ملف التعريف و`OPENCLAW_STATE_DIR` و`OPENCLAW_CONFIG_PATH` نفسها الخاصة بالبوابة العاملة، وانسخ الإعدادات احتياطيًا. ضع `TOKENLAB_API_KEY` في `.env` العام الموثوق أو بيئة الخدمة لهذه النسخة. قد لا تصل متغيرات الطرفية أو `.env` المشروع إلى عملية الخلفية. راجع [البيئة](https://docs.openclaw.ai/help/environment).
+
 ```json5
 {
   agents: {
     defaults: {
       model: {
-        primary: "tokenlab-claude/claude-sonnet-4-6"
+        primary: "tokenlab-claude/claude-sonnet-5"
       }
     }
   },
@@ -68,7 +72,7 @@ openclaw onboard --tokenlab-api-key "$TOKENLAB_API_KEY"
       tokenlab: {
         api: "openai-completions",
         baseUrl: "https://api.tokenlab.sh/v1",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "gpt-5.6-terra", name: "GPT-5.6 Terra" },
           { id: "deepseek-reasoner", name: "DeepSeek Reasoner" },
@@ -78,7 +82,7 @@ openclaw onboard --tokenlab-api-key "$TOKENLAB_API_KEY"
       "tokenlab-responses": {
         api: "openai-responses",
         baseUrl: "https://api.tokenlab.sh/v1",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "gpt-5.6-terra", name: "GPT-5.6 Terra (Responses)" },
           { id: "gpt-5.2", name: "GPT-5.2 (Responses)" }
@@ -87,7 +91,7 @@ openclaw onboard --tokenlab-api-key "$TOKENLAB_API_KEY"
       "tokenlab-claude": {
         api: "anthropic-messages",
         baseUrl: "https://api.tokenlab.sh",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "claude-sonnet-5", name: "Claude Sonnet 5" },
           { id: "claude-opus-5", name: "Claude Opus 5" }
@@ -96,7 +100,7 @@ openclaw onboard --tokenlab-api-key "$TOKENLAB_API_KEY"
       "tokenlab-gemini": {
         api: "google-generative-ai",
         baseUrl: "https://api.tokenlab.sh",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "gemini-3.5-flash", name: "Gemini 3.5 Flash" },
           { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" }
@@ -105,7 +109,7 @@ openclaw onboard --tokenlab-api-key "$TOKENLAB_API_KEY"
       "tokenlab-minimax": {
         api: "anthropic-messages",
         baseUrl: "https://api.tokenlab.sh",
-        apiKey: "sk-your-tokenlab-key",
+        apiKey: "${TOKENLAB_API_KEY}",
         models: [
           { id: "minimax-m3", name: "MiniMax M3" }
         ]
@@ -143,9 +147,9 @@ openclaw onboard --tokenlab-api-key "$TOKENLAB_API_KEY"
 
 | المزوّد | مرجع النموذج | الوصف |
 |--------|--------------|-------|
-| `tokenlab` | `tokenlab/gpt-4o` | مسار متوافق مع OpenAI |
-| `tokenlab-responses` | `tokenlab-responses/gpt-4o` | مسار Responses API |
-| `tokenlab-claude` | `tokenlab-claude/claude-sonnet-4-6` | مسار Claude Messages الأصلي |
+| `tokenlab` | `tokenlab/gpt-5.6-terra` | مسار متوافق مع OpenAI |
+| `tokenlab-responses` | `tokenlab-responses/gpt-5.6-terra` | مسار Responses API |
+| `tokenlab-claude` | `tokenlab-claude/claude-sonnet-5` | مسار Claude Messages الأصلي |
 | `tokenlab-gemini` | `tokenlab-gemini/gemini-3.5-flash` | مسار Gemini الأصلي |
 | `tokenlab-minimax` | `tokenlab-minimax/minimax-m3` | مسار MiniMax الأصلي |
 
@@ -180,12 +184,11 @@ openclaw onboard --tokenlab-api-key "$TOKENLAB_API_KEY"
 
 ## التحقق من الإعداد
 
-بعد حفظ التهيئة، أعد تشغيل مثيل OpenClaw الخاص بك واختبر برسالة بسيطة. إذا رأيت استجابة، فالمزوّد مكوّن بشكل صحيح.
+أعد تشغيل النسخة نفسها وافحص النموذج والمزود. `models status` دون `--probe` ليس اختبارًا لاستدعاء النموذج. الاختبارات الحية والرسائل قد تستهلك tokens. طابق الرد مع سجل TokenLab. للاستعادة اختر النموذج السابق واحذف العناصر المضافة فقط.
 
 ```bash
-# مستضاف ذاتيًا: أعد تشغيل الخدمة
-systemctl --user restart openclaw    # Linux
-launchctl stop cc.tokenlab.openclaw && launchctl start cc.tokenlab.openclaw  # macOS
+openclaw gateway restart
+openclaw models status
 ```
 
 ## الخطوات التالية
