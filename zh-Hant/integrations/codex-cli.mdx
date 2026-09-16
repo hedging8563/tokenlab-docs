@@ -237,8 +237,10 @@ cat main.py | codex "Explain what this code does"
   </Accordion>
 
   <Accordion title="認證失敗">
-    - 驗證 `env_key = "TOKENLAB_API_KEY"` 是否存在於 `~/.codex/tokenlab.config.toml` / `~/.codex/config.toml`
-    - 驗證 `TOKENLAB_API_KEY` 環境變數是否已設定
+    升級至 Codex 0.149.0 或更新版本後，若自訂供應商只依賴 `auth.json`，且 `requires_openai_auth` 未設定或為 `false`，可能會出現 `API_KEY_REQUIRED` 或 `401 Unauthorized`。本指南透過 `env_key` 從 `TOKENLAB_API_KEY` 讀取金鑰，不依賴 `auth.json`。請維持省略 `requires_openai_auth` 或設為 `false`；此設定方式不需要改成 `true`，也不需要覆寫 `auth.json`。
+
+    - 確認實際啟用的設定或 profile 包含 `env_key = "TOKENLAB_API_KEY"`；若設定存於 `tokenlab.config.toml`，請以 `codex --profile tokenlab` 啟動
+    - 確認啟動 Codex 的終端機已設定 `TOKENLAB_API_KEY` 環境變數，並在設定後從該終端機重新啟動 Codex
     - 檢查金鑰是否以 `sk-` 開頭
     - 確保該金鑰在 TokenLab 儀表板中為啟用狀態
   </Accordion>

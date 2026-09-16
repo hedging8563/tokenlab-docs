@@ -237,8 +237,10 @@ cat main.py | codex "Explain what this code does"
   </Accordion>
 
   <Accordion title="Autentikasi Gagal">
-    - Periksa bahwa `env_key = "TOKENLAB_API_KEY"` ada di `~/.codex/tokenlab.config.toml` / `~/.codex/config.toml`
-    - Periksa bahwa variabel lingkungan `TOKENLAB_API_KEY` telah diatur
+    Setelah memperbarui ke Codex 0.149.0 atau versi yang lebih baru, kesalahan `API_KEY_REQUIRED` atau `401 Unauthorized` dapat terjadi jika penyedia kustom hanya mengandalkan `auth.json` saat `requires_openai_auth` tidak diatur atau bernilai `false`. Panduan ini menggunakan `env_key` untuk membaca kunci dari `TOKENLAB_API_KEY` dan tidak bergantung pada `auth.json`. Biarkan `requires_openai_auth` tidak diatur atau bernilai `false`; konfigurasi ini tidak mengharuskan Anda mengubahnya menjadi `true` atau menimpa `auth.json`.
+
+    - Pastikan konfigurasi atau profil yang benar-benar digunakan memuat `env_key = "TOKENLAB_API_KEY"`. Jika Anda menyimpan pengaturan di `tokenlab.config.toml`, jalankan Codex dengan `codex --profile tokenlab`
+    - Pastikan `TOKENLAB_API_KEY` sudah diatur di terminal yang digunakan untuk menjalankan Codex. Setelah mengatur variabel tersebut, mulai ulang Codex dari terminal itu
     - Periksa bahwa kunci dimulai dengan `sk-`
     - Pastikan kunci aktif di dashboard TokenLab
   </Accordion>

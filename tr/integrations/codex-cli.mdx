@@ -237,8 +237,10 @@ cat main.py | codex "Explain what this code does"
   </Accordion>
 
   <Accordion title="Kimlik Doğrulama Başarısız">
-    - `~/.codex/tokenlab.config.toml` / `~/.codex/config.toml` içinde `env_key = "TOKENLAB_API_KEY"` satırının bulunduğunu doğrulayın
-    - `TOKENLAB_API_KEY` ortam değişkeninin ayarlı olduğundan emin olun
+    Codex 0.149.0 veya daha yeni bir sürüme yükselttikten sonra, özel bir sağlayıcı `requires_openai_auth` tanımlanmamış veya `false` iken yalnızca `auth.json` kullanıyorsa `API_KEY_REQUIRED` veya `401 Unauthorized` hataları oluşabilir. Bu kılavuz anahtarı `env_key` aracılığıyla `TOKENLAB_API_KEY` değişkeninden okur ve `auth.json` dosyasına dayanmaz. `requires_openai_auth` ayarını tanımlamadan bırakın veya `false` olarak ayarlayın; bu yapılandırmada değeri `true` olarak değiştirmeniz ya da `auth.json` dosyasının üzerine yazmanız gerekmez.
+
+    - Gerçekte kullanılan yapılandırmanın veya profilin `env_key = "TOKENLAB_API_KEY"` içerdiğini doğrulayın. Ayarları `tokenlab.config.toml` dosyasına kaydettiyseniz Codex’i `codex --profile tokenlab` ile başlatın
+    - `TOKENLAB_API_KEY` değişkeninin Codex’i başlattığınız terminalde tanımlı olduğundan emin olun. Değişkeni ayarladıktan sonra Codex’i aynı terminalden yeniden başlatın
     - Anahtarın `sk-` ile başladığını kontrol edin
     - Anahtarın TokenLab kontrol panelinde aktif olduğundan emin olun
   </Accordion>

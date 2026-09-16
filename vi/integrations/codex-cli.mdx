@@ -227,8 +227,10 @@ cat main.py | codex "Explain what this code does"
   </Accordion>
 
   <Accordion title="Xác thực thất bại">
-    - Xác nhận `env_key = "TOKENLAB_API_KEY"` có trong `~/.codex/tokenlab.config.toml` / `~/.codex/config.toml`
-    - Xác nhận biến môi trường `TOKENLAB_API_KEY` đã được đặt
+    Sau khi nâng cấp lên Codex 0.149.0 trở lên, lỗi `API_KEY_REQUIRED` hoặc `401 Unauthorized` có thể xảy ra nếu nhà cung cấp tùy chỉnh chỉ dựa vào `auth.json` trong khi `requires_openai_auth` không được đặt hoặc được đặt thành `false`. Hướng dẫn này đọc khóa từ `TOKENLAB_API_KEY` thông qua `env_key` và không phụ thuộc vào `auth.json`. Hãy tiếp tục bỏ qua `requires_openai_auth` hoặc đặt thành `false`; cách cấu hình này không yêu cầu đổi thành `true` hay ghi đè `auth.json`.
+
+    - Xác nhận cấu hình hoặc hồ sơ đang thực sự được sử dụng có `env_key = "TOKENLAB_API_KEY"`; nếu lưu cấu hình trong `tokenlab.config.toml`, hãy khởi chạy bằng `codex --profile tokenlab`
+    - Xác nhận biến môi trường `TOKENLAB_API_KEY` đã được đặt trong terminal dùng để khởi chạy Codex, rồi khởi động lại Codex từ terminal đó sau khi đặt biến
     - Kiểm tra rằng khóa bắt đầu bằng `sk-`
     - Đảm bảo khóa đang hoạt động trong dashboard của TokenLab
   </Accordion>

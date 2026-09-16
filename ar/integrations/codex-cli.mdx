@@ -237,8 +237,10 @@ cat main.py | codex "Explain what this code does"
   </Accordion>
 
   <Accordion title="فشل المصادقة">
-    - تحقق من وجود `env_key = "TOKENLAB_API_KEY"` في `~/.codex/tokenlab.config.toml` / `~/.codex/config.toml`
-    - تحقق من تعيين متغير البيئة `TOKENLAB_API_KEY`
+    بعد الترقية إلى Codex 0.149.0 أو أحدث، قد يظهر الخطأ `API_KEY_REQUIRED` أو `401 Unauthorized` إذا كان المزوّد المخصص يعتمد فقط على `auth.json` وكان `requires_openai_auth` غير معيّن أو مضبوطًا على `false`. يقرأ هذا الدليل المفتاح من `TOKENLAB_API_KEY` عبر `env_key` ولا يعتمد على `auth.json`. اترك `requires_openai_auth` دون تعيين أو اضبطه على `false`؛ لا يتطلب هذا الإعداد تغييره إلى `true` أو الكتابة فوق `auth.json`.
+
+    - تحقق من أن الإعدادات أو ملف التعريف المستخدم فعليًا يتضمن `env_key = "TOKENLAB_API_KEY"`؛ إذا حفظت الإعدادات في `tokenlab.config.toml`، فابدأ باستخدام `codex --profile tokenlab`
+    - تحقق من تعيين متغير البيئة `TOKENLAB_API_KEY` في الطرفية التي تستخدمها لتشغيل Codex، ثم أعد تشغيل Codex من تلك الطرفية بعد تعيينه
     - تأكد من أن المفتاح يبدأ بـ `sk-`
     - تأكد من أن المفتاح نشط في لوحة تحكم TokenLab
   </Accordion>
