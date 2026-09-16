@@ -5,13 +5,42 @@ description: "Hermes Agent を TokenLab に接続"
 
 既存のアカウント、設定、ツール権限を維持しながら、TokenLab を名前付きプロバイダーとして追加します。
 
+## Agent に設定を依頼
+
+```text
+次の手順を読み、Hermes を TokenLab に接続してください：
+https://docs.tokenlab.sh/ja/integrations/hermes-agent
+インストール済みのバージョンと実際の設定を先に確認してください。
+既存のアカウント、プロバイダー、既定モデル、権限を保持し、バックアップと変更内容を示してください。
+キーは私がローカルで入力します。チャットで要求、表示、貼り付けをしないでください。
+設定の読み込みを先に確認し、有料リクエストは説明したうえで私が選択してから実行してください。
+```
+
 ## Hermes のインストールと確認
 
 [公式インストールガイド](https://hermes-agent.nousresearch.com/docs/getting-started/installation)を参照してください。Apple Silicon macOS と Windows のデスクトップ版、Linux とネイティブ Windows の CLI に対応する手順があります。システム要件を確認し、導入済みならインストールを省略します。
 
+## 任意：復元可能な自動設定
+
+公式 Hermes **0.21.3** には TokenLab Skills **0.1.3** の設定ヘルパーを使えます。変更のプレビューとバックアップを行い、名前付きプロバイダーだけを追加します。YAML コメント、アカウント、既定モデル、権限は保持します。[設定手順](https://github.com/hedging8563/tokenlab-skills/blob/900de0c4e296c0d2ed00b5d842815ed89c403503/skills/tokenlab-api-integration/references/hermes_setup.md)を先に確認してください。
+
+`SKILL_DIR` はインストール済みの `tokenlab-api-integration` フォルダー、`HERMES_PYTHON` は `hermes --version` のインストール先にある Python に設定します。macOS/Linux は `venv/bin/python`、Windows は `venv\Scripts\python.exe` です。PowerShell では `$SkillDir` と `$HermesPython` を使います。既存環境を使い、グローバルに Python パッケージを追加しません。
+
+```bash
+"$HERMES_PYTHON" "$SKILL_DIR/scripts/configure_hermes.py" --model gpt-5.6-luna
+"$HERMES_PYTHON" "$SKILL_DIR/scripts/configure_hermes.py" --model gpt-5.6-luna --apply
+```
+
+```powershell
+& $HermesPython "$SkillDir/scripts/configure_hermes.py" --model gpt-5.6-luna
+& $HermesPython "$SkillDir/scripts/configure_hermes.py" --model gpt-5.6-luna --apply
+```
+
+適用後は下の手動マージを省略し、ヘルパーが示すディレクトリと読み込みコマンドに従います。`active_profile` も確認されます。設定表示はキーの有効性確認ではありません。`--restore` で復元を確認し、`--apply` を追加して元のバイト列に戻します。名前の競合、後からの編集、管理設定、WSL では自動処理を停止し、既存設定を保持して手動手順を使います。
+
 ## プロバイダーを設定
 
-`HERMES_HOME` が設定されていればそのディレクトリ、なければ `~/.hermes`（Windows：`%USERPROFILE%\.hermes`）を使います。`config.yaml` をバックアップし、他の設定を残して以下をマージします。Chat Completions とツール呼び出しに対応する現在のモデルを選んでください。
+`HERMES_HOME` が設定されていればそのディレクトリ、なければ `~/.hermes`（Windows：`%LOCALAPPDATA%\hermes`）を使います。`config.yaml` をバックアップし、他の設定を残して以下をマージします。Chat Completions とツール呼び出しに対応する現在のモデルを選んでください。
 
 使用中の設定をバックアップしてください。TokenLab の項目だけを追加し、既存のプロバイダー、アカウント、既定モデル、権限を維持します。名前が使用済みなら別名を選び、コマンドも合わせて変更します。戻す際は追加項目だけを削除するか、以前のバックアップを復元してください。
 

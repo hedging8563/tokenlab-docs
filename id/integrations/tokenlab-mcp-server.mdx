@@ -10,6 +10,21 @@ description: "Hubungkan Claude Code, Cursor, VS Code, Codex, dan klien MCP lainn
 
 Keduanya memperluas agen yang sudah ada. Untuk mengganti penyedia model utama, ikuti panduan klien tersebut.
 
+## Serahkan pengaturan kepada agen saya
+
+Salin tugas ini ke agen yang sudah berfungsi di komputer Anda:
+
+```text
+Baca panduan ini dan pilih alat katalog MCP atau TokenLab Skill sesuai tugas saya:
+https://docs.tokenlab.sh/id/integrations/tokenlab-mcp-server
+Periksa terlebih dahulu versi yang terpasang dan konfigurasi yang aktif.
+Pertahankan akun, penyedia, izin, dan pengaturan lain yang sudah ada.
+Cadangkan file lokal dan tampilkan perubahan yang diusulkan.
+Biarkan saya memasukkan kunci API yang diperlukan secara lokal; jangan pernah meminta, menampilkan, atau menempelkannya di chat.
+Periksa terlebih dahulu apakah konfigurasi dapat dimuat.
+Jelaskan secara terpisah biaya setiap pengujian yang mengirim permintaan berbayar sebelum menjalankannya.
+```
+
 [Server MCP TokenLab](https://github.com/hedging8563/tokenlab-mcp-server) menghasilkan alat MCP dari kontrak OpenAPI publik TokenLab. Agen yang kompatibel dengan MCP dapat menemukan model dan harga, memanggil endpoint LLM native dan yang kompatibel dengan OpenAI, membuat media multimodal, mengunggah file, dan mengelola tugas asinkron.
 
 Gunakan server ini saat agen memerlukan kontrak API TokenLab terkini alih-alih daftar alat yang dikelola secara manual. Profil `core` default mengekspos 29 alat endpoint yang dihasilkan ditambah dua alat penemuan komposit. Profil `full` mengekspos 78 alat endpoint yang dihasilkan ditambah dua alat komposit yang sama.

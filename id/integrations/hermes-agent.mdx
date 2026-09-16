@@ -5,13 +5,42 @@ description: "Hubungkan Hermes Agent ke TokenLab"
 
 Tambahkan TokenLab sebagai penyedia bernama tanpa mengganti akun, pengaturan, dan izin alat yang sudah ada.
 
+## Serahkan tugas ini kepada Agent
+
+```text
+Baca panduan ini dan hubungkan Hermes ke TokenLab:
+https://docs.tokenlab.sh/id/integrations/hermes-agent
+Periksa versi terpasang dan konfigurasi aktif terlebih dahulu.
+Pertahankan akun, penyedia, model bawaan dan izin; cadangkan berkas dan tampilkan perubahan.
+Saya akan memasukkan kunci secara lokal; jangan meminta, mencetak atau menempelkannya dalam chat.
+Periksa pemuatan konfigurasi dahulu. Jelaskan pengujian berbayar secara terpisah dan jalankan hanya setelah saya memilihnya.
+```
+
 ## Instal atau periksa Hermes
 
 [Panduan resmi](https://hermes-agent.nousresearch.com/docs/getting-started/installation) menyediakan pemasang desktop untuk macOS Apple Silicon dan Windows, serta CLI untuk Linux dan Windows native. Periksa persyaratan sistem; lewati instalasi jika Hermes sudah tersedia.
 
+## Opsional: konfigurasi yang dapat dipulihkan
+
+TokenLab Skills **0.1.3** menyediakan alat konfigurasi untuk Hermes resmi **0.21.3**. Alat menampilkan pratinjau dan cadangan lalu hanya menambahkan penyedia bernama, dengan tetap menjaga komentar YAML, akun, model bawaan dan izin. Baca [panduan](https://github.com/hedging8563/tokenlab-skills/blob/900de0c4e296c0d2ed00b5d842815ed89c403503/skills/tokenlab-api-integration/references/hermes_setup.md) terlebih dahulu.
+
+Atur `SKILL_DIR` ke folder `tokenlab-api-integration` yang terpasang dan `HERMES_PYTHON` ke Python di direktori instalasi dari `hermes --version`: `venv/bin/python` pada macOS/Linux atau `venv\Scripts\python.exe` pada Windows. PowerShell menggunakan `$SkillDir` dan `$HermesPython`. Alat memakai lingkungan yang ada tanpa memasang paket Python global.
+
+```bash
+"$HERMES_PYTHON" "$SKILL_DIR/scripts/configure_hermes.py" --model gpt-5.6-luna
+"$HERMES_PYTHON" "$SKILL_DIR/scripts/configure_hermes.py" --model gpt-5.6-luna --apply
+```
+
+```powershell
+& $HermesPython "$SkillDir/scripts/configure_hermes.py" --model gpt-5.6-luna
+& $HermesPython "$SkillDir/scripts/configure_hermes.py" --model gpt-5.6-luna --apply
+```
+
+Setelah diterapkan, lewati penggabungan manual di bawah dan ikuti direktori serta perintah pemuatan yang ditampilkan; `active_profile` dikenali. Membaca konfigurasi tidak memvalidasi kunci. Pratinjau pemulihan dengan `--restore`, lalu tambahkan `--apply` untuk memulihkan byte asli. Konflik, suntingan berikutnya, pengaturan terkelola atau WSL menghentikan otomatisasi; pertahankan pengaturan dan gunakan jalur manual.
+
 ## Atur penyedia bernama
 
-Gunakan direktori `HERMES_HOME` jika diatur, atau `~/.hermes` (Windows: `%USERPROFILE%\.hermes`). Cadangkan `config.yaml`, lalu gabungkan entri berikut tanpa mengganti pengaturan lain. Pilih model saat ini yang mendukung Chat Completions dan pemanggilan alat.
+Gunakan direktori `HERMES_HOME` jika diatur, atau `~/.hermes` (Windows: `%LOCALAPPDATA%\hermes`). Cadangkan `config.yaml`, lalu gabungkan entri berikut tanpa mengganti pengaturan lain. Pilih model saat ini yang mendukung Chat Completions dan pemanggilan alat.
 
 Cadangkan konfigurasi aktif. Tambahkan hanya entri TokenLab dan pertahankan penyedia, akun, model default, serta izin yang ada. Jika namanya sudah dipakai, pilih nama lain dan sesuaikan perintah. Untuk membatalkan, hapus hanya entri tambahan atau pulihkan cadangan sebelumnya.
 

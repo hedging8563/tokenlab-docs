@@ -5,13 +5,42 @@ description: "將 Hermes Agent 接入 TokenLab"
 
 將 TokenLab 新增為 Hermes 的獨立模型供應商，保留既有帳戶、設定與工具權限。
 
+## 交給我的 Agent 處理
+
+```text
+閱讀本頁，協助我將 Hermes 接入 TokenLab：
+https://docs.tokenlab.sh/zh-Hant/integrations/hermes-agent
+先檢查已安裝版本及實際設定。
+保留已有帳號、供應商、預設模型和權限；先備份並顯示變更。
+讓我在本機輸入金鑰，不要在聊天中索取、列印或貼上。
+先驗證設定載入；付費請求須另行說明，經我選擇後才執行。
+```
+
 ## 安裝或檢查 Hermes
 
 參閱[官方安裝指南](https://hermes-agent.nousresearch.com/docs/getting-started/installation)。官方提供 Apple Silicon macOS、Windows 桌面安裝程式，以及 Linux 和原生 Windows 的 CLI 安裝方式。請核對系統需求；已安裝時跳過。
 
+## 選用：可還原的自動設定
+
+官方 Hermes **0.21.3** 可使用 TokenLab Skills **0.1.3** 的設定工具。它先預覽並備份，只新增命名供應商，保留 YAML 註解、帳號、預設模型及權限。先閱讀[設定說明](https://github.com/hedging8563/tokenlab-skills/blob/900de0c4e296c0d2ed00b5d842815ed89c403503/skills/tokenlab-api-integration/references/hermes_setup.md)。
+
+將 `SKILL_DIR` 設為已安裝的 `tokenlab-api-integration` 目錄，將 `HERMES_PYTHON` 設為 `hermes --version` 顯示的安裝目錄內的 Python：macOS/Linux 為 `venv/bin/python`，Windows 為 `venv\Scripts\python.exe`。PowerShell 使用 `$SkillDir` 與 `$HermesPython`。沿用既有環境，不安裝全域 Python 套件。
+
+```bash
+"$HERMES_PYTHON" "$SKILL_DIR/scripts/configure_hermes.py" --model gpt-5.6-luna
+"$HERMES_PYTHON" "$SKILL_DIR/scripts/configure_hermes.py" --model gpt-5.6-luna --apply
+```
+
+```powershell
+& $HermesPython "$SkillDir/scripts/configure_hermes.py" --model gpt-5.6-luna
+& $HermesPython "$SkillDir/scripts/configure_hermes.py" --model gpt-5.6-luna --apply
+```
+
+套用後跳過下方的手動合併，依工具列出的實際目錄與載入命令繼續；工具會識別 `active_profile`。讀取設定不會驗證金鑰。以 `--restore` 預覽，再加 `--apply` 還原原始位元組。名稱衝突、後續編輯、受管理設定或 WSL 會停止自動設定；保留原設定並使用手動流程。
+
 ## 設定獨立供應商
 
-先確認 Hermes 目錄：若設定了 `HERMES_HOME`，使用該目錄；否則為 `~/.hermes`（Windows：`%USERPROFILE%\.hermes`）。備份 `config.yaml` 後合併以下項目，保留其他設定。此範例使用 Chat Completions，請選擇目前支援此格式及工具呼叫的模型。
+先確認 Hermes 目錄：若設定了 `HERMES_HOME`，使用該目錄；否則為 `~/.hermes`（Windows：`%LOCALAPPDATA%\hermes`）。備份 `config.yaml` 後合併以下項目，保留其他設定。此範例使用 Chat Completions，請選擇目前支援此格式及工具呼叫的模型。
 
 先備份目前設定。只新增 TokenLab 項目，保留既有供應商、帳戶、預設模型與權限。如果名稱已被使用，另選名稱並同步修改指令。還原時只移除本次新增的項目，或還原其原始備份。
 

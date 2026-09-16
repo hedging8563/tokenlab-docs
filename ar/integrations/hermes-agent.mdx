@@ -5,13 +5,42 @@ description: "ربط Hermes Agent مع TokenLab"
 
 أضف TokenLab كمزود مسمى مع الاحتفاظ بالحسابات والإعدادات وأذونات الأدوات الحالية.
 
+## إسناد المهمة إلى الوكيل
+
+```text
+اقرأ هذا الدليل وساعدني على توصيل Hermes بـ TokenLab:
+https://docs.tokenlab.sh/ar/integrations/hermes-agent
+تحقق أولًا من الإصدار المثبت والإعداد الفعلي.
+حافظ على الحسابات والمزودين والنموذج الافتراضي والصلاحيات؛ انسخ الملفات احتياطيًا واعرض التغييرات.
+سأدخل المفتاح محليًا؛ لا تطلبه أو تعرضه أو تلصقه في المحادثة.
+تحقق من تحميل الإعداد أولًا. اشرح الاختبار المدفوع بصورة منفصلة ولا تنفذه إلا بعد اختياري.
+```
+
 ## تثبيت Hermes أو التحقق منه
 
 يوفر [دليل التثبيت الرسمي](https://hermes-agent.nousresearch.com/docs/getting-started/installation) مثبتات سطح المكتب لنظامي macOS بمعالجات Apple Silicon وWindows، ومسار CLI لنظامي Linux وWindows الأصلي. تحقق من المتطلبات وتجاوز التثبيت إذا كان Hermes مثبتًا.
 
+## اختياري: إعداد قابل للاستعادة
+
+تتضمن TokenLab Skills **0.1.3** أداة إعداد لإصدار Hermes الرسمي **0.21.3**. تعرض التغيير وتحفظ نسخة احتياطية ثم تضيف مزودًا مسمى فقط، مع الحفاظ على تعليقات YAML والحسابات والنموذج الافتراضي والصلاحيات. اقرأ [دليل الإعداد](https://github.com/hedging8563/tokenlab-skills/blob/900de0c4e296c0d2ed00b5d842815ed89c403503/skills/tokenlab-api-integration/references/hermes_setup.md) أولًا.
+
+اضبط `SKILL_DIR` على مجلد `tokenlab-api-integration` المثبت، و`HERMES_PYTHON` على Python داخل مجلد التثبيت الذي يعرضه `hermes --version`: المسار `venv/bin/python` في macOS/Linux أو `venv\Scripts\python.exe` في Windows. استخدم `$SkillDir` و`$HermesPython` في PowerShell. تعيد الأداة استخدام البيئة المثبتة ولا تثبت حزم Python عامة.
+
+```bash
+"$HERMES_PYTHON" "$SKILL_DIR/scripts/configure_hermes.py" --model gpt-5.6-luna
+"$HERMES_PYTHON" "$SKILL_DIR/scripts/configure_hermes.py" --model gpt-5.6-luna --apply
+```
+
+```powershell
+& $HermesPython "$SkillDir/scripts/configure_hermes.py" --model gpt-5.6-luna
+& $HermesPython "$SkillDir/scripts/configure_hermes.py" --model gpt-5.6-luna --apply
+```
+
+بعد التطبيق، تجاوز الدمج اليدوي أدناه واتبع المجلد وأوامر التحميل المعروضة؛ تتعرف الأداة على `active_profile`. قراءة الإعداد لا تتحقق من صلاحية المفتاح. عاين الاستعادة باستخدام `--restore` ثم أضف `--apply` لاسترجاع البايتات الأصلية. توقف التعارضات والتعديلات اللاحقة والإعدادات المدارة وWSL الإعداد التلقائي؛ حافظ على الإعدادات واستخدم المسار اليدوي.
+
 ## إعداد مزود مسمى
 
-استخدم مجلد `HERMES_HOME` إن كان محددًا، وإلا `~/.hermes` (Windows: `%USERPROFILE%\.hermes`). انسخ `config.yaml` احتياطيًا ثم ادمج العناصر التالية دون استبدال بقية الإعدادات. اختر نموذجًا حاليًا يدعم Chat Completions واستدعاء الأدوات.
+استخدم مجلد `HERMES_HOME` إن كان محددًا، وإلا `~/.hermes` (Windows: `%LOCALAPPDATA%\hermes`). انسخ `config.yaml` احتياطيًا ثم ادمج العناصر التالية دون استبدال بقية الإعدادات. اختر نموذجًا حاليًا يدعم Chat Completions واستدعاء الأدوات.
 
 أنشئ نسخة احتياطية من الإعداد النشط. أضف عنصر TokenLab فقط واحتفظ بالمزوّدين والحسابات والنموذج الافتراضي والأذونات الحالية. إذا كان الاسم مستخدمًا، فاختر اسمًا آخر وعدّل الأوامر. للتراجع، احذف العنصر الذي أضفته فقط أو استعد نسخته الاحتياطية.
 

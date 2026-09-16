@@ -5,13 +5,42 @@ description: "Hermes Agent ile TokenLab bağlantısı"
 
 Mevcut hesapları, ayarları ve araç izinlerini koruyarak TokenLab adlı ayrı bir sağlayıcı ekleyin.
 
+## Bu görevi Agent’a ver
+
+```text
+Bu kılavuzu okuyup Hermes’i TokenLab’a bağla:
+https://docs.tokenlab.sh/tr/integrations/hermes-agent
+Önce kurulu sürümü ve etkin yapılandırmayı kontrol et.
+Mevcut hesapları, sağlayıcıları, varsayılan modeli ve izinleri koru; yedek al ve değişiklikleri göster.
+Anahtarı yerel olarak gireceğim; sohbette isteme, yazdırma veya yapıştırma.
+Önce yapılandırmanın yüklenmesini doğrula. Ücretli denemeyi ayrıca açıkla ve yalnızca ben seçtikten sonra çalıştır.
+```
+
 ## Hermes kurulumu ve kontrolü
 
 [Resmî kurulum kılavuzu](https://hermes-agent.nousresearch.com/docs/getting-started/installation), Apple Silicon macOS ve Windows masaüstü yükleyicileri ile Linux ve yerel Windows CLI kurulumunu sunar. Sistem gereksinimlerini kontrol edin; Hermes kuruluysa kurulumu atlayın.
 
+## İsteğe bağlı: geri alınabilir yapılandırma
+
+TokenLab Skills **0.1.3**, resmi Hermes **0.21.3** için bir yapılandırma aracı içerir. Değişikliği önizler, yedekler ve yalnızca adlandırılmış sağlayıcı ekler; YAML yorumlarını, hesapları, varsayılan modeli ve izinleri korur. Önce [kurulum başvurusunu](https://github.com/hedging8563/tokenlab-skills/blob/900de0c4e296c0d2ed00b5d842815ed89c403503/skills/tokenlab-api-integration/references/hermes_setup.md) okuyun.
+
+`SKILL_DIR` değişkenini kurulu `tokenlab-api-integration` klasörüne, `HERMES_PYTHON` değişkenini `hermes --version` çıktısındaki kurulum dizininin Python’una ayarlayın: macOS/Linux için `venv/bin/python`, Windows için `venv\Scripts\python.exe`. PowerShell’de `$SkillDir` ve `$HermesPython` kullanılır. Araç mevcut ortamı kullanır; genel Python paketleri kurmaz.
+
+```bash
+"$HERMES_PYTHON" "$SKILL_DIR/scripts/configure_hermes.py" --model gpt-5.6-luna
+"$HERMES_PYTHON" "$SKILL_DIR/scripts/configure_hermes.py" --model gpt-5.6-luna --apply
+```
+
+```powershell
+& $HermesPython "$SkillDir/scripts/configure_hermes.py" --model gpt-5.6-luna
+& $HermesPython "$SkillDir/scripts/configure_hermes.py" --model gpt-5.6-luna --apply
+```
+
+Uyguladıktan sonra aşağıdaki elle birleştirmeyi atlayın; yazdırılan dizin ve yükleme komutlarını izleyin. `active_profile` algılanır. Yapılandırmayı okumak anahtarı doğrulamaz. `--restore` ile geri almayı önizleyin; özgün baytları geri yüklemek için `--apply` ekleyin. Çakışmalar, sonraki düzenlemeler, yönetilen ayarlar veya WSL otomasyonu durdurur; mevcut ayarları koruyup elle kurulum yolunu kullanın.
+
 ## Adlandırılmış sağlayıcıyı yapılandırın
 
-Tanımlıysa `HERMES_HOME` dizinini, değilse `~/.hermes` dizinini kullanın (Windows: `%USERPROFILE%\.hermes`). `config.yaml` dosyasını yedekleyip diğer ayarları değiştirmeden aşağıdaki girdileri birleştirin. Chat Completions ve araç çağrılarını destekleyen güncel bir model seçin.
+Tanımlıysa `HERMES_HOME` dizinini, değilse `~/.hermes` dizinini kullanın (Windows: `%LOCALAPPDATA%\hermes`). `config.yaml` dosyasını yedekleyip diğer ayarları değiştirmeden aşağıdaki girdileri birleştirin. Chat Completions ve araç çağrılarını destekleyen güncel bir model seçin.
 
 Etkin yapılandırmayı yedekleyin. Yalnızca TokenLab girdisini ekleyip mevcut sağlayıcıları, hesapları, varsayılan modeli ve izinleri koruyun. Ad kullanımdaysa başka bir ad seçip komutları güncelleyin. Geri almak için yalnızca eklediğiniz girdiyi kaldırın veya önceki yedeğini yükleyin.
 

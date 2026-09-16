@@ -5,13 +5,42 @@ description: "Conectar Hermes Agent ao TokenLab"
 
 Adicione o TokenLab como provedor nomeado, preservando contas, configurações e permissões de ferramentas existentes.
 
+## Entregar esta tarefa ao meu agente
+
+```text
+Leia este guia e conecte o Hermes ao TokenLab:
+https://docs.tokenlab.sh/pt/integrations/hermes-agent
+Confira primeiro a versão instalada e a configuração ativa.
+Preserve contas, provedores, modelo padrão e permissões; faça backup e mostre as alterações.
+Eu informarei a chave localmente. Não a solicite nem a exiba no chat.
+Verifique primeiro o carregamento da configuração. Explique testes pagos separadamente e execute-os somente quando eu escolher.
+```
+
 ## Instalar ou verificar Hermes
 
 O [guia oficial](https://hermes-agent.nousresearch.com/docs/getting-started/installation) oferece instaladores desktop para macOS Apple Silicon e Windows, além da CLI para Linux e Windows nativo. Confira os requisitos; pule a instalação se já tiver Hermes.
 
+## Opcional: configuração reversível
+
+O TokenLab Skills **0.1.3** inclui um assistente para o Hermes oficial **0.21.3**. Ele apresenta e salva uma cópia da alteração, adicionando apenas um provedor nomeado. Preserva comentários YAML, contas, modelo padrão e permissões. Leia primeiro a [referência](https://github.com/hedging8563/tokenlab-skills/blob/900de0c4e296c0d2ed00b5d842815ed89c403503/skills/tokenlab-api-integration/references/hermes_setup.md).
+
+Defina `SKILL_DIR` como a pasta instalada `tokenlab-api-integration` e `HERMES_PYTHON` como o Python do diretório mostrado por `hermes --version`: `venv/bin/python` no macOS/Linux ou `venv\Scripts\python.exe` no Windows. No PowerShell, use `$SkillDir` e `$HermesPython`. O assistente reutiliza esse ambiente sem instalar pacotes Python globais.
+
+```bash
+"$HERMES_PYTHON" "$SKILL_DIR/scripts/configure_hermes.py" --model gpt-5.6-luna
+"$HERMES_PYTHON" "$SKILL_DIR/scripts/configure_hermes.py" --model gpt-5.6-luna --apply
+```
+
+```powershell
+& $HermesPython "$SkillDir/scripts/configure_hermes.py" --model gpt-5.6-luna
+& $HermesPython "$SkillDir/scripts/configure_hermes.py" --model gpt-5.6-luna --apply
+```
+
+Após aplicar, pule a mesclagem manual abaixo e siga o diretório e os comandos exibidos; `active_profile` é detectado. Consultar a configuração não valida a chave. Use `--restore` para visualizar a restauração e acrescente `--apply` para restaurar os bytes originais. Conflitos, edições posteriores, configurações gerenciadas ou WSL interrompem a automação; preserve as configurações e use o caminho manual.
+
 ## Configurar um provedor
 
-Use o diretório `HERMES_HOME`, se definido; caso contrário, `~/.hermes` (Windows: `%USERPROFILE%\.hermes`). Faça uma cópia de `config.yaml` e mescle as entradas abaixo sem substituir as outras configurações. Escolha um modelo atual com Chat Completions e chamadas de ferramentas.
+Use o diretório `HERMES_HOME`, se definido; caso contrário, `~/.hermes` (Windows: `%LOCALAPPDATA%\hermes`). Faça uma cópia de `config.yaml` e mescle as entradas abaixo sem substituir as outras configurações. Escolha um modelo atual com Chat Completions e chamadas de ferramentas.
 
 Faça backup da configuração ativa. Adicione apenas a entrada TokenLab e preserve provedores, contas, modelo padrão e permissões existentes. Se o nome já estiver em uso, escolha outro e ajuste os comandos. Para desfazer, remova apenas a entrada adicionada ou restaure seu backup anterior.
 

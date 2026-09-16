@@ -5,13 +5,42 @@ description: "Kết nối Hermes Agent với TokenLab"
 
 Thêm TokenLab làm nhà cung cấp riêng có tên, giữ nguyên tài khoản, cấu hình và quyền công cụ hiện có.
 
+## Giao việc này cho Agent
+
+```text
+Đọc hướng dẫn này và kết nối Hermes với TokenLab:
+https://docs.tokenlab.sh/vi/integrations/hermes-agent
+Kiểm tra phiên bản đã cài và cấu hình đang dùng trước.
+Giữ nguyên tài khoản, nhà cung cấp, mô hình mặc định và quyền; sao lưu và trình bày thay đổi.
+Tôi sẽ nhập khóa tại máy; không yêu cầu, in hoặc dán khóa trong hội thoại.
+Kiểm tra việc tải cấu hình trước. Giải thích riêng kiểm thử trả phí và chỉ chạy khi tôi chọn.
+```
+
 ## Cài đặt hoặc kiểm tra Hermes
 
 [Hướng dẫn chính thức](https://hermes-agent.nousresearch.com/docs/getting-started/installation) có bộ cài máy tính cho macOS Apple Silicon và Windows, cùng CLI cho Linux và Windows nguyên bản. Kiểm tra yêu cầu hệ thống; bỏ qua cài đặt nếu đã có Hermes.
 
+## Tùy chọn: cấu hình có thể khôi phục
+
+TokenLab Skills **0.1.3** có công cụ cấu hình cho Hermes chính thức **0.21.3**. Công cụ xem trước, sao lưu rồi chỉ thêm một nhà cung cấp có tên, giữ nguyên chú thích YAML, tài khoản, mô hình mặc định và quyền. Đọc [hướng dẫn](https://github.com/hedging8563/tokenlab-skills/blob/900de0c4e296c0d2ed00b5d842815ed89c403503/skills/tokenlab-api-integration/references/hermes_setup.md) trước.
+
+Đặt `SKILL_DIR` thành thư mục `tokenlab-api-integration` đã cài và `HERMES_PYTHON` thành Python trong thư mục cài đặt do `hermes --version` hiển thị: `venv/bin/python` trên macOS/Linux hoặc `venv\Scripts\python.exe` trên Windows. PowerShell dùng `$SkillDir` và `$HermesPython`. Công cụ dùng môi trường hiện có, không cài gói Python toàn cục.
+
+```bash
+"$HERMES_PYTHON" "$SKILL_DIR/scripts/configure_hermes.py" --model gpt-5.6-luna
+"$HERMES_PYTHON" "$SKILL_DIR/scripts/configure_hermes.py" --model gpt-5.6-luna --apply
+```
+
+```powershell
+& $HermesPython "$SkillDir/scripts/configure_hermes.py" --model gpt-5.6-luna
+& $HermesPython "$SkillDir/scripts/configure_hermes.py" --model gpt-5.6-luna --apply
+```
+
+Sau khi áp dụng, bỏ qua bước hợp nhất thủ công bên dưới và làm theo thư mục cùng lệnh tải được in ra; công cụ nhận biết `active_profile`. Đọc cấu hình không xác minh khóa. Dùng `--restore` để xem trước, rồi thêm `--apply` để khôi phục các byte gốc. Xung đột, chỉnh sửa sau đó, cấu hình được quản lý hoặc WSL sẽ dừng tự động hóa; giữ nguyên thiết lập và dùng cách thủ công.
+
 ## Cấu hình nhà cung cấp
 
-Dùng thư mục `HERMES_HOME` nếu đã đặt, nếu không dùng `~/.hermes` (Windows: `%USERPROFILE%\.hermes`). Sao lưu `config.yaml` rồi hợp nhất các mục dưới đây, giữ nguyên thiết lập khác. Chọn mô hình hiện hỗ trợ Chat Completions và gọi công cụ.
+Dùng thư mục `HERMES_HOME` nếu đã đặt, nếu không dùng `~/.hermes` (Windows: `%LOCALAPPDATA%\hermes`). Sao lưu `config.yaml` rồi hợp nhất các mục dưới đây, giữ nguyên thiết lập khác. Chọn mô hình hiện hỗ trợ Chat Completions và gọi công cụ.
 
 Sao lưu cấu hình đang dùng. Chỉ thêm mục TokenLab và giữ nguyên nhà cung cấp, tài khoản, mô hình mặc định cùng quyền hiện có. Nếu tên đã được dùng, chọn tên khác và sửa lệnh tương ứng. Khi hoàn tác, chỉ xóa mục đã thêm hoặc khôi phục bản sao lưu trước đó.
 

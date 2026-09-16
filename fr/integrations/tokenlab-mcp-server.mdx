@@ -10,6 +10,21 @@ description: "Connectez Claude Code, Cursor, VS Code, Codex et d'autres clients 
 
 Ces extensions complètent un agent existant. Pour changer son fournisseur principal, suivez le guide du client.
 
+## Confier la configuration à mon agent
+
+Copiez cette tâche dans un agent déjà opérationnel sur votre ordinateur :
+
+```text
+Lis ce guide et choisis les outils de catalogue MCP ou le Skill TokenLab selon ma tâche :
+https://docs.tokenlab.sh/fr/integrations/tokenlab-mcp-server
+Vérifie d’abord ma version installée et la configuration active.
+Préserve les comptes, les fournisseurs, les permissions et les autres réglages existants.
+Sauvegarde les fichiers locaux et présente les modifications proposées.
+Laisse-moi saisir localement les clés API nécessaires ; ne les demande, ne les affiche et ne les colle jamais dans le chat.
+Vérifie d’abord que la configuration se charge correctement.
+Explique séparément le coût de tout test utilisant une requête payante avant de l’exécuter.
+```
+
 Le [serveur MCP TokenLab](https://github.com/hedging8563/tokenlab-mcp-server) génère des outils MCP à partir du contrat OpenAPI public de TokenLab. Les agents compatibles MCP peuvent découvrir les modèles et les tarifs, appeler des endpoints LLM natifs et compatibles OpenAI, créer des médias multimodaux, télécharger des fichiers et gérer des tâches asynchrones.
 
 Utilisez-le lorsqu'un agent a besoin du contrat API TokenLab actuel au lieu d'une liste d'outils maintenue manuellement. Le profil `core` par défaut expose 29 outils d'endpoint générés ainsi que deux outils de découverte composites. Le profil `full` expose 78 outils d'endpoint générés ainsi que les deux mêmes outils composites.

@@ -5,13 +5,42 @@ description: "Hermes Agent mit TokenLab verbinden"
 
 Fügen Sie TokenLab als eigenen benannten Anbieter hinzu. Bestehende Konten, Einstellungen und Werkzeugberechtigungen bleiben erhalten.
 
+## Diese Aufgabe dem Agenten geben
+
+```text
+Lies diese Anleitung und verbinde Hermes mit TokenLab:
+https://docs.tokenlab.sh/de/integrations/hermes-agent
+Prüfe zuerst die installierte Version und die aktive Konfiguration.
+Erhalte vorhandene Konten, Anbieter, Standardmodelle und Berechtigungen; sichere Dateien und zeige Änderungen.
+Ich gebe Schlüssel lokal ein. Fordere sie nicht im Chat an und gib sie dort nicht aus.
+Prüfe zuerst das Laden der Konfiguration. Erkläre kostenpflichtige Tests separat und führe sie erst nach meiner Auswahl aus.
+```
+
 ## Hermes installieren oder prüfen
 
 Die [offizielle Anleitung](https://hermes-agent.nousresearch.com/docs/getting-started/installation) bietet Desktop-Installer für Apple-Silicon-macOS und Windows sowie CLI-Installationen für Linux und natives Windows. Prüfen Sie die Systemanforderungen. Eine vorhandene Installation genügt.
 
+## Optional: rückgängig machbare Einrichtung
+
+Für das offizielle Hermes **0.21.3** enthält TokenLab Skills **0.1.3** einen Konfigurationshelfer. Er zeigt Änderungen vorab, sichert die Datei und ergänzt nur einen benannten Anbieter. YAML-Kommentare, Konten, Standardmodell und Berechtigungen bleiben erhalten. Lesen Sie zuerst die [Anleitung](https://github.com/hedging8563/tokenlab-skills/blob/900de0c4e296c0d2ed00b5d842815ed89c403503/skills/tokenlab-api-integration/references/hermes_setup.md).
+
+Setzen Sie `SKILL_DIR` auf den installierten Ordner `tokenlab-api-integration` und `HERMES_PYTHON` auf Python im Installationsverzeichnis aus `hermes --version`: `venv/bin/python` unter macOS/Linux oder `venv\Scripts\python.exe` unter Windows. PowerShell nutzt `$SkillDir` und `$HermesPython`. Der Helfer verwendet diese Umgebung und installiert keine globalen Python-Pakete.
+
+```bash
+"$HERMES_PYTHON" "$SKILL_DIR/scripts/configure_hermes.py" --model gpt-5.6-luna
+"$HERMES_PYTHON" "$SKILL_DIR/scripts/configure_hermes.py" --model gpt-5.6-luna --apply
+```
+
+```powershell
+& $HermesPython "$SkillDir/scripts/configure_hermes.py" --model gpt-5.6-luna
+& $HermesPython "$SkillDir/scripts/configure_hermes.py" --model gpt-5.6-luna --apply
+```
+
+Überspringen Sie nach dem Anwenden die manuelle Zusammenführung unten. Verwenden Sie das ausgegebene Verzeichnis und die Ladebefehle; `active_profile` wird berücksichtigt. Die Konfigurationsabfrage prüft keinen Schlüssel. Mit `--restore` sehen Sie die Wiederherstellung vorab; zusätzliches `--apply` stellt die ursprünglichen Bytes wieder her. Namenskonflikte, spätere Änderungen, verwaltete Einstellungen oder WSL stoppen die Automatik. Behalten Sie die Einstellungen und verwenden Sie den manuellen Weg.
+
 ## Benannten Anbieter einrichten
 
-Verwenden Sie das Verzeichnis aus `HERMES_HOME`, sonst `~/.hermes` (Windows: `%USERPROFILE%\.hermes`). Sichern Sie `config.yaml` und ergänzen Sie die folgenden Einträge, ohne andere Einstellungen zu ersetzen. Wählen Sie ein aktuelles Modell mit Chat Completions und Werkzeugaufrufen.
+Verwenden Sie das Verzeichnis aus `HERMES_HOME`, sonst `~/.hermes` (Windows: `%LOCALAPPDATA%\hermes`). Sichern Sie `config.yaml` und ergänzen Sie die folgenden Einträge, ohne andere Einstellungen zu ersetzen. Wählen Sie ein aktuelles Modell mit Chat Completions und Werkzeugaufrufen.
 
 Sichern Sie die aktive Konfiguration. Ergänzen Sie nur den TokenLab-Eintrag und erhalten Sie vorhandene Anbieter, Konten, Standardmodell und Berechtigungen. Wählen Sie bei einem belegten Namen einen anderen und passen Sie die Befehle an. Entfernen Sie zum Rückgängigmachen nur den neuen Eintrag oder stellen Sie dessen Sicherung wieder her.
 

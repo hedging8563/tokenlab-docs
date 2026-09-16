@@ -10,6 +10,21 @@ description: "Verbinden Sie Claude Code, Cursor, VS Code, Codex und andere MCP-C
 
 Beides erweitert einen vorhandenen Agenten. Den Hauptmodell-Anbieter ändern Sie anhand der Anleitung Ihres Clients.
 
+## Die Einrichtung meinem Agenten überlassen
+
+Kopieren Sie diese Aufgabe in einen Agenten, der auf Ihrem Computer bereits einsatzbereit ist:
+
+```text
+Lies diese Anleitung und wähle für meine Aufgabe MCP-Katalogwerkzeuge oder den TokenLab Skill:
+https://docs.tokenlab.sh/de/integrations/tokenlab-mcp-server
+Prüfe zuerst meine installierte Version und die aktive Konfiguration.
+Erhalte vorhandene Konten, Anbieter, Berechtigungen und andere Einstellungen.
+Sichere lokale Dateien und zeige die vorgeschlagenen Änderungen.
+Lass mich benötigte API-Schlüssel lokal eingeben; fordere sie niemals im Chat an, gib sie dort nicht aus und füge sie dort nicht ein.
+Prüfe zuerst, ob die Konfiguration geladen werden kann.
+Erkläre die Kosten kostenpflichtiger Testanfragen gesondert, bevor du sie ausführst.
+```
+
 Der [TokenLab MCP-Server](https://github.com/hedging8563/tokenlab-mcp-server) generiert MCP-Tools aus dem öffentlichen OpenAPI-Vertrag von TokenLab. MCP-kompatible Agenten können Modelle und Preise entdecken, OpenAI-kompatible und native LLM-Endpunkte aufrufen, multimodale Medien erstellen, Dateien hochladen und asynchrone Aufgaben verwalten.
 
 Verwenden Sie ihn, wenn ein Agent den aktuellen TokenLab API-Vertrag benötigt, anstatt eine manuell gepflegte Tool-Liste zu nutzen. Das Standard-Profil `core` stellt 29 generierte Endpunkt-Tools sowie zwei zusammengesetzte Discovery-Tools bereit. Das Profil `full` stellt 78 generierte Endpunkt-Tools sowie dieselben zwei zusammengesetzten Tools bereit.

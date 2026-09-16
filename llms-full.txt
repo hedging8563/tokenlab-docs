@@ -13368,9 +13368,27 @@ Explain any paid request test separately before running it.
 
 Follow the [official installation guide](https://hermes-agent.nousresearch.com/docs/getting-started/installation). It offers desktop installers for Apple Silicon macOS and Windows, and a CLI path for Linux and native Windows. Check the requirements for your system; skip installation if Hermes is already installed.
 
+## Optional: reversible setup
+
+Use the Hermes helper included in TokenLab Skills **0.1.3** for official Hermes **0.21.3**. It previews and backs up the change, adds only a named provider, and preserves YAML comments, accounts, the default model and permissions. Read the [setup reference](https://github.com/hedging8563/tokenlab-skills/blob/900de0c4e296c0d2ed00b5d842815ed89c403503/skills/tokenlab-api-integration/references/hermes_setup.md) first.
+
+Set `SKILL_DIR` to the installed `tokenlab-api-integration` folder and `HERMES_PYTHON` to the Python in the Hermes installation shown by `hermes --version`: `venv/bin/python` on macOS/Linux or `venv\Scripts\python.exe` on Windows. PowerShell uses `$SkillDir` and `$HermesPython`. Use that existing environment; the helper does not install global Python packages.
+
+```bash
+"$HERMES_PYTHON" "$SKILL_DIR/scripts/configure_hermes.py" --model gpt-5.6-luna
+"$HERMES_PYTHON" "$SKILL_DIR/scripts/configure_hermes.py" --model gpt-5.6-luna --apply
+```
+
+```powershell
+& $HermesPython "$SkillDir/scripts/configure_hermes.py" --model gpt-5.6-luna
+& $HermesPython "$SkillDir/scripts/configure_hermes.py" --model gpt-5.6-luna --apply
+```
+
+After applying, skip the manual merge below. Follow the helper’s printed home and loading commands; it detects `active_profile`. Configuration inspection does not validate the key. Preview restoration with `--restore`, then add `--apply` to restore the original bytes. Conflicts, later edits, managed settings and WSL stop automatic setup; retain those settings and use the manual route.
+
 ## Configure a named provider
 
-Find the active Hermes directory: `HERMES_HOME` when set, otherwise `~/.hermes` (Windows: `%USERPROFILE%\.hermes`). Back up `config.yaml`, then merge the following entries without replacing other settings. The example uses Chat Completions; choose a current model that supports this format and tool calling.
+Find the active Hermes directory: `HERMES_HOME` when set, otherwise `~/.hermes` (Windows: `%LOCALAPPDATA%\hermes`). Back up `config.yaml`, then merge the following entries without replacing other settings. The example uses Chat Completions; choose a current model that supports this format and tool calling.
 
 Back up the active configuration. Add only the TokenLab entry and preserve existing providers, accounts, default-model selection and permissions. If the name is already used, choose another name and update the commands. To undo setup, remove only your added entry or restore its previous backup.
 
