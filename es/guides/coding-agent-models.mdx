@@ -1,137 +1,20 @@
 ---
 title: "Selección de modelos para Coding Agents"
-description: "Elige el modelo adecuado para cada tarea de codificación — tabla comparativa, recomendaciones y configuración"
+description: "Elige modelos según la tarea, el contexto necesario, la velocidad y el coste real."
 ---
 
-## Comparación de modelos para codificación
+Elige modelos según la tarea, el contexto necesario, la velocidad y el coste real.
 
-| Modelo | Velocidad | Calidad de código | Costo | Ventana de contexto | Óptimo para |
-|--------|-----------|------------------|-------|---------------------|-------------|
-| `claude-opus-4-6` | Medio | Excelente | $$$$ | 200K | Arquitectura, refactoring complejo |
-| `gpt-5.4` | Medio | Excelente | $$$$ | 200K | Razonamiento complejo, planificación |
-| `claude-sonnet-4-6` | Rápido | Muy bueno | $$$ | 200K | Codificación general, revisiones |
-| `gemini-3.1-pro-preview` | Rápido | Muy bueno | $$$ | 1M | Análisis de grandes codebases |
-| `gpt-5-mini` | Muy rápido | Bueno | $$ | 128K | Ediciones rápidas, completado |
-| `gemini-3.5-flash` | Muy rápido | Bueno | $$ | 1M | Iteración rápida, búsqueda |
-| `deepseek-v4-pro` | Medio | Muy bueno | $ | 1M | Tareas intensivas en razonamiento |
-| `deepseek-v4-flash` | Rápido | Bueno | $ | 1M | Generación masiva, boilerplate |
+Consulta ID, precios, límites de contexto y `tokenlab.accepted_request_formats` en la [página de modelos](https://tokenlab.sh/es/models). El nombre de un modelo no demuestra compatibilidad con un protocolo ni con herramientas.
 
+Compara candidatos con el mismo estado del repositorio, instrucciones y herramientas. Evalúa resultados correctos, regresiones, cambios innecesarios, tiempo y coste por tarea terminada. Un cambio pequeño suele necesitar menos contexto que una refactorización amplia.
 
-Para el grupo mas reciente orientado a programacion, considera tambien `minimax-m3` para trabajo de agentes con gran contexto, `kimi-k2.7-code-highspeed` para ciclos rapidos de codigo, y `deepseek-v4-pro` / `deepseek-v4-flash`, `glm-5.2`, `step-3.7-flash` y `mimo-v2.5-pro` para solicitudes compatibles con OpenAI Chat.
+Selecciona el modelo explícitamente en el cliente. Pide confirmación para cambiarlo: el precio, las herramientas y el resultado pueden variar. Sigue la guía del cliente y conserva las cuentas y los permisos existentes.
 
-## Recomendaciones por tarea
+## Configuración y recursos
 
-<AccordionGroup>
-  <Accordion title="Generación de código / Scaffolding">
-    **Recomendado**: `claude-sonnet-4-6`, `gemini-3.1-pro-preview`
-
-    Código limpio y bien estructurado. Para scaffolding multi-archivo complejo: `claude-opus-4-6`.
-
-    Alternativa económica: `deepseek-v4-flash` para boilerplate a bajo costo.
-  </Accordion>
-
-  <Accordion title="Revisión de código / Refactoring">
-    **Recomendado**: `claude-sonnet-4-6`, `deepseek-v4-pro`
-
-    `deepseek-v4-pro` es especialmente rentable — su enfoque chain-of-thought detecta problemas sutiles.
-  </Accordion>
-
-  <Accordion title="Corrección de bugs / Depuración">
-    **Recomendado**: `claude-sonnet-4-6`, `gpt-5-mini`
-
-    La corrección de bugs suele tener un alcance claro. Los modelos estándar son suficientes.
-  </Accordion>
-
-  <Accordion title="Diseño de arquitectura">
-    **Recomendado**: `claude-opus-4-6`, `gpt-5.4`
-
-    Las decisiones de arquitectura se benefician del razonamiento más potente. Poco frecuente pero de alto impacto.
-  </Accordion>
-
-  <Accordion title="Ediciones rápidas / Completado por tab">
-    **Recomendado**: `gpt-5-mini`, `gemini-3.5-flash`
-
-    La velocidad es crucial para el uso interactivo.
-  </Accordion>
-</AccordionGroup>
-
-## Selección de proveedor en TokenLab
-
-### Estrategias de selección
-
-| Estrategia | Comportamiento | Óptimo para |
-|-----------|---------------|-------------|
-| **PRIORITY** | Usa el proveedor disponible de mayor prioridad | Fiabilidad |
-| **COST** | Usa el proveedor disponible de menor costo | Optimización de costos |
-
-### Reintento automático
-
-```
-Solicitud: claude-sonnet-4-6
-  → Proveedor A (primario): error 503
-  → Proveedor B (reintento): ✓ Éxito
-```
-
-### Formatos de API nativos
-
-Cuando el modelo seleccionado admite un formato de API nativo, TokenLab puede usar ese formato para una mejor compatibilidad:
-
-| Familia de modelos | Formato de API | URL base |
-|-------------|------------|----------|
-| Claude | Anthropic Messages | `https://api.tokenlab.sh` |
-| GPT | OpenAI Responses | `https://api.tokenlab.sh/v1` |
-| Gemini | API nativa de Gemini | `https://api.tokenlab.sh` o `https://api.tokenlab.sh/v1beta` según la ruta del cliente |
-| DeepSeek | OpenAI Chat | `https://api.tokenlab.sh/v1` |
-
-Claude Code es una ruta Anthropic-native sólida. También existen APIs Gemini-native, pero Gemini CLI sigue siendo una ruta de compatibilidad best-effort y no debe presentarse como un flujo estable a largo plazo.
-
-## Configuración por herramienta
-
-<AccordionGroup>
-  <Accordion title="Claude Code">
-    ```bash
-    export ANTHROPIC_API_KEY="sk-your-tokenlab-key"
-    export ANTHROPIC_BASE_URL="https://api.tokenlab.sh"
-    ```
-    Selección de modelo: `claude --model claude-sonnet-4-6`
-
-    [Guía completa →](/es/integrations/claude-code)
-  </Accordion>
-
-  <Accordion title="Cursor">
-    Settings → Models:
-    - API Key: `sk-your-tokenlab-key`
-    - Base URL: `https://api.tokenlab.sh/v1`
-
-    [Guía completa →](/es/integrations/cursor)
-  </Accordion>
-
-  <Accordion title="Codex CLI">
-    ```bash
-    export OPENAI_API_KEY="sk-your-tokenlab-key"
-    export OPENAI_BASE_URL="https://api.tokenlab.sh/v1"
-    ```
-    [Guía completa →](/es/integrations/codex-cli)
-  </Accordion>
-
-  <Accordion title="Gemini CLI">
-    ```bash
-    export GEMINI_API_KEY="sk-your-tokenlab-key"
-    export GOOGLE_GEMINI_BASE_URL="https://api.tokenlab.sh"
-    ```
-
-    Trata esta ruta como compatibilidad best-effort y no como una integración oficial de Gemini CLI.
-    [Guía completa →](/es/integrations/gemini-cli)
-  </Accordion>
-
-  <Accordion title="OpenCode">
-    ```json
-    {
-      "provider": "openai",
-      "apiKey": "sk-your-tokenlab-key",
-      "baseURL": "https://api.tokenlab.sh/v1"
-    }
-    ```
-    [Guía completa →](/es/integrations/opencode)
-  </Accordion>
-</AccordionGroup>
+- [Claude Code](/es/integrations/claude-code)
+- [Codex CLI](/es/integrations/codex-cli)
+- [Cursor](/es/integrations/cursor)
+- [OpenCode](/es/integrations/opencode)
+- [Controlar costes con datos de uso reales](/es/guides/coding-agent-cost)

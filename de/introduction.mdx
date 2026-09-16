@@ -5,108 +5,23 @@ description: "Zugriff auf Hunderte von KI-Modellen über eine einheitliche API"
 
 ## Was ist TokenLab?
 
-TokenLab ist eine KI-API-Aggregationsplattform, die Ihnen einheitlichen Zugriff auf **Hunderte von KI-Modellen** von Anbietern wie OpenAI, Anthropic, Google, DeepSeek, Moonshot, MiniMax und mehr bietet.
-
-<CardGroup cols={2}>
-  <Card title="Nativ + kompatibel" icon="plug">
-    Nutze native Anthropic/Gemini-Routen, wenn Provider-Verhalten wichtig ist, oder OpenAI-kompatible /v1-Routen für bestehende OpenAI-ähnliche Tools.
-  </Card>
-  <Card title="Native Formate" icon="shuffle">
-    Rufen Sie OpenAI-, Anthropic-, Gemini- und Responses-ähnliche Endpunkte von einer Plattform aus auf.
-  </Card>
-  <Card title="Bezahlen nach Verbrauch" icon="coins">
-    Keine Abonnements. Sie zahlen nur für das, was Sie tatsächlich nutzen.
-  </Card>
-  <Card title="Hohe Verfügbarkeit" icon="shield-check">
-    Intelligentes Routing, Failover und Multi-Channel-Unterstützung verbessern die Zuverlässigkeit.
-  </Card>
-</CardGroup>
+TokenLab verbindet Ihre Anwendung oder Ihr Programmierwerkzeug über einen API-Schlüssel mit KI-Modellen. Alle Modelle nutzen das Workspace-Guthaben. Wählen Sie ein Modell und ein unterstütztes API-Format; Anfragen werden zum veröffentlichten Preis abgerechnet.
 
 ## Unterstützte Funktionen
 
-Der öffentliche Katalog ändert sich mit der Zeit. Prüfen Sie die aktuelle Verfügbarkeit über `/v1/models`, `recommended_for` oder die Modellseite; die Beispiele unten verwenden aktuelle öffentliche Modell-IDs.
+Der aktuelle [Modellkatalog](https://tokenlab.sh/de/models) enthält Modell-IDs, Verfügbarkeit, unterstützte Formate und Preise.
 
-| Fähigkeit | Beschreibung | Beispielmodelle |
-|---|---|---|
-| Chat & Reasoning | Textgenerierung, Planung, Tools | `gpt-5.4`, `claude-sonnet-4-6` |
-| Vision & Multimodal | Bildverständnis und multimodaler Chat | `gpt-4o`, `claude-sonnet-4-6`, `gemini-3.5-flash` |
-| Bildgenerierung & Bearbeitung | Text-zu-Bild und Bildbearbeitung | `gpt-image-2`, `flux-pro` |
-| Videogenerierung | Text-zu-Video, Bild-zu-Video, Referenzvideo und Bewegungssteuerung | `veo3.1`, `wan-2.7`, `kling-3.0-video`, `happyhorse-1.0` |
-| Audio & Realtime | TTS, Transkription, Übersetzung und Echtzeitsitzungen | `gpt-4o-mini-tts`, `whisper-1`, `gpt-realtime` |
-| Embeddings & Rerank | Textvektorisierung und Re-Ranking | `text-embedding-3-small`, `qwen3-vl-rerank` |
-| Übersetzung | Textübersetzung und WebSocket-Sprachübersetzungs-Workflows | `doubao-seed-translation`, `gpt-realtime-translate` |
-| Musik & 3D | Musik- und 3D-Asset-Generierung | `suno-music`, `tripo-h3.1` |
-| Worlds | World-Generierung, Status-Polling und Medien-Asset-Workflows | Aktuelle Verfügbarkeit über `/v1/worlds/generations` und die Models API prüfen |
-
-## Anfrageformat auswählen
-
-Beginne mit der Route, die zum benötigten Verhalten passt. Nutze native Anthropic/Gemini-Routen für provider-native Funktionen und OpenAI-kompatible /v1/chat/completions, wenn du bestehenden OpenAI-ähnlichen Chat-Code migrierst.
-
-<CodeGroup>
-
-```bash cURL
-curl https://api.tokenlab.sh/v1/chat/completions \
-  -H "Authorization: Bearer sk-your-api-key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "gpt-5.6-terra",
-    "messages": [
-      {"role": "user", "content": "Explain what TokenLab does in one sentence."}
-    ]
-  }'
-```
-
-```python Python
-from openai import OpenAI
-
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
-
-response = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": "Explain what TokenLab does in one sentence."}]
-)
-
-print(response.choices[0].message.content)
-```
-
-```javascript JavaScript
-import OpenAI from 'openai';
-
-const client = new OpenAI({
-  apiKey: 'sk-your-api-key',
-  baseURL: 'https://api.tokenlab.sh/v1'
-});
-
-const response = await client.chat.completions.create({
-  model: 'gpt-5.6-terra',
-  messages: [{ role: 'user', content: 'Explain what TokenLab does in one sentence.' }],
-});
-
-console.log(response.choices[0].message.content);
-```
-
-<Note>
-Verwenden Sie `POST /v1/responses` nur, wenn Sie explizit Responses-spezifisches Verhalten benötigen. Es ist nicht der Standard-Kompatibilitätspfad für alle Modelle.
-</Note>
-
-</CodeGroup>
-
-## Hauptmerkmale
-
-<CardGroup cols={2}>
-  <Card title="Mehrere API-Formate" icon="layers" href="/guides/api-formats">
-    Verwenden Sie OpenAI-, Anthropic-, Gemini- oder Responses-native Formate mit einem Konto.
-  </Card>
-  <Card title="Agent-First-Fehler" icon="wand-magic-sparkles" href="/guides/agent-first-api">
-    Strukturierte Hinweise helfen Coding-Agenten, sich schneller selbst zu korrigieren.
-  </Card>
-  <Card title="Integrationsabdeckung" icon="toolbox" href="/guides/ide-sdk-compatibility">
-    Verbinden Sie IDEs, SDKs, Frameworks und Chat-Apps mit weniger anbieter-spezifischen Änderungen.
-  </Card>
-</CardGroup>
+| Fähigkeit | Beschreibung |
+|---|---|
+| Chat & Reasoning | Textgenerierung, Planung, Tools |
+| Vision & Multimodal | Bildverständnis und multimodaler Chat |
+| Bildgenerierung & Bearbeitung | Text-zu-Bild und Bildbearbeitung |
+| Videogenerierung | Text-zu-Video, Bild-zu-Video, Referenzvideo und Bewegungssteuerung |
+| Audio & Realtime | TTS, Transkription, Übersetzung und Echtzeitsitzungen |
+| Embeddings & Rerank | Textvektorisierung und Re-Ranking |
+| Übersetzung | Textübersetzung und WebSocket-Sprachübersetzungs-Workflows |
+| Musik & 3D | Musik- und 3D-Asset-Generierung |
+| Worlds | World-Generierung, Status-Polling und Medien-Asset-Workflows |
 
 ## Nächste Schritte
 

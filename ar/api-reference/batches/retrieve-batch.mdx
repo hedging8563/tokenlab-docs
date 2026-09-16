@@ -32,7 +32,6 @@ curl -X GET "https://api.tokenlab.sh/v1/batches/batch_abc123" \
 
 - استخدم `custom_id` للمصالحة غير القابلة للتغيير في الأسفل.
 - توقع `output_file_id` و `error_file_id` فقط بعد أن ينهي العامل الدفعة.
-- قد تختلف أسعار الدفعات عن الأسعار المتزامنة لأن قواعد الخصم لـ `isBatchRequest=true` تنطبق.
 
 ## مثال الاستجابة
 
@@ -44,7 +43,7 @@ curl -X GET "https://api.tokenlab.sh/v1/batches/batch_abc123" \
   "status": "completed",
   "input_file_id": "file_abc123",
   "output_file_id": "file_out123",
-  "error_file_id": null,
+  "error_file_id": "file_err123",
   "request_counts": { "total": 100, "completed": 98, "failed": 2 }
 }
 ```
@@ -52,6 +51,6 @@ curl -X GET "https://api.tokenlab.sh/v1/batches/batch_abc123" \
 
 ## حقول مهمة
 
-<ResponseField name="request_counts" type="object">القائمة أو payload المعاد في هذه الاستجابة.</ResponseField>
+<ResponseField name="request_counts" type="object">أعداد الطلبات الإجمالية والمكتملة والفاشلة والملغاة.</ResponseField>
 <ResponseField name="output_file_id" type="string|null">معرّف ملف تستخدمه APIs المرتبطة.</ResponseField>
 <ResponseField name="error_file_id" type="string|null">معرّف ملف تستخدمه APIs المرتبطة.</ResponseField>

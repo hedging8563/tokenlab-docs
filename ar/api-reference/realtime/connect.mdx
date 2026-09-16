@@ -14,7 +14,7 @@ description: "الاتصال بجلسات صوتية ومتعددة الوسائ
 
 في تطبيقات المتصفح أو الجوال، احتفظ بمفاتيح API طويلة العمر على الخادم. هذا المسار لا يصدر Realtime client secrets قصيرة العمر.
 
-<Note>على الوكلاء اكتشاف النماذج التي تدعم realtime عبر `/v1/models` قبل فتح socket.</Note>
+<Note>اختر نموذجًا فوريًا حاليًا من `/v1/models`، وتحقق من `/v1/models/{model}` ثم اضبط `TOKENLAB_REALTIME_MODEL`. تعتمد أحداث الجلسة وإعداداتها على النموذج. مثال JSON أدناه لاستجابة HTTP GET عادية، وليس حدث جلسة WebSocket.</Note>
 
 ## الاتصال
 
@@ -30,20 +30,28 @@ description: "الاتصال بجلسات صوتية ومتعددة الوسائ
 ```javascript JavaScript
 import WebSocket from 'ws';
 
-const socket = new WebSocket('wss://api.tokenlab.sh/v1/realtime?model=gpt-realtime', {
-  headers: { Authorization: 'Bearer sk-your-api-key' }
+const model = process.env.TOKENLAB_REALTIME_MODEL;
+const apiKey = process.env.TOKENLAB_API_KEY;
+if (!model || !apiKey) {
+  throw new Error('Set TOKENLAB_REALTIME_MODEL and TOKENLAB_API_KEY');
+}
+
+const url = new URL('wss://api.tokenlab.sh/v1/realtime');
+url.searchParams.set('model', model);
+const socket = new WebSocket(url, {
+  headers: { Authorization: `Bearer ${apiKey}` }
 });
 
 socket.on('open', () => {
-  socket.send(JSON.stringify({
-    type: 'session.update',
-    session: { modalities: ['text', 'audio'] }
-  }));
+  console.log('Realtime connection open');
 });
 
 socket.on('message', (data) => {
   console.log('realtime event', data.toString());
 });
+
+socket.on('error', (error) => console.error(error.message));
+socket.on('close', (code) => console.log('Realtime connection closed', code));
 ```
 
 ```bash cURL
@@ -65,19 +73,20 @@ curl "https://api.tokenlab.sh/v1/realtime" \
 ## مثال الاستجابة
 
 <ResponseExample>
-```json Connected
+```json HTTP GET
 {
-  "type": "session.created",
-  "session": {
-    "id": "sess_abc123",
-    "model": "gpt-realtime",
-    "modalities": ["text", "audio"]
-  }
+  "object": "realtime.endpoint",
+  "websocket_url": "/v1/realtime?model={model}",
+  "protocol": "tokenlab_realtime_proxy"
 }
 ```
 </ResponseExample>
 
 ## حقول مهمة
+
+<ResponseField name="object" type="string">نوع الكائن في استجابة HTTP GET العادية. قيمته الثابتة هي `realtime.endpoint`.</ResponseField>
+<ResponseField name="websocket_url" type="string">مسار اتصال WebSocket النسبي الذي يعيده طلب HTTP GET عادي: `/v1/realtime?model={model}`. استبدل `{model}` بمعرّف النموذج المحدد.</ResponseField>
+<ResponseField name="protocol" type="string">معرّف البروتوكول الذي يعيده طلب HTTP GET عادي. قيمته الثابتة هي `tokenlab_realtime_proxy`.</ResponseField>
 
 <ResponseField name="type" type="string">نوع الحدث أو الرسالة الذي تعيده API.</ResponseField>
 <ResponseField name="session.id" type="string">معرّف مبهم يتم استلامه عبر اتصال realtime. ضمّنه في سجلات الدعم لتسهيل التشخيص؛ وليس عنوان URL لجلسة REST.</ResponseField>

@@ -6,6 +6,10 @@ description: "取得 World Labs Marble 世界生成任務的狀態與結果"
 
 輪詢此端點以檢查 World Labs Marble 生成任務的狀態。如果建立回應中包含 `poll_url`，請優先呼叫該完整 URL。
 
+<Info>
+已過期或不可用的公開任務可能回傳 `404 async_task_not_found`。無法確認目前 API 金鑰對任務的歸屬權限時，回傳 `403 task_not_owned`。
+</Info>
+
 ## 路徑參數
 
 <ParamField path="id" type="string" required>
@@ -13,6 +17,8 @@ description: "取得 World Labs Marble 世界生成任務的狀態與結果"
 </ParamField>
 
 ## 回應
+
+成功的狀態回應僅要求回傳 `id` 和 `status`。任務別名、operation ID、世界資源、描述、費用和字串 `error` 僅在可用時回傳。任務完成不代表每個資源 URL 都存在。
 
 <ResponseField name="id" type="string">
   公開任務 ID。
@@ -59,7 +65,7 @@ description: "取得 World Labs Marble 世界生成任務的狀態與結果"
 </ResponseField>
 
 <ResponseField name="cost" type="object">
-  可用時返回的上游 operation 費用詳情，包括 `total_credits`。
+  生成費用詳情（如有），可能包含 `total_credits`。實際扣費請查看用量紀錄。
 </ResponseField>
 
 <ResponseField name="error" type="string">
@@ -68,7 +74,7 @@ description: "取得 World Labs Marble 世界生成任務的狀態與結果"
 
 <RequestExample>
 ```bash cURL
-curl "https://api.tokenlab.sh/v1/worlds/generations/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" \
+curl --fail-with-body "https://api.tokenlab.sh/v1/worlds/generations/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 
@@ -83,6 +89,7 @@ while True:
         f"https://api.tokenlab.sh/v1/worlds/generations/{task_id}",
         headers={"Authorization": "Bearer sk-your-api-key"},
     )
+    response.raise_for_status()
     result = response.json()
     if result["status"] in ["completed", "failed", "timeout"]:
         print(result)
@@ -96,7 +103,8 @@ const response = await fetch(`https://api.tokenlab.sh/v1/worlds/generations/${ta
   headers: { Authorization: 'Bearer sk-your-api-key' }
 });
 
+if (!response.ok) throw new Error(await response.text());
 const result = await response.json();
-console.log(result.status, result.world_marble_url);
+console.log(result);
 ```
 </RequestExample>

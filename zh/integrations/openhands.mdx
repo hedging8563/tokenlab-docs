@@ -3,37 +3,22 @@ title: "OpenHands"
 description: "把 OpenHands 连接到 TokenLab"
 ---
 
+
 ## 概述
 
-在 OpenHands 的 LiteLLM/OpenAI 兼容模型设置中填写模型、API 密钥和 Base URL，即可调用 TokenLab。
-
-
-## 环境
-
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
+本页适用于提供 **Settings → LLM → Advanced** 的 LiteLLM 版 OpenHands 界面。选择 **OpenAI**，填写带 `openai/` 前缀的自定义模型，在本机 API Key 输入框填写 TokenLab 密钥，并设置下列 Base URL。先记录原模型选择，结束后可恢复，保留已有账户与工具权限。参见[官方 OpenAI 兼容配置](https://docs.openhands.dev/openhands/usage/llms/openai-llms)。CLI、云端和源码安装的设置流程可能不同，应遵循所装版本的指南；`make setup-config` 不是通用的已安装 CLI 命令。
 
 ## 模型设置
 
-使用：
+编辑前先在本地保存当前提供商、模型和连接设置。这些界面选项会改变当前模型选择，使用结束后恢复原值。保留已登录账户与工具权限；未留存可恢复备份时，不要覆盖已有的其他 OpenAI 兼容连接。
 
 ```text
-Model: openai/claude-sonnet-5
-API key: sk-your-tokenlab-key
+Custom Model: openai/kimi-k3
 Base URL: https://api.tokenlab.sh/v1
 ```
 
-`openai/` 前缀告知基于 LiteLLM 的路径使用 OpenAI 兼容的提供商配置。
+保存设置或列出模型不能证明密钥有效或请求完成。发送提示词会使用 TokenLab 余额；先核对回复及对应[请求记录](https://tokenlab.sh/dashboard/runs?section=requests)，再尝试工具，辅助请求也可能计费。
 
-## 无头（Headless）设置
-
-需要为 CLI 或 Headless 模式保存默认配置时，打开 OpenHands 设置并填写：
-
-```bash
-make setup-config
+```text
+Reply only with TOKENLAB_CONNECTION_OK. Do not use tools or modify files.
 ```
-
-当系统提示输入模型详细信息时，请使用带有 `openai/` 前缀的 TokenLab 模型 ID 以及 TokenLab 的 `/v1` Base URL。
-
-模型 ID 会更新。请从[模型页](https://tokenlab.sh/zh/models)选择当前编程模型，并用自己的仓库任务比较效果、速度和费用。

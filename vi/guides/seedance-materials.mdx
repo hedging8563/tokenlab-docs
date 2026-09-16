@@ -9,7 +9,7 @@ Material Seedance là tham chiếu hình ảnh, video hoặc âm thanh có thể
 
 | Mục tiêu | Quy trình bắt buộc |
 | --- | --- |
-| Dùng URL hình ảnh một lần | Gửi URL trực tiếp trong request video; mô hình tương thích tự chuẩn bị material |
+| Dùng URL hình ảnh một lần | Gửi URL trong trường hình ảnh được hỗ trợ; thao tác này không tạo ID material tái sử dụng |
 | Tái sử dụng avatar, sản phẩm hoặc phong cách | Tạo nhóm `aigc_avatar` và material, chờ `ACTIVE`, rồi dùng ID |
 | Tái sử dụng người thật | Hoàn tất xác minh hình ảnh, nhận `GroupId`, tạo material, chờ `ACTIVE`, rồi dùng ID |
 | Di chuyển client material Volcengine | Giữ định dạng Action và dùng tài liệu tham chiếu tương thích Volcengine: [Action material tương thích Volcengine](/vi/api-reference/video/volc-compatible-material-actions) |
@@ -27,11 +27,13 @@ Tài nguyên Seedance là các tham chiếu có thể tái sử dụng, thuộc 
 
 Hãy giữ riêng biệt `group_id` và `id` của tài sản tài nguyên. `group_id` dùng để tổ chức các tệp tải lên; `id` của tài sản tài nguyên dùng để tạo video. Nếu một yêu cầu video trả về lỗi `Seedance material asset not found or not accessible`, hãy xác nhận rằng bạn đã truyền `id` của tài sản tài nguyên chứ không phải `group_id`, và tài sản đó thuộc cùng một tổ chức, chưa bị xóa và có `status: "ACTIVE"`.
 
-## Material hình ảnh tự động
+## URL hình ảnh và material tái sử dụng
 
-Khi model Seedance đã chọn có thể dùng thư viện material của TokenLab, bạn có thể gửi URL hình ảnh hoặc data URL inline được hỗ trợ trực tiếp trong `image`, `image_url`, `image_urls`, `reference_images`, `start_image` hoặc `end_image`. TokenLab nhập các hình ảnh đó vào nhóm material avatar ảo mặc định của tổ chức và giữ vai trò của chúng là frame đầu, frame cuối hoặc ảnh tham chiếu.
+Gửi URL HTTP(S) công khai hoặc data URL được hỗ trợ trong trường hình ảnh của mô hình đã chọn. Các đầu vào này được xử lý như media thông thường và không tự tạo ID material tái sử dụng.
 
-Nếu material chuyển sang `ACTIVE` trong 60 giây, quá trình tạo video tiếp tục trong cùng request. Nếu chưa sẵn sàng, API trả về `409 seedance_material_preparing` kèm `auto_material_asset_ids`; hãy truy vấn các material đó đến khi `ACTIVE`, rồi thử lại với `material_asset_id` hoặc `material_asset_ids`. Nếu model đã chọn không thể dùng thư viện material, URL hình ảnh hoặc data URL thông thường vẫn đi theo luồng hình ảnh thông thường; ID material tường minh sẽ trả về lỗi khả dụng material. Các ID material avatar ảo hoặc người thật đã có sẽ được dùng nguyên trạng và không nhập lại.
+Để tái sử dụng, tạo tài nguyên qua API material, chờ `ACTIVE`, rồi dùng `material_asset_id`, `material_asset_ids` hoặc `asset://<id>` trong trường media được hỗ trợ. Giữ đúng vai trò khung đầu, khung cuối hoặc ảnh tham chiếu.
+
+Nếu material được chỉ định rõ vẫn đang chuẩn bị, `POST /v1/videos/generations` trả `409 seedance_material_preparing` cùng `inactive_asset_ids`. Kiểm tra tài nguyên đến khi `ACTIVE`, rồi thử lại bằng cùng ID. Nếu `FAILED`, xem `error_message` và sửa hoặc nhập lại trước khi thử lại.
 
 ## Xác minh tài nguyên người thật
 
@@ -44,6 +46,8 @@ Sử dụng xác minh tài nguyên người thật khi sản phẩm của bạn 
 5. Lưu `GroupId` và dùng làm `group_id` khi tạo tư liệu `liveness_face`.
 
 `BytedToken` có hiệu lực trong 30 phút. Dùng cùng `ProjectName` trong cả hai yêu cầu Action. Xác thực dùng `Authorization: Bearer <TOKENLAB_API_KEY>`; không chấp nhận chữ ký AK/SK của Volc.
+
+Mở `H5Link` trả về ngay sau khi tạo. Thời hạn token không bảo đảm có thể mở trang xác minh lần đầu vào bất kỳ lúc nào trong khoảng thời gian đó.
 
 Tùy chọn: sử dụng [bảng điều khiển kiểm thử](https://tokenlab.sh/dashboard/seedance-assets) để xác minh yêu cầu và quy trình callback của bạn, kiểm tra các nhóm tài nguyên và xem lại lịch sử xác minh. Việc tích hợp trong môi trường production của bạn nên gọi trực tiếp các API.
 
@@ -63,9 +67,11 @@ Sử dụng [Tạo Tài nguyên Vật liệu](/vi/api-reference/video/create-mat
 
 | Loại | Đầu vào hỗ trợ |
 |------|-----------------|
-| Hình ảnh | `jpeg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`; tỷ lệ khung hình `(0.4, 2.5)`; chiều rộng và chiều cao `(300, 6000)` px; dưới 30 MB. |
-| Video | `mp4`, `mov`; `480p`, `720p`, hoặc `1080p`; 2-15 giây; tỷ lệ khung hình `[0.4, 2.5]`; chiều rộng và chiều cao `[300, 6000]` px; tổng số pixel từ 409600 đến 2068676; tối đa 200 MB; 24-60 FPS. |
-| Âm thanh | `aac`, `wav`, `mp3`; 2-15 giây; tối đa 15 MB. |
+| Hình ảnh | `jpeg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`; ≤ 30 MiB; chiều rộng và chiều cao [300, 6000] px; tỷ lệ khung hình [0.4, 2.5] |
+| Video | `mp4`, `mov`; ≤ 200 MiB |
+| Âm thanh | `aac`, `wav`, `mp3`; ≤ 15 MiB |
+
+Bảng nêu giới hạn nhập tệp. Yêu cầu được tiếp nhận không bảo đảm media hoặc xác minh người thật sẽ được duyệt. Đợi `ACTIVE`; nếu `FAILED`, sửa nguồn theo `error_message` trước khi nhập lại.
 
 Việc tiếp nhận tài nguyên là không đồng bộ. Hãy thăm dò [Lấy tài nguyên vật liệu (Get Material Asset)](/vi/api-reference/video/get-material-asset) cho đến khi `status` trở thành `ACTIVE`. Phản hồi HTTP thành công chỉ có nghĩa là yêu cầu đã được chấp nhận; hãy luôn đọc trạng thái nghiệp vụ. Nếu trạng thái là `FAILED`, hãy kiểm tra `error_message`, sửa tài nguyên nguồn và tạo tài sản mới.
 

@@ -7,6 +7,12 @@ description: "Utiliza modelos de TokenLab en agentes de VoltAgent"
 
 VoltAgent acepta modelos de lenguaje de AI SDK directamente. Configura un proveedor de AI SDK compatible con OpenAI con la URL base `/v1` de TokenLab y pasa el modelo seleccionado a tu agente.
 
+## Instalación
+
+```bash
+npm install @voltagent/core@2 ai@6 @ai-sdk/openai@3 zod
+```
+
 ## Entorno
 
 ```bash
@@ -27,7 +33,7 @@ const tokenlab = createOpenAI({
 const agent = new Agent({
   name: "tokenlab-agent",
   instructions: "Answer concisely.",
-  model: tokenlab("claude-sonnet-5"),
+  model: tokenlab.chat("claude-sonnet-5"),
 });
 ```
 

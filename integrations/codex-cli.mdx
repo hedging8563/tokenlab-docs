@@ -20,10 +20,7 @@ Explain any paid request test separately before running it.
 
 ## Overview
 
-
-
-
-Codex CLI can connect to TokenLab through `/v1/responses`. The selected model must list `responses` in `accepted_request_formats`; features can vary by model.
+Codex CLI can connect to TokenLab through `/v1/responses`. The selected model must list `openai_responses` in `tokenlab.accepted_request_formats`; features can vary by model.
 
 Remote compaction uses `POST /v1/responses/compact`. Codex sends the current session model in `body.model`, so that model must also support Responses. Do not configure `/v1/compact`.
 
@@ -34,7 +31,7 @@ Use the [official CLI installation guide](https://learn.chatgpt.com/docs/codex/c
 ## Installation
 
 ```bash
-npm install -g @openai/codex
+npm install -g @openai/codex@0.149.0
 ```
 
 Verify installation:
@@ -47,33 +44,11 @@ codex --version
 
 ### Step 1: Set API Key
 
-**Temporary (current session):**
+Use the [Quickstart](/quickstart) terminal instructions for macOS, Linux, WSL, or Windows PowerShell to set `TOKENLAB_API_KEY` without putting the key in command history. Launch Codex from that terminal. For persistent use, use your local secret manager; do not append a plaintext key to your shell profile.
 
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
+### Step 2: Configure tokenlab.config.toml
 
-**Permanent configuration:**
-
-Add to `~/.bashrc`, `~/.zshrc`, or `~/.bash_profile`:
-
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
-
-Then reload:
-
-```bash
-source ~/.zshrc  # or source ~/.bashrc
-```
-
-### Step 2: Configure config.toml
-
-Merge these settings into your user-level `~/.codex/config.toml`; do not replace the entire file. Keep your other providers, accounts, sandbox settings, and approval rules. Provider and authentication settings belong in the user configuration, not a project’s `.codex/config.toml`. See the [official configuration guide](https://learn.chatgpt.com/docs/config-file/config-advanced#custom-model-providers).
-
-To keep your current default provider, save the configuration below in `~/.codex/tokenlab.config.toml` and start `codex --profile tokenlab` on Codex 0.134.0 or later. Use the actual `CODEX_HOME` if customized. Do not create a legacy `[profiles.tokenlab]` table, overwrite `auth.json`, log out of your existing account, or change approval settings. To restore, start without this profile.
-
-In each command group below, choose **TokenLab profile** for `tokenlab.config.toml`, or **TokenLab default** only after merging the settings into `config.toml`. A plain `codex` command uses your default configuration; it does not remember a profile selected in a previous session.
+Use a separate `tokenlab.config.toml` in your active `CODEX_HOME` (normally `~/.codex`) with Codex **0.149.0**. Create it only if the name is unused, or back it up before editing an existing TokenLab profile. The profile below is loaded explicitly with `codex --profile tokenlab`; it leaves the default `config.toml`, `auth.json`, accounts and permission policies unchanged. Do not use a legacy `[profiles.tokenlab]` table. Start without the profile to return to your ordinary setup. See the [official profile configuration](https://learn.chatgpt.com/docs/config-file/config-advanced#profiles).
 
 ```toml
 model_provider = "tokenlab"
@@ -105,43 +80,25 @@ Responses requests are not converted to Chat Completions. Optional and future fi
 
 **Start interactive mode:**
 
-<CodeGroup>
-```bash TokenLab profile
+```bash
 codex --profile tokenlab
 ```
 
-```bash TokenLab default
-codex
-```
-</CodeGroup>
-
 **Direct command:**
 
-<CodeGroup>
-```bash TokenLab profile
+```bash
 codex --profile tokenlab "Fix the bug in main.py line 42"
 ```
 
-```bash TokenLab default
-codex "Fix the bug in main.py line 42"
-```
-</CodeGroup>
-
 **Specify model:**
 
-<CodeGroup>
-```bash TokenLab profile
+```bash
 codex --profile tokenlab -m gpt-5.6-sol "Build a REST API server"
 ```
 
-```bash TokenLab default
-codex -m gpt-5.6-sol "Build a REST API server"
-```
-</CodeGroup>
-
 ## Choose a model
 
-Use a model that currently lists `responses` in `accepted_request_formats`. Compare candidates on your own coding tasks and check current prices on the [Models page](https://tokenlab.sh/en/models).
+Use a model that currently lists `openai_responses` in `tokenlab.accepted_request_formats`. Compare candidates on your own coding tasks and check current prices on the [Models page](https://tokenlab.sh/en/models).
 
 ## Interactive Commands
 
@@ -169,71 +126,41 @@ Start Codex and run `/status` to check the active model and permissions. If you 
 
 When you are ready to make a real request, run the command below. It uses your TokenLab balance. Check the reply and the matching record in [Requests](https://tokenlab.sh/dashboard/runs?section=requests); an environment check or successful startup alone does not prove a request succeeded.
 
-<CodeGroup>
-```bash TokenLab profile
+```bash
 codex --profile tokenlab "Reply only with OK. Do not use tools or modify files."
 ```
-
-```bash TokenLab default
-codex "Reply only with OK. Do not use tools or modify files."
-```
-</CodeGroup>
 
 ## Common Use Cases
 
 **Code review:**
 
-<CodeGroup>
-```bash TokenLab profile
+```bash
 git diff | codex --profile tokenlab "Review these code changes"
 ```
 
-```bash TokenLab default
-git diff | codex "Review these code changes"
-```
-</CodeGroup>
-
 **Generate commit messages:**
 
-<CodeGroup>
-```bash TokenLab profile
+```bash
 git diff --staged | codex --profile tokenlab "Generate a commit message for these changes"
 ```
 
-```bash TokenLab default
-git diff --staged | codex "Generate a commit message for these changes"
-```
-</CodeGroup>
-
 **Fix errors:**
 
-<CodeGroup>
-```bash TokenLab profile
+```bash
 codex --profile tokenlab "Fix the TypeScript errors in src/components/"
 ```
 
-```bash TokenLab default
-codex "Fix the TypeScript errors in src/components/"
-```
-</CodeGroup>
-
 **Explain code:**
 
-<CodeGroup>
-```bash TokenLab profile
+```bash
 cat main.py | codex --profile tokenlab "Explain what this code does"
 ```
-
-```bash TokenLab default
-cat main.py | codex "Explain what this code does"
-```
-</CodeGroup>
 
 ## Troubleshooting
 
 <AccordionGroup>
   <Accordion title="Connection Error">
-    - Verify `base_url` in config.toml is exactly `https://api.tokenlab.sh/v1`
+    - Verify `base_url` in tokenlab.config.toml is exactly `https://api.tokenlab.sh/v1`
     - Check network connectivity
     - Ensure no proxy interference
   </Accordion>

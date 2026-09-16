@@ -37,7 +37,6 @@ Use o painel OpenAPI interativo acima para ver o esquema exato.
 
 - Use `custom_id` para reconciliação downstream idempotente.
 - Espere `output_file_id` e `error_file_id` apenas depois que o worker finalizar o lote.
-- A precificação do lote pode ser diferente da precificação síncrona porque as regras de desconto `isBatchRequest=true` se aplicam.
 
 ## Tipos de conteúdo
 
@@ -54,5 +53,5 @@ O conteúdo de arquivos em lote é retornado como JSONL ou texto simples. O cont
 
 ## Campos importantes
 
-<ResponseField name="body" type="binary|string">Corpo bruto da resposta. Salve diretamente sem interpretar como JSON.</ResponseField>
-<ResponseField name="custom_id" type="string">Identificador para chamadas seguintes e suporte.</ResponseField>
+<ResponseField name="body" type="binary|string">Conteúdo do arquivo. Salve ou analise conforme `Content-Type`; analise JSONL linha por linha.</ResponseField>
+<ResponseField name="custom_id" type="string">ID que associa um item de entrada do lote ao seu resultado.</ResponseField>

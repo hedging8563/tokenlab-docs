@@ -10,11 +10,15 @@ description: "SeedanceマテリアルアセットをTokenLabマテリアルグ�
 
 | タイプ | サポートされている入力 |
 |------|-----------------|
-| 画像 | `jpeg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`; アスペクト比 `(0.4, 2.5)`; 幅と高さ `(300, 6000)` px; 30 MB未満。 |
-| 動画 | `mp4`, `mov`; `480p`, `720p`, または `1080p`; 2〜15秒; アスペクト比 `[0.4, 2.5]`; 幅と高さ `[300, 6000]` px; 総画素数 409600〜2068676; 200 MBまで; 24〜60 FPS。 |
-| 音声 | `aac`, `wav`, `mp3`; 2〜15秒; 15 MBまで。 |
+| 画像 | `jpeg`, `jpg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`; ≤30 MiB; 幅と高さ `[300, 6000]` px; アスペクト比 `[0.4, 2.5]`. |
+| 動画 | `mp4`, `mov`; ≤200 MiB. |
+| 音声 | `aac`, `wav`, `mp3`; ≤15 MiB. |
+
+TokenLab はソース URL、メディア形式、ファイルサイズ、読み取り可能な画像寸法を確認します。インポートの受付は利用準備の完了を意味しません。`ACTIVE` を待ち、処理が失敗した場合は `error_message` を確認してください。その他のメディアや顔の条件は処理中に検証されます。
 
 作成は非同期で行われます。`status` が `ACTIVE` になるまで [マテリアルアセットの取得](/ja/api-reference/video/get-material-asset) をポーリングしてください。実在人物グループの場合、1つのグループは1人の認証済み人物に対応します。複数の顔が含まれている場合や、認証済みの人物と一致しない顔がアップロードされた場合は失敗する可能性があります。
+
+`project_name` は認証済み組織内のリソースを分離します。デフォルトは `default` です。関連するグループと素材には、大文字と小文字を区別した同じ値を使用してください。POST/PUT では JSON ボディ、GET/DELETE ではクエリに指定します。
 
 ## リクエスト例
 
@@ -22,7 +26,7 @@ description: "SeedanceマテリアルアセットをTokenLabマテリアルグ�
 curl https://api.tokenlab.sh/v1/videos/assets \
   -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"library_type":"aigc_avatar","group_id":"group-20260720123456-vrt01","asset_url":"https://example.com/reference.png","asset_type":"Image","asset_name":"Front view"}'
+  -d '{"library_type":"aigc_avatar","group_id":"group-20260720123456-vrt01","asset_url":"https://example.com/reference.png","asset_type":"Image","asset_name":"Front view","project_name":"default"}'
 ```
 
 ## レスポンス例
@@ -31,6 +35,7 @@ curl https://api.tokenlab.sh/v1/videos/assets \
 {
   "id": "asset-20260720123456-qn7wr",
   "object": "seedance.material_asset",
+  "project_name": "default",
   "group_id": "group-20260720123456-vrt01",
   "library_type": "aigc_avatar",
   "asset_name": "Front view",

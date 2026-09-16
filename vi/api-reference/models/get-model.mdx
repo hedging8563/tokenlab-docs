@@ -7,7 +7,7 @@ description: "Lấy các khả năng, giá cả và định dạng API của m�
 ## Path Parameter
 
 <ParamField path="model" type="string" required>
-  ID của model, ví dụ như `gpt-5.4` hoặc `claude-sonnet-4-6`.
+  ID của model, ví dụ như `gpt-5.6-terra` hoặc `claude-sonnet-4-6`.
 </ParamField>
 
 ## Response
@@ -33,7 +33,7 @@ Một số model đa phương tiện cũng bao gồm trạng thái đề xuất 
 ## Ví dụ
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models/gpt-5.4"
+curl "https://api.tokenlab.sh/v1/models/gpt-5.6-terra"
 ```
 
 ```json
@@ -43,8 +43,8 @@ curl "https://api.tokenlab.sh/v1/models/gpt-5.4"
   "owned_by": "openai",
   "tokenlab": {
     "category": "chat",
-    "capabilities": ["text"],
-    "accepted_request_formats": ["responses", "chat_completions"]
+    "capabilities": ["coding", "json-mode", "prompt-cache", "reasoning", "tool-use", "vision"],
+    "accepted_request_formats": ["openai_chat_completions", "openai_responses"]
   }
 }
 ```

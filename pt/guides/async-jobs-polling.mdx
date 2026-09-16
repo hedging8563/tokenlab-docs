@@ -81,7 +81,8 @@ Tarefas não suportadas retornam `400 unsupported_task_cancel`. Tarefas que já 
 
 | Sintoma                                   | Causa provável                                                                 | O que verificar                                      |
 |-------------------------------------------|-------------------------------------------------------------------------------|-----------------------------------------------------|
-| `async_task_not_found`                    | Tarefa é desconhecida, expirou, inacessível a esta chave de API, ou não é uma tarefa assíncrona pública | Confirme a propriedade da chave de API e o `task_id` público armazenado |
+| `404 async_task_not_found` | A tarefa expirou ou não está mais disponível | Verifique os valores salvos de `task_id` e `poll_url` |
+| `403 task_not_owned` | Não é possível confirmar que a tarefa pertence ao espaço de trabalho atual | Verifique o espaço de trabalho ou a organização associados à chave API |
 | A tarefa nunca parece terminar            | O cliente continua consultando a URL errada ou parou antes do status terminal | Use `poll_url` ou `/v1/tasks/{id}` e inspecione o status mais recente |
 | URL final de mídia ausente                | A tarefa não está completa, ou o trabalho upstream foi concluído sem saída utilizável | Continue consultando até o terminal, depois trate a saída ausente como falha |
 | O usuário vê duplicatas                   | O caminho de tentativa criou uma nova tarefa após timeout ou atualização      | Deduplica pelo seu próprio ID de trabalho e `task_id` armazenado |

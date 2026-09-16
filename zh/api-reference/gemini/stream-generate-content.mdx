@@ -4,7 +4,8 @@ openapi: "POST /v1beta/models/{model}:streamGenerateContent"
 description: "使用 Google Gemini API 格式流式生成内容"
 ---
 
-这是 `generateContent` 的 SSE 版本。中间事件可能只有 metadata，也可能暂时没有 `finishReason`；流会在自然 EOF 时结束，不会附加 Chat Completions 的 `[DONE]`。
+Gemini `generateContent` 的 SSE 版本。事件可能只有 metadata，也可能是没有 `finishReason` 的中间内容。流在自然 EOF 时结束，不附加 `[DONE]` 标记。
+
 ## 路径参数
 
 <ParamField path="model" type="string" required>
@@ -19,9 +20,9 @@ description: "使用 Google Gemini API 格式流式生成内容"
 
 ## 请求正文
 
-与 [生成内容](/api-reference/gemini/generate-content) 相同。
+与 [生成内容](/zh/api-reference/gemini/generate-content) 相同。
 
-`generationConfig.candidateCount`、工具组合和其他可选字段是否可用，以所选模型为准。
+`generationConfig.candidateCount`、工具、媒体类型及其他可选字段是否可用，以所选模型为准。
 
 ## 响应
 
@@ -29,7 +30,7 @@ description: "使用 Google Gemini API 格式流式生成内容"
 
 <RequestExample>
 ```bash cURL
-curl -X POST "https://api.tokenlab.sh/v1beta/models/gemini-2.5-pro:streamGenerateContent?key=sk-your-api-key" \
+curl -N -X POST "https://api.tokenlab.sh/v1beta/models/gemini-2.5-pro:streamGenerateContent?key=sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
     "contents": [
@@ -53,7 +54,10 @@ model = genai.GenerativeModel("gemini-2.5-pro")
 response = model.generate_content("Tell me a story", stream=True)
 
 for chunk in response:
-    print(chunk.text, end="")
+    for candidate in chunk.candidates:
+        for part in candidate.content.parts:
+            if part.text:
+                print(part.text, end="")
 ```
 
 ```javascript JavaScript
@@ -74,7 +78,7 @@ const decoder = new TextDecoder();
 while (true) {
   const { done, value } = await reader.read();
   if (done) break;
-  console.log(decoder.decode(value));
+  console.log(decoder.decode(value, { stream: true }));
 }
 ```
 

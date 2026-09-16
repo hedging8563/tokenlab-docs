@@ -5,7 +5,7 @@ description: "Bảo mật các yêu cầu TokenLab API của bạn bằng API ke
 
 ## API Key
 
-Tất cả các yêu cầu TokenLab API đều yêu cầu một API key.
+Lời gọi mô hình và tài nguyên riêng tư cần khóa API. Các endpoint công khai như `GET /v1/models` và `GET /v1/models/{model}` không cần khóa. Truy vấn khám phá thành công không xác minh khóa có hoạt động; hãy theo hướng dẫn bắt đầu nhanh để gửi yêu cầu đến mô hình. Hãy dùng khóa đầy đủ đã lưu, không dùng tiền tố trong danh sách.
 
 Đối với các endpoint tương thích OpenAI, gửi nó dưới dạng:
 
@@ -51,38 +51,7 @@ Token quản lý không dùng được để gọi mô hình, và khóa API thô
 
 ## Sử dụng API Key
 
-<CodeGroup>
-
-```bash cURL
-curl https://api.tokenlab.sh/v1/responses \
-  -H "Authorization: Bearer $TOKENLAB_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "gpt-5.6-terra",
-    "input": "Hello!"
-  }'
-```
-
-```python Python
-import os
-from openai import OpenAI
-
-client = OpenAI(
-    api_key=os.environ.get("TOKENLAB_API_KEY"),
-    base_url="https://api.tokenlab.sh/v1"
-)
-```
-
-```javascript JavaScript
-import OpenAI from 'openai';
-
-const client = new OpenAI({
-  apiKey: process.env.TOKENLAB_API_KEY,
-  baseURL: 'https://api.tokenlab.sh/v1'
-});
-```
-
-</CodeGroup>
+Xem [bắt đầu nhanh](/vi/quickstart) để thiết lập biến môi trường và gửi yêu cầu đầu tiên. Dùng SDK phù hợp với [định dạng API](/vi/guides/api-formats) và chỉ giữ khóa ở phía máy chủ.
 
 ## Tính năng của API Key
 
@@ -99,32 +68,12 @@ Bạn có thể đặt giới hạn sử dụng cho từng API key:
 
 Tất cả API key của TokenLab đều bắt đầu bằng `sk-`.
 
-## Tương thích Anthropic
-
-Đối với endpoint `/v1/messages`, header theo kiểu Anthropic hoạt động như mong đợi:
-
-```bash
-curl https://api.tokenlab.sh/v1/messages \
-  -H "x-api-key: sk-your-api-key" \
-  -H "anthropic-version: 2023-06-01" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "claude-sonnet-5",
-    "max_tokens": 1024,
-    "messages": [{"role": "user", "content": "Hello!"}]
-  }'
-```
-
-<Note>
-Sử dụng `Authorization: Bearer ...` cho các endpoint tương thích OpenAI như `/v1/responses`, `/v1/chat/completions`, `/v1/models`, và hầu hết các route TokenLab khác.
-</Note>
-
 ## Phản hồi lỗi
 
 | Mã trạng thái | Kiểu | Mã | Mô tả |
 |-------------|------|------|-------------|
-| 401 | `invalid_api_key` | `invalid_api_key` | Thiếu hoặc API key không hợp lệ |
-| 401 | `expired_api_key` | `expired_api_key` | API key đã bị thu hồi |
+| 401 | `invalid_api_key` | `invalid_api_key` | Khóa API bị thiếu, không hợp lệ, không hoạt động hoặc đã bị thu hồi |
+| 401 | `expired_api_key` | `expired_api_key` | Khóa API đã hết hạn |
 | 402 | `insufficient_balance` | `insufficient_balance` | Số dư tài khoản không đủ |
 | 402 | `quota_exceeded` | `quota_exceeded` | Đã đạt đến giới hạn sử dụng của API key |
 

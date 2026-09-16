@@ -13,7 +13,7 @@ description: "指定された画像のバリエーションを作成します"
 **同期リクエストのタイムアウト:** ルーティング先の画像プロバイダーによっては、生成完了まで待って最終画像をインラインで返します。高解像度または高品質のリクエストは 1 分前後、またはそれ以上かかることがあるため、HTTP クライアントのタイムアウトは少なくとも `120s` に設定してください。作成レスポンスに `status: "pending"`、`task_id`、または `poll_url` が含まれる場合は、返された `poll_url` をポーリングしてください。
 
 <ParamField body="image" type="file" required>
-  バリエーションの基となる画像。有効な PNG ファイルで、50MB 未満、正方形である必要があります。
+  Multipart の入力画像。ファイルとリクエスト全体はそれぞれ 50 MiB 以内にしてください。対応形式と寸法はモデルに依存し、現在のモデル詳細に `/v1/images/variations` が明記されている必要があります。
 </ParamField>
 
 <ParamField body="model" type="string" required>
@@ -21,14 +21,14 @@ description: "指定された画像のバリエーションを作成します"
 </ParamField>
 
 <ParamField body="n" type="integer" default="1">
-  生成する画像の数。1 から 10 の間である必要があります。
+  生成する画像の数（1-10、モデルに依存）。
 </ParamField>
 
 <ParamField body="size" type="string">
   従来の variation 互換ルートで生成される画像サイズ。サポートされる値は選択したモデルによって異なります。
 </ParamField>
 
-<ParamField body="response_format" type="string" default="url">
+<ParamField body="response_format" type="string">
   生成された画像の返却形式。`url` または `b64_json` である必要があります。
 </ParamField>
 

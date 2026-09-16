@@ -4,18 +4,7 @@ openapi: "POST /v1/batches/{batch_id}/cancel"
 description: "Hủy một công việc lô đang chờ hoặc đang chạy."
 ---
 
-## Tổng Quan
-
-Điểm cuối này là một phần của Batch API tương thích với OpenAI của TokenLab. Các công việc lô sử dụng các tệp JSONL đã tải lên, chạy không đồng bộ và có thể trả về các tệp đầu ra/lỗi sau.
-
-## Ghi Chú
-
-- Các tệp đầu vào lô phải sử dụng `purpose=batch`.
-- `completion_window` hiện tại là `24h`.
-- Thứ tự đầu ra không được đảm bảo; luôn khớp theo `custom_id`.
-- Streaming không được hỗ trợ bên trong các mục lô.
-
-## Ví Dụ
+Yêu cầu hủy lô đang chờ hoặc đang chạy. Phản hồi chứa trạng thái hiện tại: việc hủy có thể đang diễn ra hoặc đã hoàn tất. Lô đã kết thúc giữ nguyên trạng thái cuối cùng. Nếu trạng thái trả về chưa phải trạng thái cuối cùng, hãy truy xuất lại lô để kiểm tra kết quả.
 
 <RequestExample>
 ```bash cURL
@@ -23,18 +12,6 @@ curl -X POST "https://api.tokenlab.sh/v1/batches/batch_abc123/cancel" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 </RequestExample>
-
-## Yêu Cầu / Phản Hồi
-
-Sử dụng bảng điều khiển OpenAPI tương tác ở trên để có sơ đồ chính xác.
-
-## Mẹo Vận Hành
-
-- Sử dụng `custom_id` cho việc đối chiếu không thay đổi ở phía hạ nguồn.
-- Mong đợi `output_file_id` và `error_file_id` chỉ sau khi công nhân hoàn tất lô.
-- Giá cả lô có thể khác với giá cả đồng bộ vì các quy tắc giảm giá `isBatchRequest=true` áp dụng.
-
-## Ví dụ phản hồi
 
 <ResponseExample>
 ```json 200 OK
@@ -47,7 +24,5 @@ Sử dụng bảng điều khiển OpenAPI tương tác ở trên để có sơ 
 ```
 </ResponseExample>
 
-## Trường quan trọng
-
 <ResponseField name="id" type="string">Định danh dùng cho lần gọi tiếp theo và hỗ trợ.</ResponseField>
-<ResponseField name="status" type="string">Trạng thái vòng đời hiện tại của tài nguyên.</ResponseField>
+<ResponseField name="status" type="string">Trạng thái hiện tại của lô. Yêu cầu hủy thành công không phải lúc nào cũng trả về `cancelling`.</ResponseField>

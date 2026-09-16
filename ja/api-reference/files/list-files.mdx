@@ -37,11 +37,10 @@ curl -X GET "https://api.tokenlab.sh/v1/files?purpose=batch&limit=20" \
 
 - 冪等性のある下流の調整には `custom_id` を使用してください。
 - ワーカーがバッチを最終化した後にのみ `output_file_id` と `error_file_id` を期待してください。
-- バッチの価格は、`isBatchRequest=true` の割引ルールが適用されるため、同期価格とは異なる場合があります。
 
 ## フィルター
 
-- `limit` は 1 から 10000 まで指定でき、デフォルトは 10000 です。
+- バッチおよび画像参照ファイルの `limit` は 1–10000（デフォルト 10000）で、ページ送りには `after` を使います。Anthropic Files モードでは 1–1000（デフォルト 20）です。`after_id` または `before_id` のどちらか一方でページ送りします。
 - `purpose` は `batch`、`batch_output`、`user_data`、`vision` のいずれかです。
 - `user_data` と `vision` は、利用可能な場合に TokenLab が作成した画像参照ファイルを返します。
 
@@ -51,7 +50,10 @@ curl -X GET "https://api.tokenlab.sh/v1/files?purpose=batch&limit=20" \
 ```json 200 OK
 {
   "object": "list",
-  "data": [{ "id": "file_abc123", "object": "file", "purpose": "batch" }]
+  "data": [{ "id": "file_abc123", "object": "file", "purpose": "batch" }],
+  "first_id": "file_abc123",
+  "last_id": "file_abc123",
+  "has_more": false
 }
 ```
 </ResponseExample>
@@ -60,3 +62,4 @@ curl -X GET "https://api.tokenlab.sh/v1/files?purpose=batch&limit=20" \
 
 <ResponseField name="object" type="string">レスポンスの object type です。</ResponseField>
 <ResponseField name="data" type="array">このレスポンスで返されるリストまたは payload です。</ResponseField>
+<ResponseField name="has_more" type="boolean">`has_more` が true の場合、続きの結果があります。</ResponseField>

@@ -1,14 +1,18 @@
 ---
 title: "建立任務 (Volc 相容)"
 openapi: "POST /api/v3/contents/generations/tasks"
-description: "使用 Volc 相容 API 建立 Seedance 2.0 任務。"
+description: "使用 Volc 相容 API 建立 Seedance 任務。"
 ---
 
 ## 概覽
 
 現有的 Volc 風格 Seedance 客戶端可以透過更改 API 位址和金鑰來使用 TokenLab。
 
-請參閱 [Seedance 2.0 影片模型](/guides/seedance-2-video) 與 [影片生成](/guides/video-generation)。
+<Note>
+本頁範例使用 Seedance 2.0；此端點也支援 Seedance 2.5，模型間差異見下文。 本頁的可重複使用 TokenLab 素材 URI 用法適用於 Seedance 2.0。
+</Note>
+
+請參閱 [Seedance 2.0 影片模型](/zh-Hant/guides/seedance-2-video) 與 [影片生成](/zh-Hant/guides/video-generation)。
 
 ## 驗證與端點
 
@@ -24,14 +28,23 @@ description: "使用 Volc 相容 API 建立 Seedance 2.0 任務。"
 - `role: "reference_image"`、`reference_video` 和 `reference_audio` 用作參考素材。
 - `image_url.url` 接受公開圖片 URL 或素材 URI，例如 `asset://asset-YYYYMMDDHHMMSS-xxxxx`。`role` 決定該素材是首幀、末幀還是參考圖片。
 - 請勿在同一個請求中混合使用首/末幀輸入與參考媒體。
-- 請求主體僅接受此格式支援的欄位。頂層的 `material_asset_id`、`material_asset_ids` 和 `priority` 將被拒絕。請改將 TokenLab 素材 URI 放入 `image_url.url` 中。
+- 不接受頂層 `material_asset_id` 和 `material_asset_ids`。請將 TokenLab 素材 URI 放入 `image_url.url`。`priority` 僅 Seedance 2.5 支援。
 
 ## 參數說明
 
+`duration` 為整數秒數，`-1` 表示自動時長。預設值與限制因模型而異：
+
+| 參數 | Seedance 2.0 | Seedance 2.5 |
+|---|---|---|
+| `duration` | `4`–`15` / `-1` (預設: `5`) | `4`–`30` / `-1` (預設: `-1`) |
+| `resolution` | `480p`, `720p`, `1080p` (預設: `720p`) | `480p`, `720p` (預設: `720p`) |
+| `generate_audio` | `boolean` (預設: `false`) | `boolean` (預設: `true`) |
+| `priority` | 不支援 | `integer`: `0`–`9` |
+| `seed` | `integer`: `-1`–`4294967295` (預設: `-1`) | 不支援 |
+
+Seedance 2.5 的首幀、首尾幀、影片延長和影片到影片請求必須使用 `ratio: "adaptive"`；影片到影片還必須使用 `duration: -1`。`output_format` 的 `mp4` 和 `mov` 選項僅 Seedance 2.5 支援。
+
 - `ratio` 接受 `16:9`、`4:3`、`1:1`、`3:4`、`9:16`、`21:9` 或 `adaptive`。
-- `duration` 為影片長度（秒），包含模型支援的自動持續時間值。
-- `resolution` 接受 `480p`、`720p` 或 `1080p`。
-- `generate_audio` 預設為 `false`；當需要同步音訊時，請設為 `true`。
 - 當所選模型支援時，接受 `watermark`、`return_last_frame`、`seed`、`execution_expires_after` 和 `safety_identifier`。
 - `callback_url` 可指向公開的 HTTP(S) 端點。
 
@@ -39,13 +52,13 @@ description: "使用 Volc 相容 API 建立 Seedance 2.0 任務。"
 
 當存在 `callback_url` 時，TokenLab 會在任務狀態變更時發送 HTTP `POST` 請求。回調狀態包括 `queued`、`running`、`succeeded`、`failed` 和 `expired`。JSON 主體與 get-task 回應格式一致。
 
-`2xx` 回應表示已確認送達。對於 `succeeded` 和 `failed` 狀態，若五秒內未成功送達，將重試最多三次，符合官方行為。回調僅包含標準 JSON 內容標頭，不包含 TokenLab 特定的傳遞標頭。系統不支援重新導向，且會拒絕私有或保留的網路目標。
+`2xx` 回應表示已確認送達。對於 `succeeded` 和 `failed` 狀態，若五秒內未成功送達，將重試最多三次。回調僅包含標準 JSON 內容標頭，不包含 TokenLab 特定的傳遞標頭。系統不支援重新導向，且會拒絕私有或保留的網路目標。
 
 請儲存任務 ID。如果回調未送達，您仍可透過 get-task 端點擷取結果。
 
 ## 圖片準備
 
-當 `content[]` 包含圖片 URL 時，TokenLab 會在所選 Seedance 模型需要時將其準備為可重複使用的素材。如果準備工作未能在 60 秒內完成，建立請求將返回可重試的「素材準備中」(material-preparing) 錯誤，而不是提交不完整的影片任務。
+公開 HTTP(S) 圖片 URL 和支援的 data URL 按輸入使用，不會自動儲存為可重複使用的素材。明確的 `asset://asset-...` 引用使用既有 TokenLab 素材，生成前會檢查歸屬與就緒狀態。如果引用的素材仍在準備，請等待就緒後重試；建立失敗時查看 `error.code` 和 `error.message`。
 
 對於現有素材，請使用公開的 `asset-YYYYMMDDHHMMSS-xxxxx` ID，而非其他系統返回的原始素材 ID。TokenLab 會在生成前驗證素材所有權。
 
@@ -64,7 +77,7 @@ description: "使用 Volc 相容 API 建立 Seedance 2.0 任務。"
 請在建立請求時發送唯一的 `Idempotency-Key`。如果連線在回應到達前中斷，請使用相同的 API 金鑰、冪等性金鑰 (idempotency key) 和請求主體進行重試：
 
 - 若原始任務已建立，TokenLab 將返回相同的 `cgt-...` ID 並加入 `Idempotency-Replayed: true`。
-- 若原始請求仍在處理中，TokenLab 將返回 `409 IdempotencyRequestInProgress` 並附帶 `Retry-After`；請在該延遲後重試相同的金鑰與主體。
+- 若原始請求仍在登記中，TokenLab 會回傳 `409 IdempotencyRequestInProgress`；請稍後使用相同金鑰與主體重試。
 - 若重複使用金鑰但主體不同，將返回 `409 IdempotencyConflict` 且不會建立第二個任務。
 
 冪等性適用於官方 v3 REST 建立路徑。它不會改變 JSON 回應格式，且不會根據 `X-Request-ID` 或未帶金鑰的相同請求主體進行推斷。
@@ -111,4 +124,4 @@ curl https://api.tokenlab.sh/api/v3/contents/generations/tasks \
 
 ## 下一步
 
-使用返回的 `cgt-...` ID 搭配 [取得任務 (Volc 相容)](/api-reference/video/get-volc-compatible-seedance-task)，直到任務達到終止狀態。
+使用返回的 `cgt-...` ID 搭配 [取得任務 (Volc 相容)](/zh-Hant/api-reference/video/get-volc-compatible-seedance-task)，直到任務達到終止狀態。

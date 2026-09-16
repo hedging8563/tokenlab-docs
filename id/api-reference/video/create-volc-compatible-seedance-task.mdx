@@ -1,14 +1,18 @@
 ---
 title: "Buat Tugas (Kompatibel dengan Volc)"
 openapi: "POST /api/v3/contents/generations/tasks"
-description: "Buat tugas Seedance 2.0 dengan API yang kompatibel dengan Volc."
+description: "Buat tugas Seedance dengan API yang kompatibel dengan Volc."
 ---
 
 ## Gambaran Umum
 
 Klien Seedance bergaya Volc yang sudah ada dapat menggunakan TokenLab dengan mengubah alamat API dan kunci.
 
-Lihat juga [Model Video Seedance 2.0](/guides/seedance-2-video) dan [Pembuatan Video](/guides/video-generation).
+<Note>
+Contoh menggunakan Seedance 2.0. Endpoint ini juga mendukung Seedance 2.5 dengan perbedaan model di bawah. Contoh URI material TokenLab yang dapat digunakan kembali di halaman ini berlaku untuk Seedance 2.0.
+</Note>
+
+Lihat juga [Model Video Seedance 2.0](/id/guides/seedance-2-video) dan [Pembuatan Video](/id/guides/video-generation).
 
 ## Autentikasi Dan Endpoint
 
@@ -24,14 +28,23 @@ Lihat juga [Model Video Seedance 2.0](/guides/seedance-2-video) dan [Pembuatan V
 - `role: "reference_image"`, `reference_video`, dan `reference_audio` digunakan sebagai referensi.
 - `image_url.url` menerima URL gambar publik atau URI material seperti `asset://asset-YYYYMMDDHHMMSS-xxxxx`. `role` menentukan apakah material tersebut adalah bingkai pertama, bingkai terakhir, atau gambar referensi.
 - Jangan mencampur input bingkai pertama/terakhir dengan media referensi dalam satu permintaan.
-- Body permintaan hanya menerima field yang didukung oleh format ini. `material_asset_id`, `material_asset_ids`, dan `priority` tingkat atas akan ditolak. Masukkan URI material TokenLab di dalam `image_url.url` sebagai gantinya.
+- Field tingkat atas `material_asset_id` dan `material_asset_ids` ditolak. Masukkan URI material TokenLab ke `image_url.url`. `priority` hanya didukung untuk Seedance 2.5.
 
 ## Catatan Parameter
 
+`duration` adalah bilangan bulat dalam detik; `-1` memilih durasi otomatis. Default dan batas berbeda menurut model:
+
+| Parameter | Seedance 2.0 | Seedance 2.5 |
+|---|---|---|
+| `duration` | `4`–`15` / `-1` (default: `5`) | `4`–`30` / `-1` (default: `-1`) |
+| `resolution` | `480p`, `720p`, `1080p` (default: `720p`) | `480p`, `720p` (default: `720p`) |
+| `generate_audio` | `boolean` (default: `false`) | `boolean` (default: `true`) |
+| `priority` | Tidak didukung | `integer`: `0`–`9` |
+| `seed` | `integer`: `-1`–`4294967295` (default: `-1`) | Tidak didukung |
+
+Untuk Seedance 2.5, permintaan bingkai pertama, bingkai pertama/terakhir, perpanjangan video, dan video-ke-video memerlukan `ratio: "adaptive"`. Video-ke-video juga memerlukan `duration: -1`. `output_format` menerima `mp4` atau `mov` hanya untuk Seedance 2.5.
+
 - `ratio` menerima `16:9`, `4:3`, `1:1`, `3:4`, `9:16`, `21:9`, atau `adaptive`.
-- `duration` adalah panjang video dalam detik, termasuk nilai durasi otomatis yang didukung model.
-- `resolution` menerima `480p`, `720p`, atau `1080p`.
-- `generate_audio` defaultnya adalah `false`; atur ke `true` jika audio yang disinkronkan diperlukan.
 - `watermark`, `return_last_frame`, `seed`, `execution_expires_after`, dan `safety_identifier` diterima jika valid untuk model yang dipilih.
 - `callback_url` dapat mengarah ke endpoint HTTP(S) publik.
 
@@ -39,13 +52,13 @@ Lihat juga [Model Video Seedance 2.0](/guides/seedance-2-video) dan [Pembuatan V
 
 Ketika `callback_url` ada, TokenLab mengirimkan `POST` HTTP saat status tugas berubah. Status callback adalah `queued`, `running`, `succeeded`, `failed`, dan `expired`. Body JSON cocok dengan respons get-task.
 
-Respons `2xx` mengakui pengiriman. Untuk `succeeded` dan `failed`, pengiriman yang tidak berhasil dalam lima detik akan dicoba kembali hingga tiga kali, sesuai dengan perilaku resmi. Callback hanya memiliki header konten JSON standar dan tidak ada header pengiriman khusus TokenLab. Pengalihan (redirect) tidak diikuti, dan target jaringan pribadi atau yang dicadangkan akan ditolak.
+Respons `2xx` mengakui pengiriman. Untuk `succeeded` dan `failed`, pengiriman yang tidak berhasil dalam lima detik akan dicoba kembali hingga tiga kali. Callback hanya memiliki header konten JSON standar dan tidak ada header pengiriman khusus TokenLab. Pengalihan (redirect) tidak diikuti, dan target jaringan pribadi atau yang dicadangkan akan ditolak.
 
 Simpan ID tugas. Jika callback tidak terkirim, Anda masih dapat mengambil hasilnya dengan endpoint get-task.
 
 ## Persiapan Gambar
 
-Ketika `content[]` berisi URL gambar, TokenLab menyiapkannya sebagai material yang dapat digunakan kembali saat diperlukan oleh model Seedance yang dipilih. Jika persiapan tidak selesai dalam 60 detik, permintaan pembuatan akan mengembalikan error material-preparing yang dapat dicoba kembali alih-alih mengirimkan tugas video yang tidak lengkap.
+URL gambar HTTP(S) publik dan URL data yang didukung digunakan sesuai input, tanpa otomatis disimpan sebagai material yang dapat digunakan kembali. Referensi eksplisit `asset://asset-...` memakai material TokenLab yang sudah ada. Kepemilikan dan kesiapan diperiksa sebelum pembuatan. Jika material masih disiapkan, tunggu hingga siap lalu coba lagi. Jika pembuatan gagal, periksa `error.code` dan `error.message`.
 
 Untuk material yang sudah ada, gunakan ID `asset-YYYYMMDDHHMMSS-xxxxx` publik, bukan ID aset asli yang dikembalikan oleh sistem lain. TokenLab memverifikasi kepemilikan material sebelum pembuatan.
 
@@ -64,7 +77,7 @@ Respons pembuatan hanya berisi ID tugas. Simpan agar Anda dapat mengambil status
 Kirim `Idempotency-Key` unik dengan permintaan pembuatan. Jika koneksi terputus sebelum respons tiba, coba lagi dengan kunci API, kunci idempotensi, dan body permintaan yang sama:
 
 - Jika tugas asli telah dibuat, TokenLab mengembalikan ID `cgt-...` yang sama dan menambahkan `Idempotency-Replayed: true`.
-- Jika permintaan asli masih dalam proses pendaftaran, TokenLab mengembalikan `409 IdempotencyRequestInProgress` dengan `Retry-After`; coba lagi kunci dan body yang sama setelah penundaan tersebut.
+- Jika permintaan asli masih didaftarkan, TokenLab mengembalikan `409 IdempotencyRequestInProgress`. Coba lagi nanti dengan kunci dan body yang sama.
 - Menggunakan kembali kunci dengan body yang berbeda akan mengembalikan `409 IdempotencyConflict` dan tidak akan pernah membuat tugas kedua.
 
 Idempotensi berlaku untuk jalur pembuatan REST v3 resmi. Ini tidak mengubah bentuk respons JSON, dan tidak disimpulkan dari `X-Request-ID` atau dari body permintaan yang identik tanpa kunci.
@@ -111,4 +124,4 @@ Untuk material yang sudah ada, masukkan setiap URI ke dalam item `content[]` res
 
 ## Langkah Berikutnya
 
-Gunakan ID `cgt-...` yang dikembalikan dengan [Dapatkan Tugas (Kompatibel dengan Volc)](/api-reference/video/get-volc-compatible-seedance-task) sampai tugas mencapai status terminal.
+Gunakan ID `cgt-...` yang dikembalikan dengan [Dapatkan Tugas (Kompatibel dengan Volc)](/id/api-reference/video/get-volc-compatible-seedance-task) sampai tugas mencapai status terminal.

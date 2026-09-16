@@ -3,6 +3,8 @@ title: "الأخطاء التي يمكن للوكلاء (Agents) التعامل 
 description: "استخدم رموز الخطأ، وتوقيت إعادة المحاولة، واقتراحات النموذج دون الحاجة إلى تحليل النصوص"
 ---
 
+تصف هذه الصفحة أخطاء API العامة التي تستطيع التطبيقات ووكلاء البرمجة قراءتها آليًا. ولا تمنح صلاحيات التحقيق في طلبات مساحة العمل أو الوصول إلى الدعم. ابدأ من [استكشاف أخطاء الطلبات](/ar/guides/observability-troubleshooting).
+
 يمكن أن تتضمن أخطاء TokenLab المتوافقة مع OpenAI تلميحات منظمة للوكيل أو التطبيق. استخدم هذه الحقول عند توفرها؛ ولا تقم بتحليل `message` المقروء بشرياً لاتخاذ قرار بشأن ما يجب فعله.
 
 تحتفظ واجهات برمجة تطبيقات Anthropic Messages و Gemini بتنسيقات الخطأ الأصلية الخاصة بها، لذا فإن الإضافات الموجودة في هذه الصفحة تنطبق فقط على أخطاء Chat Completions و Responses المتوافقة مع OpenAI.
@@ -129,10 +131,10 @@ description: "استخدم رموز الخطأ، وتوقيت إعادة الم�
 
 | القيمة | نقطة النهاية (Endpoint) |
 | --- | --- |
-| `chat_completions` | `/v1/chat/completions` |
-| `responses` | `/v1/responses` |
-| `messages` | `/v1/messages` |
-| `gemini` | `/v1beta/models/{model}:generateContent` |
+| `openai_chat_completions` | `/v1/chat/completions` |
+| `openai_responses` | `/v1/responses` |
+| `anthropic_messages` | `/v1/messages` |
+| `gemini_generate_content` | `/v1beta/models/{model}:generateContent` |
 
 يؤكد التنسيق المقبول نقطة النهاية. لا تزال الأدوات والحقول الفردية تختلف حسب النموذج؛ تحقق من صفحة النموذج قبل الاعتماد عليها.
 
@@ -141,8 +143,7 @@ description: "استخدم رموز الخطأ، وتوقيت إعادة الم�
 يمكن لـ Models API إرجاع قائمة مختصرة حالية للمهام غير المتعلقة بالدردشة:
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=image" \
-  -H "Authorization: Bearer sk-your-api-key"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=image"
 ```
 
 القيم الصالحة لـ `recommended_for` هي `image` و `video` و `music` و `3d` و `tts` و `stt` و `embedding` و `rerank` و `translation`. أرسل معرف النموذج المختار صراحةً في طلب الإنشاء. لا تقوم TokenLab باستبداله بصمت بنموذج مختلف.
@@ -157,28 +158,38 @@ GET https://api.tokenlab.sh/llms.txt
 
 وهي تتضمن طلباً أولياً، ونقاط نهاية شائعة، وفلاتر النماذج، وتوجيهات معالجة الأخطاء.
 
-## مثال على إعادة المحاولة الآمنة
+## معالجة الخطأ دون إعادة إرسال الطلب
 
-يصحح هذا المثال اسم النموذج فقط عندما تُرجع الـ API قيمة `did_you_mean`. أضف تأكيداً من المستخدم إذا كان تغيير النماذج قد يؤثر على الجودة أو السعر أو معالجة البيانات في منتجك.
+يرسل المثال طلبًا واحدًا ويحافظ على النموذج المختار ويعرض معلومات الخطأ المنظمة. أُوقفت إعادة المحاولة التلقائية في SDK. اعرض اقتراحات النماذج لاختيار صريح من المستخدم؛ لا تُعد تلقائيًا إرسال طلب توليد قُبل أو انتهت مهلة انتظاره.
 
 ```python
-from openai import OpenAI, BadRequestError
+import os
+from openai import OpenAI, APIStatusError
 
-client = OpenAI(
-    api_key="sk-your-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
-
-def chat(messages, model):
+with OpenAI(
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh/v1",
+    timeout=30.0,
+    max_retries=0,
+) as client:
     try:
-        return client.chat.completions.create(model=model, messages=messages)
-    except BadRequestError as exc:
-        error = exc.body.get("error", {}) if isinstance(exc.body, dict) else {}
-        suggested = error.get("did_you_mean")
-        if error.get("code") == "model_not_found" and suggested:
-            return client.chat.completions.create(
-                model=suggested,
-                messages=messages,
-            )
+        response = client.chat.completions.create(
+            model="gpt-5.6-terra",
+            messages=[{"role": "user", "content": "Reply only with OK."}],
+        )
+        print(response.choices[0].message.content)
+    except APIStatusError as exc:
+        body = exc.body if isinstance(exc.body, dict) else {}
+        error = body.get("error", body)
+        if not isinstance(error, dict):
+            error = {}
+        print({
+            "status": exc.status_code,
+            "request_id": exc.request_id,
+            "code": error.get("code"),
+            "hint": error.get("hint"),
+            "suggested_model": error.get("did_you_mean"),
+            "retry_after": exc.response.headers.get("Retry-After") or error.get("retry_after"),
+        })
         raise
 ```

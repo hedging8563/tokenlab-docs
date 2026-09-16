@@ -5,7 +5,7 @@ description: "Sichern Sie Ihre TokenLab API-Anfragen mit API-Schlüsseln"
 
 ## API-Schlüssel
 
-Alle TokenLab API-Anfragen erfordern einen API-Schlüssel.
+Modellaufrufe und private Ressourcen benötigen einen API-Schlüssel. Öffentliche Endpunkte wie `GET /v1/models` und `GET /v1/models/{model}` funktionieren ohne Schlüssel. Ein erfolgreicher Abruf bestätigt nicht, dass Ihr Schlüssel funktioniert; senden Sie dazu eine Modellanfrage wie im Schnellstart. Verwenden Sie den vollständigen gespeicherten Schlüssel, nicht das Präfix aus der Liste.
 
 Für OpenAI-kompatible Endpunkte senden Sie ihn wie folgt:
 
@@ -51,38 +51,7 @@ Verwaltungstokens können nicht für Modellinferenz verwendet werden. Normale `s
 
 ## API-Schlüssel verwenden
 
-<CodeGroup>
-
-```bash cURL
-curl https://api.tokenlab.sh/v1/responses \
-  -H "Authorization: Bearer $TOKENLAB_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "gpt-5.6-terra",
-    "input": "Hello!"
-  }'
-```
-
-```python Python
-import os
-from openai import OpenAI
-
-client = OpenAI(
-    api_key=os.environ.get("TOKENLAB_API_KEY"),
-    base_url="https://api.tokenlab.sh/v1"
-)
-```
-
-```javascript JavaScript
-import OpenAI from 'openai';
-
-const client = new OpenAI({
-  apiKey: process.env.TOKENLAB_API_KEY,
-  baseURL: 'https://api.tokenlab.sh/v1'
-});
-```
-
-</CodeGroup>
+Umgebungsvariablen und eine vollständige erste Anfrage finden Sie im [Schnellstart](/de/quickstart). Verwenden Sie das SDK für das gewählte [API-Format](/de/guides/api-formats) und speichern Sie Schlüssel nur serverseitig.
 
 ## Funktionen von API-Schlüsseln
 
@@ -99,32 +68,12 @@ Sie können für jeden API-Schlüssel ein Nutzungslimit festlegen:
 
 Alle TokenLab API-Schlüssel beginnen mit `sk-`.
 
-## Anthropic-Kompatibilität
-
-Für den Endpunkt `/v1/messages` funktioniert der Header im Anthropic-Stil wie erwartet:
-
-```bash
-curl https://api.tokenlab.sh/v1/messages \
-  -H "x-api-key: sk-your-api-key" \
-  -H "anthropic-version: 2023-06-01" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "claude-sonnet-5",
-    "max_tokens": 1024,
-    "messages": [{"role": "user", "content": "Hello!"}]
-  }'
-```
-
-<Note>
-Verwenden Sie `Authorization: Bearer ...` für OpenAI-kompatible Endpunkte wie `/v1/responses`, `/v1/chat/completions`, `/v1/models` und die meisten anderen TokenLab-Routen.
-</Note>
-
 ## Fehlerantworten
 
 | Statuscode | Typ | Code | Beschreibung |
 |-------------|------|------|-------------|
-| 401 | `invalid_api_key` | `invalid_api_key` | Fehlender oder ungültiger API-Schlüssel |
-| 401 | `expired_api_key` | `expired_api_key` | API-Schlüssel wurde widerrufen |
+| 401 | `invalid_api_key` | `invalid_api_key` | Der API-Schlüssel fehlt, ist ungültig, inaktiv oder widerrufen |
+| 401 | `expired_api_key` | `expired_api_key` | Der API-Schlüssel ist abgelaufen |
 | 402 | `insufficient_balance` | `insufficient_balance` | Kontoguthaben ist unzureichend |
 | 402 | `quota_exceeded` | `quota_exceeded` | Nutzungslimit des API-Schlüssels erreicht |
 

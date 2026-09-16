@@ -6,10 +6,12 @@ description: "Löscht ein Seedance-Material-Asset, das sich im Besitz der aktuel
 
 Löscht ein einzelnes Material-Asset. Dies löscht nicht die übergeordnete Materialgruppe. Nach dem Löschvorgang kann die Asset-ID nicht mehr als `material_asset_id` verwendet werden.
 
+`project_name` trennt Ressourcen innerhalb der authentifizierten Organisation. Der Standard ist `default`; verwenden Sie für zugehörige Gruppen und Assets denselben Wert mit gleicher Groß- und Kleinschreibung. Senden Sie ihn bei POST/PUT im JSON-Body und bei GET/DELETE als Query-Parameter.
+
 ## Beispielanfrage
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr \
+curl "https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr?project_name=default" \
   -X DELETE \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```

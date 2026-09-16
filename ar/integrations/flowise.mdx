@@ -27,13 +27,15 @@ description: "استخدم نماذج محادثة TokenLab في سير عمل F
 
 ## البديل المتوافق مع OpenAI
 
-إذا لم تكن عقدة TokenLab متاحة بعد، استخدم عقدة نموذج محادثة متوافقة مع OpenAI مع البيانات التالية:
+إذا لم تتضمن نسختك عقدة TokenLab، فأضف **Chat Models** → **OpenAI Custom Model**. ضمن **Connect Credential**، أنشئ بيانات اعتماد **OpenAI API** باستخدام مفتاح TokenLab. اضبط **Model Name** و**Additional Parameters** → **Base Path** كما يلي:
 
 | الحقل | القيمة |
 |-------|-------|
-| Base URL | `https://api.tokenlab.sh/v1` |
+| Base Path | `https://api.tokenlab.sh/v1` |
 | API Key | `sk-your-tokenlab-key` |
-| Model | `gpt-5.4-mini` |
+| Model Name | `gpt-5.4-mini` |
+
+اربط العقدة بالسلسلة أو الوكيل أو سير العمل، ثم أرسل طلباً تجريبياً.
 
 ## النماذج الموصى بها
 

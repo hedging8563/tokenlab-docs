@@ -18,7 +18,7 @@ description: "프롬프트와 원본 이미지를 기반으로 이미지를 편�
 
 `gpt-image-2` 편집은 `resolution` 을 허용하지 않습니다. 출력 크기는 `size` 를 사용하세요. `background` 는 `auto` 또는 `opaque` 를 허용하며 `transparent` 는 지원하지 않습니다. 다중 이미지 또는 지연 시간이 긴 편집에는 `async: true` 를 권장하고 반환된 작업을 폴링하세요.
 
-Nano Banana 참조 이미지 요청(`nano-banana`, `nano-banana-2`, `nano-banana-pro`)은 `/v1/images/generations` 에서 제공되며 `operation: "image-to-image"` 와 `image_urls` 를 사용합니다. 이 `/v1/images/edits` 엔드포인트로 보내지 마세요.
+Nano Banana 참조 이미지 요청(`nano-banana-edit`, `nano-banana-2`, `nano-banana-pro`)은 `/v1/images/generations` 에서 제공되며 `operation: "image-to-image"` 와 `image_urls` 를 사용합니다. 이 `/v1/images/edits` 엔드포인트로 보내지 마세요.
 
 xAI Grok Imagine 이미지 편집 모델(`grok-imagine-image`, `grok-imagine-image-quality`, legacy `grok-imagine-image-pro`)은 최대 3개의 원본 이미지만 허용합니다. 3개를 초과하는 요청은 입력 검증 단계에서 `400 too_many_images`로 실패합니다.
 
@@ -29,18 +29,20 @@ xAI Grok Imagine 이미지 편집 모델(`grok-imagine-image`, `grok-imagine-ima
 
 **동기 요청 타임아웃:** 일부 이미지 요청은 생성이 완료될 때까지 기다린 뒤 최종 이미지를 inline 으로 반환합니다. 고해상도 또는 고품질 요청은 1분 안팎이거나 그 이상 걸릴 수 있으므로 HTTP 클라이언트 타임아웃을 최소 `120s` 로 설정하세요. 생성 응답에 `status: "pending"`, `task_id`, 또는 `poll_url` 이 포함되어 있으면 반환된 `poll_url` 을 따라 폴링하세요.
 
-원격 이미지 URL: multipart 입력이 필요하면 TokenLab는 JSON `image_url`, `image_urls`, 또는 `images[].image_url`을 가져와 바이트를 multipart `image` 파트로 보냅니다. URL은 공개 `http`/`https`여야 하며, 내장 자격 증명이나 fragment가 없어야 하고, localhost, private 또는 reserved IP 범위로 해석되면 안 됩니다. 각 redirect 대상도 다시 검사됩니다. 가져온 payload는 실제 PNG, JPEG, WebP 이미지여야 합니다. 제한은 이미지당 `50MB`, 한 요청에서 URL로 가져오는 이미지 합계 `200MB`, fetch timeout `10s`, 최대 `3`회 redirect입니다.
+원격 이미지 URL: multipart 입력이 필요하면 TokenLab는 JSON `image_url`, `image_urls`, 또는 `images[].image_url`을 가져와 바이트를 multipart `image` 파트로 보냅니다. URL은 공개 `http`/`https`여야 하며, 내장 자격 증명이나 fragment가 없어야 하고, localhost, private 또는 reserved IP 범위로 해석되면 안 됩니다. 각 redirect 대상도 다시 검사됩니다. 가져온 payload는 실제 PNG, JPEG, WebP 이미지여야 합니다. 제한은 이미지당 `50 MiB`, 한 요청에서 URL로 가져오는 이미지 합계 `200 MiB`, fetch timeout `10s`, 최대 `3`회 redirect입니다.
+
+JSON 요청에서는 `image_url`, `image_urls`, `images` 중 정확히 하나를 지정하세요. 각 `images[]` 객체에는 `image_url` 또는 `file_id` 중 하나만 있어야 합니다. 200 MiB 총량 제한에는 모든 원본 이미지와 마스크가 포함됩니다.
 
 <ParamField body="image" type="file">
-  multipart 원본 이미지입니다. 여러 GPT Image 원본을 제공하려면 `image` 필드를 반복해서 보내세요. 파일은 PNG, JPEG, WebP여야 하며 최대 16개 원본 이미지, 각 `50MB`까지 지원됩니다. xAI Grok Imagine 편집 모델은 같은 입력 필드를 사용하지만 원본 이미지는 3개로 제한됩니다.
+  multipart 원본 이미지입니다. 여러 GPT Image 원본을 제공하려면 `image` 필드를 반복해서 보내세요. 파일은 PNG, JPEG, WebP여야 하며 최대 16개 원본 이미지, 각 `50 MiB`까지 지원됩니다. xAI Grok Imagine 편집 모델은 같은 입력 필드를 사용하지만 원본 이미지는 3개로 제한됩니다.
 </ParamField>
 
 <ParamField body="prompt" type="string" required>
   원하는 편집에 대한 텍스트 설명입니다.
 </ParamField>
 
-<ParamField body="mask" type="file">
-  완전히 투명한 영역이 이미지를 편집할 위치를 나타내는 추가 이미지입니다. 유효한 PNG 파일이어야 하며, 50MB 미만이고 `image` 와 동일한 크기여야 합니다.
+<ParamField body="mask" type="file | object">
+  완전히 투명한 영역이 이미지를 편집할 위치를 나타내는 추가 이미지입니다. 유효한 PNG 파일이어야 하며, 50 MiB 미만이고 `image` 와 동일한 크기여야 합니다.
 
   JSON 요청에서는 `mask`를 `image_url` 또는 `file_id` 중 정확히 하나만 포함하는 객체로 보낼 수도 있습니다. `file_id`는 `/v1/files`에서 생성되어야 하며 같은 이미지 편집 설정에 묶여 있어야 합니다.
 </ParamField>
@@ -50,7 +52,7 @@ xAI Grok Imagine 이미지 편집 모델(`grok-imagine-image`, `grok-imagine-ima
 </ParamField>
 
 <ParamField body="n" type="integer" default="1">
-  생성할 이미지 수입니다. 1에서 10 사이여야 합니다.
+  생성할 이미지 수입니다 (1-10, 모델에 따라 다름).
 </ParamField>
 
 <ParamField body="size" type="string">
@@ -60,7 +62,7 @@ xAI Grok Imagine 이미지 편집 모델(`grok-imagine-image`, `grok-imagine-ima
 <ParamField body="response_format" type="string" default="url">
   생성된 이미지가 반환되는 형식입니다. `url` 또는 `b64_json`이어야 하며 기본값은 `url`입니다.
 
-  Azure Official 또는 Azure-compatible `gpt-image-2` 요청에서는 TokenLab가 이미지 결과를 `b64_json`으로 받습니다. `url` 요청에서는 각 이미지를 CDN에 업로드한 뒤 `data[].url`을 반환합니다. CDN 스토리지를 사용할 수 없거나 업로드가 실패하면 Base64 응답으로 바꾸지 않고 요청을 실패시킵니다. `b64_json` 요청에서는 원본 Base64를 반환합니다.
+  `url`은 `data[].url`에 이미지 URL을 반환하며, `b64_json`은 `data[].b64_json`에 Base64 이미지 데이터를 반환합니다.
 </ParamField>
 
 <ParamField body="async" type="boolean" default="false">

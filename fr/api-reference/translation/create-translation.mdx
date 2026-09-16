@@ -9,20 +9,19 @@ description: "Traduit du texte vers une langue cible"
 `/v1/translations` sert à la **traduction texte vers texte**.
 
 <Note>
-Cet endpoint est différent de [la traduction audio](/api-reference/audio/create-translation), qui accepte un fichier audio et renvoie toujours du texte en anglais.
+Cet endpoint est différent de [la traduction audio](/fr/api-reference/audio/create-translation), qui accepte un fichier audio et renvoie toujours du texte en anglais.
 </Note>
 
 Pour les workflows d'agent, commencez par découvrir les modèles de traduction actuellement recommandés :
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=translation" \
-  -H "Authorization: Bearer sk-your-api-key"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=translation"
 ```
 
 Envoyez ensuite explicitement le modèle choisi à `/v1/translations`.
 
 <Note>
-`recommended_for=translation` s'applique uniquement à la **traduction de texte** (`POST /v1/translations`). Il ne s'applique pas à [la traduction audio](/api-reference/audio/create-translation).
+`recommended_for=translation` s'applique uniquement à la **traduction de texte** (`POST /v1/translations`). Il ne s'applique pas à [la traduction audio](/fr/api-reference/audio/create-translation).
 </Note>
 
 ## Corps de la requête
@@ -82,13 +81,7 @@ curl -X POST "https://api.tokenlab.sh/v1/translations" \
 ```
 
 ```python Python
-from openai import OpenAI
 import requests
-
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
 
 response = requests.post(
     "https://api.tokenlab.sh/v1/translations",

@@ -1,6 +1,6 @@
 ---
 title: "Xiaomi (MiMo)"
-description: "MiMo reasoning and agentic models"
+description: "Xiaomi (MiMo) models available through TokenLab"
 ---
 
 ## Overview
@@ -20,10 +20,11 @@ TokenLab provides access to Xiaomi (MiMo) models. Total: **2 models** available.
 This example uses one model's declared request format. Other models on this page may accept different formats.
 
 ```python
+import os
 from openai import OpenAI
 
 client = OpenAI(
-    api_key="sk-your-tokenlab-key",
+    api_key=os.environ["TOKENLAB_API_KEY"],
     base_url="https://api.tokenlab.sh/v1"
 )
 

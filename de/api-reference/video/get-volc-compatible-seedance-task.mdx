@@ -9,10 +9,10 @@ description: "Ruft eine Seedance-Kompatibilitätsaufgabe über ihre cgt-Task-ID 
 Verwenden Sie die `cgt-...` ID, die bei der Erstellung zurückgegeben wurde. Pollen Sie alle paar Sekunden, solange der Task den Status `queued` oder `running` hat. Stoppen Sie, wenn der Task `succeeded`, `failed`, `cancelled` oder `expired` ist.
 
 <Warning>
-Verwenden Sie hier nicht das vereinheitlichte v1-Task-Enum oder die Response-Struktur. `/v1/tasks/{id}` verwendet `pending`, `processing`, `completed` und `failed`; dieser v3-Endpunkt verwendet das oben genannte offizielle Enum. Im v3-JSON-Objekt ist `duration` ein String, sofern vorhanden, und `error` wird weggelassen, es sei denn, der Task ist fehlgeschlagen. Ein strikter Go-Client sollte `Duration` als `string` mit dem JSON-Tag `duration,omitempty` deklarieren und bei jedem v3-Terminalstatus stoppen.
+Verwenden Sie hier nicht das vereinheitlichte v1-Task-Enum oder die Response-Struktur. `/v1/tasks/{id}` verwendet `pending`, `processing`, `completed` und `failed`; dieser v3-Endpunkt verwendet das oben genannte offizielle Enum. Im v3-JSON-Objekt ist `duration` ein String, sofern vorhanden, und `error` ist optional und enthält verfügbare Fehlerdetails. Ein strikter Go-Client sollte `Duration` als `string` mit dem JSON-Tag `duration,omitempty` deklarieren und bei jedem v3-Terminalstatus stoppen.
 </Warning>
 
-Siehe auch [Seedance 2.0 Videomodelle](/guides/seedance-2-video) und [Videogenerierung](/guides/video-generation).
+Siehe auch [Seedance 2.0 Videomodelle](/de/guides/seedance-2-video) und [Videogenerierung](/de/guides/video-generation).
 
 ## Statuswerte
 
@@ -32,7 +32,7 @@ Siehe auch [Seedance 2.0 Videomodelle](/guides/seedance-2-video) und [Videogener
 - `content.last_frame_url`: nur vorhanden, wenn angefordert und verfügbar.
 - `usage`: Token-Verbrauch, sofern verfügbar.
 - `created_at` und `updated_at`: Zeitstempel des Tasks.
-- `error`: nur vorhanden, wenn der Task fehlgeschlagen ist; wird bei nicht fehlgeschlagenen Tasks weggelassen.
+- `error`: Optionale Fehlerdetails, sofern verfügbar. Prüfen Sie `error.code` und `error.message`; leiten Sie die Existenz des Felds nicht allein aus `status` ab.
 
 Die Antwort fügt niemals TokenLab-Felder wie `progress`, `return_last_frame`, `watermark`, `priority` oder `camera_fixed` hinzu.
 

@@ -5,7 +5,7 @@ description: "TokenLab model çıktılarını Guardrails ile doğrulayın"
 
 ## Genel Bakış
 
-Guardrails, LLM API arayüzü ile uyumlu her türlü çağrılabilir (callable) öğeyi sarmalayabilir. TokenLab için, OpenAI SDK'yı TokenLab'in temel URL'si ile yapılandırın ve chat completions çağrılabilir öğesini guard'ınıza iletin.
+OpenAI SDK’yı TokenLab Base URL ile yapılandırın, JSON isteyin ve dönen metni `Guard.parse` ile doğrulayın.
 
 <Note>
 **Tür**: Doğrulama ve yapılandırılmış çıktı çerçevesi
@@ -14,6 +14,12 @@ Guardrails, LLM API arayüzü ile uyumlu her türlü çağrılabilir (callable) 
 
 **Destek Güveni**: Desteklenen OpenAI uyumlu yol
 </Note>
+
+## Kurulum
+
+```bash
+pip install guardrails-ai openai
+```
 
 ## Ortam
 
@@ -43,11 +49,17 @@ client = OpenAI(
     base_url="https://api.tokenlab.sh/v1",
 )
 
-raw_output, validated_output, *rest = guard(
-    llm_api=client.chat.completions.create,
+response = client.chat.completions.create(
     model="claude-sonnet-5",
-    messages=[{"role": "user", "content": "What kind of pet should I get?"}],
+    response_format={"type": "json_object"},
+    messages=[{
+        "role": "user",
+        "content": "Suggest a pet. Return only JSON with string fields pet_type and name.",
+    }],
 )
+
+outcome = guard.parse(response.choices[0].message.content)
+print(outcome.validated_output)
 ```
 
 ## Uç Nokta Notları

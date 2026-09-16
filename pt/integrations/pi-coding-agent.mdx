@@ -8,11 +8,13 @@ description: "Use o Pi com TokenLab. O Pi é uma ferramenta mínima de codifica�
 Use a [instalação oficial](https://pi.dev/). O pacote npm é `@earendil-works/pi-coding-agent`. No Windows, consulte a [configuração do shell](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/windows.md); o padrão é Git Bash. Pule a instalação se Pi já estiver disponível.
 
 ```bash
-npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+npm install -g --ignore-scripts @earendil-works/pi-coding-agent@0.85.1
 pi --version
 ```
 
-Mescle estas entradas em `~/.pi/agent/models.json` ou no diretório `PI_CODING_AGENT_DIR`. Faça uma cópia e preserve outros provedores. Defina `TOKENLAB_API_KEY` localmente no ambiente de inicialização, nunca no chat. Apenas a variável Base URL não cria o provedor.
+A configuração abaixo foi verificada com **Pi 0.85.1**. Outras versões precisam de verificação própria conforme a documentação oficial.
+
+Faça uma cópia de `~/.pi/agent/models.json` e acrescente `tokenlab` após as entradas existentes em `providers`; crie o arquivo somente se estiver ausente. Um `PI_CODING_AGENT_DIR` não vazio seleciona o diretório de `models.json`. Preserve a ordem dos provedores, `settings.json`, as contas, os campos do modelo padrão e as permissões. Se `tokenlab` já existir na configuração ou nas contas salvas, use outro nome e ajuste o comando. Defina `TOKENLAB_API_KEY` localmente pelo [início rápido](/pt/quickstart) para macOS, Linux, WSL ou Windows PowerShell, nunca no chat.
 
 ```json
 {
@@ -29,11 +31,18 @@ Mescle estas entradas em `~/.pi/agent/models.json` ou no diretório `PI_CODING_A
 
 O `$` em `"$TOKENLAB_API_KEY"` é obrigatório; sem ele o valor é texto literal. Escolha um modelo atual com Chat Completions e ferramentas. Use seus detalhes para limites e opções de imagens e raciocínio.
 
+Opcional: o [assistente reversível de configuração do Pi](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/skills/tokenlab-api-integration/references/pi_setup.md) permite visualizar, aplicar e restaurar o arquivo original com Python 3.11+. O plugin TokenLab Skills **0.1.2** inclui esses scripts; um Skill independente também pode ser usado após a atualização para uma versão que os contenha. Para plugins ou Skills independentes já instalados, siga as [instruções de atualização do README](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/README.md#update-an-existing-installation) e confirme que o script está presente. A configuração manual desta página também funciona sem o assistente.
+
 ## Verificar e restaurar
 
-Execute `pi --list-models` e selecione `tokenlab/gpt-5.6-luna` em `/model`. O seletor recarrega `models.json`. Isso verifica registro e presença de credenciais, não sua validade nem uma chamada bem-sucedida.
+Verifique o carregamento no mesmo terminal e diretório do agente e selecione TokenLab explicitamente para esta sessão. Sem `TOKENLAB_API_KEY`, o provedor pode não aparecer na lista. A lista confirma registro e presença de credenciais, não sua validade ou uma chamada API concluída.
 
-Uma solicitação de texto usa saldo TokenLab. Confira a resposta e seu [registro](https://tokenlab.sh/dashboard/runs?section=requests) antes de testar ferramentas. Para restaurar, selecione o provedor anterior e remova apenas a entrada TokenLab adicionada.
+```bash
+pi --list-models tokenlab
+pi --provider tokenlab --model gpt-5.6-luna
+```
+
+Um prompt utiliza saldo TokenLab. Confira a resposta e seu [registro](https://tokenlab.sh/dashboard/runs?section=requests) antes de testar ferramentas. Para desfazer a configuração manual, remova apenas a entrada adicionada, preservando os demais ajustes e contas.
 
 ## Skills e MCP
 

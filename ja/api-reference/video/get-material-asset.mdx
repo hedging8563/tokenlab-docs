@@ -8,10 +8,12 @@ description: "TokenLabマテリアルアセットIDを使用して、Seedanceマ
 
 動画生成時に `Seedance material asset not found or not accessible` というエラーが返される場合は、`group_id` ではなく、このマテリアルアセットの `id` を渡していることを確認してください。
 
+`project_name` は認証済み組織内のリソースを分離します。デフォルトは `default` です。関連するグループと素材には、大文字と小文字を区別した同じ値を使用してください。POST/PUT では JSON ボディ、GET/DELETE ではクエリに指定します。
+
 ## リクエスト例
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr \
+curl "https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr?project_name=default" \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```
 
@@ -21,6 +23,7 @@ curl https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr \
 {
   "id": "asset-20260720123456-qn7wr",
   "object": "seedance.material_asset",
+  "project_name": "default",
   "group_id": "group-20260720123456-vrt01",
   "library_type": "aigc_avatar",
   "asset_name": "Front view",

@@ -39,8 +39,8 @@ TokenLabによって作成されたOpenAI互換エラーでは、`message` と `
 
 | コード | 意味 | 変更すべき点 |
 | --- | --- | --- |
-| `invalid_api_key` | APIキーがない、または無効 | Authorizationヘッダーとキーの値を確認してください |
-| `expired_api_key` | キーの期限が切れている、または取り消されている | 有効なキーを作成または選択してください |
+| `invalid_api_key` | API キーがない、無効、停止中、または失効している | Authorizationヘッダーとキーの値を確認してください |
+| `expired_api_key` | API キーの有効期限が切れている | 有効なキーを作成または選択してください |
 | `insufficient_balance` | アカウント残高がリクエストをカバーできない | 残高を追加、リクエストを削減、または低価格のモデルを選択してください |
 | `quota_exceeded` | APIキーが独自の制限に達した | キーの制限を増やすか、別の有効なキーを使用してください |
 | `model_not_allowed` | キーが要求されたモデルを使用できない | キーのモデルリストを更新するか、許可されたモデルを選択してください |
@@ -65,43 +65,10 @@ TokenLabによって作成されたOpenAI互換エラーでは、`message` と `
 
 画像、動画、音楽、3D、およびWorldsの作成については、タスクIDが返されたらすぐに保存してください。作成リクエストがタイムアウトした場合は、別の作成リクエストを送信する前にタスクレコードを確認してください。
 
-## Pythonの例
-
-```python
-import random
-import time
-from openai import OpenAI, APIConnectionError, APIStatusError, RateLimitError
-
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1",
-)
-
-def chat(messages, model="gpt-5.6-luna", attempts=3):
-    for attempt in range(attempts):
-        try:
-            return client.chat.completions.create(
-                model=model,
-                messages=messages,
-            )
-        except RateLimitError as exc:
-            if attempt == attempts - 1:
-                raise
-            retry_after = exc.response.headers.get("Retry-After")
-            wait = float(retry_after) if retry_after else (2 ** attempt + random.random())
-            time.sleep(wait)
-        except APIStatusError as exc:
-            if exc.status_code < 500 or attempt == attempts - 1:
-                raise
-            time.sleep(2 ** attempt + random.random())
-        except APIConnectionError:
-            if attempt == attempts - 1:
-                raise
-            time.sleep(2 ** attempt + random.random())
-```
-
 ## Request IDの保持
 
 レスポンスヘッダーには、追跡用のRequest IDが含まれています。エンドポイント、モデル、時刻、および独自のユーザーIDやジョブIDと共に保存してください。非同期作業の場合は、`task_id` および `billing_transaction_id` が存在する場合も保存してください。
 
 サポートに連絡する際は、これらのIDと編集済みの例を含めてください。APIキー、管理トークン、プライベートメディア、署名付きURL、または完全なプライベートプロンプトは絶対に送信しないでください。
+
+[リクエストから調査、サポートへ](/ja/guides/observability-troubleshooting)

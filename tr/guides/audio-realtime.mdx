@@ -28,7 +28,7 @@ curl "https://api.tokenlab.sh/v1/models?recommended_for=stt" \
 
 ## Senkron Ses İstekleri
 
-Speech, transcription ve translation istekleri doğrudan HTTP isteğinden döner. Büyük girdiler yaygın client timeout değerlerinden uzun sürebilir, bu yüzden geniş timeout belirleyin ve destek için request ID saklayın.
+Konuşma üretimi HTTP yanıtında ses döndürür. Transkripsiyon ve çeviri son metni veya kabul edilmiş bir görevi döndürebilir. Yanıtta son metin yerine görev kimliği ve durum varsa kimliği saklayın ve tamamlanana veya başarısız olana kadar `poll_url` adresini sorgulayın. Büyük dosyalara yeterli süre tanıyın ve Request ID’yi saklayın.
 
 ```bash
 curl -X POST "https://api.tokenlab.sh/v1/audio/speech" \
@@ -48,14 +48,27 @@ Model query string içinde, API key Authorization header içinde olacak şekilde
 
 Bu kılavuz yalnızca WebSocket subset kapsamını anlatır. TokenLab şu anda OpenAI Realtime REST client secret, translation client secret, Calls veya legacy beta session yönetim endpoint'lerini sağlamaz.
 
+Sunucu örneği için `ws` kurun ve `TOKENLAB_REALTIME_MODEL` değerini ayrıntılarında `/v1/realtime` belirtilen güncel bir modele ayarlayın. `TOKENLAB_API_KEY` sunucu ortamında sağlanmalıdır; ad tek başına realtime desteğini kanıtlamaz.
+
+```bash
+npm install ws
+```
+
 ```javascript
 import WebSocket from 'ws';
 
-const socket = new WebSocket('wss://api.tokenlab.sh/v1/realtime?model=gpt-realtime', {
-  headers: { Authorization: 'Bearer sk-your-api-key' }
-});
+const model = process.env.TOKENLAB_REALTIME_MODEL;
+const apiKey = process.env.TOKENLAB_API_KEY;
+if (!model || !apiKey) throw new Error('Set TOKENLAB_REALTIME_MODEL and TOKENLAB_API_KEY');
 
+const url = new URL('wss://api.tokenlab.sh/v1/realtime');
+url.searchParams.set('model', model);
+const socket = new WebSocket(url, {
+  headers: { Authorization: `Bearer ${apiKey}` },
+});
 socket.on('message', (event) => console.log(event.toString()));
+socket.on('error', (error) => console.error(error.message));
+process.once('SIGINT', () => socket.close(1000, 'Client stopped'));
 ```
 
 ## Durum Yönetimi

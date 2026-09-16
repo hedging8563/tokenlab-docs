@@ -7,6 +7,12 @@ description: "TokenLab을 OpenAI 호환 Graphiti LLM 공급자로 사용하기"
 
 Graphiti는 `OpenAIGenericClient`를 통해 OpenAI 호환 `/v1` 엔드포인트를 지원합니다. 해당 클라이언트를 TokenLab으로 지정하고 TokenLab 모델을 선택하십시오.
 
+## 설치
+
+```bash
+pip install graphiti-core httpx
+```
+
 ## 환경 설정
 
 ```bash
@@ -28,7 +34,10 @@ llm_config = LLMConfig(
     base_url="https://api.tokenlab.sh/v1",
 )
 
-llm_client = OpenAIGenericClient(config=llm_config)
+llm_client = OpenAIGenericClient(
+    config=llm_config,
+    structured_output_mode="json_object",
+)
 ```
 
 그래프 데이터베이스 및 임베더(embedder) 구성과 함께 `llm_client`를 `Graphiti(...)` 인스턴스에 전달하십시오.

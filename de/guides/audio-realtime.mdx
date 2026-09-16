@@ -28,7 +28,7 @@ curl "https://api.tokenlab.sh/v1/models?recommended_for=stt" \
 
 ## Synchrone Audioanfragen
 
-Speech-, Transkriptions- und Übersetzungsanfragen antworten direkt im HTTP-Request. Große Eingaben können länger dauern als übliche Client-Timeouts, daher sollten Sie großzügige Timeouts setzen und Request-IDs für Support speichern.
+Sprachausgabe liefert Audio in der HTTP-Antwort. Transkription und Übersetzung können fertigen Text oder einen angenommenen Auftrag liefern. Enthält die Antwort eine Auftrags-ID und einen Status statt Text, speichern Sie die ID und fragen Sie `poll_url` bis zum Abschluss oder Fehler ab. Planen Sie für große Dateien genügend Zeit ein und speichern Sie die Request ID.
 
 ```bash
 curl -X POST "https://api.tokenlab.sh/v1/audio/speech" \
@@ -48,14 +48,27 @@ curl -X POST "https://api.tokenlab.sh/v1/audio/speech" \
 
 Dieser Leitfaden deckt nur das WebSocket subset ab. TokenLab stellt derzeit keine OpenAI-Realtime-REST-Endpunkte für client secret, translation client secret, Calls oder legacy beta session-Verwaltung bereit.
 
+Installieren Sie für das Serverbeispiel `ws` und setzen Sie `TOKENLAB_REALTIME_MODEL` auf ein aktuelles Modell, dessen Details `/v1/realtime` nennen. Übergeben Sie `TOKENLAB_API_KEY` in der Serverumgebung; der Modellname allein belegt keine Realtime-Unterstützung.
+
+```bash
+npm install ws
+```
+
 ```javascript
 import WebSocket from 'ws';
 
-const socket = new WebSocket('wss://api.tokenlab.sh/v1/realtime?model=gpt-realtime', {
-  headers: { Authorization: 'Bearer sk-your-api-key' }
-});
+const model = process.env.TOKENLAB_REALTIME_MODEL;
+const apiKey = process.env.TOKENLAB_API_KEY;
+if (!model || !apiKey) throw new Error('Set TOKENLAB_REALTIME_MODEL and TOKENLAB_API_KEY');
 
+const url = new URL('wss://api.tokenlab.sh/v1/realtime');
+url.searchParams.set('model', model);
+const socket = new WebSocket(url, {
+  headers: { Authorization: `Bearer ${apiKey}` },
+});
 socket.on('message', (event) => console.log(event.toString()));
+socket.on('error', (error) => console.error(error.message));
+process.once('SIGINT', () => socket.close(1000, 'Client stopped'));
 ```
 
 ## Statusbehandlung

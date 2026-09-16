@@ -4,7 +4,8 @@ openapi: "POST /v1beta/models/{model}:generateContent"
 description: "Google Gemini API形式を使用してコンテンツを生成します"
 ---
 
-TokenLab は、ネイティブ Gemini 契約を公開し、同一プロトコルの upstream ルートを持つモデルにのみこのルートを提供します。Chat Completions へのフォールバックはありません。ProtoJSON の lowerCamelCase と proto 元来の snake_case はどちらも公式で、混在リクエストも保持されます。未知のフィールドは best-effort で転送され、対応可否は upstream が判断します。
+Gemini Models API が返すモデルを選び、Gemini のリクエストとレスポンス形式を使用します。ProtoJSON lowerCamelCase と対応する proto snake_case のフィールド名を使用できます。任意フィールドと値の対応範囲は選択したモデルによって異なります。
+
 ## パスパラメータ
 
 <ParamField path="model" type="string" required>
@@ -27,7 +28,7 @@ Geminiエンドポイントは、複数の認証方法をサポートしてい�
 ## リクエストボディ
 
 <ParamField body="contents" type="array" required>
-  会話コンテンツです。`role` 値とすべての `parts` は送信時のまま保持され、trim/lowercase、Base64 の書き換え、MIME 推論は行いません。`inlineData` / `inline_data` と `fileData` / `file_data` はいずれも公式表記で、TokenLab は `fileData.mimeType` をローカル必須にしません。TokenLab で作成した Files/Cache ID は所有権を確認して元の upstream binding を維持し、その他のメディアやツール規則は provider に委ねます。
+  `parts` と任意の `role` を含む会話内容です。メディアには `inlineData` / `inline_data` または `fileData` / `file_data` を使用します。TokenLab が作成した Files と Cache の ID は所有するワークスペース内でのみ使用できます。
 </ParamField>
 
 <ParamField body="systemInstruction" type="object">
@@ -35,7 +36,7 @@ Geminiエンドポイントは、複数の認証方法をサポートしてい�
 </ParamField>
 
 <ParamField body="generationConfig" type="object">
-  ネイティブ生成設定です。`maxOutputTokens`、`candidateCount`、`thinkingConfig` などの lowerCamelCase と対応する snake_case をそのまま受け付けます。失敗後に `thinkingConfig` を削除したり、streaming の `candidateCount` にローカル制限を設けたりせず、範囲や組み合わせは upstream が判断します。
+  `temperature`、`topP`、`topK`、`maxOutputTokens`、`stopSequences`、`candidateCount`、`responseModalities`、`responseMimeType`、`responseSchema`、`thinkingConfig` などの生成設定です。対応する snake_case 名も使用できます。値と組み合わせの対応範囲はモデルによって異なります。
 </ParamField>
 
 <ParamField body="safetySettings" type="array">
@@ -87,11 +88,11 @@ print(response.text)
 ```javascript JavaScript
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI("sk-your-api-key", {
-  baseUrl: "https://api.tokenlab.sh"
-});
-
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
+const genAI = new GoogleGenerativeAI("sk-your-api-key");
+const model = genAI.getGenerativeModel(
+  { model: "gemini-2.5-pro" },
+  { baseUrl: "https://api.tokenlab.sh" }
+);
 const result = await model.generateContent("Hello, Gemini!");
 
 console.log(result.response.text());

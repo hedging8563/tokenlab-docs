@@ -4,7 +4,7 @@ openapi: "POST /api/v3"
 description: "通过火山兼容 Action 管理 Seedance 素材和素材组。"
 ---
 
-已有火山素材客户端可以保留 Action 名称、`Version=2024-01-01`、PascalCase JSON 和 `ResponseMetadata + Result` 响应结构，只需更换接口地址和鉴权方式。
+这些接口支持下列素材 Action 和字段，使用 TokenLab Bearer 认证及 `ResponseMetadata + Result` 响应结构。
 
 ## 接口与鉴权
 
@@ -23,7 +23,7 @@ Content-Type: application/json
 | Action | 目标 | JSON |
 | --- | --- | --- |
 | `CreateAssetGroup` | 创建普通素材组 | `Name`; `Description`; `GroupType: "AIGC"`; `ProjectName` |
-| `ListAssetGroups` | 列出项目内的素材组 | `Filter`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
+| `ListAssetGroups` | 列出项目内的素材组 | `Filter.GroupIds`; `Filter.GroupType`; `Filter.Name`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
 | `GetAssetGroup` | 获取单个素材组 | `Id`; `ProjectName` |
 | `UpdateAssetGroup` | 修改素材组名称或描述 | `Id`; `Name`; `Description`; `ProjectName` |
 | `DeleteAssetGroup` | 删除素材组及其中素材 | `Id`; `ProjectName` |
@@ -57,12 +57,14 @@ curl 'https://api.tokenlab.sh/?Action=CreateAssetGroup&Version=2024-01-01' \
 | Action | 目标 | JSON |
 | --- | --- | --- |
 | `CreateAsset` | 导入一个公开图片、视频或音频 URL | `GroupId`; `URL`; `Name`; `AssetType`; `ProjectName` |
-| `ListAssets` | 列出项目内的素材 | `Filter`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
+| `ListAssets` | 列出项目内的素材 | `Filter.GroupIds`; `Filter.GroupType`; `Filter.Statuses`; `Filter.Name`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
 | `GetAsset` | 获取素材及临时 URL | `Id`; `ProjectName` |
 | `UpdateAsset` | 重命名素材 | `Id`; `Name`; `ProjectName` |
 | `DeleteAsset` | 删除单个素材 | `Id`; `ProjectName` |
 
 `AssetType` 支持 `Image`、`Video` 和 `Audio`。目标素材组决定它是普通 `AIGC` 素材还是已验证的 `LivenessFace` 素材。
+
+请使用 TokenLab 素材 ID。`CreateAsset` 在处理完成前返回 `Result.Id`；轮询 `GetAsset`，直到 `Result.Status` 为 `Active` 或 `Failed`。`ListAssets` 还支持 `SortBy: "GroupId"`。
 
 ### 创建素材
 
@@ -119,7 +121,7 @@ curl 'https://api.tokenlab.sh/?Action=CreateAsset&Version=2024-01-01' \
 }
 ```
 
-`InvalidCredential`, `InvalidVersion`, `InvalidParameter`, `NotFound`, `Conflict`, `MethodNotAllowed`, `InternalError`.
+`InvalidCredential`, `InvalidVersion`, `InvalidParameter`, `NotFound`, `Conflict`, `OperationDenied`, `MethodNotAllowed`, `InternalError`.
 
 ## REST 接口
 

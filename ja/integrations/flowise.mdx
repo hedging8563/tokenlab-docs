@@ -27,13 +27,15 @@ Flowiseビルドに **TokenLab** チャットモデルノードが含まれて�
 
 ## OpenAI互換フォールバック
 
-TokenLabノードがまだ利用できない場合は、OpenAI互換チャットモデルノードを使用して以下のように設定してください：
+お使いのビルドにTokenLabノードがない場合は、**Chat Models** → **OpenAI Custom Model** を追加します。**Connect Credential** でTokenLabのキーを使って **OpenAI API** の認証情報を作成します。**Model Name** と **Additional Parameters** → **Base Path** を次のように設定します。
 
 | フィールド | 値 |
 |-------|-------|
-| Base URL | `https://api.tokenlab.sh/v1` |
+| Base Path | `https://api.tokenlab.sh/v1` |
 | API Key | `sk-your-tokenlab-key` |
-| Model | `gpt-5.4-mini` |
+| Model Name | `gpt-5.4-mini` |
+
+ノードをチェーン、エージェント、またはワークフローに接続し、テストプロンプトを送信します。
 
 ## 推奨モデル
 

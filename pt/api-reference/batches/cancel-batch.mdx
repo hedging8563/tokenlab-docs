@@ -4,18 +4,7 @@ openapi: "POST /v1/batches/{batch_id}/cancel"
 description: "Cancela um trabalho de lote em fila ou em execução."
 ---
 
-## Visão Geral
-
-Este endpoint faz parte da API de Lote compatível com OpenAI da TokenLab. Trabalhos de lote utilizam arquivos JSONL carregados, são executados de forma assíncrona e podem retornar arquivos de saída/erro posteriormente.
-
-## Notas
-
-- Os arquivos de entrada do lote devem usar `purpose=batch`.
-- `completion_window` é atualmente `24h`.
-- A ordenação da saída não é garantida; sempre combine pelo `custom_id`.
-- Streaming não é suportado dentro dos itens de lote.
-
-## Exemplo
+Solicite o cancelamento de um lote na fila ou em execução. A resposta contém o estado atual: o cancelamento pode estar em andamento ou já ter terminado. Um lote já encerrado mantém seu estado final. Se o estado retornado não for final, consulte o lote novamente para verificar o resultado.
 
 <RequestExample>
 ```bash cURL
@@ -23,18 +12,6 @@ curl -X POST "https://api.tokenlab.sh/v1/batches/batch_abc123/cancel" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 </RequestExample>
-
-## Solicitação / Resposta
-
-Use o painel interativo do OpenAPI acima para o esquema exato.
-
-## Dicas Operacionais
-
-- Use `custom_id` para reconciliação idempotente a montante.
-- Espere `output_file_id` e `error_file_id` apenas após o trabalhador finalizar o lote.
-- A precificação de lote pode diferir da precificação síncrona porque as regras de desconto `isBatchRequest=true` se aplicam.
-
-## Exemplo de resposta
 
 <ResponseExample>
 ```json 200 OK
@@ -47,7 +24,5 @@ Use o painel interativo do OpenAPI acima para o esquema exato.
 ```
 </ResponseExample>
 
-## Campos importantes
-
 <ResponseField name="id" type="string">Identificador para chamadas seguintes e suporte.</ResponseField>
-<ResponseField name="status" type="string">Estado atual do ciclo de vida deste recurso.</ResponseField>
+<ResponseField name="status" type="string">Estado atual do lote. Uma solicitação de cancelamento bem-sucedida nem sempre retorna `cancelling`.</ResponseField>

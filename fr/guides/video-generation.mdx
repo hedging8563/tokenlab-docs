@@ -7,7 +7,9 @@ import VideoModelContracts from "../snippets/generated/video-model-contracts.mdx
 
 La génération de vidéo est asynchrone. `POST /v1/videos/generations` renvoie une identité de tâche publique et généralement un `poll_url` ; la vidéo finale apparaît dans les réponses de statut ultérieures.
 
-Lorsque le modèle Seedance sélectionné peut utiliser la bibliothèque de matériaux TokenLab, les URL d’image et les data URL inline compatibles sont préparées comme matériaux TokenLab réutilisables avant la génération. Si la préparation dépasse 60 secondes, réessayez lorsque les `auto_material_asset_ids` renvoyés sont `ACTIVE`. Si le modèle sélectionné ne peut pas utiliser la bibliothèque, les images ordinaires continuent sur le chemin image habituel.
+Envoyez des URL HTTP(S) publiques ou des data URL prises en charge dans les champs image du modèle choisi. Ces entrées suivent le traitement média habituel et ne créent pas automatiquement d’ID de ressource réutilisable.
+
+Si une ressource explicitement indiquée est encore en préparation, `POST /v1/videos/generations` renvoie `409 seedance_material_preparing` avec `inactive_asset_ids`. Consultez ces ressources jusqu’à `ACTIVE`, puis réessayez avec les mêmes ID. En cas de `FAILED`, consultez `error_message` et corrigez ou réimportez la ressource avant de réessayer.
 
 ## Opérations prises en charge
 
@@ -27,24 +29,24 @@ Utilisez une `operation` explicite en production. TokenLab peut inférer certain
 ## Découverte de Modèle
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \\
+curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 
-Utilisez les IDs de modèle affichés par TokenLab dans `model`, puis choisissez les variantes de fonctionnalité avec `operation` et les entrées média correspondantes. Exemples : `wan-2.7`, `happyhorse-1.0`, `viduq3`, `viduq3-mix`, `pixverse-v6`, `kling-3.0-video`, `veo3.1` et `seedance-2.0`; n’utilisez pas de suffixes propres à une opération comme noms de modèles TokenLab.
+Utilisez les IDs de modèle affichés par TokenLab dans `model`, puis choisissez les variantes de fonctionnalité avec `operation` et les entrées média correspondantes. Exemples : `wan-2.7`, `happyhorse-1.0`, `viduq3`, `viduq3-mix`, `pixverse-v6`, `veo3.1` et `seedance-2.0`; n’utilisez pas de suffixes propres à une opération comme noms de modèles TokenLab.
 
 Lisez les détails du modèle sélectionné avant de vous fier à des champs spécialisés tels que `reference_images`, `kling_elements`, `output_audio`, `duration`, `resolution`, ou `aspect_ratio`.
 
 ## Créer une Demande
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/generations \\
-  -H "Authorization: Bearer sk-your-api-key" \\
-  -H "Content-Type: application/json" \\
+curl https://api.tokenlab.sh/v1/videos/generations \
+  -H "Authorization: Bearer sk-your-api-key" \
+  -H "Content-Type: application/json" \
   -d '{
     "model": "veo3.1",
     "operation": "text-to-video",
-    "prompt": "Une prise de vue cinématographique calme d'un chat marchant dans un jardin ensoleillé",
+    "prompt": "Une prise de vue cinématographique calme d’un chat marchant dans un jardin ensoleillé",
     "duration": 4,
     "aspect_ratio": "16:9"
   }'
@@ -55,9 +57,8 @@ Pour les entrées multimédias en production, préférez les URL publiques `http
 ## Entrées et Champs Spécifiques au Modèle
 
 - Les demandes de la famille Veo 3 sont par défaut audio activé lorsque `output_audio` est omis. Définissez-le explicitement lorsque le modèle prend en charge le basculement et que votre UX dépend du son.
-- `kling_elements` est pour les demandes d'images conditionnées `kling-3.0-video`. Référencez chaque élément dans `prompt` comme `@name` ; ne le combinez pas avec `output_audio=true`.
 - Pour la famille Seedance 2.0, lisez le [guide des modèles vidéo Seedance 2.0](/fr/guides/seedance-2-video) avant d’utiliser la sortie 4K, les limites Fast/Mini ou les entrées de référence multimodales.
-- Pour `grok-imagine-video`, la vidéo à vidéo utilise une `video_url` publique `.mp4` ; les limites spécifiques au modèle telles que `duration` et `resolution` doivent provenir du détail du modèle.
+- Pour video-to-video avec `grok-imagine-video`, envoyez `prompt` et une URL HTTPS publique `.mp4` dans `video_url`. Cette opération n’utilise pas les options `duration`, `resolution` ou `aspect_ratio`.
 
 <VideoModelContracts />
 

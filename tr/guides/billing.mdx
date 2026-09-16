@@ -1,117 +1,25 @@
 ---
-title: "Faturalandırma ve Fiyatlandırma"
-description: "TokenLab'nın kullandıkça öde fiyatlandırmasını anlayın"
+title: "Faturalama ve fiyatlar"
+description: "Faturalama ve fiyatlar"
 ---
 
-## Genel Bakış
+Tek TokenLab bakiyesi tüm modeller için geçerlidir. Abonelik veya asgari harcama yoktur; ücret model ve kaydedilen kullanıma göre hesaplanır.
 
-TokenLab **kullandıkça öde fiyatlandırması** kullanır. Abonelik veya minimum taahhüt olmadan yalnızca kullandığınız kadar ödersiniz.
+## Fiyatlar ve teslim seçenekleri
 
-## Faturalandırma Nasıl Çalışır
+Güncel fiyatı model sayfasından, `GET /v1/models/{model}/pricing` veya Pricing API’den okuyun. Kopyalanmış fiyat tablosunu sabitlemeyin. Metin ve embedding girdi, çıktı veya önbellek tokenlarıyla; medya görüntü, saniye, dakika, istek veya iş başına fiyatlanabilir.
 
-1. Hesabınıza **kredi ekleyin**
-2. **API'yi kullanın** - maliyetler istek başına düşülür
-3. Panelinizden **kullanımı izleyin**
-4. Bakiyeniz azaldığında **yükleme yapın**
+`TokenLab Verified` açık TokenLab fiyatlarını, `Official` model üreticisinin açık fiyatlarına dayalı Official katmanını kullanır. `Auto` önce Verified, gerektiğinde Official seçer; sonucu teslim eden seçenek için bir kez ücret alınır. Console ücretli üretimi onaylamadan önce en yüksek tahmini, tamamlandıktan sonra Runs ve Usage’da son tutarı gösterir.
 
-## Fiyatlandırma Modelleri
+[Pricing API](/tr/api-reference/pricing/get-pricing)
 
-Canlı fiyatlar sağlayıcı, route ve model details değiştikçe değişebilir. Dashboard, Models sayfası, `GET /v1/models/:model/pricing` ve [Pricing API](/api-reference/pricing/get-pricing) doğru kaynak kabul edilmelidir.
+## Asenkron faturalama ve kayıtlar
 
-### Token bazlı fiyatlandırma
+Bazı işler oluşturulurken tahmini maliyeti ayırır. Kimliği ve `poll_url` değerini kaydedip `completed` veya `failed` olana kadar sorgulayın. Başarılı iş bir kez ücretlendirilir ve kalan rezerv bırakılır; başarısız işte bekleyen tutar serbest bırakılır veya iade edilir.
 
-Çoğu chat, reasoning, embedding, rerank ve bazı görüntü modelleri input, output, cache veya image-output token üzerinden fiyatlanır.
+Akışsız OpenAI uyumlu yanıtlar faturalama sonrası `billing_transaction_id` veya `X-Billing-Transaction-ID` içerebilir. Yerel biçimler yalnız başlık kullanabilir. Asenkron ve akış sonuçları mali kayıttan önce gelebilir; kimlik yoksa Usage’a bakın.
 
-| Fiyat ailesi | Örnekler | Güncel fiyatı doğrula |
-|---|---|---|
-| Chat / Responses | `gpt-5.4`, `claude-sonnet-4-6`, `gemini-3.5-flash` | Model sayfası veya Fiyatlandırma API'si |
-| Embedding / rerank | `text-embedding-3-small`, `qwen3-vl-rerank` | Model fiyat ayrıntıları |
-| Token bazlı ücretlendirilen görseller | `gpt-image-2` | `GET /v1/models/gpt-image-2/pricing` |
-
-<Note>
-Statik fiyat tablolarını production mantığına kopyalamayın. Kodda yalnızca model ID saklayın ve yayından önce güncel fiyatı kontrol edin.
-</Note>
-
-### İstek ve görev fiyatlandırması
-
-Görüntü, video, müzik, 3D, ses ve world generation modelleri istek, görüntü, saniye/dakika, görev veya sağlayıcıya özel kullanıma göre fiyatlanabilir.
-
-| Aile | Örnekler |
-|---|---|
-| Görüntü | `flux-pro` |
-| Video | `veo3.1`, `seedance-2.0` |
-| Müzik | `suno-music` |
-| 3D | `tripo-h3.1` |
-| Ses | `tts-1`, `whisper-1` |
-
-### Asenkron Görev Faturalandırması (Video/Müzik/3D ve Bazı Görüntü Modelleri)
-
-<Note>
-  Görev tabanlı oluşturma sırasında görev oluşturma, tahmini maliyeti rezerve edebilir veya önceden düşebilir. Nihai mutabakat yalnızca asenkron görev polling veya finalization sırasında başarılı terminal duruma ulaştıktan sonra yapılır.
-</Note>
-
-Görev tabanlı oluşturma akışları için (video, müzik, 3D ve bazı görüntü modelleri):
-
-1. Görevi gönderin. TokenLab bakiye ve API Key harcama limitlerini doğrulamak için tahmini bir ön kesinti veya rezervasyon yapabilir.
-2. Görev terminal duruma ulaşana kadar dönen `poll_url` değerini sorgulayın veya `GET /v1/tasks/{id}` çağırın.
-3. Görev başarıyla tamamlandığında nihai mutabakat kullanımı kaydeder ve görev yanıtı `billing_transaction_id` içerir.
-4. Oluşturma başarısız olursa veya terminal durum failed ise bekleyen tutar iade edilir ya da serbest bırakılır ve istek faturalandırılamaz olarak işaretlenir.
-
-Terminal durum görünür olduktan sonra dashboard mutabakatı veya iadeyi yansıtmıyorsa support@tokenlab.sh adresiyle iletişime geçin.
-
-```python
-# Örnek: Video oluşturma faturalandırması
-response = client.post("/v1/videos/generations", json={
-    "model": "veo3.1",
-    "prompt": "A sunset over the ocean"
-})
-# Tahmini maliyet şimdi rezerve edilebilir; nihai fatura başarıdan sonra görünür.
-
-poll_url = response.json()["poll_url"]
-task_id = response.json()["task_id"]
-# Durum için poll_url'i sorgulayın; billing_transaction_id mutabakat sonrası görünür.
-```
-
-### Faturalama işlem ID’leri
-
-Ücretlendirilen, streaming olmayan ve OpenAI uyumlu JSON yanıtları, mutabakat yanıt tamamlanmadan önce bittiyse `billing_transaction_id` içerir. Aynı değer tarayıcı ve sunucu entegrasyonları için `X-Billing-Transaction-ID` yanıt header’ı olarak da sunulur. Gemini `/v1beta` gibi native uyumluluk route’ları, provider-native yanıt şeklini korumak için değeri yalnızca header üzerinden sunabilir. Asenkron medya görevleri için dönen `poll_url` değerini veya `GET /v1/tasks/{id}` yolunu sorgulayın; mutabakat tamamlandığında görev yanıtı `billing_transaction_id` içerir. Streaming yanıtları stream gönderildikten sonra mutabakata bağlanabilir; header yoksa mutabakat için dashboard kullanım kayıtlarını kullanın.
-
-## Token Sayımı
-
-Token'lar, metin işlemenin temel birimleridir:
-
-- ~4 karakter = 1 token (İngilizce)
-- ~1-2 karakter = 1 token (Çince)
-- 1 görüntü = boyuta ve detaya göre değişir
-
-### Token Tahmini
-
-```python
-# Kaba tahmin
-def estimate_tokens(text):
-    return len(text) / 4  # İngilizce için yaklaşık
-
-# Gerçek sayı (OpenAI modelleri için)
-import tiktoken
-encoder = tiktoken.encoding_for_model("gpt-5.6-terra")
-tokens = encoder.encode("Metniniz buraya")
-print(f"Token sayısı: {len(tokens)}")
-```
-
-## Kullanım Takibi
-
-### Panel
-
-Kullanımınızı [Panel](https://tokenlab.sh/dashboard) üzerinden izleyin:
-
-- Gerçek zamanlı bakiye
-- Modele göre kullanım geçmişi
-- Maliyet dökümü
-- API anahtarı kullanımı
-
-### API Yanıtı
-
-Her yanıt kullanım bilgilerini içerir:
+Usage model, anahtar, maliyet ve kullanımı gösterir. Token sayımı modele, dile ve medyaya bağlıdır; karakter tahmini son faturanın yerini tutmaz. Akış ücretli token sayısını azaltmaz. Aynı görevlerin son maliyetini karşılaştırıp desteklenen çıktı sınırını kullanın.
 
 ```json
 {
@@ -123,71 +31,13 @@ Her yanıt kullanım bilgilerini içerir:
 }
 ```
 
-## Maliyet Optimizasyonu
+- [Usage](https://tokenlab.sh/dashboard/usage)
+- [Asenkron İşler & Anket](/tr/guides/async-jobs-polling)
 
-<AccordionGroup>
-  <Accordion title="Uygun modelleri kullanın">
-    Basit görevler için daha küçük modeller (GPT-4o-mini, Gemini Flash) kullanın.
-  </Accordion>
+## Console kullanımı
 
-  <Accordion title="Önbelleğe almayı uygulayın">
-    Tekrarlanan aynı istekler için yanıtları önbelleğe alın.
-  </Accordion>
+Console → Billing’de tutarı ve sunulan ödeme yöntemini seçin. Ödeme hizmeti onayladıktan sonra bakiye güncellenir.
 
-  <Accordion title="Prompt'ları optimize edin">
-    Netliği korurken prompt'ları kısa tutun.
-  </Accordion>
+Console → API Keys’de anahtar oluştururken veya düzenlerken harcama sınırı belirleyin. Sınıra ulaşıldığında `402 Payment Required` döner.
 
-  <Accordion title="max_tokens değerini ayarlayın">
-    Tam yanıtlar gerekmediğinde yanıt uzunluğunu sınırlayın.
-  </Accordion>
-
-  <Accordion title="Uzun yanıtlar için streaming kullanın">
-    Streaming ek maliyet getirmez ancak algılanan performansı artırır.
-  </Accordion>
-</AccordionGroup>
-
-## Düşük Bakiye Uyarıları
-
-Bakiyeniz düştüğünde uyarıları yapılandırın:
-
-1. **Panel → Ayarlar → Bildirimler** bölümüne gidin
-2. Eşik tutarınızı belirleyin
-3. E-posta bildirimleri alın
-
-## Kredi Ekleme
-
-### Ödeme Yöntemleri
-
-- Stripe (Visa, Mastercard)
-
-### Adımlar
-
-1. [Panel](https://tokenlab.sh/dashboard) hesabınıza giriş yapın
-2. **Kredi Ekle** seçeneğine tıklayın
-3. Tutarı ve ödeme yöntemini seçin
-4. Ödemeyi tamamlayın
-
-Krediler, ödeme onayından sonra anında eklenir.
-
-## API Anahtarı Limitleri
-
-Bireysel API anahtarları üzerinde harcama limitleri belirleyebilirsiniz:
-
-1. **Panel → API Anahtarları** bölümüne gidin
-2. Düzenlemek için bir anahtara tıklayın
-3. **Kullanım Limiti** belirleyin
-
-Limite ulaşıldığında, o anahtarla yapılan istekler `402 Payment Required` hatası döndürecektir.
-
-## Faturalar
-
-Kurumsal hesaplar için faturalar mevcuttur:
-
-1. **Panel → Faturalandırma** bölümüne gidin
-2. İşlem geçmişini görüntüleyin
-3. Faturaları PDF olarak indirin
-
-## Sorularınız mı var?
-
-Faturalandırma sorularınız için support@tokenlab.sh ile iletişime geçin.
+Bakiye uyarılarını Console → Settings’den ayarlayın. Faturalama sorularında Request ID ve iş kimliğini support@tokenlab.sh adresine gönderin, API anahtarını göndermeyin.

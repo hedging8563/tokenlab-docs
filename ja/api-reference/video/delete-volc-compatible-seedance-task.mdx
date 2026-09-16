@@ -6,13 +6,15 @@ description: "キュー中または取消可能な Seedance 互換タスクを�
 
 ## 概要
 
-これらのエンドポイントは、Volc 形式の Seedance タスク構造をすでに利用しているチーム向けです。認証には TokenLab Bearer API Key を使います。返されるタスク ID は `cgt-` で始まります。`status` が `succeeded`、`failed`、`cancelled`、`expired` のいずれかになるまでポーリングしてください。
+TokenLab Bearer API キーと `cgt-...` ID でキャンセルを要求します。キャンセルは可能な範囲で実行され、タスクがキャンセル可能な間のみ成功します。
 
 関連項目 [Seedance 2.0 動画モデル](/ja/guides/seedance-2-video) および [動画生成](/ja/guides/video-generation).
 
 ## 応答形式
 
 キャンセル成功時は HTTP 200 と空の本文を返します。最終状態を確認する必要がある場合は、その後タスクを取得してください。
+
+完了、失敗、期限切れ、またはキャンセル不可能なタスクではエラーを返します。状態はタスク取得で確認してください。キャンセル済みタスクには動画結果がありません。
 
 ## 例
 

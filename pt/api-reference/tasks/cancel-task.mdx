@@ -10,7 +10,7 @@ Use `DELETE /v1/tasks/{id}` para cancelar uma tarefa assíncrona que ainda não 
 
 ## Tarefas suportadas
 
-O cancelamento é suportado para tarefas de vídeo Seedance em fila quando o provedor selecionado para essa tarefa oferece cancelamento. Os modelos compatíveis são `seedance-1.5-pro`, `seedance-2.0` e `seedance-2.0-fast`. Tarefas que já estão em `processing`/running não podem ser canceladas. Tarefas concluídas, com falha, expiradas ou não suportadas continuam consultáveis para status e conciliação de cobrança.
+Tarefas Seedance em fila com `seedance-1.5-pro`, `seedance-2.0`, `seedance-2.0-fast` ou `seedance-2.5` podem ser canceladas quando a tarefa oferece suporte. Tarefas em execução ou em estado final não podem ser canceladas. O status permanece consultável enquanto o registro público for mantido.
 
 ## Parâmetros de caminho
 

@@ -14,7 +14,7 @@ TokenLab은 `GET /v1/realtime`에서 메타데이터 확인과 WebSocket 업그�
 
 브라우저나 모바일 앱에서는 장기 API 키를 서버에 보관하세요. 이 엔드포인트는 단기 Realtime client secret을 발급하지 않습니다.
 
-<Note>에이전트는 `/v1/models`에서 realtime 지원 모델을 확인한 뒤 socket을 열어야 합니다.</Note>
+<Note>`/v1/models`에서 현재 실시간 모델을 선택하고 `/v1/models/{model}`을 확인한 뒤 `TOKENLAB_REALTIME_MODEL`을 설정하세요. 세션 이벤트와 설정은 모델에 따라 다릅니다. 아래 JSON 예시는 일반 HTTP GET 응답이며 WebSocket 세션 이벤트가 아닙니다.</Note>
 
 ## 연결
 
@@ -30,20 +30,28 @@ TokenLab은 `GET /v1/realtime`에서 메타데이터 확인과 WebSocket 업그�
 ```javascript JavaScript
 import WebSocket from 'ws';
 
-const socket = new WebSocket('wss://api.tokenlab.sh/v1/realtime?model=gpt-realtime', {
-  headers: { Authorization: 'Bearer sk-your-api-key' }
+const model = process.env.TOKENLAB_REALTIME_MODEL;
+const apiKey = process.env.TOKENLAB_API_KEY;
+if (!model || !apiKey) {
+  throw new Error('Set TOKENLAB_REALTIME_MODEL and TOKENLAB_API_KEY');
+}
+
+const url = new URL('wss://api.tokenlab.sh/v1/realtime');
+url.searchParams.set('model', model);
+const socket = new WebSocket(url, {
+  headers: { Authorization: `Bearer ${apiKey}` }
 });
 
 socket.on('open', () => {
-  socket.send(JSON.stringify({
-    type: 'session.update',
-    session: { modalities: ['text', 'audio'] }
-  }));
+  console.log('Realtime connection open');
 });
 
 socket.on('message', (data) => {
   console.log('realtime event', data.toString());
 });
+
+socket.on('error', (error) => console.error(error.message));
+socket.on('close', (code) => console.log('Realtime connection closed', code));
 ```
 
 ```bash cURL
@@ -65,19 +73,20 @@ TokenLab은 클라이언트와 선택한 실시간 모델 사이에서 WebSocket
 ## 응답 예시
 
 <ResponseExample>
-```json Connected
+```json HTTP GET
 {
-  "type": "session.created",
-  "session": {
-    "id": "sess_abc123",
-    "model": "gpt-realtime",
-    "modalities": ["text", "audio"]
-  }
+  "object": "realtime.endpoint",
+  "websocket_url": "/v1/realtime?model={model}",
+  "protocol": "tokenlab_realtime_proxy"
 }
 ```
 </ResponseExample>
 
 ## 중요 필드
+
+<ResponseField name="object" type="string">일반 HTTP GET 응답의 객체 유형입니다. 값은 항상 `realtime.endpoint`입니다.</ResponseField>
+<ResponseField name="websocket_url" type="string">일반 HTTP GET이 반환하는 WebSocket 연결의 상대 경로인 `/v1/realtime?model={model}`입니다. `{model}`을 선택한 모델의 ID로 바꾸세요.</ResponseField>
+<ResponseField name="protocol" type="string">일반 HTTP GET이 반환하는 프로토콜 식별자입니다. 값은 항상 `tokenlab_realtime_proxy`입니다.</ResponseField>
 
 <ResponseField name="type" type="string">API가 반환하는 event 또는 message type입니다.</ResponseField>
 <ResponseField name="session.id" type="string">realtime 연결을 통해 받은 불투명한 식별자입니다. 디버깅용 지원 로그에 포함하세요. REST session URL이 아닙니다.</ResponseField>

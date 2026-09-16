@@ -9,7 +9,7 @@ description: "Get a Seedance compatibility task by its cgt task ID."
 Use the `cgt-...` ID returned by create. Poll every few seconds while the task is `queued` or `running`. Stop when the task is `succeeded`, `failed`, `cancelled`, or `expired`.
 
 <Warning>
-Do not reuse the unified v1 task enum or response struct here. `/v1/tasks/{id}` uses `pending`, `processing`, `completed`, and `failed`; this v3 endpoint uses the official enum above. In the v3 JSON object, `duration` is a string when present and `error` is omitted unless the task failed. A strict Go client should declare `Duration` as `string` with the JSON tag `duration,omitempty`, and stop on every v3 terminal status.
+Do not reuse the unified v1 task enum or response struct here. `/v1/tasks/{id}` uses `pending`, `processing`, `completed`, and `failed`; this v3 endpoint uses the official enum above. In the v3 JSON object, `duration` is a string when present and `error` is optional and contains error details when available. A strict Go client should declare `Duration` as `string` with the JSON tag `duration,omitempty`, and stop on every v3 terminal status.
 </Warning>
 
 See also [Seedance 2.0 Video Models](/guides/seedance-2-video) and [Video Generation](/guides/video-generation).
@@ -32,7 +32,7 @@ See also [Seedance 2.0 Video Models](/guides/seedance-2-video) and [Video Genera
 - `content.last_frame_url`: present only when requested and available.
 - `usage`: token usage when available.
 - `created_at` and `updated_at`: task timestamps.
-- `error`: present only when the task failed; omitted for non-failed tasks.
+- `error`: Optional error details when available. Inspect `error.code` and `error.message`; do not infer field presence solely from `status`.
 
 The response never adds TokenLab fields such as `progress`, `return_last_frame`, `watermark`, `priority`, or `camera_fixed`.
 

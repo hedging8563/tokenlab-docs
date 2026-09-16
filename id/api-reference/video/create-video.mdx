@@ -30,7 +30,7 @@ Untuk integrasi produksi, sebaiknya gunakan URL `https` publik untuk gambar, vid
 
 <VideoModelContractNote />
 
-<ParamField body="prompt" type="string" required>
+<ParamField body="prompt" type="string">
   Deskripsi teks video yang ingin Anda hasilkan. Field ini wajib untuk sebagian besar model video publik.
 </ParamField>
 
@@ -51,7 +51,7 @@ Untuk integrasi produksi, sebaiknya gunakan URL `https` publik untuk gambar, vid
 </ParamField>
 
 <ParamField body="material_asset_id" type="string">
-  ID material Seedance TokenLab yang dikembalikan oleh [Membuat Aset Material](/id/api-reference/video/create-material-asset) atau persiapan gambar otomatis. Gunakan setelah material menjadi `ACTIVE` dengan model Seedance yang dapat menggunakan pustaka material TokenLab.
+  ID material Seedance TokenLab yang dikembalikan oleh [Membuat Aset Material](/id/api-reference/video/create-material-asset). Gunakan setelah material menjadi `ACTIVE` dengan model Seedance yang dapat menggunakan pustaka material TokenLab.
 </ParamField>
 
 <ParamField body="material_asset_ids" type="array">
@@ -59,7 +59,7 @@ Untuk integrasi produksi, sebaiknya gunakan URL `https` publik untuk gambar, vid
 </ParamField>
 
 <Info>
-Jika model Seedance yang dipilih dapat menggunakan pustaka material TokenLab, TokenLab menyiapkan field gambar (`image`, `image_url`, `image_urls`, `reference_images`, `start_image`, `end_image`) sebagai material yang dapat digunakan ulang sebelum generasi. Jika belum selesai dalam 60 detik, API mengembalikan `409 seedance_material_preparing` dengan `auto_material_asset_ids`; coba lagi setelah material tersebut menjadi `ACTIVE`. Jika model yang dipilih tidak dapat menggunakan pustaka material, input gambar biasa tetap berjalan melalui jalur gambar normal dan ID material eksplisit gagal secara aman dengan error ketersediaan material yang dapat dicoba ulang.
+URL gambar biasa digunakan sebagai input dan tidak otomatis membuat material yang dapat dipakai ulang. Buat material melalui API material, lalu gunakan ID TokenLab atau URI `asset://asset-YYYYMMDDHHMMSS-xxxxx`. Jika material eksplisit mengembalikan `409 seedance_material_preparing`, periksa `inactive_asset_ids` dan coba lagi setelah material menjadi `ACTIVE`.
 </Info>
 
 
@@ -68,7 +68,7 @@ Jika model Seedance yang dipilih dapat menggunakan pustaka material TokenLab, To
 </ParamField>
 
 <ParamField body="kling_elements" type="array">
-  Definisi referensi elemen Kling 3.0. Hanya didukung oleh `kling-3.0-video` untuk request yang dikondisikan gambar. Definisikan 1-3 elemen; setiap elemen memiliki `name`, `description` opsional, dan `element_input_urls` berisi 2-4 URL gambar. Referensikan elemen di `prompt` dengan `@name`. Jangan gabungkan `kling_elements` dengan `output_audio=true`; hilangkan `output_audio` atau set ke `false` saat memakai referensi elemen.
+  Gunakan `kling_elements` hanya jika detail publik model saat ini mencantumkannya. Sertakan gambar dan 1–3 elemen dengan `name`, `description` opsional, serta 2–4 `element_input_urls`; rujuk melalui `@name` di `prompt`. Jangan gabungkan dengan `output_audio=true`.
 </ParamField>
 
 <ParamField body="video_url" type="string">
@@ -241,6 +241,10 @@ curl -X POST "https://api.tokenlab.sh/v1/videos/generations" \
 
 ## Respons
 
+<Note>
+Field hasil, error, timestamp, dan model dikembalikan jika tersedia untuk task.
+</Note>
+
 <ResponseField name="id" type="string">
   Identifier tugas asinkron kanonik. Saat `id` dan `task_id` sama-sama ada, perlakukan keduanya sebagai identitas tugas yang sama.
 </ResponseField>
@@ -258,7 +262,7 @@ curl -X POST "https://api.tokenlab.sh/v1/videos/generations" \
 </ResponseField>
 
 <ResponseField name="status" type="string">
-  Status awal: `pending`.
+  Status tugas: `pending`, `processing`, `completed`, `failed`.
 </ResponseField>
 
 <ResponseField name="created" type="integer">
@@ -267,6 +271,18 @@ curl -X POST "https://api.tokenlab.sh/v1/videos/generations" \
 
 <ResponseField name="model" type="string">
   Model yang digunakan.
+</ResponseField>
+
+<ResponseField name="video" type="object">
+  Objek video tunggal dengan `url`, `duration`, `width`, dan `height` saat tersedia.
+</ResponseField>
+
+<ResponseField name="videos" type="array">
+  Array video saat tugas pembuatan mengembalikan lebih dari satu output.
+</ResponseField>
+
+<ResponseField name="error" type="string | object">
+  Pesan kesalahan (jika gagal).
 </ResponseField>
 
 <RequestExample>
@@ -309,38 +325,14 @@ response = requests.post(
         "operation": "image-to-video",
         "image_url": "https://example.com/image.jpg",
         "duration": 6,
-        "aspect_ratio": "16:9"
+        "resolution": "768p"
     }
 )
 ```
 
 ## Elemen Kling 3.0
 
-Gunakan `kling_elements` dengan `kling-3.0-video` saat memerlukan referensi elemen. Sertakan request yang dikondisikan gambar (`image_url`, `image_urls`, `start_image`, atau `end_image`) dan referensikan setiap elemen di prompt dengan `@name`. Jangan gabungkan `kling_elements` dengan `output_audio=true`; hilangkan `output_audio` atau set ke `false` saat memakai referensi elemen.
-
-```python
-response = requests.post("https://api.tokenlab.sh/v1/videos/generations",
-    headers=headers,
-    json={
-        "model": "kling-3.0-video",
-        "prompt": "Place @hero_bag on a studio turntable with soft product lighting.",
-        "operation": "image-to-video",
-        "image_url": "https://example.com/studio-start.png",
-        "duration": 5,
-        "resolution": "720p",
-        "kling_elements": [
-            {
-                "name": "hero_bag",
-                "description": "black leather handbag",
-                "element_input_urls": [
-                    "https://example.com/bag-front.png",
-                    "https://example.com/bag-side.png"
-                ]
-            }
-        ]
-    }
-)
-```
+Gunakan `kling_elements` hanya jika detail publik model saat ini mencantumkannya. Sertakan gambar dan 1–3 elemen dengan `name`, `description` opsional, serta 2–4 `element_input_urls`; rujuk melalui `@name` di `prompt`. Jangan gabungkan dengan `output_audio=true`.
 
 ## Reference to video
 
@@ -376,7 +368,6 @@ response = requests.post(
     headers={"Authorization": "Bearer sk-your-api-key"},
     json={
         "model": "viduq2-pro",
-        "prompt": "Smooth transition from day to night",
         "operation": "start-end-to-video",
         "start_image": "https://example.com/day.jpg",
         "end_image": "https://example.com/night.jpg",
@@ -389,7 +380,7 @@ response = requests.post(
 
 ## Video to video
 
-Untuk video-to-video dengan `grok-imagine-video`, kirim URL HTTPS publik `.mp4` di `video_url`. TokenLab menerjemahkannya menjadi body REST xAI `video.url`. Anda dapat mengatur `resolution` ke `480p` atau `720p`; `duration` dan `aspect_ratio` tidak diterima untuk alur edit ini.
+Untuk video-to-video dengan `grok-imagine-video`, kirim URL HTTPS publik `.mp4` di `video_url`.  Anda dapat mengatur `resolution` ke `480p` atau `720p`; `duration` dan `aspect_ratio` tidak diterima untuk alur edit ini.
 
 Jika model menerima video yang sudah ada sebagai input utama, gunakan `operation=video-to-video`.
 
@@ -401,8 +392,7 @@ response = requests.post(
         "model": "grok-imagine-video",
         "operation": "video-to-video",
         "video_url": "https://example.com/source.mp4",
-        "prompt": "Enhance the clip while preserving the original motion.",
-        "resolution": "720p"
+        "prompt": "Enhance the clip while preserving the original motion."
     }
 )
 ```
@@ -431,11 +421,9 @@ response = requests.post(
 Inventaris video publik dan operasi yang didukung berubah dari waktu ke waktu. Gunakan [Models API](/id/api-reference/models/list-models) sebagai sumber kebenaran sebelum mengintegrasikan alur khusus model:
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \
-  -H "Authorization: Bearer sk-your-api-key"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=video"
 
-curl "https://api.tokenlab.sh/v1/models/veo3.1" \
-  -H "Authorization: Bearer sk-your-api-key"
+curl "https://api.tokenlab.sh/v1/models/veo3.1"
 ```
 
 Baca respons detail model sebelum bergantung pada operasi atau field khusus model. Operasi seperti `audio-to-video` dan `video-extension` bersifat khusus model; konfirmasi ketersediaan terbarunya di sana, bukan dari contoh statis di halaman ini.

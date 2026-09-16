@@ -6,6 +6,8 @@ description: "Updates a Seedance material asset owned by the current organizatio
 
 Update the material name or metadata. The source URL and asset type are fixed after creation; create a new asset when the source file changes.
 
+`project_name` isolates resources within the authenticated organization. It defaults to `default`; use the same case-sensitive value for related groups and assets. Send it in the JSON body for POST/PUT and in the query string for GET/DELETE.
+
 ## Example Request
 
 ```bash
@@ -13,7 +15,7 @@ curl https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr \
   -X PUT \
   -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"asset_name":"Front view approved","metadata":{"approved_by":"creative-team"}}'
+  -d '{"asset_name":"Front view approved","metadata":{"approved_by":"creative-team"},"project_name":"default"}'
 ```
 
 ## Example Response
@@ -22,14 +24,15 @@ curl https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr \
 {
   "id": "asset-20260720123456-qn7wr",
   "object": "seedance.material_asset",
+  "project_name": "default",
   "group_id": "group-20260720123456-vrt01",
   "library_type": "aigc_avatar",
   "asset_name": "Front view approved",
   "asset_type": "Image",
-  "status": "PROCESSING",
-  "ready": false,
+  "status": "ACTIVE",
+  "ready": true,
   "error_message": null,
-  "metadata": null,
+  "metadata": {"approved_by": "creative-team"},
   "created_at": 1782998400000
 }
 ```

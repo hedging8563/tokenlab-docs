@@ -15,13 +15,26 @@ description: "استخدم TokenLab من خلال اتصالات OpenAI في Pro
 **مستوى دعم الموثوقية**: مسار مدعوم ومتوافق مع OpenAI
 </Note>
 
-## إنشاء اتصال
+## التثبيت
 
 ```bash
-pf connection create \
-  --file ./my_chatbot/openai.yaml \
-  --set api_key=sk-your-tokenlab-key base_url=https://api.tokenlab.sh/v1 \
-  --name open_ai_connection
+pip install promptflow promptflow-tools
+```
+
+## إنشاء اتصال
+
+احفظ الاتصال أدناه في `openai.yaml`. يطلب الأمر مفتاح API محليًا. في عقدة OpenAI، ضع معرّف نموذج TokenLab في `inputs.model`؛ أما `deployment_name` فهو خاص بـ Azure OpenAI.
+
+```yaml
+$schema: https://azuremlschemas.azureedge.net/promptflow/latest/OpenAIConnection.schema.json
+name: open_ai_connection
+type: open_ai
+base_url: https://api.tokenlab.sh/v1
+api_key: "<user-input>"
+```
+
+```bash
+pf connection create --file openai.yaml
 ```
 
 ## ملاحظات حول تدفق العمل (Flow)
@@ -29,11 +42,18 @@ pf connection create \
 في ملف `flow.dag.yaml` الخاص بك، تأكد من مطابقة اسم الاتصال مع الأمر المذكور أعلاه:
 
 ```yaml
-connection: open_ai_connection
-deployment_name: claude-sonnet-5
+nodes:
+  - name: chat
+    type: llm
+    source:
+      type: code
+      path: chat.jinja2
+    inputs:
+      model: claude-sonnet-5
+    api: chat
+    connection: open_ai_connection
 ```
 
-تسمي بعض قوالب Prompt flow هذه القيمة `deployment_name` لأن نفس القوالب تدعم أيضاً عمليات نشر Azure OpenAI. مع TokenLab، استخدم معرف نموذج TokenLab.
 
 ## ملاحظات حول نقطة النهاية (Endpoint)
 

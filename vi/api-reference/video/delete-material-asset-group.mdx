@@ -8,10 +8,12 @@ Xóa một nhóm vật liệu và các tài nguyên vật liệu TokenLab bên t
 
 Nếu thư viện vật liệu TokenLab không thể hoàn tất việc xóa do trạng thái ủy quyền hiện tại không cho phép, TokenLab sẽ trả về lỗi thư viện vật liệu trung lập. Sau khi xóa, nhóm và các tài nguyên của nó sẽ không còn có thể được sử dụng trong quá trình tạo video.
 
+`project_name` tách biệt tài nguyên trong tổ chức đã xác thực. Mặc định là `default`; dùng cùng một giá trị phân biệt chữ hoa, chữ thường cho nhóm và tài nguyên liên quan. Gửi trong nội dung JSON với POST/PUT và tham số truy vấn với GET/DELETE.
+
 ## Ví dụ Yêu cầu
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01 \
+curl "https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01?project_name=default" \
   -X DELETE \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```

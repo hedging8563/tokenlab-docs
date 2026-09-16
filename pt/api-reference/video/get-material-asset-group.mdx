@@ -8,10 +8,12 @@ Recupere um grupo de material. O `library_type` informa se o grupo é um grupo d
 
 Use este endpoint antes de fazer o upload se precisar confirmar que o grupo ainda existe e possui `status: "ACTIVE"`.
 
+`project_name` isola recursos dentro da organização autenticada. O padrão é `default`; use o mesmo valor, diferenciando maiúsculas e minúsculas, para grupos e ativos relacionados. Envie-o no corpo JSON para POST/PUT e na consulta para GET/DELETE.
+
 ## Exemplo de Requisição
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01 \
+curl "https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01?project_name=default" \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```
 
@@ -21,6 +23,7 @@ curl https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01 
 {
   "id": "group-20260720123456-vrt01",
   "object": "seedance.material_asset_group",
+  "project_name": "default",
   "library_type": "aigc_avatar",
   "group_name": "Product references",
   "description": "Reusable product shots",

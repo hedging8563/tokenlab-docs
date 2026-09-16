@@ -5,7 +5,8 @@ description: "Implémenter des réponses en streaming en temps réel"
 
 ## Vue d’ensemble
 
-Le streaming livre la sortie progressivement. Utilisez le streaming Responses lorsque le modèle annonce un contrat Responses natif et qu’une route upstream du même protocole est disponible ; sinon, utilisez Chat Completions ou le protocole natif publié par le modèle.
+Le streaming renvoie la sortie progressivement. Utilisez Responses si le modèle déclare `openai_responses` dans `accepted_request_formats` ; les clients Chat Completions existants peuvent conserver leur format.
+
 ## Recommandé : streaming Responses
 
 <CodeGroup>
@@ -22,42 +23,61 @@ curl https://api.tokenlab.sh/v1/responses \
 ```
 
 ```python Python
+import os
 from openai import OpenAI
 
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
-
-stream = client.responses.create(
-    model="gpt-5.6-terra",
-    input="Write a short poem.",
-    stream=True
-)
-
-for event in stream:
-    if event.type == "response.output_text.delta":
-        print(event.delta, end="", flush=True)
+with OpenAI(
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh/v1",
+    timeout=30.0,
+    max_retries=0,
+) as client:
+    completed = False
+    with client.responses.create(
+        model="gpt-5.6-terra",
+        input="Write a short poem.",
+        stream=True,
+    ) as stream:
+        for event in stream:
+            if event.type == "response.output_text.delta":
+                print(event.delta, end="", flush=True)
+            elif event.type == "response.completed":
+                completed = True
+            elif event.type in {"response.failed", "response.incomplete", "error"}:
+                raise RuntimeError(f"Stream ended with {event.type}")
+    if not completed:
+        raise RuntimeError("Stream closed before response.completed")
 ```
 
 ```javascript JavaScript
 import OpenAI from 'openai';
 
 const client = new OpenAI({
-  apiKey: 'sk-your-api-key',
-  baseURL: 'https://api.tokenlab.sh/v1'
+  apiKey: process.env.TOKENLAB_API_KEY,
+  baseURL: 'https://api.tokenlab.sh/v1',
+  timeout: 30_000,
+  maxRetries: 0,
 });
 
 const stream = await client.responses.create({
   model: 'gpt-5.6-terra',
   input: 'Write a short poem.',
-  stream: true
+  stream: true,
 });
-
-for await (const event of stream) {
-  if (event.type === 'response.output_text.delta') {
-    process.stdout.write(event.delta);
+let completed = false;
+try {
+  for await (const event of stream) {
+    if (event.type === 'response.output_text.delta') {
+      process.stdout.write(event.delta);
+    } else if (event.type === 'response.completed') {
+      completed = true;
+    } else if (['response.failed', 'response.incomplete', 'error'].includes(event.type)) {
+      throw new Error(`Stream ended with ${event.type}`);
+    }
   }
+  if (!completed) throw new Error('Stream closed before response.completed');
+} finally {
+  stream.controller.abort();
 }
 ```
 
@@ -66,26 +86,43 @@ for await (const event of stream) {
 
 ## Limites de streaming Responses et Gemini
 
-Pour Responses SSE, TokenLab conserve les noms, l’ordre et les champs des événements upstream et lit usage ainsi que l’état terminal hors bande, sans modifier le wire. Après le premier événement livré, aucun autre canal ni credential n’est essayé.
+Responses SSE conserve les noms, l’ordre et les champs publics des événements. Une coupure après réception de contenu laisse une réponse incomplète, sans redémarrage automatique.
 
-Responses WebSocket n’accepte que les événements officiels `response.create`. Stream est implicite ; `background` et `response.cancel` ne sont pas proposés sur ce transport, et background fonctionne uniquement en HTTP. Chaque connexion est sérielle, sans multiplexage, et limitée à 60 minutes.
+Responses WebSocket utilise `response.create` et diffuse toujours en streaming ; `background` et `response.cancel` ne sont pas pris en charge. Une connexion traite une réponse à la fois et dure jusqu’à 60 minutes. `generate: false` crée un ID de continuation sans sortie ni coût de modèle.
 
-Gemini SSE conserve les chunks natifs. Les événements contenant uniquement des métadonnées, les chunks intermédiaires sans `finishReason` et une fin EOF naturelle sont valides ; TokenLab n’ajoute aucun marqueur Chat `[DONE]`.
+Gemini SSE renvoie des chunks natifs. Les événements intermédiaires peuvent omettre `finishReason` et le flux peut se terminer sans le marqueur Chat `[DONE]`.
+
 ## Streaming Chat Completions
 
 Si votre framework attend encore des chunks SSE provenant de `/v1/chat/completions`, cela fonctionne également :
 
 ```python
-stream = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": "Write a short poem"}],
-    stream=True
-)
+import os
+from openai import OpenAI
 
-for chunk in stream:
-    content = chunk.choices[0].delta.content
-    if content:
-        print(content, end="", flush=True)
+with OpenAI(
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh/v1",
+    timeout=30.0,
+    max_retries=0,
+) as client:
+    finish_reason = None
+    with client.chat.completions.create(
+        model="gpt-5.6-terra",
+        messages=[{"role": "user", "content": "Write a short poem."}],
+        stream=True,
+        stream_options={"include_usage": True},
+    ) as stream:
+        for chunk in stream:
+            if not chunk.choices:
+                continue
+            choice = chunk.choices[0]
+            if choice.delta.content:
+                print(choice.delta.content, end="", flush=True)
+            if choice.finish_reason:
+                finish_reason = choice.finish_reason
+    if finish_reason != "stop":
+        raise RuntimeError(f"Stream ended without a complete text answer: {finish_reason}")
 ```
 
 ## Conditions de fin du stream
@@ -98,49 +135,13 @@ Conditions de fin typiques :
 
 ## Modèle pour application web
 
-```javascript
-async function streamChat(message) {
-  const response = await fetch('https://api.tokenlab.sh/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Bearer sk-your-api-key',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: 'gpt-5.6-terra',
-      messages: [{ role: 'user', content: message }],
-      stream: true
-    })
-  });
-
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-
-    const chunk = decoder.decode(value);
-    const lines = chunk.split('\\n').filter(line => line.startsWith('data: '));
-
-    for (const line of lines) {
-      const data = line.slice(6);
-      if (data === '[DONE]') return;
-      const parsed = JSON.parse(data);
-      const content = parsed.choices?.[0]?.delta?.content;
-      if (content) {
-        document.getElementById('output').textContent += content;
-      }
-    }
-  }
-}
-```
+Traitez le flux du SDK sur votre serveur. Le navigateur appelle votre propre backend authentifié ; la clé TokenLab reste dans son environnement. Transmettez les fragments de texte et annulez le flux amont si l’utilisateur arrête ou se déconnecte. Confiez le décodage SSE au SDK : un bloc réseau ne correspond pas forcément à un événement complet.
 
 ## Bonnes pratiques
 
 <AccordionGroup>
   <Accordion title="Privilégier le streaming Responses pour les nouvelles implémentations">
-    Utilisez `/v1/responses` si votre SDK ou votre application le prend déjà en charge. Réservez le streaming `/v1/chat/completions` aux intégrations motivées par la compatibilité.
+    Le streaming renvoie la sortie progressivement. Utilisez Responses si le modèle déclare `openai_responses` dans `accepted_request_formats` ; les clients Chat Completions existants peuvent conserver leur format.
   </Accordion>
 
   <Accordion title="Vider la sortie progressivement">
@@ -148,6 +149,6 @@ async function streamChat(message) {
   </Accordion>
 
   <Accordion title="Gérer les déconnexions et les nouvelles tentatives">
-    Considérez les coupures réseau et les déconnexions en amont comme des modes de défaillance normaux et reconnectez-vous avec précaution pour les sessions de longue durée.
+    Ne présentez pas un flux interrompu comme une réponse complète. Conservez la sortie partielle utile ; répéter la requête peut produire un autre résultat et une nouvelle facturation.
   </Accordion>
 </AccordionGroup>

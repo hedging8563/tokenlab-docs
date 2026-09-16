@@ -6,13 +6,15 @@ description: "Hủy tác vụ tương thích Seedance đang chờ hoặc còn c�
 
 ## Tổng quan
 
-Các endpoint này dành cho nhóm đã dùng cấu trúc tác vụ Seedance kiểu Volc. Xác thực bằng TokenLab Bearer API key. ID tác vụ trả về bắt đầu bằng `cgt-`; hãy polling trạng thái cho đến khi `status` là `succeeded`, `failed`, `cancelled` hoặc `expired`.
+Yêu cầu hủy bằng TokenLab Bearer API key và ID `cgt-...`. Việc hủy được cố gắng thực hiện và chỉ thành công khi tác vụ vẫn còn có thể hủy.
 
 Xem thêm [Mô hình video Seedance 2.0](/vi/guides/seedance-2-video) và [Tạo video](/vi/guides/video-generation).
 
 ## Dạng phản hồi
 
 Yêu cầu hủy thành công trả về HTTP 200 với body rỗng. Hãy truy vấn tác vụ sau đó nếu cần xác nhận trạng thái cuối.
+
+Nếu tác vụ đã hoàn tất, thất bại, hết hạn hoặc không còn có thể hủy, endpoint trả về lỗi. Truy vấn tác vụ để xác nhận trạng thái. Tác vụ đã hủy không có kết quả video.
 
 ## Ví dụ
 

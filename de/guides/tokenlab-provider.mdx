@@ -9,18 +9,22 @@ Dieser Leitfaden richtet sich an Nutzer von **selbst gehostetem OpenClaw**, die 
 
 ## Empfohlen: Plugin installieren
 
-Installieren Sie für die reguläre OpenClaw-Agentenausführung das TokenLab-Provider-Plugin:
+Optional können Sie das veröffentlichte Anbieter-Plugin **0.1.0** installieren. Stellen Sie `TOKENLAB_API_KEY` in der unten beschriebenen Gateway-Umgebung bereit und wählen Sie Modelle nur für die Sitzung. Der Einrichtungsassistent ändert das Standardmodell; diese Anleitung führt deshalb `openclaw onboard` nicht aus. Erhalten Sie bestehende Plugins und Berechtigungen und prüfen Sie Plugin- und Modellliste vor einer Anfrage.
+
+Prüfen Sie die vom Installer angeforderten Fähigkeiten und folgen Sie den Bestätigungsdialogen. Erteilen Sie keine zusätzlichen, sachfremden Rechte und ändern Sie keine Berechtigungen bestehender Plugins.
 
 ```bash
-openclaw plugins install @tokenlabai/openclaw-provider
-openclaw onboard
+openclaw plugins install @tokenlabai/openclaw-provider@0.1.0
+openclaw plugins list
+openclaw models list --provider tokenlab
 ```
 
-Starten Sie nach der Installation `openclaw onboard`, wählen Sie TokenLab und geben Sie den Schlüssel nur im lokalen Dialog ein. Lädt das Plugin nicht, nutzen Sie die manuelle Konfiguration unten und prüfen Sie die Versionskompatibilität.
+```text
+/model tokenlab/claude-sonnet-5 -s
+/model default -s
+```
 
-Das Plugin lädt den aktuellen Chatmodell-Katalog von TokenLab und hält 18 Fallback-Modelle für die Offline-Erkennung bereit. Modelle verwenden das Format `tokenlab/<model-id>`.
-
-[npm-Paket](https://www.npmjs.com/package/@tokenlabai/openclaw-provider) · [ClawHub-Eintrag](https://clawhub.ai/tokenlabai/plugins/openclaw-provider) · [Quellcode](https://github.com/hedging8563/tokenlab-openclaw-provider)
+[npm](https://www.npmjs.com/package/@tokenlabai/openclaw-provider/v/0.1.0) · [GitHub](https://github.com/hedging8563/tokenlab-openclaw-provider)
 
 ## Manuelle Provider-Konfiguration
 
@@ -45,6 +49,7 @@ Native Provider wie `anthropic-messages` und `google-generative-ai` sollten `htt
 ## Voraussetzungen
 
 - Eine selbst gehostete OpenClaw-Instanz
+- OpenClaw **2026.9.4** erfordert Node.js `>=24.16.0 <25 || >=26.1.0` ([Versionsanforderungen](https://github.com/openclaw/openclaw/blob/v2026.9.4/package.json)). Prüfen Sie für andere OpenClaw-Versionen die jeweiligen Anforderungen.
 - Einen TokenLab API-Schlüssel — [Hier erhalten](https://tokenlab.sh/dashboard/api?tab=keys)
 
 ## Konfiguration
@@ -57,15 +62,10 @@ Fügen Sie TokenLab-Provider unter `models.providers` hinzu:
 
 Nutzen Sie dasselbe Profil, `OPENCLAW_STATE_DIR` und `OPENCLAW_CONFIG_PATH` wie der laufende Gateway. Sichern Sie die Konfiguration. Speichern Sie `TOKENLAB_API_KEY` in der vertrauenswürdigen globalen `.env` oder Dienstumgebung dieser Instanz. Terminal-export und Projekt-`.env` reichen für den Hintergrunddienst nicht immer. Siehe [Umgebung](https://docs.openclaw.ai/help/environment).
 
+Sichern Sie die aktive Konfiguration. Ergänzen Sie nur den TokenLab-Eintrag und erhalten Sie vorhandene Anbieter, Konten, Standardmodell und Berechtigungen. Wählen Sie bei einem belegten Namen einen anderen und passen Sie die Befehle an. Entfernen Sie zum Rückgängigmachen nur den neuen Eintrag oder stellen Sie dessen Sicherung wieder her.
+
 ```json5
 {
-  agents: {
-    defaults: {
-      model: {
-        primary: "tokenlab-claude/claude-sonnet-5"
-      }
-    }
-  },
   models: {
     mode: "merge",
     providers: {
@@ -131,16 +131,11 @@ Die oben gezeigten `models`-Arrays enthalten nur gängige Beispiele. Fügen Sie 
 
 OpenClaw referenziert Modelle weiterhin im Format `provider/model`:
 
-```json5
-{
-  agents: {
-    defaults: {
-      model: {
-        primary: "tokenlab-gemini/gemini-3.5-flash"
-      }
-    }
-  }
-}
+Wählen Sie unter **OpenClaw 2026.9.4** das Modell mit `-s` nur für die aktuelle Sitzung. Lassen Sie `agents.defaults.model`, Agentenstandards und Berechtigungen unverändert. `/model default -s` stellt die konfigurierte Standardauswahl für diese Sitzung wieder her.
+
+```text
+/model tokenlab-claude/claude-sonnet-5 -s
+/model default -s
 ```
 
 ### Modellbeispiele

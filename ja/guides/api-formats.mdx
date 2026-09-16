@@ -1,243 +1,107 @@
 ---
-title: "✨ マルチフォーマット API"
-description: "単一のAPIキーで OpenAI、Anthropic、または Gemini フォーマットを使用"
+title: "API 形式"
+description: "Chat Completions、Responses、Messages、Gemini の選び方"
 ---
 
-## 概要
+1 つの TokenLab API キーを 4 種類の API 形式で利用できます。アプリが使っている形式を優先し、モデルページまたは `GET /v1/models/{model}` の `tokenlab.accepted_request_formats` を確認してください。すべてのモデルが 4 形式に対応するわけではありません。
 
-TokenLab は 1 つの API キーで Chat Completions、Responses、Anthropic Messages、Gemini ネイティブの 4 つのプロトコル面を提供します。ネイティブ入口は、モデルがその形式を公開し、同一プロトコルの upstream ルートがある場合にのみ利用でき、Chat Completions へフォールバックしません。別プロトコルへ一方向にコンパイルできるのは Chat 入口だけです。
+## Chat Completions
 
-<CardGroup cols={2}>
-  <Card title="OpenAI フォーマット" icon="plug">
-    `/v1/chat/completions`
-    標準フォーマット、最も幅広い互換性
-  </Card>
-  <Card title="Responses" icon="bolt">
-    `/v1/responses`
-    ネイティブ Responses のライフサイクルとイベント
-  </Card>
-  <Card title="Anthropic フォーマット" icon="message">
-    `/v1/messages`
-    Extended thinking、Claude 固有の機能
-  </Card>
-  <Card title="Gemini フォーマット" icon="sparkles">
-    `/v1beta/models/:model:generateContent`
-    Google エコシステムとの統合
-  </Card>
-</CardGroup>
+`POST /v1/chat/completions` · `openai_chat_completions`
 
-## なぜマルチフォーマットか？
-
-| 利点 | 説明 |
-|---------|-------------|
-| **プロトコルネイティブ SDK** | その形式を公開するモデルにのみネイティブ SDK を使用し、最も広い移植面には Chat を使用します |
-| **ネイティブ機能** | フォーマット固有の機能にアクセス |
-| **簡単な移行** | 公式 API からベース URL を変更するだけで移行可能 |
-| **単一課金** | 1 つのアカウント、1 つの API キー、すべてのフォーマット |
-
-## フォーマット比較
-
-| 特徴 | OpenAI | Anthropic | Gemini |
-|---------|--------|-----------|--------|
-| **Endpoint** | `/v1/chat/completions` | `/v1/messages` | `/v1beta/models/:model:generateContent` |
-| **認証ヘッダー** | `Authorization: Bearer` | `x-api-key` | `Authorization: Bearer` |
-| **System Prompt** | `messages` 配列内 | 別の `system` フィールド | `systemInstruction` 内 |
-| **拡張思考** | ❌ | ✅ | ❌ |
-| **ストリーミング** | ✅ SSE | ✅ SSE | ✅ SSE |
-| **ツール呼び出し** | ✅ | ✅ | ✅ |
-| **ビジョン** | ✅ | ✅ | ✅ |
-
-## OpenAI フォーマット
-
-既存の OpenAI SDK 統合や、移植性のあるチャット/embedding フローには、この互換経路を使用してください。Claude または Gemini のネイティブな挙動が必要な場合は、下記の Anthropic または Gemini 形式を使用してください。
+既存の OpenAI 互換チャットクライアント、会話履歴、ストリーミング、モデルが対応する関数呼び出しに適しています。他形式固有のフィールドは利用できるとは限りません。
 
 ```python
+import os
 from openai import OpenAI
 
 client = OpenAI(
-    api_key="sk-your-tokenlab-key",
-    base_url="https://api.tokenlab.sh/v1"
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh/v1",
 )
 
-# Portable chat works across many models
 response = client.chat.completions.create(
-    model="claude-sonnet-5",  # Claude via OpenAI format
-    messages=[
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": "Hello!"}
-    ]
+    model="gpt-5.6-luna",
+    messages=[{"role": "user", "content": "Hello!"}],
 )
+
+print(response.choices[0].message.content)
 ```
 
-**適している用途：**
-- 一般的な用途
-- 既存の OpenAI SDK 統合
-- 最大の互換性
+## Responses
 
-## Anthropic フォーマット
+`POST /v1/responses` · `openai_responses`
 
-Anthropic のネイティブ Messages API。Extended thinking のような Claude 固有の機能にはこのフォーマットが必要です。
+モデルの `accepted_request_formats` に `openai_responses` がある場合に使用します。作成、取得、圧縮、削除、ストリーミング、WebSocket での作成と継続、対応モデルのバックグラウンド応答を扱えます。保存済み応答の削除は実行中の応答をキャンセルしません。
 
 ```python
+import os
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh/v1",
+)
+
+response = client.responses.create(
+    model="gpt-5.6-terra",
+    input="Explain why the sky is blue in two sentences.",
+)
+
+print(response.output_text)
+```
+
+## Anthropic Messages
+
+`POST /v1/messages` · `anthropic_messages`
+
+Anthropic SDK の base URL は TokenLab のホストを指定し、`/v1` を付けません。Claude のツール呼び出し、thinking ブロック、プロンプトキャッシュのフィールドは Messages 形式で使用します。
+
+```python
+import os
 from anthropic import Anthropic
 
 client = Anthropic(
-    api_key="sk-your-tokenlab-key",
-    base_url="https://api.tokenlab.sh"  # No /v1 suffix!
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh",
 )
 
 message = client.messages.create(
     model="claude-sonnet-5",
-    max_tokens=1024,
-    system="You are a helpful assistant.",  # Separate system field
-    messages=[
-        {"role": "user", "content": "Hello!"}
-    ]
-)
-```
-
-### 拡張思考 (Claude Opus 4.6)
-
-Anthropic フォーマットでのみ利用可能：
-
-```python
-message = client.messages.create(
-    model="claude-opus-5",
-    max_tokens=16000,
-    thinking={
-        "type": "enabled",
-        "budget_tokens": 10000
-    },
-    messages=[{"role": "user", "content": "Solve this complex problem..."}]
+    max_tokens=512,
+    messages=[{"role": "user", "content": "Hello!"}],
 )
 
-# Access thinking process
-for block in message.content:
-    if block.type == "thinking":
-        print(f"Thinking: {block.thinking}")
-    elif block.type == "text":
-        print(f"Answer: {block.text}")
+print(message.content[0].text)
 ```
 
-**適している用途：**
-- Claude 固有の機能
-- Extended thinking モード
-- ネイティブ Anthropic SDK ユーザー
+## Gemini
 
-## Gemini フォーマット
+`POST /v1beta/models/:model:generateContent` · `gemini_generate_content`
 
-Google エコシステム統合のためのネイティブな Google Gemini API フォーマットです。
+既存の Gemini `contents`、parts、ファイル、キャッシュ、ツールを使う場合に適しています。ProtoJSON の lowerCamelCase と元の snake_case の両方を受け付けますが、同じフィールドを両方の表記で送信しないでください。
 
 ```bash
 curl "https://api.tokenlab.sh/v1beta/models/gemini-3.5-flash:generateContent" \
-  -H "Authorization: Bearer sk-your-tokenlab-key" \
+  -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "contents": [{
-      "parts": [{"text": "Hello!"}]
-    }],
-    "systemInstruction": {
-      "parts": [{"text": "You are a helpful assistant."}]
-    }
+    "contents": [{"parts": [{"text": "Hello!"}]}]
   }'
 ```
 
-### ストリーミング
+## 会話の形式を統一する
 
-```bash
-curl "https://api.tokenlab.sh/v1beta/models/gemini-3.5-flash:streamGenerateContent?alt=sse" \
-  -H "Authorization: Bearer sk-your-tokenlab-key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "contents": [{"parts": [{"text": "Write a story"}]}]
-  }'
-```
+会話状態とツール結果の表現は形式ごとに異なります。会話全体で同じ形式を使い、履歴を移行する際はアプリ内で変換して検証してください。
 
-**適している用途：**
-- Google Cloud 統合
-- 既存の Gemini SDK コード
-- ネイティブ Gemini 機能
+## 未知のフィールド
 
-**Gemini Files と Cache:** ネイティブ Gemini ルートでは `/upload/v1beta/files`、`/v1beta/files`、`/v1beta/files:register`、`/v1beta/cachedContents` を利用できます。Files は Gemini File API 互換の上流チャネルを使い、明示的な Cache リソースは Vertex AI チャネルにもルーティングできます。TokenLab 経由で作成したリソースは同じ上流チャネル/key に束縛され、後続の `generateContent` でもその束縛が使われます。
+フィールドが転送されても、モデルが対応しているとは限りません。選択したモデルに明記された機能を使い、未対応フィールドのエラーを処理してください。
 
-## ツール互換性の境界
+## 関連ドキュメント
 
-関数ツールを一方向にコンパイルできるのは Chat 入口だけで、対象が完全なツールループを表現できる場合に限ります。プロバイダー固有のネイティブツールは、それぞれのネイティブルートに残す必要があります。
-
-- OpenAI Responses のホスト型およびネイティブツール、たとえば `tool_search`、`web_search`、`file_search`、`code_interpreter`、MCP、shell/apply_patch、computer-use ツールには `/v1/responses` が必要です。
-- Anthropic の server/native ツール、たとえば `web_search_*`、`web_fetch_*`、`code_execution_*`、`tool_search_*`、bash、computer-use、text-editor ツールには `/v1/messages` が必要です。
-- Gemini の組み込みツール、たとえば `googleSearch`、`codeExecution`、`urlContext`、`computerUse`、および同種の `tools` フィールドには `/v1beta` が必要です。
-
-TokenLab はネイティブプロトコルのリクエストを Chat Completions へ格下げしません。未知のフィールドやツール構成は best-effort で転送され、対応可否は選択された upstream が判断します。
-
-## 適切なフォーマットの選び方
-
-```mermaid
-graph TD
-    A[Which format?] --> B{Need Claude extended thinking?}
-    B -->|Yes| C[Use Anthropic Format]
-    B -->|No| D{Existing codebase?}
-    D -->|OpenAI SDK| E[Use OpenAI Format]
-    D -->|Anthropic SDK| C
-    D -->|Gemini SDK| F[Use Gemini Format]
-    D -->|新規プロジェクト| G{プロバイダー原生動作が必要？}
-    G -->|Yes| H[Use native Anthropic or Gemini Format]
-    G -->|No| E
-```
-
-## マイグレーションガイド
-
-### OpenAI 公式APIから
-
-```python
-# Before (OpenAI)
-client = OpenAI(api_key="sk-openai-key")
-
-# After (TokenLab)
-client = OpenAI(
-    api_key="sk-tokenlab-key",
-    base_url="https://api.tokenlab.sh/v1"  # Add this line
-)
-# That's it! Same code works
-```
-
-### Anthropic 公式APIから
-
-```python
-# Before (Anthropic)
-client = Anthropic(api_key="sk-ant-key")
-
-# After (TokenLab)
-client = Anthropic(
-    api_key="sk-tokenlab-key",
-    base_url="https://api.tokenlab.sh"  # Add this line (no /v1!)
-)
-```
-
-### Google AI Studio から
-
-```python
-# Before (Google)
-import google.generativeai as genai
-genai.configure(api_key="google-api-key")
-
-# After (TokenLab) - Use REST API
-import requests
-
-response = requests.post(
-    "https://api.tokenlab.sh/v1beta/models/gemini-3.5-flash:generateContent",
-    headers={"Authorization": "Bearer sk-tokenlab-key"},
-    json={"contents": [{"parts": [{"text": "Hello"}]}]}
-)
-```
-
-
-## ポータブル Chat 互換性
-
-1 つのクライアントから異なる upstream プロトコルで提供されるモデルへ接続する場合は `/v1/chat/completions` を使用します。移植可能な Chat リクエストは、完全に表現できる場合に限り Responses、Messages、Gemini へ一方向にコンパイルできます。Responses、Messages、Gemini のネイティブリクエストが Chat に変換されることはなく、モデル名やプロバイダー名だけではネイティブ対応を意味しません。
-
-## Responses と Gemini の境界
-
-現在の Responses 面は create、compact、retrieve、delete、SSE を含みます。background は HTTP のみです。WebSocket が受け付けるのは `response.create` だけで、stream は暗黙です。この transport では `background` と `response.cancel` を提供しません。delete は cancel ではありません。
-
-Gemini では ProtoJSON の lowerCamelCase と proto 元来の snake_case の両方が公式で、混在リクエストもそのまま保持されます。現在の面は model list/get、`generateContent`、`streamGenerateContent`、`countTokens`、`embedContent`、`batchEmbedContents` を含み、Interactions と Live は含みません。未知のフィールドは best-effort で転送され、対応可否は upstream が判断します。
+- [Chat Completions](/ja/api-reference/chat/create-completion)
+- [Responses](/ja/api-reference/responses/create-response)
+- [Messages](/ja/api-reference/messages/create-message)
+- [Gemini](/ja/api-reference/gemini/generate-content)
+- [SDK](/ja/guides/sdks)

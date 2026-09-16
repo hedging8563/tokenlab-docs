@@ -6,17 +6,29 @@ description: "اعرض مهام Seedance المتوافقة الحديثة في 
 
 ## نظرة عامة
 
-هذه الواجهات مخصصة للفرق التي تستخدم بالفعل شكل مهام Seedance بأسلوب Volc. يتم التوثيق باستخدام TokenLab Bearer API key. يبدأ معرف المهمة المرجع بـ `cgt-`؛ قم بالاستعلام عن الحالة حتى تصبح `status` إحدى `succeeded` أو `failed` أو `cancelled` أو `expired`.
+اعرض المهام المتوافقة الحديثة في مساحة العمل المصادق عليها باستخدام مفتاح TokenLab Bearer API. بدون `filter.task_ids`، يشمل البحث الأيام السبعة الماضية؛ وعند تحديد معرّفات دقيقة تُستعلم تلك المهام مباشرة.
 
 انظر أيضا [نماذج فيديو Seedance 2.0](/ar/guides/seedance-2-video) و [توليد الفيديو](/ar/guides/video-generation).
 
 ## شكل الاستجابة
 
-تعيد استجابة القائمة `items` و `total`. الفلاتر المدعومة هي `filter.status` و `filter.task_ids` و `filter.model` و `filter.service_tier`، مع `page_num` و `page_size` للترقيم.
+- `page_num`: الافتراضي `1`، عدد صحيح من `1` إلى `500`.
+- `page_size`: الافتراضي `20`، عدد صحيح من `1` إلى `500`.
+- `filter.status`: `queued`, `running`, `succeeded`, `failed`, `cancelled`, `expired`.
+- `filter.task_ids`: كرر المعلمة لعدة معرّفات مهام دقيقة. لا تجمعها بفواصل.
+- `filter.model`: معرّف النموذج.
+- `filter.service_tier`: `default`, `flex`.
+
+تحتوي الاستجابة على `items` و`total` للنتائج المصفاة. يستخدم كل عنصر بنية استجابة جلب المهمة. استخدم نقطة جلب المهمة لتحديث حالة مهمة معروفة.
 
 ## مثال
 
 ```bash
 curl "https://api.tokenlab.sh/api/v3/contents/generations/tasks?page_num=1&page_size=20&filter.status=succeeded" \
+  -H "Authorization: Bearer $TOKENLAB_API_KEY"
+```
+
+```bash
+curl "https://api.tokenlab.sh/api/v3/contents/generations/tasks?filter.task_ids=cgt-20260102030405-a1b2c" \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```

@@ -18,7 +18,7 @@ Route ini mendukung:
 
 Edit dengan `gpt-image-2` tidak menerima `resolution`; gunakan `size` untuk dimensi output. `background` menerima `auto` atau `opaque`; `transparent` tidak didukung. Untuk edit multi-gambar atau latensi tinggi, sebaiknya gunakan `async: true` lalu polling task yang dikembalikan.
 
-Request Nano Banana dengan gambar referensi (`nano-banana`, `nano-banana-2`, dan `nano-banana-pro`) tersedia melalui `/v1/images/generations` dengan `operation: "image-to-image"` dan `image_urls`, bukan endpoint `/v1/images/edits` ini.
+Request Nano Banana dengan gambar referensi (`nano-banana-edit`, `nano-banana-2`, dan `nano-banana-pro`) tersedia melalui `/v1/images/generations` dengan `operation: "image-to-image"` dan `image_urls`, bukan endpoint `/v1/images/edits` ini.
 
 Model edit gambar xAI Grok Imagine (`grok-imagine-image`, `grok-imagine-image-quality`, dan legacy `grok-imagine-image-pro`) menerima maksimal 3 gambar sumber. Request dengan lebih dari 3 gambar sumber gagal saat validasi input dengan `400 too_many_images`.
 
@@ -29,18 +29,20 @@ Model edit gambar xAI Grok Imagine (`grok-imagine-image`, `grok-imagine-image-qu
 
 **Timeout permintaan sinkron:** beberapa request gambar mengembalikan gambar final secara inline dan menunggu proses generasi selesai. Permintaan resolusi tinggi atau kualitas tinggi dapat memakan waktu hampir satu menit atau lebih, jadi atur timeout HTTP client Anda minimal `120s`. Jika respons pembuatan berisi `status: "pending"`, `task_id`, atau `poll_url`, ikuti `poll_url` yang dikembalikan.
 
-URL gambar jarak jauh: ketika input multipart diperlukan, TokenLab mengambil JSON `image_url`, `image_urls`, atau `images[].image_url` lalu mengirim byte-nya sebagai part multipart `image`. URL harus publik melalui `http`/`https`, tanpa kredensial tertanam atau fragment, dan tidak boleh resolve ke localhost, rentang IP privat, atau IP reserved; setiap redirect divalidasi ulang. Payload yang diambil harus benar-benar berupa gambar PNG, JPEG, atau WebP. Batasnya `50MB` per gambar, total `200MB` untuk gambar yang diambil dari URL dalam satu request, timeout `10s`, dan maksimal `3` redirect.
+URL gambar jarak jauh: ketika input multipart diperlukan, TokenLab mengambil JSON `image_url`, `image_urls`, atau `images[].image_url` lalu mengirim byte-nya sebagai part multipart `image`. URL harus publik melalui `http`/`https`, tanpa kredensial tertanam atau fragment, dan tidak boleh resolve ke localhost, rentang IP privat, atau IP reserved; setiap redirect divalidasi ulang. Payload yang diambil harus benar-benar berupa gambar PNG, JPEG, atau WebP. Batasnya `50 MiB` per gambar, total `200 MiB` untuk gambar yang diambil dari URL dalam satu request, timeout `10s`, dan maksimal `3` redirect.
+
+Permintaan JSON harus menyertakan tepat satu dari `image_url`, `image_urls`, atau `images`. Setiap objek `images[]` harus berisi tepat satu dari `image_url` atau `file_id`. Batas total 200 MiB mencakup semua gambar sumber dan mask.
 
 <ParamField body="image" type="file">
-  Gambar sumber multipart. Ulangi `image` untuk mengirim beberapa sumber GPT Image. File harus PNG, JPEG, atau WebP, maksimal 16 gambar sumber dan `50MB` per file. Model edit xAI Grok Imagine memakai field input yang sama, tetapi membatasi gambar sumber menjadi 3.
+  Gambar sumber multipart. Ulangi `image` untuk mengirim beberapa sumber GPT Image. File harus PNG, JPEG, atau WebP, maksimal 16 gambar sumber dan `50 MiB` per file. Model edit xAI Grok Imagine memakai field input yang sama, tetapi membatasi gambar sumber menjadi 3.
 </ParamField>
 
 <ParamField body="prompt" type="string" required>
   Deskripsi teks dari edit yang diinginkan.
 </ParamField>
 
-<ParamField body="mask" type="file">
-  Gambar tambahan dengan area yang benar-benar transparan untuk menunjukkan di mana gambar harus diedit. Harus PNG yang valid, kurang dari 50MB, dan memiliki dimensi yang sama dengan `image`.
+<ParamField body="mask" type="file | object">
+  Gambar tambahan dengan area yang benar-benar transparan untuk menunjukkan di mana gambar harus diedit. Harus PNG yang valid, kurang dari 50 MiB, dan memiliki dimensi yang sama dengan `image`.
 
   Untuk request JSON, `mask` juga dapat berupa objek dengan tepat salah satu dari `image_url` atau `file_id`; nilai `file_id` harus berasal dari `/v1/files` dan tetap terikat ke konfigurasi edit gambar yang sama.
 </ParamField>
@@ -50,7 +52,7 @@ URL gambar jarak jauh: ketika input multipart diperlukan, TokenLab mengambil JSO
 </ParamField>
 
 <ParamField body="n" type="integer" default="1">
-  Jumlah gambar yang dibuat. Harus antara 1 dan 10.
+  Jumlah gambar yang dibuat (1-10, tergantung model).
 </ParamField>
 
 <ParamField body="size" type="string">
@@ -60,7 +62,7 @@ URL gambar jarak jauh: ketika input multipart diperlukan, TokenLab mengambil JSO
 <ParamField body="response_format" type="string" default="url">
   Format pengembalian gambar yang dihasilkan. Harus `url` atau `b64_json`; default-nya `url`.
 
-  Untuk `gpt-image-2` melalui Azure Official atau layanan yang kompatibel dengan Azure, TokenLab menerima hasil gambar sebagai `b64_json`. Untuk request `url`, TokenLab mengunggah setiap gambar ke CDN lalu mengembalikan `data[].url`. Jika CDN tidak tersedia atau upload gagal, request gagal dan tidak diubah menjadi respons Base64. Untuk `b64_json`, Base64 mentah dikembalikan.
+  `url` mengembalikan URL gambar di `data[].url`; `b64_json` mengembalikan data gambar Base64 di `data[].b64_json`.
 </ParamField>
 
 <ParamField body="async" type="boolean" default="false">

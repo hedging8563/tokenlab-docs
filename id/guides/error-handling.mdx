@@ -39,8 +39,8 @@ Hanya `message` dan `type` yang selalu ada dalam error yang kompatibel dengan Op
 
 | Kode | Apa artinya | Apa yang harus diubah |
 | --- | --- | --- |
-| `invalid_api_key` | API key hilang atau tidak valid | Periksa header Authorization dan nilai key |
-| `expired_api_key` | Key telah kedaluwarsa atau dicabut | Buat atau pilih key yang aktif |
+| `invalid_api_key` | Kunci API tidak ada, tidak valid, tidak aktif, atau telah dicabut | Periksa header Authorization dan nilai key |
+| `expired_api_key` | Kunci API telah kedaluwarsa | Buat atau pilih key yang aktif |
 | `insufficient_balance` | Saldo akun tidak mencukupi untuk permintaan tersebut | Tambahkan dana, kurangi permintaan, atau pilih model dengan harga lebih rendah |
 | `quota_exceeded` | API key mencapai batasnya sendiri | Tingkatkan batas key tersebut atau gunakan key resmi lainnya |
 | `model_not_allowed` | Key tidak dapat menggunakan model yang diminta | Perbarui daftar model key atau pilih model yang diizinkan |
@@ -65,43 +65,10 @@ Beberapa error yang kompatibel dengan OpenAI menyertakan bidang opsional `did_yo
 
 Untuk pembuatan gambar, video, musik, 3D, dan Worlds, simpan ID tugas segera setelah dikembalikan. Jika permintaan pembuatan mengalami timeout, periksa catatan tugas sebelum mengirim permintaan pembuatan lainnya.
 
-## Contoh Python
-
-```python
-import random
-import time
-from openai import OpenAI, APIConnectionError, APIStatusError, RateLimitError
-
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1",
-)
-
-def chat(messages, model="gpt-5.6-luna", attempts=3):
-    for attempt in range(attempts):
-        try:
-            return client.chat.completions.create(
-                model=model,
-                messages=messages,
-            )
-        except RateLimitError as exc:
-            if attempt == attempts - 1:
-                raise
-            retry_after = exc.response.headers.get("Retry-After")
-            wait = float(retry_after) if retry_after else (2 ** attempt + random.random())
-            time.sleep(wait)
-        except APIStatusError as exc:
-            if exc.status_code < 500 or attempt == attempts - 1:
-                raise
-            time.sleep(2 ** attempt + random.random())
-        except APIConnectionError:
-            if attempt == attempts - 1:
-                raise
-            time.sleep(2 ** attempt + random.random())
-```
-
 ## Simpan Request ID
 
 Header respons menyertakan Request ID untuk pelacakan. Simpan ID tersebut bersama endpoint, model, waktu, serta ID pengguna atau pekerjaan Anda sendiri. Untuk pekerjaan asinkron, simpan juga `task_id` dan `billing_transaction_id` jika ada.
 
 Saat menghubungi dukungan, sertakan ID tersebut dan contoh yang telah disunting. Jangan pernah mengirim API key, token manajemen, media pribadi, signed URL, atau prompt pribadi yang lengkap.
+
+[Dari permintaan ke investigasi dan dukungan](/id/guides/observability-troubleshooting)

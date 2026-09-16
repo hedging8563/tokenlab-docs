@@ -6,12 +6,14 @@ description: "Liệt kê các nhóm vật liệu Seedance thuộc sở hữu c�
 
 Liệt kê các nhóm vật liệu thuộc sở hữu của tổ chức đã xác thực. Lọc theo `library_type` và `status` để phân tách các nhóm avatar ảo khỏi các nhóm người thật.
 
-Sử dụng `group_id` được trả về khi tải lên các tài liệu. Không truyền `group_id` dưới dạng `material_asset_id` trong quá trình tạo video; việc tạo video yêu cầu `id` của tài nguyên vật liệu.
+Sử dụng `id` được trả về khi tải lên các tài liệu. Không truyền `group_id` dưới dạng `material_asset_id` trong quá trình tạo video; việc tạo video yêu cầu `id` của tài nguyên vật liệu.
+
+`project_name` tách biệt tài nguyên trong tổ chức đã xác thực. Mặc định là `default`; dùng cùng một giá trị phân biệt chữ hoa, chữ thường cho nhóm và tài nguyên liên quan. Gửi trong nội dung JSON với POST/PUT và tham số truy vấn với GET/DELETE.
 
 ## Ví dụ yêu cầu
 
 ```bash
-curl "https://api.tokenlab.sh/v1/videos/assets/groups?library_type=aigc_avatar&page_size=20" \
+curl "https://api.tokenlab.sh/v1/videos/assets/groups?library_type=aigc_avatar&page_size=20&project_name=default" \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```
 
@@ -23,6 +25,7 @@ curl "https://api.tokenlab.sh/v1/videos/assets/groups?library_type=aigc_avatar&p
     {
       "id": "group-20260720123456-vrt01",
       "object": "seedance.material_asset_group",
+      "project_name": "default",
       "library_type": "aigc_avatar",
       "group_name": "Product references",
       "status": "ACTIVE",

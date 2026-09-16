@@ -8,10 +8,12 @@ Exclua um grupo de material e os ativos de material do TokenLab contidos nele. E
 
 Se a biblioteca de materiais do TokenLab não puder concluir a exclusão porque o estado de autorização atual não permite, o TokenLab retornará um erro neutro de biblioteca de materiais. Após a exclusão, o grupo e seus ativos não poderão mais ser usados na geração de vídeos.
 
+`project_name` isola recursos dentro da organização autenticada. O padrão é `default`; use o mesmo valor, diferenciando maiúsculas e minúsculas, para grupos e ativos relacionados. Envie-o no corpo JSON para POST/PUT e na consulta para GET/DELETE.
+
 ## Exemplo de Requisição
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01 \
+curl "https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01?project_name=default" \
   -X DELETE \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```

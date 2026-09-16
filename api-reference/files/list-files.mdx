@@ -19,7 +19,7 @@ curl -X GET "https://api.tokenlab.sh/v1/files?purpose=batch&limit=20" \
 
 ## Filters
 
-- `limit` accepts values from 1 to 10000 and defaults to 10000.
+- For batch and image-reference files, `limit` is 1–10000 (default 10000), with `after` for pagination. In Anthropic Files mode, `limit` is 1–1000 (default 20); use either `after_id` or `before_id`, not both.
 - `purpose` can be `batch`, `batch_output`, `user_data`, or `vision`.
 - `user_data` and `vision` return TokenLab-created image reference files when available.
 
@@ -29,7 +29,10 @@ curl -X GET "https://api.tokenlab.sh/v1/files?purpose=batch&limit=20" \
 ```json 200 OK
 {
   "object": "list",
-  "data": [{ "id": "file_abc123", "object": "file", "purpose": "batch" }]
+  "data": [{ "id": "file_abc123", "object": "file", "purpose": "batch" }],
+  "first_id": "file_abc123",
+  "last_id": "file_abc123",
+  "has_more": false
 }
 ```
 </ResponseExample>
@@ -38,3 +41,4 @@ curl -X GET "https://api.tokenlab.sh/v1/files?purpose=batch&limit=20" \
 
 <ResponseField name="object" type="string">Always `list`.</ResponseField>
 <ResponseField name="data" type="array">Files.</ResponseField>
+<ResponseField name="has_more" type="boolean">More results are available when `has_more` is true.</ResponseField>

@@ -12,7 +12,7 @@ description: "通过 WebSocket 连接实时语音和多模态会话"
 
 不要把长期 API 密钥写进浏览器或移动端应用。该接口目前不签发短期 Realtime client secret。
 
-<Note>通过 `/v1/models` 查询支持 realtime 的模型。</Note>
+<Note>从 `/v1/models` 选择当前实时模型，查询 `/v1/models/{model}` 确认后设置 `TOKENLAB_REALTIME_MODEL`。会话事件与配置以模型为准。下方 JSON 示例是普通 HTTP GET 的返回，不是 WebSocket 会话事件。</Note>
 
 ## 连接
 
@@ -28,20 +28,28 @@ description: "通过 WebSocket 连接实时语音和多模态会话"
 ```javascript JavaScript
 import WebSocket from 'ws';
 
-const socket = new WebSocket('wss://api.tokenlab.sh/v1/realtime?model=gpt-realtime', {
-  headers: { Authorization: 'Bearer sk-your-api-key' }
+const model = process.env.TOKENLAB_REALTIME_MODEL;
+const apiKey = process.env.TOKENLAB_API_KEY;
+if (!model || !apiKey) {
+  throw new Error('Set TOKENLAB_REALTIME_MODEL and TOKENLAB_API_KEY');
+}
+
+const url = new URL('wss://api.tokenlab.sh/v1/realtime');
+url.searchParams.set('model', model);
+const socket = new WebSocket(url, {
+  headers: { Authorization: `Bearer ${apiKey}` }
 });
 
 socket.on('open', () => {
-  socket.send(JSON.stringify({
-    type: 'session.update',
-    session: { modalities: ['text', 'audio'] }
-  }));
+  console.log('Realtime connection open');
 });
 
 socket.on('message', (data) => {
   console.log('realtime event', data.toString());
 });
+
+socket.on('error', (error) => console.error(error.message));
+socket.on('close', (code) => console.log('Realtime connection closed', code));
 ```
 
 ```bash cURL
@@ -63,19 +71,20 @@ curl "https://api.tokenlab.sh/v1/realtime" \
 ## 响应示例
 
 <ResponseExample>
-```json Connected
+```json HTTP GET
 {
-  "type": "session.created",
-  "session": {
-    "id": "sess_abc123",
-    "model": "gpt-realtime",
-    "modalities": ["text", "audio"]
-  }
+  "object": "realtime.endpoint",
+  "websocket_url": "/v1/realtime?model={model}",
+  "protocol": "tokenlab_realtime_proxy"
 }
 ```
 </ResponseExample>
 
 ## 重要字段
+
+<ResponseField name="object" type="string">普通 HTTP GET 响应的对象类型，固定为 `realtime.endpoint`。</ResponseField>
+<ResponseField name="websocket_url" type="string">普通 HTTP GET 返回的 WebSocket 相对连接路径：`/v1/realtime?model={model}`。将 `{model}` 替换为所选模型的 ID。</ResponseField>
+<ResponseField name="protocol" type="string">普通 HTTP GET 返回的协议标识，固定为 `tokenlab_realtime_proxy`。</ResponseField>
 
 <ResponseField name="type" type="string">API 返回的事件或消息类型。</ResponseField>
 <ResponseField name="session.id" type="string">实时会话 ID，可用于日志和问题排查。</ResponseField>

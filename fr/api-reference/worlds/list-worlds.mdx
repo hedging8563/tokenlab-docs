@@ -19,7 +19,7 @@ Utilisez `/v1/worlds/generations/{id}` pour les tâches en attente ou échouées
 </ParamField>
 
 <ParamField body="status" type="string">
-  Filtre de statut optionnel. TokenLab renvoie les worlds terminés pour `SUCCEEDED`; les autres statuts relèvent de l’endpoint de tâche de génération.
+  Filtre facultatif : `SUCCEEDED`, `PENDING`, `RUNNING` ou `FAILED`. Ce point de terminaison liste les mondes terminés ; les trois autres valeurs renvoient une liste vide. Consultez la tâche de génération pour sa progression.
 </ParamField>
 
 <ParamField body="model" type="string">
@@ -56,7 +56,7 @@ Utilisez `/v1/worlds/generations/{id}` pour les tâches en attente ou échouées
   Tableau d’enregistrements world.
 </ResponseField>
 
-<ResponseField name="next_page_token" type="string">
+<ResponseField name="next_page_token" type="string | null">
   Token de page suivante, ou `null`.
 </ResponseField>
 

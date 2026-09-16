@@ -6,13 +6,15 @@ description: "Annule une tâche compatible Seedance en file ou encore annulable.
 
 ## Aperçu
 
-Ces points de terminaison s’adressent aux équipes qui utilisent déjà la structure de tâche Seedance de style Volc. L’authentification utilise votre clé API TokenLab Bearer. L’ID de tâche retourné commence par `cgt-`; interrogez le statut jusqu’à ce que `status` devienne `succeeded`, `failed`, `cancelled` ou `expired`.
+Demandez l’annulation avec une clé API TokenLab Bearer et l’ID `cgt-...`. L’annulation est tentée au mieux et ne réussit que si la tâche reste annulable.
 
 Voir aussi [Modèles vidéo Seedance 2.0](/fr/guides/seedance-2-video) et [Génération vidéo](/fr/guides/video-generation).
 
 ## Format de réponse
 
 Une annulation réussie retourne HTTP 200 avec un corps vide. Interrogez ensuite la tâche si vous devez confirmer son statut final.
+
+Si la tâche est terminée, a échoué, a expiré ou n’est plus annulable, le point de terminaison renvoie une erreur. Consultez la tâche pour confirmer son état. Une tâche annulée n’a pas de résultat vidéo.
 
 ## Exemple
 

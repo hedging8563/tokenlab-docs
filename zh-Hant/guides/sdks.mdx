@@ -10,8 +10,7 @@ TokenLab 最容易按所需行為選擇 SDK：
 - 需要 Gemini 原生請求格式時，使用官方 **Gemini / Google AI** 工具
 - 遷移 OpenAI 相容 `/v1` 路由或 Responses 風格用法時，使用官方 **OpenAI SDKs**
 
-具體支援邊界請以各整合頁為準。在這套文件裡，“recommended” 或 “supported” 代表存在已文件化的配置路徑，並不自動等同於每個框架輔助層或供應商特定功能都做了端到端回歸。
-
+客戶端配置與模型限制請查看對應整合頁。完整的首次請求見[快速開始](/zh-Hant/quickstart)。
 ## 建議的 SDKs
 
 <CardGroup cols={2}>
@@ -43,7 +42,7 @@ client = OpenAI(
 
 response = client.responses.create(
     model="gpt-5.6-terra",
-    input="Explain TokenLab in one sentence."
+    input="Reply with: Connected to TokenLab."
 )
 
 print(response.output_text)

@@ -15,6 +15,12 @@ Graphiti 透過 `OpenAIGenericClient` 支援與 OpenAI 相容的 `/v1` 端點。
 **支援信心**: 支援與 OpenAI 相容的路徑
 </Note>
 
+## 安裝
+
+```bash
+pip install graphiti-core httpx
+```
+
 ## 環境
 
 ```bash
@@ -36,7 +42,10 @@ llm_config = LLMConfig(
     base_url="https://api.tokenlab.sh/v1",
 )
 
-llm_client = OpenAIGenericClient(config=llm_config)
+llm_client = OpenAIGenericClient(
+    config=llm_config,
+    structured_output_mode="json_object",
+)
 ```
 
 將 `llm_client` 與您的圖資料庫及嵌入器 (embedder) 設定一同傳入 `Graphiti(...)` 實例中。

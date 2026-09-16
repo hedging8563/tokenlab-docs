@@ -18,7 +18,7 @@ description: "تتبع طلبات TokenLab المتوافقة مع OpenAI باس
 ## التثبيت
 
 ```bash
-pip install opentelemetry-instrumentation-openai openai
+pip install opentelemetry-instrumentation-openai opentelemetry-sdk openai
 ```
 
 ## البيئة
@@ -29,11 +29,20 @@ export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 
 ## مثال
 
+يعرض هذا المثال المستقل بيانات span في الطرفية. إذا كان تطبيقك يتضمن بالفعل tracer provider من OpenTelemetry، فأعد استخدامه مع الـ exporter الخاص به.
+
 ```python
 import os
 
 from openai import OpenAI
+from opentelemetry import trace
 from opentelemetry.instrumentation.openai import OpenAIInstrumentor
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import ConsoleSpanExporter, SimpleSpanProcessor
+
+tracer_provider = TracerProvider()
+tracer_provider.add_span_processor(SimpleSpanProcessor(ConsoleSpanExporter()))
+trace.set_tracer_provider(tracer_provider)
 
 OpenAIInstrumentor().instrument()
 

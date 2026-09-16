@@ -12,17 +12,16 @@ Para agentes de código, descubre primero la lista corta recomendada de imágene
 
 Para generación de imágenes con `gpt-image-2`, los parámetros públicos admitidos son `prompt`, `n`, `size`, `quality`, `response_format`, `async`, `background`, `output_format`, `output_compression` o `compression`, `moderation` y `user`. `background` acepta `auto` u `opaque`; `transparent` no es compatible. Si omites `size` o `quality`, TokenLab usa `auto`; los valores personalizados de `size` deben usar el contrato flexible `WIDTHxHEIGHT` documentado abajo.
 
-`input_fidelity` no forma parte del campos admitidos actual de TokenLab para `gpt-image-2`; omítelo o la solicitud devolverá `400 unsupported_parameter`.
+`input_fidelity` no forma parte de los campos admitidos actual de TokenLab para `gpt-image-2`; omítelo o la solicitud devolverá `400 unsupported_parameter`.
 
 ### Notas de comportamiento del modelo
 
 Google Gemini no comparten el mismo contrato de selección:
 
 - `gemini-3.1-flash-image`, `gemini-3-pro-image` y `nano-banana-pro` admiten `aspect_ratio` junto con `resolution` (`1k`, `2k`, `4k`) para sus operaciones públicas de texto a imagen e image-edit/image-to-image.
-- `nano-banana-2` admite `aspect_ratio` junto con `resolution` (`1k`, `2k`, `4k`) solo para texto a imagen en el contrato actual de TokenLab.
+- `nano-banana-2` admite `aspect_ratio` y `resolution` (`1k`, `2k`, `4k`) tanto para text-to-image como para image-to-image.
 - `gemini-2.5-flash-image`, `nano-banana` y `nano-banana-edit` admiten `aspect_ratio`, pero no exponen selección pública de `resolution`.
 - Para solicitudes Nano Banana con imagen de referencia, usa `nano-banana-edit` o `nano-banana-pro` en este endpoint (`/v1/images/generations`) con `operation: "image-to-image"` e `image_urls`. No envíes solicitudes de referencia Nano Banana a `/v1/images/edits`.
-- En solicitudes Nano Banana image-to-image, `nano-banana-pro` puede incluir `resolution` (`1k`, `2k`, `4k`); `nano-banana-edit` debe omitirlo. `nano-banana` y `nano-banana-2` son modelos de texto a imagen en el detalles del modelo actual.
 - Las imágenes de referencia en este endpoint pueden enviarse como JSON `image_url` / `image_urls`, o como archivo multipart `image`. `/v1/images/generations` no acepta `images[]` ni `file_id`; las referencias de `/v1/files` solo aplican a modelos de `/v1/images/edits` que documentan `images[].file_id`.
 
 Para las familias de imágenes de Google, prefiere `aspect_ratio` y envía `resolution` solo cuando el modelo lo admita explícitamente.
@@ -61,10 +60,10 @@ Los modelos de imagen xAI Grok Imagine (`grok-imagine-image`, `grok-imagine-imag
   Número de imágenes a generar (1-10, según el modelo).
 </ParamField>
 
-<ParamField body="size" type="string" default="1024x1024">
+<ParamField body="size" type="string">
   Tamaño de la imagen. Úsalo para familias de imágenes al estilo OpenAI y otros modelos que aceptan tamaños exactos en píxeles.
 
-  Para `gpt-image-2`, `size` acepta `auto` o `WIDTHxHEIGHT`. Las dimensiones personalizadas deben ser múltiplos de 16 en ambos lados, el lado más largo debe ser como máximo `3840px`, la proporción lado largo/lado corto debe ser como máximo `3:1`, y el total de píxeles debe estar entre `655,360` y `8,294,400`. `aspect_ratio` y `resolution` no forman parte del detalles del modelo actual de TokenLab para `gpt-image-2`.
+  Para `gpt-image-2`, `size` acepta `auto` o `WIDTHxHEIGHT`. Las dimensiones personalizadas deben ser múltiplos de 16 en ambos lados, el lado más largo debe ser como máximo `3840px`, la proporción lado largo/lado corto debe ser como máximo `3:1`, y el total de píxeles debe estar entre `655,360` y `8,294,400`. `aspect_ratio` y `resolution` no forman parte de los detalles del modelo actual de TokenLab para `gpt-image-2`.
 
   Para las familias de imágenes de Google Gemini, `size` actúa como un alias de compatibilidad que se mapea al detalles del modelo de `aspect_ratio` y, cuando está disponible, `resolution`. Para esos modelos, prefiere enviar `aspect_ratio` directamente.
 </ParamField>
@@ -76,19 +75,17 @@ Los modelos de imagen xAI Grok Imagine (`grok-imagine-image`, `grok-imagine-imag
 </ParamField>
 
 <ParamField body="resolution" type="string">
-  Selector de resolución de salida dependiente del modelo.
-
-  Se admite en `gemini-3.1-flash-image` y `gemini-3-pro-image` para texto a imagen e image-edit, en `nano-banana-pro` para texto a imagen e image-to-image, y en `nano-banana-2` solo para texto a imagen. Los valores típicos son `1k`, `2k` y `4k`. No envíes este parámetro a familias de imagen Gemini que solo aceptan proporción salvo que el modelo lo documente explícitamente. Para los modelos de imagen xAI Grok Imagine, usa `1k` o `2k`.
+  La resolución depende del modelo. `gemini-3.1-flash-image`, `gemini-3-pro-image`, `nano-banana-2` y `nano-banana-pro` admiten `1k`, `2k` y `4k`; los modelos de imagen Grok Imagine admiten `1k` y `2k`. Envía este campo solo si el modelo y la operación lo admiten explícitamente.
 </ParamField>
 
-<ParamField body="quality" type="string" default="standard">
+<ParamField body="quality" type="string">
   Calidad de imagen. Los modelos GPT Image como `gpt-image-2` usan `auto`, `low`, `medium` o `high`. Otras familias de imagen pueden usar valores específicos del proveedor; revisa los metadatos del modelo antes de enviar valores no predeterminados.
 </ParamField>
 
 <ParamField body="response_format" type="string" default="url">
   Formato de respuesta: `url` o `b64_json`. El valor predeterminado es `url`.
 
-  Para solicitudes `gpt-image-2` de Azure Official o compatibles con Azure, TokenLab recibe los datos de imagen como `b64_json`. Para solicitudes `url`, TokenLab sube cada imagen al CDN y devuelve `data[].url`. Si el almacenamiento CDN no está disponible o la subida falla, la solicitud falla en lugar de convertirse en una respuesta Base64. Para `b64_json`, devuelve el Base64 sin procesar.
+  `url` devuelve las URL en `data[].url`; `b64_json` devuelve los datos de imagen Base64 en `data[].b64_json`.
 </ParamField>
 
 <ParamField body="async" type="boolean" default="false">
@@ -159,8 +156,7 @@ curl -X POST "https://api.tokenlab.sh/v1/images/generations" \
     "model": "gemini-3-pro-image",
     "prompt": "A cinematic portrait of a white cat sitting on a rainy windowsill",
     "aspect_ratio": "16:9",
-    "resolution": "2k",
-    "n": 1
+    "resolution": "2k"
   }'
 ```
 
@@ -175,9 +171,7 @@ client = OpenAI(
 response = client.images.generate(
     model="gemini-3-pro-image",
     prompt="A cinematic portrait of a white cat sitting on a rainy windowsill",
-    aspect_ratio="16:9",
-    resolution="2k",
-    n=1
+    extra_body={"aspect_ratio": "16:9", "resolution": "2k"}
 )
 
 print(response.data[0].url)
@@ -195,8 +189,7 @@ const response = await client.images.generate({
   model: 'gemini-3-pro-image',
   prompt: 'A cinematic portrait of a white cat sitting on a rainy windowsill',
   aspect_ratio: '16:9',
-  resolution: '2k',
-  n: 1
+  resolution: '2k'
 });
 
 console.log(response.data[0].url);
@@ -217,8 +210,7 @@ curl_setopt_array($ch, [
         'model' => 'gemini-3-pro-image',
         'prompt' => 'A cinematic portrait of a white cat sitting on a rainy windowsill',
         'aspect_ratio' => '16:9',
-        'resolution' => '2k',
-        'n' => 1
+        'resolution' => '2k'
     ])
 ]);
 
@@ -295,37 +287,31 @@ curl -X POST "https://api.tokenlab.sh/v1/images/generations" \
 
 ## Modelos disponibles
 
-Estos son ejemplos actuales, no un catálogo fijo. Consulta `GET /v1/models?recommended_for=image` o la página Models para ver disponibilidad y precios actualizados.
-
-| Modelo | Tipo | Funciones |
-|-------|------|----------|
-| `gpt-image-2` | Inline o basado en tareas | Modelo GPT Image con precio por token y tamaños flexibles |
-| `flux-pro` | A menudo basado en tareas | Fotorrealista, alta calidad |
-| `nano-banana-pro` | A menudo basado en tareas | Flujos con imágenes de referencia y salida de alta resolución |
-| `grok-imagine-image` | A menudo basado en tareas | Generación de imagen xAI con selección de aspecto y resolución |
-| `ideogram-v3` | A menudo basado en tareas | Buen renderizado de texto |
+Consulta `GET /v1/models?recommended_for=image` para ver los modelos de imagen, capacidades y precios actuales.
 
 No codifiques un modelo como si fuera siempre síncrono o siempre asíncrono. Si la respuesta de creación devuelve `status: "pending"`, sigue `poll_url` y haz polling hasta que termine.
 
 ## Manejo de respuestas basadas en tareas
 
-Para los modelos de imagen, comprueba siempre si la respuesta contiene `status: "pending"`:
+Para los modelos de imagen, comprueba siempre si la respuesta contiene `status: "pending"` / `status: "processing"`:
 
 ```python
 import requests
 import time
 
-def generate_image(prompt, model="flux-pro"):
+def generate_image(prompt, model="gpt-image-2"):
     # Create image request
     response = requests.post(
         "https://api.tokenlab.sh/v1/images/generations",
         headers={"Authorization": "Bearer sk-your-api-key"},
-        json={"model": model, "prompt": prompt}
+        json={"model": model, "prompt": prompt, "async": True},
+        timeout=120
     )
+    response.raise_for_status()
     data = response.json()
 
     # Check if task-based
-    if data.get("status") == "pending":
+    if data.get("status") in ("pending", "processing"):
         task_id = data["task_id"]
         poll_url = data.get("poll_url")
         print(f"Image task started: {task_id}")
@@ -334,8 +320,10 @@ def generate_image(prompt, model="flux-pro"):
         while True:
             status_resp = requests.get(
                 f"https://api.tokenlab.sh{poll_url}" if poll_url else f"https://api.tokenlab.sh/v1/tasks/{task_id}",
-                headers={"Authorization": "Bearer sk-your-api-key"}
+                headers={"Authorization": "Bearer sk-your-api-key"},
+                timeout=30
             )
+            status_resp.raise_for_status()
             status_data = status_resp.json()
 
             if status_data["status"] == "completed":
@@ -349,6 +337,6 @@ def generate_image(prompt, model="flux-pro"):
         return data["data"][0]["url"]
 
 # Usage
-url = generate_image("a beautiful sunset over mountains", model="flux-pro")
+url = generate_image("a beautiful sunset over mountains", model="gpt-image-2")
 print(f"Generated image: {url}")
 ```

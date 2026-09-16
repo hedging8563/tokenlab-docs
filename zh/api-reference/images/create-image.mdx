@@ -19,10 +19,9 @@ description: "根据提示词生成图片"
 Google Gemini 图片模型并不共用同一套参数选择规则：
 
 - `gemini-3.1-flash-image`、`gemini-3-pro-image` 和 `nano-banana-pro` 在公开的文生图、图片编辑/图生图操作中支持 `aspect_ratio` 和 `resolution`（`1k`、`2k`、`4k`）。
-- `nano-banana-2` 在当前 TokenLab 契约中仅文生图支持 `aspect_ratio` 和 `resolution`（`1k`、`2k`、`4k`）。
+- `nano-banana-2` 在文生图和图生图中均支持 `aspect_ratio` 和 `resolution`（`1k`、`2k`、`4k`）。
 - `gemini-2.5-flash-image`、`nano-banana` 和 `nano-banana-edit` 支持 `aspect_ratio`，但不提供公开的 `resolution` 选择。
 - Nano Banana 参考图请求请在本端点（`/v1/images/generations`）使用 `nano-banana-edit` 或 `nano-banana-pro`，并发送 `operation: "image-to-image"` 与 `image_urls`。不要把 Nano Banana 参考图请求发送到 `/v1/images/edits`。
-- Nano Banana 图生图请求中，`nano-banana-pro` 可以发送 `resolution`（`1k`、`2k`、`4k`）；`nano-banana-edit` 必须省略该参数。`nano-banana` 和 `nano-banana-2` 在当前模型说明中是文生图模型。
 - 参考图可以通过 JSON `image_url` / `image_urls` 传入，也可以通过 multipart `image` 直接上传。`/v1/images/generations` 不接受 `images[]` 或 `file_id`；这些字段只用于明确支持它们的 `/v1/images/edits` 模型。
 
 使用 Google 图片模型时，优先发送 `aspect_ratio`；只有模型明确支持时才发送 `resolution`。
@@ -61,7 +60,7 @@ xAI Grok Imagine 图片模型（`grok-imagine-image`、`grok-imagine-image-quali
   要生成的图片数量（1-10，取决于模型）。
 </ParamField>
 
-<ParamField body="size" type="string" default="1024x1024">
+<ParamField body="size" type="string">
   图片尺寸。用于 OpenAI 风格的图片家族，以及接受精确像素尺寸的其他模型。
 
   对于 `gpt-image-2`，`size` 接受 `auto` 或 `WIDTHxHEIGHT`。自定义宽高必须都是 16 的倍数，最长边不超过 `3840px`，长边/短边比例不超过 `3:1`，总像素必须在 `655,360` 到 `8,294,400` 之间。`aspect_ratio` 和 `resolution` 目前不属于 TokenLab 对 `gpt-image-2` 的公共契约。
@@ -76,19 +75,17 @@ xAI Grok Imagine 图片模型（`grok-imagine-image`、`grok-imagine-image-quali
 </ParamField>
 
 <ParamField body="resolution" type="string">
-  输出分辨率，取值由模型决定。
-
-  `gemini-3.1-flash-image` 和 `gemini-3-pro-image` 在文生图与图片编辑中支持该参数；`nano-banana-pro` 在文生图与图生图中支持；`nano-banana-2` 仅文生图支持。常见值为 `1k`、`2k`、`4k`。除非模型明确说明，否则不要发送给仅支持比例选择的 Gemini 图片家族。xAI Grok Imagine 图片模型请使用 `1k` 或 `2k`。
+  输出分辨率取决于模型。`gemini-3.1-flash-image`、`gemini-3-pro-image`、`nano-banana-2` 和 `nano-banana-pro` 支持 `1k`、`2k`、`4k`；Grok Imagine 图片模型支持 `1k`、`2k`。只有所选模型和操作明确支持时才发送此字段。
 </ParamField>
 
-<ParamField body="quality" type="string" default="standard">
+<ParamField body="quality" type="string">
   图片质量。`gpt-image-2` 等 GPT Image 模型使用 `auto`、`low`、`medium` 或 `high`。其他图片系列可能使用提供者特定取值；发送非默认值前请先查看所选模型的元数据。
 </ParamField>
 
 <ParamField body="response_format" type="string" default="url">
   响应格式：`url` 或 `b64_json`，默认 `url`。
 
-  请求 `url` 时，结果位于 `data[].url`；请求 `b64_json` 时，结果直接返回 Base64。URL 生成失败时不会自动改成 Base64。
+  `url` 通过 `data[].url` 返回图片地址；`b64_json` 通过 `data[].b64_json` 返回 Base64 图片数据。
 </ParamField>
 
 <ParamField body="async" type="boolean" default="false">
@@ -159,8 +156,7 @@ curl -X POST "https://api.tokenlab.sh/v1/images/generations" \
     "model": "gemini-3-pro-image",
     "prompt": "A cinematic portrait of a white cat sitting on a rainy windowsill",
     "aspect_ratio": "16:9",
-    "resolution": "2k",
-    "n": 1
+    "resolution": "2k"
   }'
 ```
 
@@ -175,9 +171,7 @@ client = OpenAI(
 response = client.images.generate(
     model="gemini-3-pro-image",
     prompt="A cinematic portrait of a white cat sitting on a rainy windowsill",
-    aspect_ratio="16:9",
-    resolution="2k",
-    n=1
+    extra_body={"aspect_ratio": "16:9", "resolution": "2k"}
 )
 
 print(response.data[0].url)
@@ -195,8 +189,7 @@ const response = await client.images.generate({
   model: 'gemini-3-pro-image',
   prompt: 'A cinematic portrait of a white cat sitting on a rainy windowsill',
   aspect_ratio: '16:9',
-  resolution: '2k',
-  n: 1
+  resolution: '2k'
 });
 
 console.log(response.data[0].url);
@@ -217,8 +210,7 @@ curl_setopt_array($ch, [
         'model' => 'gemini-3-pro-image',
         'prompt' => 'A cinematic portrait of a white cat sitting on a rainy windowsill',
         'aspect_ratio' => '16:9',
-        'resolution' => '2k',
-        'n' => 1
+        'resolution' => '2k'
     ])
 ]);
 
@@ -299,21 +291,23 @@ curl -X POST "https://api.tokenlab.sh/v1/images/generations" \
 
 ## 处理异步响应
 
-对于图片模型，请始终检查响应是否包含 `status: "pending"`：
+对于图片模型，请始终检查响应是否包含 `status: "pending"` / `status: "processing"`：
 
 ```python
 import requests
 import time
 
-def generate_image(prompt, model="flux-pro"):
+def generate_image(prompt, model="gpt-image-2"):
     response = requests.post(
         "https://api.tokenlab.sh/v1/images/generations",
         headers={"Authorization": "Bearer sk-your-api-key"},
-        json={"model": model, "prompt": prompt}
+        json={"model": model, "prompt": prompt, "async": True},
+        timeout=120
     )
+    response.raise_for_status()
     data = response.json()
 
-    if data.get("status") == "pending":
+    if data.get("status") in ("pending", "processing"):
         task_id = data["task_id"]
         poll_url = data.get("poll_url")
         print(f"Image task started: {task_id}")
@@ -321,8 +315,10 @@ def generate_image(prompt, model="flux-pro"):
         while True:
             status_resp = requests.get(
                 f"https://api.tokenlab.sh{poll_url}" if poll_url else f"https://api.tokenlab.sh/v1/tasks/{task_id}",
-                headers={"Authorization": "Bearer sk-your-api-key"}
+                headers={"Authorization": "Bearer sk-your-api-key"},
+                timeout=30
             )
+            status_resp.raise_for_status()
             status_data = status_resp.json()
 
             if status_data["status"] == "completed":
@@ -334,6 +330,6 @@ def generate_image(prompt, model="flux-pro"):
 
     return data["data"][0]["url"]
 
-url = generate_image("a beautiful sunset over mountains", model="flux-pro")
+url = generate_image("a beautiful sunset over mountains", model="gpt-image-2")
 print(f"Generated image: {url}")
 ```

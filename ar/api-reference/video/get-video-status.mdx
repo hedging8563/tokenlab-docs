@@ -13,10 +13,14 @@ description: "يسترجع حالة ونتيجة مهمة إنشاء فيديو"
 <Info>
 إذا أعادت استجابة الإنشاء قيمة `poll_url`، فاستدعِ ذلك العنوان بالضبط. عندما يشير إلى `/v1/tasks/{id}`، اعتبره نقطة النهاية الأساسية الثابتة لحالة المهمة.
 
-إذا لم تعد المهمة موجودة أو لم يعد بالإمكان حلها عبر عقد المهمة غير المتزامنة العام، فتعيد TokenLab القيمة `async_task_not_found` مع الرسالة `Task not found or no longer available.`
+قد تعيد المهمة العامة المنتهية أو غير المتاحة `404 async_task_not_found`. إذا تعذر إثبات ملكية المهمة لمفتاح API الحالي، تكون الاستجابة `403 task_not_owned`.
 </Info>
 
 ## الاستجابة
+
+<Note>
+تُعاد حقول النتائج والأخطاء والطوابع الزمنية والنموذج عند توفرها للمهمة.
+</Note>
 
 <ResponseField name="id" type="string">
   المعرّف الرسمي للمهمة غير المتزامنة.
@@ -54,7 +58,7 @@ description: "يسترجع حالة ونتيجة مهمة إنشاء فيديو"
   حمولات فيديو متعددة عندما تعيد مهمة التوليد أكثر من مخرج واحد.
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="error" type="string | object">
   رسالة الخطأ (إذا فشلت).
 </ResponseField>
 
@@ -88,6 +92,7 @@ while True:
         headers={"Authorization": "Bearer sk-your-api-key"}
     )
 
+    response.raise_for_status()
     data = response.json()
     print(f"Status: {data['status']}")
 
@@ -111,6 +116,7 @@ async function pollForVideo() {
       { headers: { 'Authorization': 'Bearer sk-your-api-key' } }
     );
 
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${await response.text()}`);
     const data = await response.json();
     console.log(`Status: ${data.status}`);
 
@@ -145,7 +151,9 @@ func main() {
         req.Header.Set("Authorization", "Bearer sk-your-api-key")
 
         client := &http.Client{}
-        resp, _ := client.Do(req)
+        resp, err := client.Do(req)
+        if err != nil { panic(err) }
+        if resp.StatusCode >= 400 { panic(fmt.Sprintf("HTTP %d", resp.StatusCode)) }
 
         var result map[string]interface{}
         json.NewDecoder(resp.Body).Decode(&result)
@@ -181,7 +189,11 @@ while (true) {
     ]);
 
     $response = curl_exec($ch);
+    $httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
+    if ($response === false || $httpStatus >= 400) {
+        throw new RuntimeException("HTTP request failed: {$httpStatus}");
+    }
 
     $data = json_decode($response, true);
     echo "Status: {$data['status']}\n";
@@ -260,6 +272,7 @@ while (true) {
 - تعامل مع الحالة `failed` بشكل ملائم
 
 ```python
+import requests
 import time
 
 def wait_for_video(task_id, max_wait=600, interval=5):
@@ -271,6 +284,7 @@ def wait_for_video(task_id, max_wait=600, interval=5):
             f"https://api.tokenlab.sh/v1/tasks/{task_id}",
             headers={"Authorization": "Bearer sk-your-api-key"}
         )
+        response.raise_for_status()
         data = response.json()
 
         if data["status"] == "completed":

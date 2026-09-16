@@ -15,11 +15,22 @@ description: "الحصول على حالة ونتيجة مهمة إنشاء صو
 
 يمكنك أيضًا استطلاع معرّفات مهام الصور العامة مثل `ldtask_...` عبر `/v1/images/{id}`. يستخدم مسار التوافق هذا نفس التحقق من التفويض والملكية وترويسات الفوترة واللقطات النهائية وشكل الاستجابة مثل `/v1/images/generations/{id}`.
 
-
-إذا لم تعد المهمة موجودة أو لم يعد بالإمكان حلّها عبر عقد المهمة غير المتزامنة العامة، تُرجِع TokenLab القيمة `async_task_not_found` مع الرسالة `Task not found or no longer available.`
+قد تعيد المهمة العامة المنتهية أو غير المتاحة `404 async_task_not_found`. إذا تعذر إثبات ملكية المهمة لمفتاح API الحالي، تكون الاستجابة `403 task_not_owned`.
 </Info>
 
 ## الاستجابة (Response)
+
+<Note>
+تُعاد حقول النتائج والأخطاء والطوابع الزمنية والنموذج عند توفرها للمهمة.
+</Note>
+
+<ResponseField name="id" type="string">
+  معرّف المهمة.
+</ResponseField>
+
+<ResponseField name="poll_url" type="string">
+  عنوان URL المفضل للاستعلام عندما توفره استجابة الإنشاء.
+</ResponseField>
 
 <ResponseField name="created" type="integer">
   طابع زمني Unix لوقت الإنشاء.
@@ -38,10 +49,10 @@ description: "الحصول على حالة ونتيجة مهمة إنشاء صو
 
   يحتوي كل كائن على:
   - `url` (string): رابط (URL) الصورة التي تم إنشاؤها
-  - `revised_prompt` (string): الوصف (prompt) المستخدم لعملية الإنشاء
+  - `revised_prompt` (string): نسخة prompt معدّلة اختيارية عندما يعيدها النموذج المحدد
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="error" type="string | object">
   رسالة الخطأ (تظهر فقط عندما تكون الـ `status` هي `failed`).
 </ResponseField>
 
@@ -59,6 +70,7 @@ response = requests.get(
     headers={"Authorization": "Bearer sk-your-api-key"}
 )
 
+response.raise_for_status()
 data = response.json()
 print(f"Status: {data['status']}")
 
@@ -76,6 +88,7 @@ const response = await fetch(
   }
 );
 
+if (!response.ok) throw new Error(`HTTP ${response.status}`);
 const data = await response.json();
 console.log(`Status: ${data.status}`);
 
@@ -93,12 +106,7 @@ if (data.status === 'completed') {
   "task_id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "poll_url": "/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "status": "pending",
-  "data": [
-    {
-      "url": "",
-      "revised_prompt": "a beautiful sunset over mountains"
-    }
-  ]
+  "data": []
 }
 ```
 
@@ -134,7 +142,7 @@ if (data.status === 'completed') {
 ## أفضل ممارسات الاستقصاء
 
 <Tip>
-**فاصل الاستقصاء الموصى به**: 3-5 ثوانٍ. تكتمل معظم مهام إنشاء الصور في غضون 30-120 ثانية اعتماداً على النموذج ومسار المزود الموجه.
+استعلم كل 3–5 ثوانٍ أثناء `pending` أو `processing`، وتوقف عند `completed` أو `failed`.
 </Tip>
 
 ```python
@@ -148,7 +156,8 @@ def poll_image_task(task_id, api_key, max_wait=300, interval=3):
 
     start_time = time.time()
     while time.time() - start_time < max_wait:
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=30)
+        response.raise_for_status()
         data = response.json()
 
         if data["status"] == "completed":

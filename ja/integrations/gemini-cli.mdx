@@ -3,175 +3,68 @@ title: "Gemini CLI"
 description: "TokenLab API を使用するように Google Gemini CLI を設定する"
 ---
 
+
 ## 概要
 
-Google Gemini CLI は、Gemini モデルとやり取りするためのコマンドラインツールです。TokenLab は互換性のあるエンドポイントを提供しており、Gemini CLI を使用して 300 以上のモデルにアクセスできます。
-
-<Warning>
-これは実験的な互換構成です。Gemini CLI は現在、TokenLab のようなカスタム Base URL ワークフローを安定した形で公式には文書化していません。サポートされた TokenLab のターミナル運用が必要なら、Codex CLI、Claude Code、OpenCode を優先してください。
-</Warning>
-
-## システム要件
-
-- **Node.js**: バージョン 20.0 以上
-- **OS**: Windows 10/11、macOS 10.15 以上、Ubuntu 20.04 以上、または Debian 10 以上
+Gemini CLI **0.60.0** は API キー認証での `GOOGLE_GEMINI_BASE_URL` を公式に説明しています。`gemini_generate_content` 対応の現行モデルを選び、TokenLab の Gemini ネイティブ API を使ってください。[公式設定](https://geminicli.com/docs/reference/configuration/)と[認証ガイド](https://geminicli.com/docs/get-started/authentication/)を参照できます。Google のサブスクリプションを TokenLab 経由にする設定ではありません。
 
 ## インストール
 
 ```bash
-npm install -g @google/gemini-cli
-```
-
-インストールの確認:
-
-```bash
+npm install -g @google/gemini-cli@0.60.0
 gemini --version
 ```
 
 ## 設定
 
-### ステップ 1: API キーの取得
+[クイックスタート](/ja/quickstart)の macOS、Linux、WSL、Windows PowerShell 向け手順で、キーをコマンド履歴に残さず `TOKENLAB_API_KEY` を設定し、同じターミナルから Gemini CLI を起動します。継続して使う場合はローカルのシークレット管理ツールを利用し、平文のキーをシェル設定へ追記しないでください。
 
-1. [TokenLab ダッシュボード](https://tokenlab.sh/dashboard)にログインします
-2. [API キー](https://tokenlab.sh/dashboard/api)に移動します
-3. API キーを作成してコピーします（形式: `sk-...`）
+現在の Google ログインと設定を残します。TokenLab 用に未使用の設定ルート `~/.gemini-tokenlab`（PowerShell では `$HOME`）などを選び、その中に `.gemini` を作成してください。既存の `.gemini/settings.json` と必要なポリシーファイルを対応する場所へコピーし、権限、サンドボックス、他の設定を維持します。そのコピーにだけ次の認証項目を追加し、設定ファイルがなければ作成します。OAuth キャッシュはコピーせず、元の認証情報も削除しません。管理された認証ポリシーに従ってください。
 
-### ステップ 2: 環境変数の設定
-
-**一時的（現在のセッション）:**
-
-```bash
-export GEMINI_API_KEY="sk-your-tokenlab-key"
-export GOOGLE_GEMINI_BASE_URL="https://api.tokenlab.sh"
+```json
+{
+  "security": {
+    "auth": {
+      "selectedType": "gemini-api-key"
+    }
+  }
+}
 ```
 
-**永続的な設定:**
+## 使用方法
 
-シェル設定ファイルに追加します:
+以下は `~/.gemini-tokenlab/.gemini/settings.json` を使用します。別のルートならパスを変更してください。作業フォルダーは通常の信頼確認で承認し、既存のツール承認ルールを保ちます。モデルは今回のセッションに明示指定します。
 
-<Tabs>
-  <Tab title="Bash">
-    ```bash
-    echo 'export GEMINI_API_KEY="sk-your-tokenlab-key"' >> ~/.bashrc
-    echo 'export GOOGLE_GEMINI_BASE_URL="https://api.tokenlab.sh"' >> ~/.bashrc
-    source ~/.bashrc
-    ```
-  </Tab>
-  <Tab title="Zsh">
-    ```bash
-    echo 'export GEMINI_API_KEY="sk-your-tokenlab-key"' >> ~/.zshrc
-    echo 'export GOOGLE_GEMINI_BASE_URL="https://api.tokenlab.sh"' >> ~/.zshrc
-    source ~/.zshrc
-    ```
-  </Tab>
-  <Tab title="Fish">
-    ```bash
-    set -Ux GEMINI_API_KEY "sk-your-tokenlab-key"
-    set -Ux GOOGLE_GEMINI_BASE_URL "https://api.tokenlab.sh"
-    ```
-  </Tab>
-</Tabs>
-
-<Warning>
-設定を反映させるために、設定後にターミナルを再起動してください。
-</Warning>
-
-<Note>
-**既知の制限事項**: キャッシュされた Google セッションがある場合、Gemini CLI が `GOOGLE_GEMINI_BASE_URL` を無視することがあります。接続の問題が発生した場合は、CLI キャッシュをクリアするか、新しいターミナルセッションを開始してください。
-</Note>
-
-## 基本的な使い方
-
-プロジェクトディレクトリから Gemini CLI を起動します:
-
-```bash
-cd your-project
-gemini
+<CodeGroup>
+```bash macOS / Linux / WSL
+GEMINI_CLI_HOME="$HOME/.gemini-tokenlab" GEMINI_API_KEY="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" GOOGLE_GEMINI_BASE_URL=https://api.tokenlab.sh gemini --model gemini-3.5-flash
 ```
 
-初回実行時には、以下の操作を行います:
-1. テーマの選択
-2. 安全に関する通知の確認
-3. 作業ディレクトリの信頼設定
-
-## 利用可能なモデル
-
-| モデル | 説明 |
-|-------|-------------|
-| `gemini-2.5-pro` | 最も高性能な Gemini モデル |
-| `gemini-3.5-flash` | 高速で、ほとんどのタスクに効率的 |
-| `gemini-3.1-flash-lite` | 現行の軽量 Gemini モデル |
-
-## よく使うコマンド
-
-**質問する:**
-
+```powershell Windows PowerShell
+if (-not $env:TOKENLAB_API_KEY) { throw 'Set TOKENLAB_API_KEY first' }
+$previous = @{}
+$previous['GEMINI_CLI_HOME'] = [Environment]::GetEnvironmentVariable('GEMINI_CLI_HOME', 'Process')
+$previous['GEMINI_API_KEY'] = [Environment]::GetEnvironmentVariable('GEMINI_API_KEY', 'Process')
+$previous['GOOGLE_GEMINI_BASE_URL'] = [Environment]::GetEnvironmentVariable('GOOGLE_GEMINI_BASE_URL', 'Process')
+try {
+  $env:GEMINI_CLI_HOME = (Join-Path $HOME '.gemini-tokenlab')
+  $env:GEMINI_API_KEY = $env:TOKENLAB_API_KEY
+  $env:GOOGLE_GEMINI_BASE_URL = 'https://api.tokenlab.sh'
+  gemini --model gemini-3.5-flash
+} finally {
+  foreach ($name in $previous.Keys) {
+    [Environment]::SetEnvironmentVariable($name, $previous[$name], 'Process')
+  }
+}
 ```
-> What is the best way to structure a React app?
+</CodeGroup>
+
+これらの変数は今回の起動だけに適用され、保存済みのアカウント、既定モデル、権限は維持されます。従来の設定を使うには変数なしで通常どおり起動してください。シェルの設定ファイルには保存しないでください。
+
+## 確認
+
+設定の保存やモデル一覧だけでは、キーの有効性やリクエストの完了は確認できません。プロンプト送信には TokenLab 残高を使います。応答と対応する[リクエスト記録](https://tokenlab.sh/dashboard/runs?section=requests)を照合してからツールを試してください。補助リクエストにも料金が発生する場合があります。
+
+```text
+Reply only with TOKENLAB_CONNECTION_OK. Do not use tools or modify files.
 ```
-
-**コードを分析する:**
-
-```
-> Explain the code in src/main.ts
-```
-
-**コードを生成する:**
-
-```
-> Create a Python function to parse JSON files
-```
-
-**変更をレビューする:**
-
-```
-> Review the recent git changes and suggest improvements
-```
-
-## 設定の確認
-
-```bash
-# 環境変数の確認
-echo $GEMINI_API_KEY
-echo $GOOGLE_GEMINI_BASE_URL
-
-# 接続テスト
-gemini
-```
-
-## トラブルシューティング
-
-<AccordionGroup>
-  <Accordion title="接続エラー">
-    - `GOOGLE_GEMINI_BASE_URL` が `https://api.tokenlab.sh` に設定されていることを確認してください
-    - 注意: Gemini エンドポイントには `/v1` サフィックスは不要です
-    - ネットワーク接続を確認してください
-  </Accordion>
-
-  <Accordion title="認証失敗">
-    - `GEMINI_API_KEY` 環境変数が設定されていることを確認してください
-    - キーが `sk-` で始まっていることを確認してください
-    - TokenLab ダッシュボードでキーが有効であることを確認してください
-  </Accordion>
-
-  <Accordion title="モデルが利用不可">
-    - [tokenlab.sh/en/models](https://tokenlab.sh/ja/models) で Gemini モデルの利用可能性を確認してください
-    - 別の Gemini モデルバリアントを試してください
-  </Accordion>
-</AccordionGroup>
-
-## ベストプラクティス
-
-<AccordionGroup>
-  <Accordion title="プロジェクトディレクトリで使用する">
-    コンテキストをより正確に理解させるため、常にプロジェクトのルートから Gemini CLI を実行してください。
-  </Accordion>
-
-  <Accordion title="ディレクトリの信頼設定は慎重に行う">
-    自身が所有するディレクトリのみを信頼してください。Gemini CLI はファイルを読み取り、変更する可能性があります。
-  </Accordion>
-
-  <Accordion title="生成されたコードをレビューする">
-    プロジェクトにコミットする前に、AI が生成したコードを必ずレビューしてください。
-  </Accordion>
-</AccordionGroup>

@@ -6,14 +6,14 @@ description: "音声を入力言語で文字起こしします"
 
 ## リクエストボディ
 
-**同期リクエストのタイムアウト:** この非チャットエンドポイントは、ルーティング先モデルの処理完了を待ちます。大きな入力、長い音声、大きなバッチは一般的な 30s のクライアント既定値を超えることがあるため、HTTP クライアントのタイムアウトは少なくとも `120s` に設定してください。
+文字起こしは結果を直接返す場合と、HTTP `200`、`id`、`status` で非同期タスクの受け付けを返す場合があります。非同期の場合は `poll_url` または `/v1/tasks/{id}` を確認してください。長い音声を同期処理する場合、タイムアウトは少なくとも `120s` に設定してください。
 
 <ParamField body="file" type="file" required>
-  文字起こしする音声ファイル。対応形式: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, webm。
+  文字起こしする音声ファイル。対応形式: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, webm。 最大ファイルサイズ: 25 MB。
 </ParamField>
 
 <ParamField body="model" type="string" default="whisper-1">
-  使用するモデル。現在は `whisper-1` のみサポートされています。
+  文字起こしモデル ID。例: `whisper-1`、`gpt-4o-transcribe`。現在の候補は `GET /v1/models?recommended_for=stt` で確認してください。
 </ParamField>
 
 <ParamField body="language" type="string">
@@ -25,18 +25,20 @@ description: "音声を入力言語で文字起こしします"
 </ParamField>
 
 <ParamField body="response_format" type="string" default="json">
-  出力形式: `json`, `text`, `srt`, `verbose_json`, `vtt`。
+  出力形式。Whisper は `json`、`text`、`srt`、`verbose_json`、`vtt` に対応します。他のモデルの対応形式はモデル詳細で確認してください。
 </ParamField>
 
-<ParamField body="temperature" type="number" default="0">
-  サンプリング温度（0 から 1）。
+<ParamField body="temperature" type="number">
+  0～1 のサンプリング温度。このパラメーターに対応するモデルでのみ使用できます。
 </ParamField>
 
 <ParamField body="timestamp_granularities" type="array">
-  タイムスタンプの粒度: `word` および/または `segment`。`verbose_json` が必要です。
+  対応モデルでは `word` と／または `segment` を指定できます。Whisper は `response_format=verbose_json` が必要です。multipart で複数値を渡す場合は `timestamp_granularities[]` を繰り返します。
 </ParamField>
 
 ## レスポンス
+
+以下のフィールドは JSON の文字起こし・翻訳応答を説明します。`text`、`srt`、`vtt` は JSON ではなくテキストや字幕を返します。追加フィールドはモデルと出力形式に依存します。
 
 <ResponseField name="text" type="string">
   文字起こしされたテキスト。
@@ -45,7 +47,7 @@ description: "音声を入力言語で文字起こしします"
 `verbose_json` の場合:
 
 <ResponseField name="task" type="string">
-  常に `transcribe`。
+  返される場合のタスク名。例: `transcribe`。
 </ResponseField>
 
 <ResponseField name="language" type="string">
@@ -62,6 +64,24 @@ description: "音声を入力言語で文字起こしします"
 
 <ResponseField name="words" type="array">
   単語レベルのタイムスタンプ（要求された場合）。
+</ResponseField>
+
+非同期の文字起こしタスクが受け付けられると、本文の代わりに次のフィールドを返します。
+
+<ResponseField name="id" type="string">
+  タスクID。
+</ResponseField>
+
+<ResponseField name="task_id" type="string">
+  利用可能な場合の非同期タスク ID 別名です。
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  タスクのステータス: `pending`、`processing`、`completed`、または `failed`。
+</ResponseField>
+
+<ResponseField name="poll_url" type="string">
+  作成レスポンスで提供された場合に優先して使うポーリング URL。
 </ResponseField>
 
 <RequestExample>
@@ -155,9 +175,18 @@ echo $data['text'];
       "start": 0.0,
       "end": 2.5,
       "text": "Hello, this is a test",
-      "tokens": [...]
+      "tokens": [50364, 2425, 11]
     }
   ]
+}
+```
+
+```json HTTP 200 (async)
+{
+  "id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "task_id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "status": "pending",
+  "poll_url": "/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 }
 ```
 </ResponseExample>
@@ -167,8 +196,11 @@ echo $data['text'];
 音声を英語に翻訳するには、translations endpoint を使用します:
 
 ```python
-response = client.audio.translations.create(
-    model="whisper-1",
-    file=audio_file
-)
+with open("audio.mp3", "rb") as audio_file:
+    response = client.audio.translations.create(
+        model="whisper-1",
+        file=audio_file
+    )
+
+print(response.text)
 ```

@@ -5,108 +5,23 @@ description: "統一されたAPIで数百のAIモデルにアクセス"
 
 ## TokenLabとは？
 
-TokenLabは、OpenAI、Anthropic、Google、DeepSeek、Moonshot、MiniMaxなどのプロバイダから提供される**数百のAIモデル**へ統一的にアクセスできるAI API集約プラットフォームです。
-
-<CardGroup cols={2}>
-  <Card title="ネイティブ + 互換" icon="plug">
-    プロバイダー固有の動作が重要な場合はネイティブの Anthropic/Gemini ルートを使用し、既存の OpenAI 風ツールには OpenAI 互換の `/v1` ルートを使用してください。
-  </Card>
-  <Card title="ネイティブ形式" icon="shuffle">
-    1つのプラットフォームからOpenAI、Anthropic、Gemini、Responsesスタイルのエンドポイントを呼び出せます。
-  </Card>
-  <Card title="従量課金制" icon="coins">
-    サブスクリプションは不要。実際に使用した分だけ支払います。
-  </Card>
-  <Card title="高可用性" icon="shield-check">
-    スマートルーティング、フェイルオーバー、マルチチャネルサポートにより信頼性を向上させます。
-  </Card>
-</CardGroup>
+TokenLab は、1 つの API キーとワークスペース共通の残高で、アプリやコーディングツールを AI モデルに接続します。モデルと対応する API 形式を選び、公開料金に基づいて利用できます。
 
 ## 対応機能
 
-公開カタログは時間とともに変わります。現在の可用性は `/v1/models`、`recommended_for`、またはモデルページで確認してください。以下の例は現在の公開モデル ID を使っています。
+最新のモデル ID、提供状況、対応形式、料金は[モデルカタログ](https://tokenlab.sh/ja/models)で確認してください。
 
-| 機能 | 説明 | モデル例 |
-|---|---|---|
-| チャットと推論 | テキスト生成、計画、ツール利用 | `gpt-5.4`, `claude-sonnet-4-6` |
-| ビジョンとマルチモーダル | 画像理解とマルチモーダルチャット | `gpt-4o`, `claude-sonnet-4-6`, `gemini-3.5-flash` |
-| 画像生成と編集 | テキストから画像生成、画像編集 | `gpt-image-2`, `flux-pro` |
-| 動画生成 | テキスト/画像/参照動画からの生成とモーション制御 | `veo3.1`, `wan-2.7`, `kling-3.0-video`, `happyhorse-1.0` |
-| 音声と Realtime | TTS、文字起こし、翻訳、リアルタイムセッション | `gpt-4o-mini-tts`, `whisper-1`, `gpt-realtime` |
-| Embeddings と rerank | テキストベクトル化と再ランキング | `text-embedding-3-small`, `qwen3-vl-rerank` |
-| 翻訳 | テキスト翻訳と WebSocket 音声翻訳ワークフロー | `doubao-seed-translation`, `gpt-realtime-translate` |
-| 音楽と 3D | 音楽と 3D アセット生成 | `suno-music`, `tripo-h3.1` |
-| Worlds | World 生成、ステータスポーリング、メディアアセットフロー | 現在の可用性は `/v1/worlds/generations` と Models API で確認してください |
-
-## リクエスト形式を選択
-
-必要な挙動に合うルートから始めてください。provider-native 機能にはネイティブな Anthropic/Gemini ルートを使用し、既存の OpenAI 形式のチャットコードを移行する場合は OpenAI 互換 な `/v1/chat/completions` を使用してください。
-
-<CodeGroup>
-
-```bash cURL
-curl https://api.tokenlab.sh/v1/chat/completions \
-  -H "Authorization: Bearer sk-your-api-key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "gpt-5.6-terra",
-    "messages": [
-      {"role": "user", "content": "Explain what TokenLab does in one sentence."}
-    ]
-  }'
-```
-
-```python Python
-from openai import OpenAI
-
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
-
-response = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": "Explain what TokenLab does in one sentence."}]
-)
-
-print(response.choices[0].message.content)
-```
-
-```javascript JavaScript
-import OpenAI from 'openai';
-
-const client = new OpenAI({
-  apiKey: 'sk-your-api-key',
-  baseURL: 'https://api.tokenlab.sh/v1'
-});
-
-const response = await client.chat.completions.create({
-  model: 'gpt-5.6-terra',
-  messages: [{ role: 'user', content: 'Explain what TokenLab does in one sentence.' }],
-});
-
-console.log(response.choices[0].message.content);
-```
-
-<Note>
-Responses 固有の動作が明示的に必要な場合にのみ `POST /v1/responses` を使用してください。これは、すべてのモデルに共通するデフォルトの互換パスではありません。
-</Note>
-
-</CodeGroup>
-
-## 主な機能
-
-<CardGroup cols={2}>
-  <Card title="複数のAPIフォーマット" icon="layers" href="/guides/api-formats">
-    1つのアカウントでOpenAI、Anthropic、Gemini、またはResponsesネイティブ形式を使用できます。
-  </Card>
-  <Card title="エージェント優先のエラー" icon="wand-magic-sparkles" href="/guides/agent-first-api">
-    構造化されたヒントによりコーディングエージェントがより速く自己修正できるようにします。
-  </Card>
-  <Card title="統合対応範囲" icon="toolbox" href="/guides/ide-sdk-compatibility">
-    プロバイダ固有の変更を減らしてIDE、SDK、フレームワーク、チャットアプリと接続します。
-  </Card>
-</CardGroup>
+| 機能 | 説明 |
+|---|---|
+| チャットと推論 | テキスト生成、計画、ツール利用 |
+| ビジョンとマルチモーダル | 画像理解とマルチモーダルチャット |
+| 画像生成と編集 | テキストから画像生成、画像編集 |
+| 動画生成 | テキスト/画像/参照動画からの生成とモーション制御 |
+| 音声と Realtime | TTS、文字起こし、翻訳、リアルタイムセッション |
+| Embeddings と rerank | テキストベクトル化と再ランキング |
+| 翻訳 | テキスト翻訳と WebSocket 音声翻訳ワークフロー |
+| 音楽と 3D | 音楽と 3D アセット生成 |
+| Worlds | World 生成、ステータスポーリング、メディアアセットフロー |
 
 ## 次のステップ
 

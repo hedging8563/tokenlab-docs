@@ -5,7 +5,7 @@ description: "API 키로 TokenLab API 요청을 안전하게 보호하세요"
 
 ## API 키
 
-모든 TokenLab API 요청에는 API 키가 필요합니다.
+모델 호출과 비공개 리소스에는 API 키가 필요합니다. `GET /v1/models`, `GET /v1/models/{model}` 같은 공개 엔드포인트는 키 없이 사용할 수 있습니다. 목록 조회 성공으로 키의 유효성을 확인할 수는 없습니다. 빠른 시작에 따라 모델 요청을 보내세요. 목록의 접두사가 아닌 저장한 전체 키를 사용하세요.
 
 OpenAI 호환 엔드포인트의 경우, 다음과 같이 전송합니다:
 
@@ -51,38 +51,7 @@ Authorization: Bearer mt-your-management-token
 
 ## API 키 사용하기
 
-<CodeGroup>
-
-```bash cURL
-curl https://api.tokenlab.sh/v1/responses \
-  -H "Authorization: Bearer $TOKENLAB_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "gpt-5.6-terra",
-    "input": "Hello!"
-  }'
-```
-
-```python Python
-import os
-from openai import OpenAI
-
-client = OpenAI(
-    api_key=os.environ.get("TOKENLAB_API_KEY"),
-    base_url="https://api.tokenlab.sh/v1"
-)
-```
-
-```javascript JavaScript
-import OpenAI from 'openai';
-
-const client = new OpenAI({
-  apiKey: process.env.TOKENLAB_API_KEY,
-  baseURL: 'https://api.tokenlab.sh/v1'
-});
-```
-
-</CodeGroup>
+환경 변수와 첫 요청 예제는 [빠른 시작](/ko/quickstart)을 참고하세요. 선택한 [API 형식](/ko/guides/api-formats)에 맞는 SDK를 사용하고 키는 서버에서 관리하세요.
 
 ## API 키 기능
 
@@ -99,32 +68,12 @@ const client = new OpenAI({
 
 모든 TokenLab API 키는 `sk-`로 시작합니다.
 
-## Anthropic 호환성
-
-`/v1/messages` 엔드포인트에서는 Anthropic 스타일 헤더가 예상대로 동작합니다:
-
-```bash
-curl https://api.tokenlab.sh/v1/messages \
-  -H "x-api-key: sk-your-api-key" \
-  -H "anthropic-version: 2023-06-01" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "claude-sonnet-5",
-    "max_tokens": 1024,
-    "messages": [{"role": "user", "content": "Hello!"}]
-  }'
-```
-
-<Note>
-`/v1/responses`, `/v1/chat/completions`, `/v1/models` 및 대부분의 다른 TokenLab 경로와 같은 OpenAI 호환 엔드포인트에는 `Authorization: Bearer ...`를 사용하세요.
-</Note>
-
 ## 오류 응답
 
 | 상태 코드 | 유형 | 코드 | 설명 |
 |-------------|------|------|-------------|
-| 401 | `invalid_api_key` | `invalid_api_key` | API 키가 없거나 유효하지 않습니다 |
-| 401 | `expired_api_key` | `expired_api_key` | API 키가 폐기되었습니다 |
+| 401 | `invalid_api_key` | `invalid_api_key` | API 키가 없거나 유효하지 않거나 비활성화 또는 폐기됨 |
+| 401 | `expired_api_key` | `expired_api_key` | API 키가 만료됨 |
 | 402 | `insufficient_balance` | `insufficient_balance` | 계정 잔액이 부족합니다 |
 | 402 | `quota_exceeded` | `quota_exceeded` | API 키 사용량 한도에 도달했습니다 |
 

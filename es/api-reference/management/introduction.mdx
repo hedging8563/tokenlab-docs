@@ -50,10 +50,11 @@ Si `startDate` y `endDate` están presentes, `startDate` debe ser anterior o igu
 
 | Campo | Tipo | Valor predeterminado / límites | Notas |
 |-------|------|-------------------------------|-------|
-| `name` | string | requerido, predeterminado `Default Key`, longitud `1-50` | Nombre visible, recortado en el servidor |
-| `limitAmount` | number \| null | mínimo `0`, máximo de entrada `1000000` | `null` o omitido = ilimitado, `0` = cuota cero. Los valores positivos se normalizan a un límite almacenado que no puede superar `100000` USD equivalente. |
+| `name` | string | opcional, predeterminado `Default Key`, longitud `1-50` | Nombre visible, recortado en el servidor |
+| `limitAmount` | number \| string \| null | `0–100000` USD | `null` significa sin límite; `0` impide el gasto. Las cadenas decimales admiten hasta 6 decimales. Al crear la clave, omitir este campo significa sin límite. |
 | `limitCurrency` | enum | predeterminado `USD` | Solo USD. Enviar `CNY` devuelve `400 currency_retired`. |
 | `models` | string[] | predeterminado `[]` | Lista opcional de modelos lógicos permitidos |
+| `deliveryPolicy` | string \| null | `auto`, `verified`, `official`, `null` | `null` hereda la política de entrega del espacio de trabajo. |
 | `expiresAt` | string \| null | datetime RFC3339 | `null` significa sin caducidad |
 
 ### PATCH /v1/management/api-keys/{keyId}
@@ -62,9 +63,10 @@ Si `startDate` y `endDate` están presentes, `startDate` debe ser anterior o igu
 |-------|------|-------------------------------|-------|
 | `status` | enum | - | `active`, `inactive`, `revoked` |
 | `name` | string | longitud `1-50` | Nombre visible actualizado |
-| `limitAmount` | number \| null | mínimo `0`, máximo de entrada `1000000` | `null` = ilimitado, `0` = cuota cero. Los valores positivos se normalizan a un límite almacenado que no puede superar `100000` USD equivalente. |
-| `limitCurrency` | enum | predeterminado `USD` | Solo USD. Enviar `CNY` devuelve `400 currency_retired`. |
+| `limitAmount` | number \| string \| null | `0–100000` USD | `null` significa sin límite; `0` impide el gasto. Las cadenas decimales admiten hasta 6 decimales. |
+| `limitCurrency` | enum | predeterminado `USD` | Solo USD. Enviar `CNY` devuelve `400 currency_retired`. Si se especifica, también se requiere `limitAmount`. |
 | `models` | string[] | - | Lista actualizada de modelos lógicos permitidos |
+| `deliveryPolicy` | string \| null | `auto`, `verified`, `official`, `null` | `null` hereda la política de entrega del espacio de trabajo. |
 | `expiresAt` | string \| null | datetime RFC3339 | `null` elimina la caducidad |
 
 Debe proporcionarse al menos un campo de PATCH.
@@ -121,10 +123,14 @@ curl "https://api.tokenlab.sh/v1/management/api-keys" \
       "limit_amount_decimal": "500",
       "used_amount": 148.25,
       "used_amount_decimal": "148.25",
-      "models": ["gpt-4o-mini", "claude-3-7-sonnet"],
+      "models": [
+        "gpt-4o-mini",
+        "claude-3-7-sonnet"
+      ],
       "expires_at": "2026-04-30T00:00:00.000Z",
       "last_used_at": "2026-03-27T08:12:45.000Z",
-      "created_at": "2026-03-01T10:00:00.000Z"
+      "created_at": "2026-03-01T10:00:00.000Z",
+      "delivery_policy": null
     }
   ],
   "pagination": {
@@ -139,8 +145,8 @@ curl "https://api.tokenlab.sh/v1/management/api-keys" \
 
 ## Próximos pasos
 
-- [Listar API Keys](/api-reference/management/list-api-keys)
-- [Crear API Key](/api-reference/management/create-api-key)
-- [Actualizar API Key](/api-reference/management/update-api-key)
-- [Obtener uso de API Key](/api-reference/management/get-api-key-usage)
-- [Obtener facturación de API Key](/api-reference/management/get-api-key-billing)
+- [Listar API Keys](/es/api-reference/management/list-api-keys)
+- [Crear API Key](/es/api-reference/management/create-api-key)
+- [Actualizar API Key](/es/api-reference/management/update-api-key)
+- [Obtener uso de API Key](/es/api-reference/management/get-api-key-usage)
+- [Obtener facturación de API Key](/es/api-reference/management/get-api-key-billing)

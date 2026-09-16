@@ -12,11 +12,13 @@ description: "Conecta Kilo Code y Kilo CLI a TokenLab"
 Instala el canal preliminar de **Kilo Code** en VS Code o la CLI:
 
 ```bash
-npm install -g @kilocode/cli
+npm install -g @kilocode/cli@7.7.2
 kilo --version
 ```
 
 Abre **Settings → Providers → Custom provider**.
+
+Guarda localmente el proveedor, modelo y conexión actuales antes de editar. Estos controles cambian el modelo activo; restaura los valores anteriores al terminar. Conserva las cuentas iniciadas y los permisos de herramientas. No sobrescribas otra conexión compatible con OpenAI sin una copia recuperable.
 
 | Campo | Valor |
 |---|---|
@@ -31,18 +33,17 @@ Kilo detecta modelos mediante `/v1/models`. Tras guardar, elige `tokenlab/kimi-k
 
 ## Configuración de CLI
 
-Guarda la clave en una variable de entorno y edita el archivo global de confianza `~/.config/kilo/kilo.jsonc`:
+Sigue los pasos de terminal de [inicio rápido](/es/quickstart) para macOS, Linux, WSL o Windows PowerShell y define `TOKENLAB_API_KEY` sin dejar la clave en el historial. Inicia Kilo desde esa terminal. Para uso persistente, utiliza un gestor local de secretos; no añadas la clave en texto plano al perfil del shell.
 
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
+Antes de iniciar Kilo **7.7.2**, guarda la configuración global activa y revisa `permission.bash`. Esta versión añade `bash: "allow"` a una configuración existente sin esa regla explícita, incluso si `permission["*"]` es `deny`. Conserva explícitamente la regla actual del shell: si el comodín existente es `deny`, incorpora `"bash": "deny"` al objeto `permission` sin cambiar otras reglas. El archivo separado del proveedor no evita esta migración del cliente.
+
+Guarda la configuración en un archivo independiente `~/.config/kilo/tokenlab.jsonc`. Si defines `XDG_CONFIG_HOME`, usa `kilo/tokenlab.jsonc` dentro de ese directorio. Conserva los archivos habituales `kilo.json` / `kilo.jsonc`, las cuentas, el modelo predeterminado y los permisos. Este archivo solo se carga en una ejecución que lo seleccione con `KILO_CONFIG`. Si el archivo o el nombre del proveedor ya se usa, elige otro nombre y ajusta los comandos.
 
 ```jsonc
 {
   "$schema": "https://app.kilo.ai/config.json",
-  "model": "openai-compatible/kimi-k3",
   "provider": {
-    "openai-compatible": {
+    "tokenlab": {
       "options": {
         "apiKey": "{env:TOKENLAB_API_KEY}",
         "baseURL": "https://api.tokenlab.sh/v1"
@@ -53,18 +54,46 @@ export TOKENLAB_API_KEY="sk-your-tokenlab-key"
           "tool_call": true,
           "reasoning": true,
           "modalities": {
-            "input": ["text", "image"],
-            "output": ["text"]
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
           },
           "limit": {
             "context": 1048576,
             "output": 131072
           }
         }
-      }
+      },
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "TokenLab"
     }
   }
 }
 ```
 
-Reinicia Kilo y ejecuta `kilo models`. `{env:...}` solo se resuelve en configuración global o administrada de confianza. No escribas la clave real en una configuración de proyecto que pueda llegar a Git.
+<CodeGroup>
+```bash macOS / Linux / WSL
+KILO_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/kilo/tokenlab.jsonc" kilo models tokenlab
+KILO_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/kilo/tokenlab.jsonc" kilo --model tokenlab/kimi-k3
+```
+
+```powershell Windows PowerShell
+$previous = @{}
+$previous['KILO_CONFIG'] = [Environment]::GetEnvironmentVariable('KILO_CONFIG', 'Process')
+try {
+  $env:KILO_CONFIG = (Join-Path $(if ($env:XDG_CONFIG_HOME) { $env:XDG_CONFIG_HOME } else { Join-Path $HOME '.config' }) 'kilo/tokenlab.jsonc')
+  kilo models tokenlab
+  kilo --model tokenlab/kimi-k3
+} finally {
+  foreach ($name in $previous.Keys) {
+    [Environment]::SetEnvironmentVariable($name, $previous[$name], 'Process')
+  }
+}
+```
+</CodeGroup>
+
+Guardar ajustes o listar modelos no verifica la clave ni una solicitud completada. Un prompt utiliza saldo TokenLab. Comprueba la respuesta y su [registro correspondiente](https://tokenlab.sh/dashboard/runs?section=requests) antes de probar herramientas; las solicitudes auxiliares también pueden facturarse.

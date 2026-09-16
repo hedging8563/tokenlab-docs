@@ -15,11 +15,13 @@ For VS Code, search for **Kilo Code** in Extensions and install the pre-release 
 For the CLI, run:
 
 ```bash
-npm install -g @kilocode/cli
+npm install -g @kilocode/cli@7.7.2
 kilo --version
 ```
 
 ## Configure in the UI
+
+Save the current provider, model and connection settings locally before editing. These controls change the active model selection; restore your previous values when finished. Keep signed-in accounts and tool permissions unchanged. Do not overwrite another OpenAI-compatible connection without a restorable backup.
 
 1. Open Kilo Code **Settings → Providers**.
 2. Scroll down and click **Custom provider**.
@@ -38,20 +40,17 @@ Kilo automatically queries TokenLab's `/v1/models` endpoint after the Base URL a
 
 ## Configure the CLI
 
-Store secrets in an environment variable:
+Use the [Quickstart](/quickstart) terminal instructions for macOS, Linux, WSL, or Windows PowerShell to set `TOKENLAB_API_KEY` without putting the key in command history. Launch Kilo from that terminal. For persistent use, use your local secret manager; do not append a plaintext key to your shell profile.
 
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
+Before starting Kilo **7.7.2**, back up the active global configuration and check `permission.bash`. This version migrates an existing configuration without that explicit rule to `bash: "allow"`, even when `permission["*"]` is `deny`. Preserve your current shell rule explicitly in the global file: if the existing wildcard rule is `deny`, merge `"bash": "deny"` into the existing `permission` object. Keep other rules intact. The separate provider file below does not prevent this client migration.
 
-Add this to the trusted global config at `~/.config/kilo/kilo.jsonc`:
+Create a separate `~/.config/kilo/tokenlab.jsonc` file with the configuration below. If `XDG_CONFIG_HOME` is set, use `kilo/tokenlab.jsonc` under that directory. Keep the normal `kilo.json` / `kilo.jsonc`, accounts, default model and permissions unchanged: this separate file is loaded only for an invocation that selects it with `KILO_CONFIG`. If the file or provider name already belongs to another setup, choose a different file/name and adjust the commands.
 
 ```jsonc
 {
   "$schema": "https://app.kilo.ai/config.json",
-  "model": "openai-compatible/kimi-k3",
   "provider": {
-    "openai-compatible": {
+    "tokenlab": {
       "options": {
         "apiKey": "{env:TOKENLAB_API_KEY}",
         "baseURL": "https://api.tokenlab.sh/v1"
@@ -62,34 +61,49 @@ Add this to the trusted global config at `~/.config/kilo/kilo.jsonc`:
           "tool_call": true,
           "reasoning": true,
           "modalities": {
-            "input": ["text", "image"],
-            "output": ["text"]
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
           },
           "limit": {
             "context": 1048576,
             "output": 131072
           }
         }
-      }
+      },
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "TokenLab"
     }
   }
 }
 ```
 
-<Warning>
-Kilo resolves `{env:...}` only in trusted global or managed configuration. Do not put an API key directly in a project `kilo.jsonc` that may be committed to Git.
-</Warning>
-
-## Verify
-
-Restart Kilo after editing global configuration, then run:
-
-```bash
-kilo models
-kilo --model openai-compatible/kimi-k3
+<CodeGroup>
+```bash macOS / Linux / WSL
+KILO_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/kilo/tokenlab.jsonc" kilo models tokenlab
+KILO_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/kilo/tokenlab.jsonc" kilo --model tokenlab/kimi-k3
 ```
 
-Ask Kilo to inspect a file before approving write or shell actions.
+```powershell Windows PowerShell
+$previous = @{}
+$previous['KILO_CONFIG'] = [Environment]::GetEnvironmentVariable('KILO_CONFIG', 'Process')
+try {
+  $env:KILO_CONFIG = (Join-Path $(if ($env:XDG_CONFIG_HOME) { $env:XDG_CONFIG_HOME } else { Join-Path $HOME '.config' }) 'kilo/tokenlab.jsonc')
+  kilo models tokenlab
+  kilo --model tokenlab/kimi-k3
+} finally {
+  foreach ($name in $previous.Keys) {
+    [Environment]::SetEnvironmentVariable($name, $previous[$name], 'Process')
+  }
+}
+```
+</CodeGroup>
+
+Saving settings or listing models does not verify a key or a completed request. A prompt uses TokenLab balance. Check the reply and its matching [request record](https://tokenlab.sh/dashboard/runs?section=requests) before trying tools; auxiliary requests may also be billed.
 
 ## Troubleshooting
 

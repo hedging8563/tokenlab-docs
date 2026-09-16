@@ -34,7 +34,7 @@ irm https://claude.ai/install.ps1 | iex
 Özellikle npm paketine ihtiyacınız varsa, şunu kullanın:
 
 ```bash
-npm install -g @anthropic-ai/claude-code
+npm install -g @anthropic-ai/claude-code@2.1.263
 ```
 
 <Warning>
@@ -43,35 +43,39 @@ Claude Code için `sudo npm install -g` kullanmayın.
 
 ## Yapılandırma
 
-### Ortam Değişkenleri
+[Hızlı başlangıç](/tr/quickstart) içindeki macOS, Linux, WSL veya Windows PowerShell adımlarıyla anahtarı komut geçmişine yazmadan `TOKENLAB_API_KEY` değerini ayarlayın. Claude Code’u aynı terminalden başlatın. Sürekli kullanım için yerel bir sır yöneticisi kullanın; shell profiline düz metin anahtar eklemeyin.
 
-Aşağıdaki ortam değişkenlerini ayarlayın:
+Bu değişkenler yalnızca bu başlatma için geçerlidir; kayıtlı hesap, varsayılan model ve izinler korunur. Önceki yapılandırma için bu değişkenler olmadan normal başlatın. Bunları kabuk profiline kaydetmeyin.
 
-```bash
-export ANTHROPIC_API_KEY="sk-your-tokenlab-key"
-export ANTHROPIC_BASE_URL="https://api.tokenlab.sh"
+Bu oturum yolu Claude Code **2.1.263** ve `ANTHROPIC_AUTH_TOKEN` üzerinden Bearer kimlik doğrulaması kullanır. Base URL sonuna `/v1` eklemeyin. Kayıtlı `env` değerleri, kimlik yardımcıları, bulut seçenekleri veya yönetilen politikalar kimlik doğrulamayı etkileyebilir; başlamadan kontrol edin. Çakışma varsa hesapları silmek ya da politikaları gevşetmek yerine aşağıdaki yardımcıyı kullanın. Model ve izinleri `/status` ile kontrol edin.
+
+<CodeGroup>
+```bash macOS / Linux / WSL
+ANTHROPIC_BASE_URL=https://api.tokenlab.sh ANTHROPIC_AUTH_TOKEN="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" ANTHROPIC_API_KEY= claude --model claude-sonnet-4-6
 ```
 
-Kalıcı olması için bunları shell profilinize (`~/.bashrc`, `~/.zshrc` vb.) ekleyin.
-
-<Note>
-TokenLab için `ANTHROPIC_BASE_URL` değerini `/v1` son eki olmadan `https://api.tokenlab.sh` olarak tutun. Bu, Claude Code tarafından belgelenen Anthropic tarzı endpoint yapısı ve birleşik gateway deseni ile eşleşir.
-</Note>
-
-### Yapılandırma Dosyası
-
-Alternatif olarak, `~/.claude/settings.json` dosyasını oluşturun veya düzenleyin:
-
-Hesapları veya izinleri değiştirmeden ayarları yedekleyip birleştirin. `ANTHROPIC_API_KEY`, `X-Api-Key`; `ANTHROPIC_AUTH_TOKEN` ise Bearer token gönderir. Bir kimlik doğrulama yolu seçin. `/status` model ve ayar kaynağını gösterir, ücretli istek başarısını kanıtlamaz. Kısa testten sonra yanıtı TokenLab kaydıyla karşılaştırın. Geri almak için yalnızca eklediklerinizi kaldırın. [Öncelik sırasına](https://code.claude.com/docs/en/settings) bakın.
-
-```json
-{
-  "env": {
-    "ANTHROPIC_API_KEY": "sk-your-tokenlab-key",
-    "ANTHROPIC_BASE_URL": "https://api.tokenlab.sh"
+```powershell Windows PowerShell
+if (-not $env:TOKENLAB_API_KEY) { throw 'Set TOKENLAB_API_KEY first' }
+$previous = @{}
+$previous['ANTHROPIC_BASE_URL'] = [Environment]::GetEnvironmentVariable('ANTHROPIC_BASE_URL', 'Process')
+$previous['ANTHROPIC_AUTH_TOKEN'] = [Environment]::GetEnvironmentVariable('ANTHROPIC_AUTH_TOKEN', 'Process')
+$previous['ANTHROPIC_API_KEY'] = [Environment]::GetEnvironmentVariable('ANTHROPIC_API_KEY', 'Process')
+try {
+  $env:ANTHROPIC_BASE_URL = 'https://api.tokenlab.sh'
+  $env:ANTHROPIC_AUTH_TOKEN = $env:TOKENLAB_API_KEY
+  $env:ANTHROPIC_API_KEY = ''
+  claude --model claude-sonnet-4-6
+} finally {
+  foreach ($name in $previous.Keys) {
+    [Environment]::SetEnvironmentVariable($name, $previous[$name], 'Process')
   }
 }
 ```
+</CodeGroup>
+
+İsteğe bağlı: Python 3.11+ ile [geri alınabilir Claude Code yapılandırma yardımcısı](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/skills/tokenlab-api-integration/references/claude_setup.md) önizleme, uygulama ve özgün dosyayı geri yükleme sunar. TokenLab Skills eklentisi **0.1.2** bu betikleri içerir; bağımsız Skill de betikleri içeren bir sürüme güncellendiğinde kullanılabilir. Kurulu eklenti veya bağımsız Skill için [README güncelleme adımlarını](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/README.md#update-an-existing-installation) izleyip betiğin bulunduğunu doğrulayın. Bu sayfadaki elle yapılandırma yardımcı olmadan da tamamlanabilir.
+
+Ayarları kaydetmek veya modelleri listelemek anahtarı ya da tamamlanmış bir isteği doğrulamaz. İstem TokenLab bakiyesini kullanır. Araçları denemeden önce yanıtı ve ilgili [istek kaydını](https://tokenlab.sh/dashboard/runs?section=requests) kontrol edin; yardımcı istekler de ücretlendirilebilir.
 
 ## Kullanım
 
@@ -79,11 +83,10 @@ Yapılandırmadan sonra Claude Code'u normal şekilde kullanın:
 
 ```bash
 # Start an interactive session
-claude
+ANTHROPIC_BASE_URL=https://api.tokenlab.sh ANTHROPIC_AUTH_TOKEN="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" ANTHROPIC_API_KEY= claude --model claude-sonnet-4-6
 
 # Run a single command
-claude "Explain this code" < main.py
-
+ANTHROPIC_BASE_URL=https://api.tokenlab.sh ANTHROPIC_AUTH_TOKEN="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" ANTHROPIC_API_KEY= claude --model claude-sonnet-4-6 "Explain this code" < main.py
 ```
 
 Gerekirse kurulumu doğrulayın:
@@ -108,19 +111,7 @@ TokenLab tüm Claude modellerini destekler:
 `--model` bayrağı ile bir model belirtin:
 
 ```bash
-claude --model claude-sonnet-4-6 "Review this PR"
-```
-
-Veya yapılandırmanızda varsayılan bir model ayarlayın:
-
-```json
-{
-  "env": {
-    "ANTHROPIC_API_KEY": "sk-your-tokenlab-key",
-    "ANTHROPIC_BASE_URL": "https://api.tokenlab.sh"
-  },
-  "model": "claude-sonnet-5"
-}
+ANTHROPIC_BASE_URL=https://api.tokenlab.sh ANTHROPIC_AUTH_TOKEN="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" ANTHROPIC_API_KEY= claude --model claude-sonnet-4-6 "Review this PR"
 ```
 
 ## Genişletilmiş düşünme
@@ -128,7 +119,7 @@ Veya yapılandırmanızda varsayılan bir model ayarlayın:
 Karmaşık akıl yürütme görevleri için extended thinking özellikli modelleri kullanın:
 
 ```bash
-claude --model claude-opus-4-6 "Design a microservices architecture for..."
+ANTHROPIC_BASE_URL=https://api.tokenlab.sh ANTHROPIC_AUTH_TOKEN="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" ANTHROPIC_API_KEY= claude --model claude-opus-4-6 "Design a microservices architecture for..."
 ```
 
 ## Sorun Giderme
@@ -142,9 +133,6 @@ claude --model claude-opus-4-6 "Design a microservices architecture for..."
     TokenLab API key'inizin `sk-` ile başladığından ve yeterli bakiyeye sahip olduğundan emin olun.
   </Accordion>
 
-  <Accordion title="Gateway Authorization bearer token gerektiriyor">
-    Claude Code'un gateway modu `ANTHROPIC_AUTH_TOKEN` desteği de sunar. Gateway kimlik doğrulama davranışınızı bilerek değiştirmediğiniz sürece standart TokenLab kurulumu için `ANTHROPIC_API_KEY` kullanmaya devam edin.
-  </Accordion>
 
   <Accordion title="Model bulunamadı">
     Model adının doğru olduğunu kontrol edin. `claude-sonnet-4-6` biçimini kullanın.

@@ -9,7 +9,7 @@ description: "获取音乐生成任务的状态和结果"
 <Info>
 如果创建响应中包含 `poll_url`，请优先直接调用该 URL 轮询。`/v1/tasks/{id}` 是音乐任务的固定状态端点，`id` 与 `task_id` 应视为同一个异步任务标识。
 
-如果该任务已不存在或无法再从公开任务记录中查询到，TokenLab 会返回 `async_task_not_found`，并附带消息 `Task not found or no longer available.`
+已过期或不可用的公开任务可能返回 `404 async_task_not_found`。无法确认当前 API 密钥对任务的归属权限时，返回 `403 task_not_owned`。
 </Info>
 
 ## 路径参数
@@ -25,7 +25,7 @@ description: "获取音乐生成任务的状态和结果"
 </ResponseField>
 
 <ResponseField name="task_id" type="string">
-  返回时，作为异步任务标识的别名。
+  同一个异步任务 ID 的别名，仅在返回时存在。
 </ResponseField>
 
 <ResponseField name="poll_url" type="string">
@@ -38,6 +38,16 @@ description: "获取音乐生成任务的状态和结果"
 
 <ResponseField name="progress" type="integer">
   可选进度值。仅在任务提供真实进度时返回；请使用 `status` 判断任务是否完成。
+</ResponseField>
+
+结果字段取决于操作。音乐可能返回 `audio_url` 和 `audio_id`；纯歌词任务返回 `lyrics`；分轨可在 `data` 中返回多个文件。`video_url`、标题、进度等信息均为可选。请使用 `status` 判断完成，并读取实际返回的字段。
+
+<ResponseField name="audio_id" type="string">
+  可选的源音频 ID，可与本任务 ID 一起用于支持的后续操作。
+</ResponseField>
+
+<ResponseField name="data" type="array">
+  可选的输出数组，分轨文件可通过 `audio_url` 或 `url` 提供。
 </ResponseField>
 
 <ResponseField name="audio_url" type="string">
@@ -56,13 +66,13 @@ description: "获取音乐生成任务的状态和结果"
   生成或提供的歌词。
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="error" type="string | object">
   错误信息（失败时）。
 </ResponseField>
 
 <RequestExample>
 ```bash cURL
-curl "https://api.tokenlab.sh/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" \
+curl --fail-with-body "https://api.tokenlab.sh/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 
@@ -77,13 +87,14 @@ while True:
         f"https://api.tokenlab.sh/v1/tasks/{task_id}",
         headers={"Authorization": "Bearer sk-your-api-key"}
     )
+    response.raise_for_status()
     result = response.json()
 
     if result["status"] == "completed":
-        print(f"Audio URL: {result['audio_url']}")
+        print(result)
         break
     elif result["status"] == "failed":
-        print(f"Error: {result['error']}")
+        print(result.get("error", "Task failed"))
         break
 
     time.sleep(5)
@@ -99,18 +110,23 @@ async function pollForMusic() {
       { headers: { 'Authorization': 'Bearer sk-your-api-key' } }
     );
 
+    if (!response.ok) throw new Error(await response.text());
     const result = await response.json();
 
     if (result.status === 'completed') {
-      console.log(`Audio URL: ${result.audio_url}`);
-      return result.audio_url;
+      console.log(result);
+      return result;
     } else if (result.status === 'failed') {
-      throw new Error(result.error);
+      throw new Error(typeof result.error === 'string'
+        ? result.error
+        : JSON.stringify(result.error ?? result));
     }
 
     await new Promise(r => setTimeout(r, 5000));
   }
 }
+
+await pollForMusic();
 ```
 
 ```go Go
@@ -119,6 +135,8 @@ package main
 import (
     "encoding/json"
     "fmt"
+    "io"
+    "log"
     "net/http"
     "time"
 )
@@ -127,22 +145,36 @@ func main() {
     taskID := "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
     for {
-        req, _ := http.NewRequest("GET",
+        req, err := http.NewRequest("GET",
             fmt.Sprintf("https://api.tokenlab.sh/v1/tasks/%s", taskID), nil)
+        if err != nil {
+            log.Fatal(err)
+        }
         req.Header.Set("Authorization", "Bearer sk-your-api-key")
 
         client := &http.Client{}
-        resp, _ := client.Do(req)
+        resp, err := client.Do(req)
+        if err != nil {
+            log.Fatal(err)
+        }
+        if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+            body, _ := io.ReadAll(resp.Body)
+            resp.Body.Close()
+            log.Fatalf("HTTP %d: %s", resp.StatusCode, body)
+        }
 
         var result map[string]interface{}
-        json.NewDecoder(resp.Body).Decode(&result)
+        err = json.NewDecoder(resp.Body).Decode(&result)
         resp.Body.Close()
+        if err != nil {
+            log.Fatal(err)
+        }
 
         if result["status"] == "completed" {
-            fmt.Printf("Audio URL: %s\n", result["audio_url"])
+            fmt.Println(result)
             break
         } else if result["status"] == "failed" {
-            fmt.Printf("Error: %s\n", result["error"])
+            fmt.Println(result)
             break
         }
 
@@ -166,15 +198,24 @@ while (true) {
     ]);
 
     $response = curl_exec($ch);
+    $httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
     curl_close($ch);
 
-    $result = json_decode($response, true);
+    if ($response === false) {
+        throw new RuntimeException($curlError);
+    }
+    if ($httpStatus < 200 || $httpStatus >= 300) {
+        throw new RuntimeException("HTTP {$httpStatus}: {$response}");
+    }
+
+    $result = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
 
     if ($result['status'] === 'completed') {
-        echo "Audio URL: {$result['audio_url']}\n";
+        echo json_encode($result, JSON_UNESCAPED_SLASHES) . "\n";
         break;
     } elseif ($result['status'] === 'failed') {
-        echo "Error: {$result['error']}\n";
+        echo json_encode($result, JSON_UNESCAPED_SLASHES) . "\n";
         break;
     }
 
@@ -191,9 +232,9 @@ while (true) {
   "poll_url": "/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "status": "completed",
   "audio_url": "https://cdn.example.com/music/abc123.mp3",
-  "video_url": "https://cdn.example.com/music/abc123.mp4",
   "title": "Night Drive",
-  "lyrics": "[Verse 1]\nDriving through the night..."
+  "lyrics": "[Verse 1]\nDriving through the night...",
+  "audio_id": "audio_abc123"
 }
 ```
 </ResponseExample>

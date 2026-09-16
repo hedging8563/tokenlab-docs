@@ -14,7 +14,7 @@ TokenLab expone un endpoint WebSocket en tiempo real en `GET /v1/realtime` para 
 
 En apps web o móviles, mantén las claves API de larga duración en tu servidor. Este endpoint no emite Realtime client secrets de corta duración.
 
-<Note>Los agentes deben descubrir modelos con soporte realtime en `/v1/models` antes de abrir el socket.</Note>
+<Note>Elige un modelo realtime actual en `/v1/models`, verifica `/v1/models/{model}` y configura `TOKENLAB_REALTIME_MODEL`. Los eventos y la configuración de sesión dependen del modelo. El ejemplo JSON siguiente corresponde a un HTTP GET normal, no a un evento de sesión WebSocket.</Note>
 
 ## Conexión
 
@@ -30,20 +30,28 @@ En apps web o móviles, mantén las claves API de larga duración en tu servidor
 ```javascript JavaScript
 import WebSocket from 'ws';
 
-const socket = new WebSocket('wss://api.tokenlab.sh/v1/realtime?model=gpt-realtime', {
-  headers: { Authorization: 'Bearer sk-your-api-key' }
+const model = process.env.TOKENLAB_REALTIME_MODEL;
+const apiKey = process.env.TOKENLAB_API_KEY;
+if (!model || !apiKey) {
+  throw new Error('Set TOKENLAB_REALTIME_MODEL and TOKENLAB_API_KEY');
+}
+
+const url = new URL('wss://api.tokenlab.sh/v1/realtime');
+url.searchParams.set('model', model);
+const socket = new WebSocket(url, {
+  headers: { Authorization: `Bearer ${apiKey}` }
 });
 
 socket.on('open', () => {
-  socket.send(JSON.stringify({
-    type: 'session.update',
-    session: { modalities: ['text', 'audio'] }
-  }));
+  console.log('Realtime connection open');
 });
 
 socket.on('message', (data) => {
   console.log('realtime event', data.toString());
 });
+
+socket.on('error', (error) => console.error(error.message));
+socket.on('close', (code) => console.log('Realtime connection closed', code));
 ```
 
 ```bash cURL
@@ -65,19 +73,20 @@ Cierra el socket del cliente cuando la sesión haya terminado. Si el servicio ci
 ## Ejemplo de respuesta
 
 <ResponseExample>
-```json Connected
+```json HTTP GET
 {
-  "type": "session.created",
-  "session": {
-    "id": "sess_abc123",
-    "model": "gpt-realtime",
-    "modalities": ["text", "audio"]
-  }
+  "object": "realtime.endpoint",
+  "websocket_url": "/v1/realtime?model={model}",
+  "protocol": "tokenlab_realtime_proxy"
 }
 ```
 </ResponseExample>
 
 ## Campos importantes
+
+<ResponseField name="object" type="string">Tipo de objeto de una respuesta HTTP GET normal. Su valor siempre es `realtime.endpoint`.</ResponseField>
+<ResponseField name="websocket_url" type="string">Ruta relativa de conexión WebSocket devuelta por un HTTP GET normal: `/v1/realtime?model={model}`. Sustituye `{model}` por el ID del modelo elegido.</ResponseField>
+<ResponseField name="protocol" type="string">Identificador del protocolo devuelto por un HTTP GET normal. Su valor siempre es `tokenlab_realtime_proxy`.</ResponseField>
 
 <ResponseField name="type" type="string">Tipo de evento o mensaje devuelto por la API.</ResponseField>
 <ResponseField name="session.id" type="string">Identificador opaco recibido a través de la conexión realtime. Inclúyelo en logs de soporte para depuración; no es una URL de sesión REST.</ResponseField>

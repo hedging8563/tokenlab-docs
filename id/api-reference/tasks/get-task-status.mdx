@@ -18,6 +18,10 @@ Jika respons create menyertakan `poll_url`, panggil path tersebut secara persis.
 
 ## Respons
 
+<Note>
+Field hasil, error, timestamp, dan model dikembalikan jika tersedia untuk task.
+</Note>
+
 <ResponseField name="id" type="string">
   Pengidentifikasi task.
 </ResponseField>
@@ -54,13 +58,33 @@ Jika respons create menyertakan `poll_url`, panggil path tersebut secara persis.
   URL aset hasil ketika task selesai dan menghasilkan video.
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="video" type="object">
+  Objek video tunggal dengan `url`, `duration`, `width`, dan `height` saat tersedia.
+</ResponseField>
+
+<ResponseField name="videos" type="array">
+  Array video saat tugas pembuatan mengembalikan lebih dari satu output.
+</ResponseField>
+
+<ResponseField name="created" type="integer">
+  Timestamp pembuatan.
+</ResponseField>
+
+<ResponseField name="updated" type="integer">
+  Timestamp pembaruan terakhir.
+</ResponseField>
+
+<ResponseField name="model" type="string">
+  Model yang digunakan oleh tugas.
+</ResponseField>
+
+<ResponseField name="error" type="string | object">
   Pesan error ketika task gagal.
 </ResponseField>
 
 ## Perilaku Error
 
-Jika tugas sudah tidak ada, telah kedaluwarsa, atau tidak lagi tersedia di catatan tugas publik, TokenLab mengembalikan:
+Task publik yang kedaluwarsa atau tidak tersedia dapat mengembalikan `404 async_task_not_found`. Jika kepemilikan task untuk API key saat ini tidak dapat dipastikan, responsnya adalah `403 task_not_owned`.
 
 ```json
 {

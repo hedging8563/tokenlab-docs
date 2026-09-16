@@ -4,18 +4,7 @@ openapi: "POST /v1/batches/{batch_id}/cancel"
 description: "取消排隊或正在運行的批次作業。"
 ---
 
-## 概述
-
-此端點是 TokenLab 的 OpenAI 相容批次 API 的一部分。批次作業使用上傳的 JSONL 文件，異步運行，並可以稍後返回輸出/錯誤文件。
-
-## 注意事項
-
-- 批次輸入文件必須使用 `purpose=batch`。
-- `completion_window` 目前為 `24h`。
-- 輸出順序不保證；始終通過 `custom_id` 進行匹配。
-- 批次項目內不支持串流。
-
-## 範例
+請求取消排隊或執行中的批次。回應會返回目前狀態，可能仍在取消，也可能已取消完成。已結束的批次保留原有終態。若回傳狀態尚未結束，請再次取得批次以確認結果。
 
 <RequestExample>
 ```bash cURL
@@ -23,18 +12,6 @@ curl -X POST "https://api.tokenlab.sh/v1/batches/batch_abc123/cancel" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 </RequestExample>
-
-## 請求 / 回應
-
-使用上方的互動式 OpenAPI 面板以獲取確切的架構。
-
-## 操作提示
-
-- 使用 `custom_id` 進行冪等的下游對帳。
-- 只有在工作者完成批次後，才會期望 `output_file_id` 和 `error_file_id`。
-- 批次定價可能與同步定價不同，因為適用 `isBatchRequest=true` 的折扣規則。
-
-## 回應範例
 
 <ResponseExample>
 ```json 200 OK
@@ -47,7 +24,5 @@ curl -X POST "https://api.tokenlab.sh/v1/batches/batch_abc123/cancel" \
 ```
 </ResponseExample>
 
-## 重要欄位
-
 <ResponseField name="id" type="string">用於後續呼叫和支援排障的識別符。</ResponseField>
-<ResponseField name="status" type="string">該資源目前的生命週期狀態。</ResponseField>
+<ResponseField name="status" type="string">批次目前狀態。取消請求成功並不一定回傳 `cancelling`。</ResponseField>

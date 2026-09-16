@@ -4,18 +4,7 @@ openapi: "POST /v1/batches/{batch_id}/cancel"
 description: "يلغي مهمة دفعة متوقفة أو قيد التشغيل."
 ---
 
-## نظرة عامة
-
-تعتبر هذه النقطة جزءًا من واجهة برمجة التطبيقات الخاصة بالدفعات المتوافقة مع OpenAI من TokenLab. تستخدم مهام الدفعة ملفات JSONL المرفوعة، وتعمل بشكل غير متزامن، ويمكن أن تعيد ملفات الإخراج/الخطأ لاحقًا.
-
-## ملاحظات
-
-- يجب أن تستخدم ملفات الإدخال الخاصة بالدفعة `purpose=batch`.
-- `completion_window` هو حاليًا `24h`.
-- ترتيب الإخراج غير مضمون؛ يجب دائمًا المطابقة بواسطة `custom_id`.
-- لا يتم دعم البث داخل عناصر الدفعة.
-
-## مثال
+اطلب إلغاء دفعة في قائمة الانتظار أو قيد التشغيل. تتضمن الاستجابة حالتها الحالية؛ فقد يكون الإلغاء جاريًا أو قد اكتمل بالفعل. تحتفظ الدفعة المنتهية بحالتها النهائية السابقة. إذا لم تكن الحالة المعادة نهائية، فاسترجع الدفعة مرة أخرى للتحقق من النتيجة.
 
 <RequestExample>
 ```bash cURL
@@ -23,18 +12,6 @@ curl -X POST "https://api.tokenlab.sh/v1/batches/batch_abc123/cancel" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 </RequestExample>
-
-## الطلب / الاستجابة
-
-استخدم لوحة OpenAPI التفاعلية أعلاه للحصول على المخطط الدقيق.
-
-## نصائح تشغيلية
-
-- استخدم `custom_id` للتسوية غير المتغيرة في الأسفل.
-- توقع `output_file_id` و `error_file_id` فقط بعد أن ينهي العامل الدفعة.
-- قد تختلف أسعار الدفعة عن الأسعار المتزامنة لأن قواعد الخصم لـ `isBatchRequest=true` تنطبق.
-
-## مثال الاستجابة
 
 <ResponseExample>
 ```json 200 OK
@@ -47,7 +24,5 @@ curl -X POST "https://api.tokenlab.sh/v1/batches/batch_abc123/cancel" \
 ```
 </ResponseExample>
 
-## حقول مهمة
-
 <ResponseField name="id" type="string">معرّف لاستخدامه في الطلبات اللاحقة والدعم.</ResponseField>
-<ResponseField name="status" type="string">حالة دورة الحياة الحالية لهذا المورد.</ResponseField>
+<ResponseField name="status" type="string">الحالة الحالية للدفعة. لا تعني استجابة الإلغاء الناجحة أن الحالة المعادة هي دائمًا `cancelling`.</ResponseField>

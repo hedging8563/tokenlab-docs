@@ -6,12 +6,12 @@ description: "ينشئ صوتًا من النص المُدخل"
 
 ## نص الطلب
 
-**مهلة الطلبات المتزامنة:** ينتظر هذا الـ endpoint غير الخاص بالمحادثة حتى ينتهي النموذج الذي تم التوجيه إليه. قد تتجاوز المدخلات الكبيرة أو الصوت الطويل أو الدُفعات الكبيرة القيمة الافتراضية الشائعة للعميل وهي 30s، لذا اضبط مهلة عميل HTTP على `120s` على الأقل.
+يعتمد نمط الاستجابة على النموذج المحدد و`stream_format`. للمدخلات الطويلة، اضبط مهلة عميل HTTP على `120s` على الأقل.
 
-تختلف الحقول الاختيارية حسب عائلة النموذج. يتحقق TokenLab من مصفوفة الحقول قبل التوجيه: تقبل نماذج OpenAI TTS الحقول `voice` و`instructions` و`response_format` و`stream_format` و`speed`؛ وتقبل نماذج MiniMax speech الحقول `voice` و`voice_id` و`response_format` و`stream_format` و`speed`؛ وتقبل نماذج Gemini TTS الحقول `prompt` و`language_code` و`voice` و`response_format` و`stream_format` و`speed` و`temperature`؛ وقد تقبل مسارات TTS الأضيق من نوع Vidu/Kling الحقلين `input` و`stream_format` فقط. الحقول العلوية غير المعروفة، بما في ذلك `user`، ترجع `400 unsupported_parameter` بدلًا من تجاهلها.
+تختلف الحقول الاختيارية والأصوات والتنسيقات ودعم SSE حسب النموذج. راجع `GET /v1/models/{model}` قبل إرسالها. قد تعيد المعلمات غير المدعومة `400 unsupported_parameter`.
 
 <ParamField body="model" type="string" default="tts-1">
-  نموذج TTS. تشمل الأمثلة `tts-1` و`gpt-4o-mini-tts` و`speech-02-hd` و`gemini-2.5-flash-tts`. استخدم `GET /v1/models?recommended_for=tts` للحصول على القائمة الحالية.
+  معرّف نموذج TTS. اعرض الخيارات الحالية عبر `GET /v1/models?recommended_for=tts`.
 </ParamField>
 
 <ParamField body="input" type="string" required>
@@ -23,7 +23,7 @@ description: "ينشئ صوتًا من النص المُدخل"
 </ParamField>
 
 <ParamField body="voice_id" type="string">
-  محدد الصوت الأصلي للمزوّد لنماذج speech المتوافقة مع MiniMax.
+  معرّف صوت للنماذج التي تدعم هذه المعلمة، مثل نماذج الكلام المتوافقة مع MiniMax.
 </ParamField>
 
 <ParamField body="instructions" type="string">
@@ -56,7 +56,7 @@ description: "ينشئ صوتًا من النص المُدخل"
 
 ## الاستجابة
 
-يعيد ملف الصوت بالتنسيق المطلوب.
+تعيد `stream_format=audio` بايتات صوتية. تعيد النماذج الداعمة لـ `stream_format=sse` استجابة `text/event-stream`؛ حلّل أحداثها بدلاً من حفظ الاستجابة كاملة كملف صوتي.
 
 <RequestExample>
 ```bash cURL
@@ -134,6 +134,8 @@ file_put_contents('speech.mp3', $audio);
 
 ## عينات الأصوات
 
+تعتمد الأصوات المتاحة على النموذج. الأسماء أدناه أمثلة وليست قائمة مشتركة لجميع نماذج TTS.
+
 | الصوت | الوصف |
 |-------|-------------|
 | `alloy` | محايد، متوازن |
@@ -158,5 +160,9 @@ file_put_contents('speech.mp3', $audio);
 
 ## حقول مهمة
 
-<ResponseField name="Content-Type" type="string">نوع الحدث أو الرسالة الذي تعيده API.</ResponseField>
-<ResponseField name="body" type="binary">جسم الاستجابة الخام. احفظه مباشرة ولا تحلله كـ JSON.</ResponseField>
+<ResponseField name="Content-Type" type="string">
+  نوع وسائط استجابة HTTP: تنسيق صوتي أو `text/event-stream` عند استخدام SSE.
+</ResponseField>
+<ResponseField name="body" type="binary | SSE">
+  بايتات صوتية مع `audio`، وتدفق أحداث مع `sse`. اختر طريقة التحليل وفق `Content-Type` والنمط المطلوب.
+</ResponseField>

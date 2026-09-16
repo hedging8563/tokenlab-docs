@@ -10,20 +10,39 @@ description: "BYOK で GitHub Copilot CLI を TokenLab に接続する"
 ## インストールと設定
 
 ```bash
-npm install -g @github/copilot
+npm install -g @github/copilot@1.0.85
 copilot --version
 ```
 
-npm 版には Node.js 22 以降が必要です。GitHub は現在、有効な Copilot プランを要求し、組織アカウントでは Copilot CLI ポリシーも有効である必要があります。
+npm 版には Node.js 22 以降が必要です。
 
-```bash
-export COPILOT_PROVIDER_TYPE="openai"
-export COPILOT_PROVIDER_BASE_URL="https://api.tokenlab.sh/v1"
-export COPILOT_PROVIDER_API_KEY="sk-your-tokenlab-key"
-export COPILOT_MODEL="kimi-k3"
+[クイックスタート](/ja/quickstart)の macOS、Linux、WSL、Windows PowerShell 向け手順で、キーをコマンド履歴に残さず `TOKENLAB_API_KEY` を設定し、同じターミナルから Copilot CLI を起動します。継続して使う場合はローカルのシークレット管理ツールを利用し、平文のキーをシェル設定へ追記しないでください。
 
-copilot
+これらの変数は今回の起動だけに適用され、保存済みのアカウント、既定モデル、権限は維持されます。従来の設定を使うには変数なしで通常どおり起動してください。シェルの設定ファイルには保存しないでください。
+
+<CodeGroup>
+```bash macOS / Linux / WSL
+COPILOT_PROVIDER_TYPE=openai COPILOT_PROVIDER_BASE_URL=https://api.tokenlab.sh/v1 COPILOT_PROVIDER_API_KEY="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" copilot --model kimi-k3
 ```
+
+```powershell Windows PowerShell
+if (-not $env:TOKENLAB_API_KEY) { throw 'Set TOKENLAB_API_KEY first' }
+$previous = @{}
+$previous['COPILOT_PROVIDER_TYPE'] = [Environment]::GetEnvironmentVariable('COPILOT_PROVIDER_TYPE', 'Process')
+$previous['COPILOT_PROVIDER_BASE_URL'] = [Environment]::GetEnvironmentVariable('COPILOT_PROVIDER_BASE_URL', 'Process')
+$previous['COPILOT_PROVIDER_API_KEY'] = [Environment]::GetEnvironmentVariable('COPILOT_PROVIDER_API_KEY', 'Process')
+try {
+  $env:COPILOT_PROVIDER_TYPE = 'openai'
+  $env:COPILOT_PROVIDER_BASE_URL = 'https://api.tokenlab.sh/v1'
+  $env:COPILOT_PROVIDER_API_KEY = $env:TOKENLAB_API_KEY
+  copilot --model kimi-k3
+} finally {
+  foreach ($name in $previous.Keys) {
+    [Environment]::SetEnvironmentVariable($name, $previous[$name], 'Process')
+  }
+}
+```
+</CodeGroup>
 
 Copilot CLI のモデルにはストリーミングとツール呼び出しの両方が必要です。`kimi-k3` はツールをサポートし、GitHub 推奨の 128K を超えるコンテキストを持ちます。
 
@@ -32,3 +51,5 @@ Copilot CLI のモデルにはストリーミングとツール呼び出しの�
 <Warning>
 API Key を Git 管理対象のファイルに保存しないでください。履歴、画像、ログに露出した Key はローテーションしてください。
 </Warning>
+
+設定の保存やモデル一覧だけでは、キーの有効性やリクエストの完了は確認できません。プロンプト送信には TokenLab 残高を使います。応答と対応する[リクエスト記録](https://tokenlab.sh/dashboard/runs?section=requests)を照合してからツールを試してください。補助リクエストにも料金が発生する場合があります。

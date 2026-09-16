@@ -4,7 +4,8 @@ openapi: "POST /v1beta/models/{model}:generateContent"
 description: "إنشاء المحتوى باستخدام تنسيق Google Gemini API"
 ---
 
-يعرض TokenLab هذا المسار فقط للنماذج التي تعلن عقد Gemini الأصلي ولها قناة upstream من البروتوكول نفسه؛ ولا يعود الطلب إلى Chat Completions. أسماء ProtoJSON بصيغة lowerCamelCase وأسماء proto الأصلية بصيغة snake_case رسمية معًا، وتُحفظ بما في ذلك الطلبات المختلطة. تُمرر الحقول غير المعروفة بأفضل جهد ويقرر upstream دعمها.
+استخدم تنسيقات طلبات واستجابات Gemini مع نموذج تعيده Gemini Models API. تُقبل أسماء الحقول بصيغة ProtoJSON lowerCamelCase وأسماء proto snake_case المقابلة. تعتمد الحقول الاختيارية والقيم المدعومة على النموذج المحدد.
+
 ## معلمات المسار
 
 <ParamField path="model" type="string" required>
@@ -27,7 +28,7 @@ description: "إنشاء المحتوى باستخدام تنسيق Google Gemin
 ## جسم الطلب
 
 <ParamField body="contents" type="array" required>
-  محتوى المحادثة. تُحفظ قيم `role` وكل `parts` كما أرسلها العميل من دون trim أو lowercase أو إعادة ترميز Base64 أو استنتاج MIME. الصيغتان `inlineData` / `inline_data` و`fileData` / `file_data` رسميتان؛ ولا تشترط TokenLab محليًا `fileData.mimeType`. عند الإشارة إلى Files أو Cache أنشأتها TokenLab، يُفحص المالك ويُربط مع upstream الأصلي، وتُترك صلاحية باقي الوسائط والأدوات للمزوّد.
+  محتوى المحادثة مع `parts` و `role` اختياري. تستخدم الوسائط `inlineData` / `inline_data` أو `fileData` / `file_data`. لا يمكن استخدام معرّفات Files وCache التي أنشأتها TokenLab إلا في مساحة العمل المالكة لها.
 </ParamField>
 
 <ParamField body="systemInstruction" type="object">
@@ -35,7 +36,7 @@ description: "إنشاء المحتوى باستخدام تنسيق Google Gemin
 </ParamField>
 
 <ParamField body="generationConfig" type="object">
-  إعدادات الإنشاء الأصلية. يُقبل كل من أسماء lowerCamelCase مثل `maxOutputTokens` و`candidateCount` و`thinkingConfig` وأسماء snake_case المناظرة كما هو. لا تزيل TokenLab `thinkingConfig` بعد الفشل ولا تفرض حدًا محليًا لـ `candidateCount` في البث؛ ويقرر upstream النطاقات والتركيبات المدعومة.
+  إعدادات توليد مثل `temperature` و `topP` و `topK` و `maxOutputTokens` و `stopSequences` و `candidateCount` و `responseModalities` و `responseMimeType` و `responseSchema` و `thinkingConfig`. تُقبل أيضًا أسماء snake_case المقابلة. تعتمد القيم والتركيبات على النموذج.
 </ParamField>
 
 <ParamField body="safetySettings" type="array">
@@ -87,11 +88,11 @@ print(response.text)
 ```javascript JavaScript
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI("sk-your-api-key", {
-  baseUrl: "https://api.tokenlab.sh"
-});
-
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
+const genAI = new GoogleGenerativeAI("sk-your-api-key");
+const model = genAI.getGenerativeModel(
+  { model: "gemini-2.5-pro" },
+  { baseUrl: "https://api.tokenlab.sh" }
+);
 const result = await model.generateContent("Hello, Gemini!");
 
 console.log(result.response.text());

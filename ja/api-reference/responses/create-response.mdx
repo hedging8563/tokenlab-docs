@@ -4,7 +4,8 @@ openapi: "POST /v1/responses"
 description: "OpenAI Responses API 形式を使用してレスポンスを作成します"
 ---
 
-Responses は OpenAI のネイティブなステートフル応答プロトコルです。TokenLab は、モデル詳細が Responses 形式を公開し、同一プロトコルの upstream ルートがある場合にのみ提供します。モデル名やプロバイダー名から推測せず、Chat Completions へフォールバックしません。未知のフィールド、明示的な `null`、空配列を含む JSON 形状を保持し、best-effort で転送します。
+モデル詳細の `accepted_request_formats` に `openai_responses` が含まれる場合、このエンドポイントを使用できます。リクエストとレスポンスは Responses API 形式です。オプションのフィールドと指定可能な値はモデルによって異なります。
+
 ## リクエストボディ
 
 <ParamField body="model" type="string" required>
@@ -21,7 +22,7 @@ Responses は OpenAI のネイティブなステートフル応答プロトコ�
   - `function_call`: 関数呼び出しのリクエスト
   - `function_call_output`: 関数呼び出しからの出力
 
-  マルチモーダル入力の場合、`message.content` はプレーンな文字列かコンテンツブロックの配列のいずれかになります。GPT-5.4 系列のような画像対応モデルでは、URL や Base64 文字列をプレーンテキストに直接埋め込むのではなく、`input_image` ブロックとして画像を渡してください。
+  マルチモーダル入力の場合、`message.content` はプレーンな文字列かコンテンツブロックの配列のいずれかになります。GPT-5.6 Terra 系列のような画像対応モデルでは、URL や Base64 文字列をプレーンテキストに直接埋め込むのではなく、`input_image` ブロックとして画像を渡してください。
 
   例のコンテンツブロック:
   - `{ "type": "input_text", "text": "Describe this image" }`
@@ -37,12 +38,12 @@ Responses は OpenAI のネイティブなステートフル応答プロトコ�
   生成する最大の token 数。
 </ParamField>
 
-<ParamField body="temperature" type="number" default="1">
-  サンプリングの温度。0 から 2 の間で指定します。
+<ParamField body="temperature" type="number">
+  サンプリング温度。指定可能な値とデフォルト値はモデルによって異なります。
 </ParamField>
 
 <ParamField body="tools" type="array">
-  モデルが呼び出せるツール一覧です。TokenLab はローカル allowlist を設けずネイティブ定義を転送し、対応する種類や組み合わせは選択された upstream が判断します。
+  モデルが呼び出せるツール。対応する種類と組み合わせは選択したモデルによって異なります。
 </ParamField>
 
 <ParamField body="stream" type="boolean" default="false">
@@ -57,12 +58,20 @@ Responses は OpenAI のネイティブなステートフル応答プロトコ�
   後で取得するためにレスポンスを保存するかどうか。
 </ParamField>
 
+<ParamField body="background" type="boolean" default="false">
+  非同期実行を要求します。対応状況は選択したモデルによって異なります。
+</ParamField>
+
+<ParamField body="prompt" type="object">
+  再利用可能なプロンプトテンプレートと変数への参照。
+</ParamField>
+
 <ParamField body="metadata" type="object">
   追跡目的でレスポンスに添付するメタデータ。
 </ParamField>
 
 <ParamField body="text" type="object">
-  テキスト生成の設定オプション。`text.format` の挙動は選択したモデルと経路によって異なり、すべてのモデルで一様に保証されるわけではありません。
+  テキスト出力の設定。`text.format` の対応状況は選択したモデルによって異なります。
 </ParamField>
 
 <ParamField body="parallel_tool_calls" type="boolean" default="true">
@@ -74,9 +83,7 @@ Responses は OpenAI のネイティブなステートフル応答プロトコ�
 </ParamField>
 
 <ParamField body="reasoning" type="object">
-  GPT-5 系列などの推論対応モデル向けの推論設定。
-
-  - `effort` (string): 推論の努力レベル（`low`、`medium`、`high`）
+  `effort` を含む推論オプションは、選択したモデルによって異なります。
 </ParamField>
 
 ## レスポンス
@@ -93,6 +100,10 @@ Responses は OpenAI のネイティブなステートフル応答プロトコ�
   レスポンスが作成された時刻の Unix タイムスタンプ。
 </ResponseField>
 
+<ResponseField name="status" type="string">
+  レスポンスの状態：`queued`、`in_progress`、`completed`、`incomplete`、`failed`、`cancelled`。HTTP リクエストが成功しても、このフィールドを確認してください。
+</ResponseField>
+
 <ResponseField name="output" type="array">
   モデルが生成した出力アイテムのリスト。
 </ResponseField>
@@ -100,6 +111,13 @@ Responses は OpenAI のネイティブなステートフル応答プロトコ�
 <ResponseField name="usage" type="object">
   token 使用統計。
 </ResponseField>
+
+## 関連エンドポイント
+
+- `GET /v1/responses/{id}` 保存済みレスポンスを取得します。`include`、`include_obfuscation`、`stream`、`starting_after` に対応します。
+- `DELETE /v1/responses/{id}` 保存済みレスポンスを削除します。生成はキャンセルされません。
+- `POST /v1/responses/compact` `response.compaction` オブジェクトを返します。
+- キャンセル、input-items、input-tokens のエンドポイントは現在利用できません。
 
 <RequestExample>
 ```bash cURL
@@ -268,14 +286,17 @@ print_r($data['output']);
 {
   "id": "resp_abc123",
   "object": "response",
-  "created": 1706000000,
+  "created_at": 1706000000,
+  "status": "completed",
   "model": "gpt-5.6-terra",
   "output": [
     {
+      "id": "msg_abc123",
       "type": "message",
+      "status": "completed",
       "role": "assistant",
       "content": [
-        {"type": "text", "text": "Hello! How can I help you today?"}
+        {"type": "output_text", "text": "Hello! How can I help you today?", "annotations": []}
       ]
     }
   ],

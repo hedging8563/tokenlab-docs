@@ -6,12 +6,14 @@ description: "列出当前工作区的 Seedance 素材组。"
 
 列出当前工作区的素材组。可用 `library_type` 和 `status` 筛选虚拟人物或真人素材组。
 
-上传素材时使用返回的 `group_id`；生成视频时使用具体素材的 `id`，不要传素材组 ID。
+上传素材时使用返回的 `id`；生成视频时使用具体素材的 `id`，不要传素材组 ID。
+
+`project_name` 用于同一组织内的资源隔离，默认为 `default`。相关素材组和素材须使用相同且区分大小写的值；POST/PUT 在 JSON 请求体中传入，GET/DELETE 在查询参数中传入。
 
 ## 请求示例
 
 ```bash
-curl "https://api.tokenlab.sh/v1/videos/assets/groups?library_type=aigc_avatar&page_size=20" \
+curl "https://api.tokenlab.sh/v1/videos/assets/groups?library_type=aigc_avatar&page_size=20&project_name=default" \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```
 
@@ -23,6 +25,7 @@ curl "https://api.tokenlab.sh/v1/videos/assets/groups?library_type=aigc_avatar&p
     {
       "id": "group-20260720123456-vrt01",
       "object": "seedance.material_asset_group",
+      "project_name": "default",
       "library_type": "aigc_avatar",
       "group_name": "Product references",
       "status": "ACTIVE",

@@ -10,7 +10,7 @@ Use `DELETE /v1/tasks/{id}` to cancel an asynchronous task that has not started 
 
 ## Supported Tasks
 
-Cancellation is currently supported for queued Seedance video tasks using `seedance-1.5-pro`, `seedance-2.0`, or `seedance-2.0-fast` when the provider selected for that task supports cancellation. Tasks that are already `processing`/running cannot be cancelled. Completed, failed, expired, or unsupported tasks remain queryable for status and billing reconciliation.
+Cancellation is available for queued Seedance tasks using `seedance-1.5-pro`, `seedance-2.0`, `seedance-2.0-fast`, or `seedance-2.5` when that task supports cancellation. A task already running or in a terminal state cannot be cancelled. Status remains queryable while its public task record is retained.
 
 ## Path Parameters
 

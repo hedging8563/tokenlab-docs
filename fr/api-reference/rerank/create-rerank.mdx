@@ -8,7 +8,7 @@ Réorganisez les documents à l'aide de modèles de similitude sémantique. Util
 
 ## Corps de la requête
 
-**Timeout des requêtes synchrones :** cet endpoint non-chat attend que le modèle routé termine son traitement. Les entrées volumineuses, les longs fichiers audio ou les grands lots peuvent dépasser les valeurs par défaut courantes de 30s côté client ; configurez donc le timeout de votre client HTTP à au moins `120s`.
+Pour les entrées volumineuses, réglez le délai du client HTTP sur au moins `120s`. La réponse arrive à la fin du traitement.
 
 <ParamField body="model" type="string" required>
   ID du modèle de reranker à utiliser (par ex., `qwen3-vl-rerank`).
@@ -23,7 +23,7 @@ Réorganisez les documents à l'aide de modèles de similitude sémantique. Util
 </ParamField>
 
 <ParamField body="top_n" type="integer">
-  Nombre de meilleurs résultats à retourner. Par défaut, tous les documents. Doit être au moins `1` et ne pas dépasser `documents.length`. TokenLab n'applique actuellement aucun plafond public plus bas propre à un fournisseur ; si cette limite change, cette page sera mise à jour avant son application.
+  Nombre de meilleurs résultats, de `1` à `documents.length`. Si omis, le modèle sélectionné détermine ce nombre.
 </ParamField>
 
 <ParamField body="return_documents" type="boolean" default="false">
@@ -37,16 +37,16 @@ Réorganisez les documents à l'aide de modèles de similitude sémantique. Util
 
   Chaque résultat contient :
   - `index` (integer) : Index du document original
-  - `relevance_score` (number) : Score de pertinence (0-1)
+  - `relevance_score` (number): Score de pertinence. Sa plage dépend du modèle sélectionné.
   - `document` (string) : Texte original (si `return_documents=true`)
 </ResponseField>
 
 <ResponseField name="model" type="string">
-  Le modèle utilisé pour la réorganisation.
+  Le modèle utilisé pour la réorganisation. Renvoyé si disponible.
 </ResponseField>
 
 <ResponseField name="usage" type="object">
-  Statistiques d'utilisation des tokens.
+  Statistiques d'utilisation des tokens. Renvoyé si disponible.
 </ResponseField>
 
 <RequestExample>

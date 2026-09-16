@@ -3,6 +3,8 @@ title: "エージェントが対応可能なエラー"
 description: "エラーコード、リトライタイミング、モデルの提案を活用し、プロセスの解析を回避する"
 ---
 
+このページはアプリやコーディングエージェント向けの、機械可読な公開 API エラーについて説明します。ワークスペースの調査やサポートへの権限を付与するものではありません。自分のリクエストは[トラブルシューティング](/ja/guides/observability-troubleshooting)から調べてください。
+
 OpenAI互換のTokenLabエラーには、エージェントやアプリケーション向けの構造化されたヒントが含まれる場合があります。これらのフィールドが存在する場合はそれを使用し、人間が読むための `message` を解析して動作を決定しないでください。
 
 Anthropic Messages APIおよびGemini APIは独自のネイティブなエラー形式を維持しているため、このページで説明する拡張機能はOpenAI互換のChat CompletionsおよびResponsesエラーにのみ適用されます。
@@ -129,10 +131,10 @@ Anthropic Messages APIおよびGemini APIは独自のネイティブなエラー
 
 | 値 | エンドポイント |
 | --- | --- |
-| `chat_completions` | `/v1/chat/completions` |
-| `responses` | `/v1/responses` |
-| `messages` | `/v1/messages` |
-| `gemini` | `/v1beta/models/{model}:generateContent` |
+| `openai_chat_completions` | `/v1/chat/completions` |
+| `openai_responses` | `/v1/responses` |
+| `anthropic_messages` | `/v1/messages` |
+| `gemini_generate_content` | `/v1beta/models/{model}:generateContent` |
 
 受け入れられた形式によってエンドポイントが確定します。個別のツールやフィールドはモデルによって異なる可能性があるため、依存する前にモデルページを確認してください。
 
@@ -141,8 +143,7 @@ Anthropic Messages APIおよびGemini APIは独自のネイティブなエラー
 Models APIは、チャット以外のタスクに対する現在の推奨リストを返すことができます。
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=image" \
-  -H "Authorization: Bearer sk-your-api-key"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=image"
 ```
 
 有効な `recommended_for` の値は `image`、 `video`、 `music`、 `3d`、 `tts`、 `stt`、 `embedding`、 `rerank`、 `translation` です。選択したモデルIDは、作成リクエストで明示的に送信してください。TokenLabが自動的に別のモデルに置き換えることはありません。
@@ -157,28 +158,38 @@ GET https://api.tokenlab.sh/llms.txt
 
 これには、最初のリクエスト、一般的なエンドポイント、モデルフィルター、およびエラーハンドリングのガイダンスが含まれています。
 
-## 安全なリトライの例
+## リクエストを再送せずにエラーを扱う
 
-この例では、APIが `did_you_mean` を返した場合にのみモデル名を修正します。モデルの変更によって製品の品質、価格、またはデータ処理に影響が出る可能性がある場合は、ユーザーの確認を追加してください。
+この例はリクエストを 1 回だけ送り、選択したモデルを維持して構造化されたエラー情報を表示します。SDK の自動再試行は無効です。モデルの候補はユーザーに選択してもらい、受理済みまたはタイムアウトした生成を自動で再送しないでください。
 
 ```python
-from openai import OpenAI, BadRequestError
+import os
+from openai import OpenAI, APIStatusError
 
-client = OpenAI(
-    api_key="sk-your-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
-
-def chat(messages, model):
+with OpenAI(
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh/v1",
+    timeout=30.0,
+    max_retries=0,
+) as client:
     try:
-        return client.chat.completions.create(model=model, messages=messages)
-    except BadRequestError as exc:
-        error = exc.body.get("error", {}) if isinstance(exc.body, dict) else {}
-        suggested = error.get("did_you_mean")
-        if error.get("code") == "model_not_found" and suggested:
-            return client.chat.completions.create(
-                model=suggested,
-                messages=messages,
-            )
+        response = client.chat.completions.create(
+            model="gpt-5.6-terra",
+            messages=[{"role": "user", "content": "Reply only with OK."}],
+        )
+        print(response.choices[0].message.content)
+    except APIStatusError as exc:
+        body = exc.body if isinstance(exc.body, dict) else {}
+        error = body.get("error", body)
+        if not isinstance(error, dict):
+            error = {}
+        print({
+            "status": exc.status_code,
+            "request_id": exc.request_id,
+            "code": error.get("code"),
+            "hint": error.get("hint"),
+            "suggested_model": error.get("did_you_mean"),
+            "retry_after": exc.response.headers.get("Retry-After") or error.get("retry_after"),
+        })
         raise
 ```

@@ -37,10 +37,10 @@ Diese Seite beschreibt, wie Sie TokenLab als Tool-Server in Claude Code, Cursor,
 Der schnellste sichere Einstieg aktiviert zunächst nur die sechs öffentlichen Katalog-Tools. Dafür ist kein TokenLab API-Key erforderlich; authentifizierte Tools können Sie später aktivieren.
 
 <CardGroup cols={2}>
-  <Card title="In Cursor installieren" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXIiXSwiZW52Ijp7IlRPS0VOTEFCX01DUF9UT09MX1BST0ZJTEUiOiJjYXRhbG9nIn19">
+  <Card title="In Cursor installieren" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXJAMC42LjE5Il0sImVudiI6eyJUT0tFTkxBQl9NQ1BfVE9PTF9QUk9GSUxFIjoiY2F0YWxvZyJ9fQ%3D%3D">
     Das öffentliche Profil `catalog` mit einem Klick in Cursor hinzufügen
   </Card>
-  <Card title="In VS Code installieren" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
+  <Card title="In VS Code installieren" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%400.6.19%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
     Das öffentliche Profil `catalog` zur VS-Code-Benutzerkonfiguration hinzufügen
   </Card>
 </CardGroup>
@@ -70,19 +70,19 @@ Der schnellste sichere Einstieg aktiviert zunächst nur die sechs öffentlichen 
   <Step title="Client konfigurieren">
     Die öffentlichen Beispiele wählen ausdrücklich `catalog`, damit jedes bereitgestellte Tool ohne Key funktioniert.
 
-    <Tabs>
+    Sichern Sie die aktive Konfiguration. Ergänzen Sie nur den TokenLab-Eintrag und erhalten Sie vorhandene Anbieter, Konten, Standardmodell und Berechtigungen. Wählen Sie bei einem belegten Namen einen anderen und passen Sie die Befehle an. Entfernen Sie zum Rückgängigmachen nur den neuen Eintrag oder stellen Sie dessen Sicherung wieder her.
+
+<Tabs>
       <Tab title="Claude Code">
         Fügen Sie TokenLab im Benutzerbereich hinzu, damit es projektübergreifend verfügbar ist.
 
         ```bash
-        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab -- npx -y @tokenlabai/mcp-server
+        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab -- npx -y @tokenlabai/mcp-server@0.6.19
         ```
 
         Für das Standardprofil `core` fügen Sie stattdessen Ihren API-Key hinzu.
 
-        ```bash
-        claude mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key --scope user tokenlab -- npx -y @tokenlabai/mcp-server
-        ```
+
 
         Verwenden Sie `--scope local` nur für das aktuelle Projekt oder `--scope project` für eine gemeinsam genutzte `.mcp.json`. Committen Sie keinen echten Key in eine Projektkonfiguration.
       </Tab>
@@ -95,7 +95,7 @@ Der schnellste sichere Einstieg aktiviert zunächst nur die sechs öffentlichen 
           "mcpServers": {
             "tokenlab": {
               "command": "npx",
-              "args": ["-y", "@tokenlabai/mcp-server"],
+              "args": ["-y", "@tokenlabai/mcp-server@0.6.19"],
               "env": { "TOKENLAB_MCP_TOOL_PROFILE": "catalog" }
             }
           }
@@ -112,7 +112,7 @@ Der schnellste sichere Einstieg aktiviert zunächst nur die sechs öffentlichen 
             "tokenlab": {
               "type": "stdio",
               "command": "npx",
-              "args": ["-y", "@tokenlabai/mcp-server"],
+              "args": ["-y", "@tokenlabai/mcp-server@0.6.19"],
               "env": { "TOKENLAB_MCP_TOOL_PROFILE": "catalog" }
             }
           }
@@ -125,23 +125,17 @@ Der schnellste sichere Einstieg aktiviert zunächst nur die sechs öffentlichen 
       <Tab title="Codex">
         ```bash
         # Öffentlicher Katalog
-        codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab -- npx -y @tokenlabai/mcp-server
-
-        # Standardprofil core mit API-Key
-        codex mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key tokenlab -- npx -y @tokenlabai/mcp-server
+                codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab -- npx -y @tokenlabai/mcp-server@0.6.19
         ```
       </Tab>
 
       <Tab title="Claude Desktop">
-        Ergänzen Sie die Standardkonfiguration `mcpServers` in `claude_desktop_config.json` mit dem Befehl `npx` und den Argumenten `-y` sowie `@tokenlabai/mcp-server`. Für ausschließlich öffentliche Tools setzen Sie `TOKENLAB_MCP_TOOL_PROFILE=catalog`.
+        Ergänzen Sie die Standardkonfiguration `mcpServers` in `claude_desktop_config.json` mit dem Befehl `npx` und den Argumenten `-y` sowie `@tokenlabai/mcp-server@0.6.19`. Für ausschließlich öffentliche Tools setzen Sie `TOKENLAB_MCP_TOOL_PROFILE=catalog`.
       </Tab>
 
       <Tab title="Andere Clients">
-        Cline CLI kann den veröffentlichten stdio-Server direkt installieren.
 
-        ```bash
-        cline mcp add tokenlab --yes -- npx -y @tokenlabai/mcp-server
-        ```
+
 
         Speichern Sie für Windsurf die Standardkonfiguration `mcpServers` unter `~/.codeium/windsurf/mcp_config.json`. Andere stdio-Clients verwenden denselben Befehl und dieselben Argumente; das Arbeitsverzeichnis bleibt leer.
       </Tab>
@@ -162,7 +156,7 @@ Der schnellste sichere Einstieg aktiviert zunächst nur die sechs öffentlichen 
 
 ## Konfigurationsreferenz
 
-Verwenden Sie für lokale stdio-Clients den Servernamen `tokenlab`, den Befehl `npx`, die getrennten Argumente `-y` und `@tokenlabai/mcp-server` sowie kein Arbeitsverzeichnis. Mit `@tokenlabai/mcp-server@0.6.19` fixieren Sie die aktuell geprüfte Version.
+Verwenden Sie für lokale stdio-Clients den Servernamen `tokenlab`, den Befehl `npx`, die getrennten Argumente `-y` und `@tokenlabai/mcp-server@0.6.19` sowie kein Arbeitsverzeichnis. Mit `@tokenlabai/mcp-server@0.6.19` fixieren Sie die aktuell geprüfte Version.
 
 Standardkonfiguration für authentifizierte Tools:
 
@@ -171,7 +165,7 @@ Standardkonfiguration für authentifizierte Tools:
   "mcpServers": {
     "tokenlab": {
       "command": "npx",
-      "args": ["-y", "@tokenlabai/mcp-server"],
+      "args": ["-y", "@tokenlabai/mcp-server@0.6.19"],
       "env": {
         "TOKENLAB_API_KEY": "<TOKENLAB_API_KEY>",
         "TOKENLAB_MCP_TOOL_PROFILE": "core"
@@ -296,7 +290,7 @@ Verwenden Sie beides, wenn verfügbar:
 
 <AccordionGroup>
   <Accordion title="Der Client kann den Server nicht starten">
-    Stellen Sie sicher, dass Node.js mindestens Version 18.17 ist und der Client `npx` findet. Führen Sie `npx -y @tokenlabai/mcp-server` in einem Terminal aus, um npm- oder Netzwerkfehler anzuzeigen. Ein erfolgreicher stdio-Start wartet still auf MCP-Nachrichten; beenden Sie ihn nach der Prüfung mit **Ctrl+C**.
+    Stellen Sie sicher, dass Node.js mindestens Version 18.17 ist und der Client `npx` findet. Führen Sie `npx -y @tokenlabai/mcp-server@0.6.19` in einem Terminal aus, um npm- oder Netzwerkfehler anzuzeigen. Ein erfolgreicher stdio-Start wartet still auf MCP-Nachrichten; beenden Sie ihn nach der Prüfung mit **Ctrl+C**.
   </Accordion>
 
   <Accordion title="Der Server ist konfiguriert, aber es erscheinen keine Tools">

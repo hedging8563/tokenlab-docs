@@ -6,6 +6,10 @@ description: "Volc 호환 형식으로 실제 인물 시각 인증 세션을 생
 
 재사용 가능한 `liveness_face` 자료를 업로드하기 전에 실제 인물 시각 인증 세션을 생성합니다. TokenLab은 Volc Action API 형식과 TokenLab Bearer 인증을 사용합니다.
 
+세션을 생성한 것과 동일한 인증된 조직, 사용자 및 대소문자를 구분하는 `ProjectName`을 사용하세요.
+
+세션을 생성한 직후 `Result.H5Link`를 여세요. H5 최초 실행 기한은 30분 동안 유효한 `BytedToken`보다 짧을 수 있습니다.
+
 ## 엔드포인트 및 인증
 
 ```text

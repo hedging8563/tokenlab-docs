@@ -11,8 +11,7 @@ description: "继续使用项目里已有的 SDK 接入 TokenLab"
 - Claude Messages 使用 **Anthropic SDK**。
 - Gemini 请求使用 **Gemini / Google AI SDK**。
 
-对应的集成页面提供了可直接使用的配置，也会注明模型本身的限制。
-
+具体客户端配置和模型限制请查看对应整合页。首次完整请求见[快速开始](/zh/quickstart)。
 ## 选择 SDK
 
 <CardGroup cols={2}>
@@ -44,7 +43,7 @@ client = OpenAI(
 
 response = client.responses.create(
     model="gpt-5.6-terra",
-    input="Explain TokenLab in one sentence."
+    input="Reply with: Connected to TokenLab."
 )
 
 print(response.output_text)

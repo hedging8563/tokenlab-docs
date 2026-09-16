@@ -1,7 +1,7 @@
 ---
 title: "Carregar Arquivo"
 openapi: "POST /v1/files"
-description: "Carrega um arquivo de entrada em lote JSONL para criação em lote posterior."
+description: "Envie um arquivo de lote, uma referência de imagem ou um arquivo no formato Anthropic."
 ---
 
 ## Visão Geral
@@ -43,7 +43,6 @@ Use o painel interativo OpenAPI acima para o esquema exato.
 
 - Use `custom_id` para reconciliação idempotente a montante.
 - Espere `output_file_id` e `error_file_id` somente após o trabalhador finalizar o lote.
-- A precificação em lote pode diferir da precificação síncrona porque as regras de desconto `isBatchRequest=true` se aplicam.
 ## Entradas de arquivos de imagem
 
 A mesma rota `/v1/files` também pode enviar arquivos de imagem de referência para `/v1/images/edits`.

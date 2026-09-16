@@ -6,14 +6,14 @@ description: "يحوّل الصوت إلى نص باللغة الأصلية لل
 
 ## جسم الطلب
 
-**مهلة الطلبات المتزامنة:** ينتظر هذا الـ endpoint غير الخاص بالمحادثة حتى ينتهي النموذج الذي تم التوجيه إليه. قد تتجاوز المدخلات الكبيرة أو الصوت الطويل أو الدُفعات الكبيرة القيمة الافتراضية الشائعة للعميل وهي 30s، لذا اضبط مهلة عميل HTTP على `120s` على الأقل.
+قد يعيد التفريغ النص مباشرة أو يقبل مهمة غير متزامنة مع HTTP `200` و`id` و`status`. للمهمة المقبولة، اتبع `poll_url` أو استعلم عن `/v1/tasks/{id}`. للصوت الطويل الذي يُعالج تزامنيًا، اسمح بمهلة لا تقل عن `120s`.
 
 <ParamField body="file" type="file" required>
-  ملف الصوت المراد تفريغه. التنسيقات المدعومة: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, webm.
+  ملف الصوت المراد تفريغه. التنسيقات المدعومة: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, webm. الحد الأقصى لحجم الملف: 25 MB.
 </ParamField>
 
 <ParamField body="model" type="string" default="whisper-1">
-  النموذج المراد استخدامه. حاليًا لا يتم دعم سوى `whisper-1`.
+  معرّف نموذج التفريغ، مثل `whisper-1` أو `gpt-4o-transcribe`. اعرض الخيارات الحالية عبر `GET /v1/models?recommended_for=stt`.
 </ParamField>
 
 <ParamField body="language" type="string">
@@ -25,18 +25,20 @@ description: "يحوّل الصوت إلى نص باللغة الأصلية لل
 </ParamField>
 
 <ParamField body="response_format" type="string" default="json">
-  تنسيق الإخراج: `json`, `text`, `srt`, `verbose_json`, `vtt`.
+  تنسيق الإخراج. يدعم Whisper القيم `json` و`text` و`srt` و`verbose_json` و`vtt`. قد تختلف التنسيقات في النماذج الأخرى؛ راجع تفاصيل النموذج.
 </ParamField>
 
-<ParamField body="temperature" type="number" default="0">
-  درجة حرارة أخذ العينات (من 0 إلى 1).
+<ParamField body="temperature" type="number">
+  درجة حرارة أخذ العينات من 0 إلى 1، للنماذج التي تدعم هذه المعلمة فقط.
 </ParamField>
 
 <ParamField body="timestamp_granularities" type="array">
-  دقة الطابع الزمني: `word` و/أو `segment`. يتطلب `verbose_json`.
+  `word` و/أو `segment` إذا كان النموذج يدعمهما. يتطلب Whisper القيمة `response_format=verbose_json`. في multipart، كرّر `timestamp_granularities[]` لإرسال عدة قيم.
 </ParamField>
 
 ## الاستجابة
+
+تصف الحقول التالية استجابات JSON للتفريغ أو الترجمة. تعيد `text` و`srt` و`vtt` نصًا أو ترجمة مصاحبة خامًا بدلاً من كائن JSON. تعتمد الحقول الإضافية على النموذج وتنسيق الإخراج.
 
 <ResponseField name="text" type="string">
   النص المُفرَّغ.
@@ -45,7 +47,7 @@ description: "يحوّل الصوت إلى نص باللغة الأصلية لل
 بالنسبة إلى `verbose_json`:
 
 <ResponseField name="task" type="string">
-  تكون دائمًا `transcribe`.
+  اسم المهمة عند إرجاعه، مثل `transcribe`.
 </ResponseField>
 
 <ResponseField name="language" type="string">
@@ -62,6 +64,24 @@ description: "يحوّل الصوت إلى نص باللغة الأصلية لل
 
 <ResponseField name="words" type="array">
   طوابع زمنية على مستوى الكلمات (إذا تم طلبها).
+</ResponseField>
+
+تعيد مهمة التفريغ غير المتزامنة المقبولة الحقول التالية بدلاً من النص:
+
+<ResponseField name="id" type="string">
+  معرف المهمة.
+</ResponseField>
+
+<ResponseField name="task_id" type="string">
+  الاسم البديل لمعرّف المهمة غير المتزامنة عندما يكون متاحًا.
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  حالة المهمة: `pending` أو `processing` أو `completed` أو `failed`.
+</ResponseField>
+
+<ResponseField name="poll_url" type="string">
+  عنوان URL المفضل للاستعلام عند توفيره في استجابة الإنشاء.
 </ResponseField>
 
 <RequestExample>
@@ -155,9 +175,18 @@ echo $data['text'];
       "start": 0.0,
       "end": 2.5,
       "text": "Hello, this is a test",
-      "tokens": [...]
+      "tokens": [50364, 2425, 11]
     }
   ]
+}
+```
+
+```json HTTP 200 (async)
+{
+  "id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "task_id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "status": "pending",
+  "poll_url": "/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 }
 ```
 </ResponseExample>
@@ -167,8 +196,11 @@ echo $data['text'];
 لترجمة الصوت إلى الإنجليزية، استخدم endpoint الخاص بالترجمات:
 
 ```python
-response = client.audio.translations.create(
-    model="whisper-1",
-    file=audio_file
-)
+with open("audio.mp3", "rb") as audio_file:
+    response = client.audio.translations.create(
+        model="whisper-1",
+        file=audio_file
+    )
+
+print(response.text)
 ```

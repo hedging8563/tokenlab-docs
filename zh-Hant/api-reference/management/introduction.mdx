@@ -50,10 +50,11 @@ Authorization: Bearer mt-your-management-token
 
 | 欄位 | 型別 | 預設值 / 限制 | 說明 |
 |------|------|---------------|------|
-| `name` | string | 必填，預設 `Default Key`，長度 `1-50` | 顯示名稱，伺服器端會先去除前後空白 |
-| `limitAmount` | number \| null | 最小 `0`，輸入上限 `1000000` | `null` 或省略 = 不限額，`0` = 零額度，正數會被規範化為一個儲存上限，且不能超過 `100000` USD 等值 |
+| `name` | string | 選填，預設 `Default Key`，長度 `1-50` | 顯示名稱，伺服器端會先去除前後空白 |
+| `limitAmount` | number \| string \| null | `0–100000` USD | `null` 表示不設限，`0` 表示無法產生費用。十進位字串最多支援 6 位小數。 建立時省略此欄位表示不設限。 |
 | `limitCurrency` | 列舉 | 預設 `USD` | 僅限 USD。傳送 `CNY` 會回傳 `400 currency_retired`。 |
 | `models` | string[] | 預設 `[]` | 可選的模型白名單 |
+| `deliveryPolicy` | string \| null | `auto`, `verified`, `official`, `null` | `null` 表示繼承工作區交付策略。 |
 | `expiresAt` | string \| null | RFC3339 datetime | `null` 表示沒有到期時間 |
 
 ### PATCH /v1/management/api-keys/{keyId}
@@ -62,9 +63,10 @@ Authorization: Bearer mt-your-management-token
 |------|------|---------------|------|
 | `status` | enum | - | `active`, `inactive`, `revoked` |
 | `name` | string | 長度 `1-50` | 更新後的顯示名稱 |
-| `limitAmount` | number \| null | 最小 `0`，輸入上限 `1000000` | `null` = 不限額，`0` = 零額度，正數會被規範化為一個儲存上限，且不能超過 `100000` USD 等值 |
-| `limitCurrency` | 列舉 | 預設 `USD` | 僅限 USD。傳送 `CNY` 會回傳 `400 currency_retired`。 |
+| `limitAmount` | number \| string \| null | `0–100000` USD | `null` 表示不設限，`0` 表示無法產生費用。十進位字串最多支援 6 位小數。 |
+| `limitCurrency` | 列舉 | 預設 `USD` | 僅限 USD。傳送 `CNY` 會回傳 `400 currency_retired`。 設定時必須同時提供 `limitAmount`。 |
 | `models` | string[] | - | 更新後的模型白名單 |
+| `deliveryPolicy` | string \| null | `auto`, `verified`, `official`, `null` | `null` 表示繼承工作區交付策略。 |
 | `expiresAt` | string \| null | RFC3339 datetime | `null` 表示移除過期時間 |
 
 PATCH 請求至少需要提供一個欄位。
@@ -121,10 +123,14 @@ curl "https://api.tokenlab.sh/v1/management/api-keys" \
       "limit_amount_decimal": "500",
       "used_amount": 148.25,
       "used_amount_decimal": "148.25",
-      "models": ["gpt-4o-mini", "claude-3-7-sonnet"],
+      "models": [
+        "gpt-4o-mini",
+        "claude-3-7-sonnet"
+      ],
       "expires_at": "2026-04-30T00:00:00.000Z",
       "last_used_at": "2026-03-27T08:12:45.000Z",
-      "created_at": "2026-03-01T10:00:00.000Z"
+      "created_at": "2026-03-01T10:00:00.000Z",
+      "delivery_policy": null
     }
   ],
   "pagination": {

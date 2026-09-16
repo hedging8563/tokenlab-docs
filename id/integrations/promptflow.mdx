@@ -15,13 +15,26 @@ Koneksi OpenAI pada Prompt flow mendukung `base_url` kustom. Atur ke endpoint `/
 **Tingkat Dukungan**: Jalur yang kompatibel dengan OpenAI didukung
 </Note>
 
-## Membuat Koneksi
+## Instalasi
 
 ```bash
-pf connection create \
-  --file ./my_chatbot/openai.yaml \
-  --set api_key=sk-your-tokenlab-key base_url=https://api.tokenlab.sh/v1 \
-  --name open_ai_connection
+pip install promptflow promptflow-tools
+```
+
+## Membuat Koneksi
+
+Simpan koneksi berikut sebagai `openai.yaml`. Perintah meminta API key secara lokal. Pada node OpenAI, isi ID model TokenLab di `inputs.model`; `deployment_name` digunakan untuk Azure OpenAI.
+
+```yaml
+$schema: https://azuremlschemas.azureedge.net/promptflow/latest/OpenAIConnection.schema.json
+name: open_ai_connection
+type: open_ai
+base_url: https://api.tokenlab.sh/v1
+api_key: "<user-input>"
+```
+
+```bash
+pf connection create --file openai.yaml
 ```
 
 ## Catatan Flow
@@ -29,11 +42,18 @@ pf connection create \
 Di dalam `flow.dag.yaml` Anda, pastikan nama koneksi selaras dengan perintah di atas:
 
 ```yaml
-connection: open_ai_connection
-deployment_name: claude-sonnet-5
+nodes:
+  - name: chat
+    type: llm
+    source:
+      type: code
+      path: chat.jinja2
+    inputs:
+      model: claude-sonnet-5
+    api: chat
+    connection: open_ai_connection
 ```
 
-Beberapa template Prompt flow menyebut nilai ini sebagai `deployment_name` karena template yang sama juga mendukung deployment Azure OpenAI. Dengan TokenLab, gunakan ID model TokenLab.
 
 ## Catatan Endpoint
 

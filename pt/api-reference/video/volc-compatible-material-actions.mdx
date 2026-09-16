@@ -4,7 +4,7 @@ openapi: "POST /api/v3"
 description: "Referência das dez Actions compatíveis com Volcengine para materiais e grupos."
 ---
 
-Um cliente Volcengine pode manter nomes de Action, `Version=2024-01-01`, JSON PascalCase, filtros, ordenação, paginação e o envelope `ResponseMetadata + Result`. No TokenLab, apenas endpoint e autenticação mudam.
+Estes endpoints aceitam as Actions e os campos de materiais abaixo, com autenticação Bearer do TokenLab e o envelope `ResponseMetadata + Result`.
 
 ## Endpoint e autenticação
 
@@ -23,7 +23,7 @@ Content-Type: application/json
 | Action | Objetivo | JSON |
 | --- | --- | --- |
 | `CreateAssetGroup` | Criar grupo de materiais comum | `Name`; `Description`; `GroupType: "AIGC"`; `ProjectName` |
-| `ListAssetGroups` | Listar grupos de um projeto | `Filter`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
+| `ListAssetGroups` | Listar grupos de um projeto | `Filter.GroupIds`; `Filter.GroupType`; `Filter.Name`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
 | `GetAssetGroup` | Obter um grupo | `Id`; `ProjectName` |
 | `UpdateAssetGroup` | Alterar nome ou descrição | `Id`; `Name`; `Description`; `ProjectName` |
 | `DeleteAssetGroup` | Excluir grupo e materiais | `Id`; `ProjectName` |
@@ -57,12 +57,14 @@ curl 'https://api.tokenlab.sh/?Action=CreateAssetGroup&Version=2024-01-01' \
 | Action | Objetivo | JSON |
 | --- | --- | --- |
 | `CreateAsset` | Importar uma URL pública de imagem, vídeo ou áudio | `GroupId`; `URL`; `Name`; `AssetType`; `ProjectName` |
-| `ListAssets` | Listar materiais de um projeto | `Filter`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
+| `ListAssets` | Listar materiais de um projeto | `Filter.GroupIds`; `Filter.GroupType`; `Filter.Statuses`; `Filter.Name`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
 | `GetAsset` | Obter material e URL temporária | `Id`; `ProjectName` |
 | `UpdateAsset` | Renomear material | `Id`; `Name`; `ProjectName` |
 | `DeleteAsset` | Excluir um material | `Id`; `ProjectName` |
 
 `AssetType` aceita `Image`, `Video` e `Audio`. O grupo de destino determina se é material `AIGC` comum ou `LivenessFace` verificado.
+
+Use IDs de materiais do TokenLab. `CreateAsset` retorna `Result.Id` antes do fim do processamento; consulte `GetAsset` até `Result.Status` ser `Active` ou `Failed`. `ListAssets` também aceita `SortBy: "GroupId"`.
 
 ### Criar material
 
@@ -119,7 +121,7 @@ Erros preservam o envelope Volcengine; código e mensagem ficam em `ResponseMeta
 }
 ```
 
-`InvalidCredential`, `InvalidVersion`, `InvalidParameter`, `NotFound`, `Conflict`, `MethodNotAllowed`, `InternalError`.
+`InvalidCredential`, `InvalidVersion`, `InvalidParameter`, `NotFound`, `Conflict`, `OperationDenied`, `MethodNotAllowed`, `InternalError`.
 
 ## Alternativa REST
 

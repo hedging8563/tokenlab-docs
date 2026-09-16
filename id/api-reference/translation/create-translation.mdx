@@ -15,8 +15,7 @@ Endpoint ini berbeda dari [Terjemahan Audio](/id/api-reference/audio/create-tran
 Untuk alur agent, temukan dulu model terjemahan yang direkomendasikan saat ini:
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=translation" \
-  -H "Authorization: Bearer sk-your-api-key"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=translation"
 ```
 
 Lalu kirim model yang dipilih secara eksplisit ke `/v1/translations`.
@@ -82,13 +81,7 @@ curl -X POST "https://api.tokenlab.sh/v1/translations" \
 ```
 
 ```python Python
-from openai import OpenAI
 import requests
-
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
 
 response = requests.post(
     "https://api.tokenlab.sh/v1/translations",

@@ -1,7 +1,7 @@
 ---
 title: "Datei hochladen"
 openapi: "POST /v1/files"
-description: "Lädt eine JSONL-Batch-Eingabedatei für die spätere Batch-Erstellung hoch."
+description: "Eine Batch-Datei, Bildreferenz oder Datei im Anthropic-Format hochladen."
 ---
 
 ## Übersicht
@@ -43,7 +43,6 @@ Verwenden Sie das interaktive OpenAPI-Panel oben für das genaue Schema.
 
 - Verwenden Sie `custom_id` für idempotente nachgelagerte Abstimmungen.
 - Erwarten Sie `output_file_id` und `error_file_id` erst, nachdem der Worker das Batch abgeschlossen hat.
-- Die Batch-Preise können von den synchronen Preisen abweichen, da die Rabattregeln für `isBatchRequest=true` gelten.
 ## Bilddatei-Eingaben
 
 Dieselbe Route `/v1/files` kann auch Bildreferenzdateien für `/v1/images/edits` hochladen.

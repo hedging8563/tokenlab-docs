@@ -8,10 +8,12 @@ description: "透過 TokenLab 素材資源 ID 檢索單一 Seedance 素材資源
 
 如果影片生成回傳 `Seedance material asset not found or not accessible`，請確認您傳入的是此素材資源的 `id`，而非素材的 `group_id`。
 
+`project_name` 用於同一組織內的資源隔離，預設為 `default`。相關素材群組和素材須使用相同且區分大小寫的值；POST/PUT 在 JSON 請求主體中傳入，GET/DELETE 在查詢參數中傳入。
+
 ## 請求範例
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr \
+curl "https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr?project_name=default" \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```
 
@@ -21,6 +23,7 @@ curl https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr \
 {
   "id": "asset-20260720123456-qn7wr",
   "object": "seedance.material_asset",
+  "project_name": "default",
   "group_id": "group-20260720123456-vrt01",
   "library_type": "aigc_avatar",
   "asset_name": "Front view",

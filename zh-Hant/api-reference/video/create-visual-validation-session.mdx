@@ -6,6 +6,10 @@ description: "建立與火山引擎格式相容的真人視覺驗證會話。"
 
 上傳可重複使用的 `liveness_face` 素材前，請先建立真人視覺驗證會話。TokenLab 採用火山引擎 Action API 的請求格式，並使用 TokenLab Bearer 驗證。
 
+查詢時須使用建立會話的同一組織、使用者，以及相同且區分大小寫的 `ProjectName`。
+
+建立會話後請立即開啟 `Result.H5Link`。H5 的首次開啟期限可能早於 `BytedToken` 的 30 分鐘有效期，請勿延遲開啟。
+
 ## 端點與驗證
 
 ```text

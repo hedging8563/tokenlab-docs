@@ -15,11 +15,22 @@ Wenn die Antwort der Erstellung eine `poll_url` enthält, sollte vorzugsweise ge
 
 Du kannst öffentliche Bild-Task-IDs wie `ldtask_...` auch über `/v1/images/{id}` abfragen. Dieser Kompatibilitätsalias verwendet dieselbe Authentifizierung, Ownership-Prüfung, Billing-Header, terminalen Snapshots und Antwortform wie `/v1/images/generations/{id}`.
 
-
-Wenn die Aufgabe nicht mehr existiert oder im öffentlichen Aufgabenprotokoll nicht mehr verfügbar ist, gibt TokenLab `async_task_not_found` mit der Meldung `Task not found or no longer available.` zurück.
+Ein abgelaufener oder nicht verfügbarer öffentlicher Task kann `404 async_task_not_found` zurückgeben. Ist die Zugehörigkeit zum aktuellen API-Schlüssel nicht feststellbar, lautet die Antwort `403 task_not_owned`.
 </Info>
 
 ## Antwort
+
+<Note>
+Ergebnis-, Fehler-, Zeitstempel- und Modellfelder werden zurückgegeben, wenn sie für den Task verfügbar sind.
+</Note>
+
+<ResponseField name="id" type="string">
+  Task-Bezeichner.
+</ResponseField>
+
+<ResponseField name="poll_url" type="string">
+  Bevorzugte Polling-URL, wenn die Create-Antwort sie bereitstellt.
+</ResponseField>
 
 <ResponseField name="created" type="integer">
   Unix-Zeitstempel der Erstellung.
@@ -38,10 +49,10 @@ Wenn die Aufgabe nicht mehr existiert oder im öffentlichen Aufgabenprotokoll ni
 
   Jedes Objekt enthält:
   - `url` (string): URL des generierten Bildes
-  - `revised_prompt` (string): Der für die Generierung verwendete Prompt
+  - `revised_prompt` (string): Optionale vom Anbieter zurückgegebene Prompt-Überarbeitung, wenn das Upstream-Modell sie meldet
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="error" type="string | object">
   Fehlermeldung (nur vorhanden, wenn der `status` `failed` ist).
 </ResponseField>
 
@@ -59,6 +70,7 @@ response = requests.get(
     headers={"Authorization": "Bearer sk-your-api-key"}
 )
 
+response.raise_for_status()
 data = response.json()
 print(f"Status: {data['status']}")
 
@@ -76,6 +88,7 @@ const response = await fetch(
   }
 );
 
+if (!response.ok) throw new Error(`HTTP ${response.status}`);
 const data = await response.json();
 console.log(`Status: ${data.status}`);
 
@@ -93,12 +106,7 @@ if (data.status === 'completed') {
   "task_id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "poll_url": "/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "status": "pending",
-  "data": [
-    {
-      "url": "",
-      "revised_prompt": "a beautiful sunset over mountains"
-    }
-  ]
+  "data": []
 }
 ```
 
@@ -134,7 +142,7 @@ if (data.status === 'completed') {
 ## Best Practices für Polling
 
 <Tip>
-**Empfohlenes Polling-Intervall**: 3-5 Sekunden. Die meisten Bildgenerierungsaufgaben werden je nach Modell und gewähltem Provider-Pfad innerhalb von 30-120 Sekunden abgeschlossen.
+Bei `pending` oder `processing` alle 3–5 Sekunden abfragen und bei `completed` oder `failed` stoppen.
 </Tip>
 
 ```python
@@ -148,7 +156,8 @@ def poll_image_task(task_id, api_key, max_wait=300, interval=3):
 
     start_time = time.time()
     while time.time() - start_time < max_wait:
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=30)
+        response.raise_for_status()
         data = response.json()
 
         if data["status"] == "completed":

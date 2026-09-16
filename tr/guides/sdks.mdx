@@ -10,8 +10,7 @@ TokenLab'yı, SDK'yı ihtiyacınız olan davranışla eşleştirerek entegre etm
 - Gemini'ye özgü istek biçimleri için resmi **Gemini / Google AI** araçları
 - OpenAI ile uyumlu `/v1` yolları ve Responses tarzı kullanım için resmi **OpenAI SDK'ları**
 
-Destek sınırları için entegrasyon sayfalarını kullanın. Bu dokümantasyon setinde, "önerilen" veya "desteklenen" ifadesi belgelenmiş bir kurulum yolunun var olduğu anlamına gelir; bu, otomatik olarak bu depoda her çerçeve yardımcısının veya sağlayıcıya özgü özelliğin uçtan uca regresyon testinden geçtiği anlamına gelmez.
-
+İstemci ayarları ve model sınırları için ilgili entegrasyon sayfasına bakın. [Hızlı başlangıç](/tr/quickstart) tam bir ilk istek örneği içerir.
 ## Önerilen SDK'ler
 
 <CardGroup cols={2}>
@@ -43,7 +42,7 @@ client = OpenAI(
 
 response = client.responses.create(
     model="gpt-5.6-terra",
-    input="Explain TokenLab in one sentence."
+    input="Reply with: Connected to TokenLab."
 )
 
 print(response.output_text)

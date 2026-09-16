@@ -27,7 +27,7 @@ curl -X GET "https://api.tokenlab.sh/v1/batches/batch_abc123" \
   "status": "completed",
   "input_file_id": "file_abc123",
   "output_file_id": "file_out123",
-  "error_file_id": null,
+  "error_file_id": "file_err123",
   "request_counts": { "total": 100, "completed": 98, "failed": 2 }
 }
 ```
@@ -35,6 +35,6 @@ curl -X GET "https://api.tokenlab.sh/v1/batches/batch_abc123" \
 
 ## Important fields
 
-<ResponseField name="request_counts" type="object">Total, completed, and failed request counts.</ResponseField>
+<ResponseField name="request_counts" type="object">Counts of total, completed, failed, and cancelled requests.</ResponseField>
 <ResponseField name="output_file_id" type="string|null">Successful result file ID.</ResponseField>
 <ResponseField name="error_file_id" type="string|null">Failed result file ID.</ResponseField>

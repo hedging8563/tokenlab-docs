@@ -4,7 +4,7 @@ openapi: "POST /api/v3"
 description: "Tài liệu tham chiếu cho mười Action material và nhóm tương thích Volcengine."
 ---
 
-Client material Volcengine hiện có có thể giữ tên Action, `Version=2024-01-01`, JSON PascalCase, bộ lọc, sắp xếp, phân trang và envelope `ResponseMetadata + Result`. TokenLab chỉ thay endpoint và xác thực.
+Các endpoint này hỗ trợ Action và trường tư liệu bên dưới, dùng xác thực Bearer TokenLab và cấu trúc `ResponseMetadata + Result`.
 
 ## Endpoint và xác thực
 
@@ -23,7 +23,7 @@ Cũng hỗ trợ `POST /api/v3?Action=<ACTION>&Version=2024-01-01`. Mọi Action
 | Action | Mục tiêu | JSON |
 | --- | --- | --- |
 | `CreateAssetGroup` | Tạo nhóm material thông thường | `Name`; `Description`; `GroupType: "AIGC"`; `ProjectName` |
-| `ListAssetGroups` | Liệt kê nhóm trong project | `Filter`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
+| `ListAssetGroups` | Liệt kê nhóm trong project | `Filter.GroupIds`; `Filter.GroupType`; `Filter.Name`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
 | `GetAssetGroup` | Lấy một nhóm | `Id`; `ProjectName` |
 | `UpdateAssetGroup` | Đổi tên hoặc mô tả | `Id`; `Name`; `Description`; `ProjectName` |
 | `DeleteAssetGroup` | Xóa nhóm và material bên trong | `Id`; `ProjectName` |
@@ -57,12 +57,14 @@ curl 'https://api.tokenlab.sh/?Action=CreateAssetGroup&Version=2024-01-01' \
 | Action | Mục tiêu | JSON |
 | --- | --- | --- |
 | `CreateAsset` | Nhập một URL hình ảnh, video hoặc âm thanh công khai | `GroupId`; `URL`; `Name`; `AssetType`; `ProjectName` |
-| `ListAssets` | Liệt kê material trong project | `Filter`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
+| `ListAssets` | Liệt kê material trong project | `Filter.GroupIds`; `Filter.GroupType`; `Filter.Statuses`; `Filter.Name`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
 | `GetAsset` | Lấy material và URL tạm thời | `Id`; `ProjectName` |
 | `UpdateAsset` | Đổi tên material | `Id`; `Name`; `ProjectName` |
 | `DeleteAsset` | Xóa một material | `Id`; `ProjectName` |
 
 `AssetType` nhận `Image`, `Video` và `Audio`. Nhóm đích quyết định đây là material `AIGC` thông thường hay `LivenessFace` đã xác minh.
+
+Sử dụng ID tư liệu TokenLab. `CreateAsset` trả về `Result.Id` trước khi xử lý xong; thăm dò `GetAsset` đến khi `Result.Status` là `Active` hoặc `Failed`. `ListAssets` cũng hỗ trợ `SortBy: "GroupId"`.
 
 ### Tạo material
 
@@ -119,7 +121,7 @@ Lỗi giữ envelope phản hồi Volcengine; mã và thông báo nằm trong `R
 }
 ```
 
-`InvalidCredential`, `InvalidVersion`, `InvalidParameter`, `NotFound`, `Conflict`, `MethodNotAllowed`, `InternalError`.
+`InvalidCredential`, `InvalidVersion`, `InvalidParameter`, `NotFound`, `Conflict`, `OperationDenied`, `MethodNotAllowed`, `InternalError`.
 
 ## Phương án REST
 

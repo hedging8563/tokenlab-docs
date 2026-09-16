@@ -24,17 +24,36 @@ export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 
 将 TokenLab 的 `/v1` 端点用作 `base_url`：
 
+将以下配置保存为 `tokenlab-model.yaml`：
+
 ```yaml
 provider: autogen_ext.models.openai.OpenAIChatCompletionClient
 config:
   model: claude-sonnet-5
   base_url: https://api.tokenlab.sh/v1
-  api_key: ${TOKENLAB_API_KEY}
   model_info:
     function_calling: true
     json_output: true
+    structured_output: false
     vision: false
     family: claude
+```
+
+加载 YAML 时从环境变量读取 API Key；YAML 不会自动展开环境变量：
+
+```python
+import os
+import yaml
+
+from autogen_agentchat.agents import AssistantAgent
+from autogen_core.models import ChatCompletionClient
+
+with open("tokenlab-model.yaml", encoding="utf-8") as config_file:
+    config = yaml.safe_load(config_file)
+
+config["config"]["api_key"] = os.environ["TOKENLAB_API_KEY"]
+model_client = ChatCompletionClient.load_component(config)
+agent = AssistantAgent("assistant", model_client=model_client)
 ```
 
 ## Python 客户端
@@ -52,12 +71,28 @@ model_client = OpenAIChatCompletionClient(
     model_info={
         "function_calling": True,
         "json_output": True,
+        "structured_output": False,
         "vision": False,
         "family": "claude",
     },
 )
 
 agent = AssistantAgent("assistant", model_client=model_client)
+```
+
+## 发送第一个请求
+
+```python
+import asyncio
+
+async def main():
+    try:
+        result = await agent.run(task="Reply with: Connected to TokenLab.")
+        print(result.messages[-1].content)
+    finally:
+        await model_client.close()
+
+asyncio.run(main())
 ```
 
 ## 端点注意事项

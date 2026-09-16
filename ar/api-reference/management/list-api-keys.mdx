@@ -12,11 +12,14 @@ playground: simple
 
 ## ملاحظات
 
-- تدعم حقول المبالغ المالية الدولار الأمريكي فقط. تم إيقاف مدخلات `CNY` وتعيد `400 currency_retired`.
+- تدعم حقول المبالغ المالية الدولار الأمريكي فقط.
 
 - يتم استبعاد المفاتيح التي يديرها النظام.
 
 ## مثال
+
+<ParamField query="page" type="integer" default="1">رقم الصفحة بدءًا من 1.</ParamField>
+<ParamField query="limit" type="integer" default="50">حجم الصفحة من 1 إلى 100.</ParamField>
 
 <RequestExample>
 ```bash cURL
@@ -51,7 +54,8 @@ curl -X GET "https://api.tokenlab.sh/v1/management/api-keys" \
       ],
       "expires_at": "2026-12-31T23:59:59.000Z",
       "last_used_at": "2026-07-08T03:12:45.000Z",
-      "created_at": "2026-07-01T10:00:00.000Z"
+      "created_at": "2026-07-01T10:00:00.000Z",
+      "delivery_policy": null
     }
   ],
   "pagination": {
@@ -72,12 +76,13 @@ curl -X GET "https://api.tokenlab.sh/v1/management/api-keys" \
 <ResponseField name="data[].id" type="string">معرّف مفتاح API المستخدم في استدعاءات واجهة API للإدارة اللاحقة.</ResponseField>
 <ResponseField name="data[].name" type="string">اسم العرض لمفتاح API.</ResponseField>
 <ResponseField name="data[].key_prefix" type="string">بادئة مفتاح غير سرية للعرض والدعم.</ResponseField>
-<ResponseField name="data[].status" type="string">إحدى القيم `active` أو `inactive` أو `revoked`.</ResponseField>
+<ResponseField name="data[].status" type="string">إحدى القيم `active` أو `inactive` أو `suspended` أو `revoked`.</ResponseField>
 <ResponseField name="data[].limit_amount" type="number | null">حد الإنفاق بالدولار الأمريكي كرقم JSON للعرض. تعني `null` عدم وجود حد.</ResponseField>
 <ResponseField name="data[].limit_amount_decimal" type="string | null">حد الإنفاق الدقيق بالدولار الأمريكي كسلسلة عشرية. تعني `null` عدم وجود حد.</ResponseField>
 <ResponseField name="data[].used_amount" type="number">الإنفاق التراكمي للاستخدام بالدولار الأمريكي كرقم JSON للعرض.</ResponseField>
 <ResponseField name="data[].used_amount_decimal" type="string">الإنفاق التراكمي الدقيق للاستخدام بالدولار الأمريكي كسلسلة عشرية.</ResponseField>
 <ResponseField name="data[].models" type="string[]">قائمة النماذج المسموح بها لكل مفتاح. تعني المصفوفة الفارغة عدم وجود قيود إضافية على النماذج على مستوى المفتاح.</ResponseField>
+<ResponseField name="data[].delivery_policy" type="string | null">`auto`, `verified`, `official`, `null`. تعني `null` وراثة سياسة التسليم لمساحة العمل.</ResponseField>
 <ResponseField name="data[].expires_at" type="string | null">طابع زمني ISO لانتهاء صلاحية المفتاح، أو `null` إذا لم تكن له مدة انتهاء.</ResponseField>
 <ResponseField name="data[].last_used_at" type="string | null">طابع زمني ISO لأحدث استخدام، أو `null` إذا لم يُستخدم.</ResponseField>
 <ResponseField name="data[].created_at" type="string">طابع زمني ISO للإنشاء.</ResponseField>

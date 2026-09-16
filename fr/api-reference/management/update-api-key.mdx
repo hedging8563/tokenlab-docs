@@ -18,16 +18,16 @@ Au moins un champ doit être fourni dans la requête PATCH.
 |------|------|------------------------------|-------------|
 | `status` | enum | - | `active`, `inactive`, `revoked` |
 | `name` | string | longueur `1-50` | Nom affiché mis à jour |
-| `limitAmount` | number \| null | min. `0`, entrée max. `1000000` | `null` = illimité, `0` = quota nul. Les valeurs positives sont normalisées vers un plafond stocké qui ne peut pas dépasser l’équivalent de `100000` USD. |
-| `limitCurrency` | enum | valeur par défaut `USD` | USD uniquement. L'envoi de `CNY` renvoie `400 currency_retired`. |
+| `limitAmount` | number \| string \| null | `0–100000` USD | `null` signifie sans limite ; `0` empêche toute dépense. Les chaînes décimales acceptent jusqu’à 6 décimales. |
+| `limitCurrency` | enum | valeur par défaut `USD` | USD uniquement. L'envoi de `CNY` renvoie `400 currency_retired`. Si ce champ est fourni, `limitAmount` est obligatoire. |
 | `models` | string[] | - | Liste d’autorisation des modèles logiques mise à jour |
+| `deliveryPolicy` | string \| null | `auto`, `verified`, `official`, `null` | `null` hérite de la politique de livraison de l’espace de travail. |
 | `expiresAt` | string \| null | datetime RFC3339 | `null` efface la date d’expiration |
 
 ## Notes
 
 - Les champs monétaires prennent uniquement en charge l’USD. Les entrées `CNY` sont abandonnées et renvoient `400 currency_retired`.
 
-- Les champs monétaires sont réservés au USD. Les entrées `CNY` sont obsolètes et renvoient `400 currency_retired`.
 
 - Le hard delete n’est volontairement pas pris en charge dans Management API v1.
 - `revoked` est terminal pour l’usage opérationnel courant ; créez une nouvelle clé au lieu d’attendre un futur flux de réactivation.
@@ -69,7 +69,8 @@ Cette page fournit le schéma OpenAPI et des exemples de requêtes à copier. En
   ],
   "expires_at": "2026-12-31T23:59:59.000Z",
   "last_used_at": "2026-07-08T03:12:45.000Z",
-  "created_at": "2026-07-01T10:00:00.000Z"
+  "created_at": "2026-07-01T10:00:00.000Z",
+  "delivery_policy": null
 }
 ```
 </ResponseExample>
@@ -79,12 +80,13 @@ Cette page fournit le schéma OpenAPI et des exemples de requêtes à copier. En
 <ResponseField name="id" type="string">Identifiant de clé API utilisé dans les appels ultérieurs à l’API de gestion.</ResponseField>
 <ResponseField name="name" type="string">Nom d’affichage de la clé API.</ResponseField>
 <ResponseField name="key_prefix" type="string">Préfixe de clé non secret pour l’affichage et l’assistance.</ResponseField>
-<ResponseField name="status" type="string">L’une des valeurs `active`, `inactive` ou `revoked`.</ResponseField>
+<ResponseField name="status" type="string">L’une des valeurs `active`, `inactive`, `suspended` ou `revoked`.</ResponseField>
 <ResponseField name="limit_amount" type="number | null">Plafond de dépenses en USD renvoyé sous forme de nombre JSON pour l’affichage. `null` signifie aucune limite.</ResponseField>
 <ResponseField name="limit_amount_decimal" type="string | null">Plafond de dépenses exact en USD renvoyé sous forme de chaîne décimale. `null` signifie aucune limite.</ResponseField>
 <ResponseField name="used_amount" type="number">Dépenses d’utilisation cumulées en USD renvoyées sous forme de nombre JSON pour l’affichage.</ResponseField>
 <ResponseField name="used_amount_decimal" type="string">Dépenses d’utilisation cumulées exactes en USD renvoyées sous forme de chaîne décimale.</ResponseField>
 <ResponseField name="models" type="string[]">Liste des modèles autorisés par clé. Un tableau vide signifie qu’aucune restriction de modèle supplémentaire ne s’applique au niveau de la clé.</ResponseField>
+<ResponseField name="delivery_policy" type="string | null">`auto`, `verified`, `official`, `null`. `null` hérite de la politique de livraison de l’espace de travail.</ResponseField>
 <ResponseField name="expires_at" type="string | null">Horodatage ISO d’expiration de la clé, ou `null` si elle n’expire pas.</ResponseField>
 <ResponseField name="last_used_at" type="string | null">Horodatage ISO de la dernière utilisation, ou `null` si elle n’a jamais été utilisée.</ResponseField>
 <ResponseField name="created_at" type="string">Horodatage ISO de création.</ResponseField>

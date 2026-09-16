@@ -4,7 +4,8 @@ openapi: "POST /v1beta/models/{model}:generateContent"
 description: "Google Gemini API formatını kullanarak içerik oluşturur"
 ---
 
-TokenLab bu rotayı yalnızca yerel Gemini sözleşmesini yayımlayan ve aynı protokolde upstream rotası bulunan modeller için sunar; Chat Completions’a fallback yoktur. ProtoJSON lowerCamelCase ve özgün proto snake_case adlarının ikisi de resmidir ve karma isteklerde de korunur. Bilinmeyen alanlar best-effort iletilir ve desteğe upstream karar verir.
+Gemini Models API tarafından döndürülen bir modelle Gemini istek ve yanıt biçimlerini kullanın. ProtoJSON lowerCamelCase ve karşılık gelen proto snake_case alan adları kabul edilir. Desteklenen isteğe bağlı alanlar ve değerler seçilen modele bağlıdır.
+
 ## Yol Parametreleri
 
 <ParamField path="model" type="string" required>
@@ -27,7 +28,7 @@ Gemini uç noktaları birden fazla kimlik doğrulama yöntemini destekler:
 ## İstek Gövdesi
 
 <ParamField body="contents" type="array" required>
-  Konuşma içeriği. `role` değerleri ve tüm `parts` gönderildiği gibi korunur; TokenLab trim/lowercase, Base64 yeniden yazımı veya MIME çıkarımı yapmaz. `inlineData` / `inline_data` ve `fileData` / `file_data` resmi yazımlardır; TokenLab `fileData.mimeType` alanını yerel olarak zorunlu tutmaz. TokenLab’de oluşturulan Files/Cache kimliklerinde sahiplik denetlenir ve özgün upstream binding korunur; diğer medya ve araç kurallarına sağlayıcı karar verir.
+  `parts` ve isteğe bağlı `role` içeren konuşma içeriği. Medya için `inlineData` / `inline_data` veya `fileData` / `file_data` kullanılır. TokenLab’in oluşturduğu Files ve Cache ID’leri yalnızca sahibi olan Workspace içinde kullanılabilir.
 </ParamField>
 
 <ParamField body="systemInstruction" type="object">
@@ -35,7 +36,7 @@ Gemini uç noktaları birden fazla kimlik doğrulama yöntemini destekler:
 </ParamField>
 
 <ParamField body="generationConfig" type="object">
-  Yerel üretim yapılandırması. `maxOutputTokens`, `candidateCount`, `thinkingConfig` gibi lowerCamelCase adları ve karşılık gelen snake_case adları değiştirilmeden kabul edilir. TokenLab hata sonrasında `thinkingConfig` silmez veya streaming için yerel `candidateCount` sınırı uygulamaz; aralık ve kombinasyonlara upstream karar verir.
+  `temperature`, `topP`, `topK`, `maxOutputTokens`, `stopSequences`, `candidateCount`, `responseModalities`, `responseMimeType`, `responseSchema` ve `thinkingConfig` gibi üretim ayarları. Karşılık gelen snake_case adları da kabul edilir. Değerler ve kombinasyonlar modele bağlıdır.
 </ParamField>
 
 <ParamField body="safetySettings" type="array">
@@ -87,11 +88,11 @@ print(response.text)
 ```javascript JavaScript
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI("sk-your-api-key", {
-  baseUrl: "https://api.tokenlab.sh"
-});
-
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
+const genAI = new GoogleGenerativeAI("sk-your-api-key");
+const model = genAI.getGenerativeModel(
+  { model: "gemini-2.5-pro" },
+  { baseUrl: "https://api.tokenlab.sh" }
+);
 const result = await model.generateContent("Hello, Gemini!");
 
 console.log(result.response.text());

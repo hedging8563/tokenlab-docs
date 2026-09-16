@@ -6,6 +6,8 @@ description: "Aktualisiert eine Seedance-Materialgruppe, die der aktuellen Organ
 
 Aktualisieren Sie den Anzeigenamen, die Beschreibung oder die Metadaten für eine Materialgruppe. Bei verwalteten Gruppen für echte Personen bleibt die Zuordnung der verifizierten Person unverändert.
 
+`project_name` trennt Ressourcen innerhalb der authentifizierten Organisation. Der Standard ist `default`; verwenden Sie für zugehörige Gruppen und Assets denselben Wert mit gleicher Groß- und Kleinschreibung. Senden Sie ihn bei POST/PUT im JSON-Body und bei GET/DELETE als Query-Parameter.
+
 ## Beispielanfrage
 
 ```bash
@@ -13,7 +15,7 @@ curl https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01 
   -X PUT \
   -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"group_name":"Updated references","description":"Images approved for summer videos"}'
+  -d '{"group_name":"Updated references","description":"Images approved for summer videos","project_name":"default"}'
 ```
 
 ## Beispielantwort
@@ -22,6 +24,7 @@ curl https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01 
 {
   "id": "group-20260720123456-vrt01",
   "object": "seedance.material_asset_group",
+  "project_name": "default",
   "library_type": "aigc_avatar",
   "group_name": "Updated references",
   "description": "Images approved for summer videos",

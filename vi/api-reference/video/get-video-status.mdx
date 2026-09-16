@@ -13,10 +13,14 @@ description: "Truy xuất trạng thái và kết quả của một tác vụ t�
 <Info>
 Nếu phản hồi create trả về `poll_url`, hãy gọi đúng URL đó. Khi nó trỏ tới `/v1/tasks/{id}`, hãy coi đó là endpoint trạng thái cố định chuẩn.
 
-Nếu tác vụ không còn tồn tại hoặc không còn có trong bản ghi tác vụ công khai, TokenLab trả về `async_task_not_found` với thông báo `Task not found or no longer available.`
+Tác vụ công khai đã hết hạn hoặc không khả dụng có thể trả `404 async_task_not_found`. Nếu không xác nhận được quyền sở hữu cho API key hiện tại, phản hồi là `403 task_not_owned`.
 </Info>
 
 ## Phản hồi
+
+<Note>
+Các trường kết quả, lỗi, thời gian và model được trả về khi tác vụ cung cấp chúng.
+</Note>
 
 <ResponseField name="id" type="string">
   Định danh tác vụ async chuẩn.
@@ -54,7 +58,7 @@ Nếu tác vụ không còn tồn tại hoặc không còn có trong bản ghi t
   Nhiều payload video khi tác vụ tạo trả về hơn một kết quả.
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="error" type="string | object">
   Thông báo lỗi (nếu thất bại).
 </ResponseField>
 
@@ -88,6 +92,7 @@ while True:
         headers={"Authorization": "Bearer sk-your-api-key"}
     )
 
+    response.raise_for_status()
     data = response.json()
     print(f"Status: {data['status']}")
 
@@ -111,6 +116,7 @@ async function pollForVideo() {
       { headers: { 'Authorization': 'Bearer sk-your-api-key' } }
     );
 
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${await response.text()}`);
     const data = await response.json();
     console.log(`Status: ${data.status}`);
 
@@ -145,7 +151,9 @@ func main() {
         req.Header.Set("Authorization", "Bearer sk-your-api-key")
 
         client := &http.Client{}
-        resp, _ := client.Do(req)
+        resp, err := client.Do(req)
+        if err != nil { panic(err) }
+        if resp.StatusCode >= 400 { panic(fmt.Sprintf("HTTP %d", resp.StatusCode)) }
 
         var result map[string]interface{}
         json.NewDecoder(resp.Body).Decode(&result)
@@ -181,7 +189,11 @@ while (true) {
     ]);
 
     $response = curl_exec($ch);
+    $httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
+    if ($response === false || $httpStatus >= 400) {
+        throw new RuntimeException("HTTP request failed: {$httpStatus}");
+    }
 
     $data = json_decode($response, true);
     echo "Status: {$data['status']}\n";
@@ -260,6 +272,7 @@ while (true) {
 - Xử lý trạng thái `failed` một cách phù hợp
 
 ```python
+import requests
 import time
 
 def wait_for_video(task_id, max_wait=600, interval=5):
@@ -271,6 +284,7 @@ def wait_for_video(task_id, max_wait=600, interval=5):
             f"https://api.tokenlab.sh/v1/tasks/{task_id}",
             headers={"Authorization": "Bearer sk-your-api-key"}
         )
+        response.raise_for_status()
         data = response.json()
 
         if data["status"] == "completed":

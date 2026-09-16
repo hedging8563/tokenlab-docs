@@ -5,7 +5,13 @@ description: "Guardrails를 사용하여 TokenLab 모델 출력 검증하기"
 
 ## 개요
 
-Guardrails는 LLM API 인터페이스와 호환되는 모든 호출 가능(callable) 객체를 래핑할 수 있습니다. TokenLab의 경우, TokenLab의 기본 URL로 OpenAI SDK를 구성하고 채팅 완성(chat completions) 호출 가능 객체를 가드(guard)에 전달하십시오.
+TokenLab Base URL로 OpenAI SDK를 설정하고 JSON을 요청한 다음, 반환된 텍스트를 `Guard.parse`로 검증합니다.
+
+## 설치
+
+```bash
+pip install guardrails-ai openai
+```
 
 ## 환경 설정
 
@@ -33,11 +39,17 @@ client = OpenAI(
     base_url="https://api.tokenlab.sh/v1",
 )
 
-raw_output, validated_output, *rest = guard(
-    llm_api=client.chat.completions.create,
+response = client.chat.completions.create(
     model="claude-sonnet-5",
-    messages=[{"role": "user", "content": "What kind of pet should I get?"}],
+    response_format={"type": "json_object"},
+    messages=[{
+        "role": "user",
+        "content": "Suggest a pet. Return only JSON with string fields pet_type and name.",
+    }],
 )
+
+outcome = guard.parse(response.choices[0].message.content)
+print(outcome.validated_output)
 ```
 
 ## 엔드포인트 참고 사항

@@ -13,7 +13,7 @@ description: "TokenLab의 OpenAI 호환 API를 사용하도록 인기 있는 AI 
 - 앱의 표준 채팅 워크플로우에서 사용할 수 있는 모델을 선택하세요.
 
 <Note>
-일반 채팅 앱은 대개 **chat-completions 지향적**이며, Codex Responses WebSocket 클라이언트가 아닙니다. Codex CLI/App, Cursor 또는 Responses 전용 동작이 필요한 기타 코딩 도구의 경우, 대신 전용 통합 가이드를 사용하세요.
+아래 앱별 설정은 선택이 필요한 API를 명시합니다. 일부 앱은 모델에 따라 Responses를 선택합니다. 앱이 사용하는 API를 지원하는 모델을 사용하세요. 코딩 도구에는 별도의 통합 가이드가 있습니다.
 </Note>
 
 ## 지원되는 애플리케이션
@@ -54,81 +54,46 @@ description: "TokenLab의 OpenAI 호환 API를 사용하도록 인기 있는 AI 
     ```
 
     **LobeChat Cloud**
-    1. **Settings** → **AI Service Provider**를 엽니다.
+    1. **Settings** → **AI Providers**를 엽니다.
     2. **OpenAI**를 선택합니다.
     3. TokenLab API 키를 입력합니다.
     4. 사용자 지정 엔드포인트를 `https://api.tokenlab.sh/v1`로 설정합니다.
+
+    모델을 활성화하고 선택한 다음 테스트 메시지를 보냅니다. LobeChat은 일부 GPT 모델에 Responses를 자동으로 사용할 수 있으므로 해당 API를 지원하는 TokenLab 모델을 선택하세요.
   </Tab>
 
   <Tab title="Cherry Studio">
-    1. **Settings** → **Model Provider**를 엽니다.
-    2. **OpenAI-compatible** 공급자를 추가합니다.
-    3. 다음을 입력합니다:
-       - **Name**: TokenLab
-       - **API Base URL**: `https://api.tokenlab.sh/v1`
-       - **API Key**: `sk-your-tokenlab-key`
-    4. 사용할 모델을 추가합니다.
+    연결 설정, 모델 선택, 첫 테스트 메시지는 [Cherry Studio 설정 가이드](/ko/integrations/cherry-studio)를 따르세요.
   </Tab>
 
   <Tab title="Chatbox">
-    1. **Settings** → **AI Model**을 엽니다.
-    2. **OpenAI API Compatible**을 선택합니다.
-    3. 다음을 입력합니다:
-       - **API Host**: `https://api.tokenlab.sh/v1`
-       - **API Key**: `sk-your-tokenlab-key`
-       - **Model**: `gpt-5.4-mini` 또는 `claude-sonnet-5`
+    연결 설정, 모델 선택, 첫 테스트 메시지는 [Chatbox 설정 가이드](/ko/integrations/chatbox)를 따르세요.
   </Tab>
 
   <Tab title="TypingMind">
-    1. **Settings**를 엽니다.
-    2. **Custom Endpoint**를 선택합니다.
-    3. 다음을 입력합니다:
-       - **Endpoint URL**: `https://api.tokenlab.sh/v1/chat/completions`
-       - **API Key**: `sk-your-tokenlab-key`
-    4. 노출할 모델을 구성합니다.
+    1. **Models** → **Add Custom Models**를 엽니다.
+    2. 다음을 입력합니다.
+       - **Name**: TokenLab
+       - **Endpoint**: `https://api.tokenlab.sh/v1/chat/completions`
+       - **Model ID / Context length**: [TokenLab 모델](https://tokenlab.sh/ko/models)에서 정확한 모델 ID와 컨텍스트 길이를 복사합니다.
+       - **Custom Headers**: `Authorization: Bearer sk-your-tokenlab-key`
+    3. **Test**를 누른 다음 **Add Model**을 클릭합니다. 새 모델을 선택하고 테스트 메시지를 보냅니다.
   </Tab>
 
   <Tab title="Open WebUI">
-    1. **Admin Settings** → **Connections**를 엽니다.
-    2. **OpenAI-compatible** 연결을 추가합니다.
-    3. 다음을 입력합니다:
-       - **Base URL**: `https://api.tokenlab.sh/v1`
-       - **API Key**: `sk-your-tokenlab-key`
-    4. 저장하고 노출할 모델을 선택합니다.
+    연결 설정, 모델 선택, 첫 테스트 메시지는 [Open WebUI 설정 가이드](/ko/integrations/open-webui)를 따르세요.
   </Tab>
 
   <Tab title="DeepChat">
-    1. **Settings** -> **Model Provider**를 엽니다.
-    2. OpenAI 호환 공급자를 추가합니다.
-    3. 다음을 입력합니다:
-       - **Base URL**: `https://api.tokenlab.sh/v1`
-       - **API Key**: `sk-your-tokenlab-key`
-       - **Model**: `gpt-5.4-mini`
-    4. 저장하고 테스트 채팅을 실행합니다.
+    연결 설정, 모델 선택, 첫 테스트 메시지는 [DeepChat 설정 가이드](/ko/integrations/deepchat)를 따르세요.
   </Tab>
 
   <Tab title="Jan">
-    1. **Settings** -> **Providers**를 엽니다.
-    2. 원격 OpenAI 호환 공급자를 추가합니다.
-    3. 다음을 입력합니다:
-       - **Provider name**: TokenLab
-       - **Base URL**: `https://api.tokenlab.sh/v1`
-       - **API Key**: `sk-your-tokenlab-key`
-    4. `gpt-5.4-mini` 또는 다른 TokenLab 모델을 선택합니다.
+    연결 설정, 모델 선택, 첫 테스트 메시지는 [Jan 설정 가이드](/ko/integrations/jan)를 따르세요.
   </Tab>
 
   <Tab title="LibreChat">
-    LibreChat 공급자 구성에 OpenAI 호환 엔드포인트를 추가하고 다음을 가리키도록 설정합니다:
-
-    ```yaml
-    customEndpoints:
-      - name: TokenLab
-        apiKey: '${OPENAI_API_KEY}'
-        baseURL: 'https://api.tokenlab.sh/v1'
-        models:
-          default: ['gpt-5.6-luna', 'gpt-5.6-terra', 'claude-sonnet-5']
-          fetch: false
-    ```
+    연결 설정, 모델 선택, 첫 테스트 메시지는 [LibreChat 설정 가이드](/ko/integrations/librechat)를 따르세요.
   </Tab>
 </Tabs>
 

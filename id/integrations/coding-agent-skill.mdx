@@ -3,6 +3,12 @@ title: "✨ Skill Integrasi API TokenLab"
 description: "Pasang skill integrasi API TokenLab yang dipelihara dan bantu coding agent menemukan model, membaca detail model, serta pulih dari error API."
 ---
 
+```text
+Baca halaman ini dan tambahkan TokenLab Skill ke agen saya saat ini. Periksa versi serta konfigurasi aktif, lalu pertahankan akun, penyedia, izin, dan pengaturan yang ada. Cadangkan berkas dan tampilkan perubahan. Saya akan memasukkan API key secara lokal; jangan meminta atau menampilkannya di chat. Periksa pemuatan konfigurasi dan jelaskan tes berbayar sebelum menjalankannya.
+https://docs.tokenlab.sh/id/integrations/coding-agent-skill
+```
+
+
 <Note>
 Halaman ini mendokumentasikan skill bersama `tokenlab-api-integration` yang dipelihara. Distribusi kanonis berada di [hedging8563/tokenlab-skills](https://github.com/hedging8563/tokenlab-skills), dan repository publik sengaja hanya menyimpan skill ini.
 </Note>
@@ -70,11 +76,7 @@ Jangan tempel API keys ke prompt atau file sumber. Skill harus menanyakan variab
 
 ## Alur Agent yang disarankan
 
-1. Mulai dari contoh kerja terkecil yang sesuai dengan bahasa dan keluarga API yang diminta pengguna.
-2. Saat pilihan model terbuka, panggil `/v1/models` atau `https://api.tokenlab.sh/llms.txt` sebelum meng-hardcode model.
-3. Untuk pekerjaan non-chat, panggil `/v1/models?recommended_for=<scene>` dengan `<scene>` berupa `image`, `video`, `music`, `3d`, `tts`, `stt`, `embedding`, `rerank`, atau `translation`.
-4. Sebelum mengubah permintaan non-chat yang gagal, baca `/v1/models/:model` dan selaraskan dengan `supported_operations`, `supported_parameters`, `request_endpoint`, `request_endpoint_by_operation`, `request_shape_mode`, dan `recommended_request`.
-5. Jika API mengembalikan error Agent-First, gunakan field terstruktur untuk memperbaiki permintaan dan coba ulang hanya jika error retryable.
+Baca daftar model terkini, lalu `tokenlab.accepted_request_formats` dan bidang permintaan publik model yang dipilih. Pertahankan satu format untuk percakapan dan pemanggilan alat; bidang tidak dikonversi otomatis. Jangan mengganti model atau protokol atas inisiatif sendiri saat terjadi kesalahan.
 
 ## Contoh chat minimal
 
@@ -86,12 +88,12 @@ from openai import OpenAI
 
 client = OpenAI(
     api_key=os.environ["TOKENLAB_API_KEY"],
-    base_url="https://api.tokenlab.sh/v1"
+    base_url="https://api.tokenlab.sh/v1",
 )
 
 response = client.chat.completions.create(
-    model="gpt-4o-mini",
-    messages=[{"role": "user", "content": "Hello!"}]
+    model="gpt-5.6-luna",
+    messages=[{"role": "user", "content": "Hello!"}],
 )
 
 print(response.choices[0].message.content)
@@ -114,19 +116,19 @@ Utamakan penemuan live daripada daftar bawaan yang usang:
 curl https://api.tokenlab.sh/llms.txt
 
 # Daftar model
-curl "https://api.tokenlab.sh/v1/models" -H "Authorization: Bearer sk-KEY"
-curl "https://api.tokenlab.sh/v1/models?category=image" -H "Authorization: Bearer sk-KEY"
+curl "https://api.tokenlab.sh/v1/models" -H "Authorization: Bearer $TOKENLAB_API_KEY"
+curl "https://api.tokenlab.sh/v1/models?category=image" -H "Authorization: Bearer $TOKENLAB_API_KEY"
 
 # Daftar pendek non-chat berperingkat
-curl "https://api.tokenlab.sh/v1/models?recommended_for=image" -H "Authorization: Bearer sk-KEY"
-curl "https://api.tokenlab.sh/v1/models?recommended_for=video" -H "Authorization: Bearer sk-KEY"
-curl "https://api.tokenlab.sh/v1/models?recommended_for=translation" -H "Authorization: Bearer sk-KEY"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=image" -H "Authorization: Bearer $TOKENLAB_API_KEY"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=video" -H "Authorization: Bearer $TOKENLAB_API_KEY"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=translation" -H "Authorization: Bearer $TOKENLAB_API_KEY"
 
 # Baca detail model satu model sebelum mencoba ulang permintaan non-chat
-curl "https://api.tokenlab.sh/v1/models/gpt-image-2" -H "Authorization: Bearer sk-KEY"
+curl "https://api.tokenlab.sh/v1/models/gpt-image-2" -H "Authorization: Bearer $TOKENLAB_API_KEY"
 
 # Detail khusus harga
-curl "https://api.tokenlab.sh/v1/models/gpt-image-2/pricing" -H "Authorization: Bearer sk-KEY"
+curl "https://api.tokenlab.sh/v1/models/gpt-image-2/pricing" -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```
 
 ## Pemilihan protokol native
@@ -141,12 +143,7 @@ Endpoint protokolnya adalah `/v1/chat/completions` untuk Chat Completions, `/v1/
 
 Error menyertakan field yang dapat diparse coding agent tanpa mengorek dokumentasi:
 
-| Error | Field berguna | Tindakan agent |
-|---|---|---|
-| Nama model salah | `did_you_mean`, `suggestions`, `hint` | Coba ulang dengan model yang diperbaiki atau satu alternatif yang disarankan |
-| Saldo tidak cukup | `balance_usd`, `estimated_cost_usd`, `suggestions` | Minta persetujuan atau pindah ke model yang lebih terjangkau |
-| Batas laju atau sementara tidak tersedia | `retryable`, `retry_after`, `alternatives` | Tunggu, coba ulang, atau pilih alternatif yang tercantum |
-| Permintaan non-chat tidak kompatibel | `supported_operations`, `supported_parameters`, `request_endpoint`, `request_endpoint_by_operation`, `request_shape_mode`, `recommended_request` | Bangun ulang permintaan dari detail model dan kembalikan error yang jelas untuk field yang mengubah maksud |
+Utamakan status HTTP dan `code` kesalahan. Gunakan `did_you_mean` untuk nama yang salah, tetapi jangan mengganti model tanpa pilihan pengguna. Untuk `429`, ikuti `Retry-After` atau `retry_after` dan ulangi hanya jika diizinkan kesalahan serta dipilih secara eksplisit. Perbaiki dahulu kesalahan validasi, autentikasi, saldo, atau izin. Jika pembuatan permintaan timeout, periksa apakah tugas sudah ada sebelum mengirim ulang.
 
 ## Keluarga API yang didukung
 
@@ -204,21 +201,4 @@ Error menyertakan field yang dapat diparse coding agent tanpa mengorek dokumenta
 
 ## Sumber daya
 
-<CardGroup cols={2}>
-  <Card title="Agent-First API" icon="robot" href="/id/guides/agent-first-api">
-    Petunjuk error terstruktur dan perilaku pemulihan
-  </Card>
-  <Card title="Dokumentasi API" icon="book" href="https://docs.tokenlab.sh">
-    Setup per endpoint dan API Reference
-  </Card>
-  <Card title="Model" icon="sparkles" href="https://tokenlab.sh/id/models">
-    Jelajahi model yang tersedia
-  </Card>
-  <Card title="llms.txt" icon="file-lines" href="https://api.tokenlab.sh/llms.txt">
-    Ringkasan API yang dapat dibaca mesin untuk agents
-  </Card>
-</CardGroup>
-
-<Info>
-Ada pertanyaan? Gunakan [GitHub Issues](https://github.com/hedging8563/tokenlab-skills/issues) atau hubungi [support@tokenlab.sh](mailto:support@tokenlab.sh).
-</Info>
+Untuk masalah API atau akun, gunakan [Dukungan dalam aplikasi](https://tokenlab.sh/dashboard/support), periksa pratinjau lalu kirim secara eksplisit. Untuk permintaan tertentu, mulai dari [Permintaan](https://tokenlab.sh/dashboard/runs) dan [panduan investigasi](/id/guides/observability-troubleshooting). Laporkan cacat Skill melalui [GitHub Issues](https://github.com/hedging8563/tokenlab-skills/issues).

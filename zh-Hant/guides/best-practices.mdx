@@ -1,295 +1,47 @@
 ---
-title: "最佳實務"
-description: "最佳化您的 TokenLab API 使用方式，以提升成本效益、效能與可靠性"
+title: "可靠的 TokenLab 整合"
+description: "可靠的 TokenLab 整合"
 ---
 
-## 模型選擇
+## 模型與費用
 
-選擇合適的模型會大幅影響成本與品質。
+從模型 API 或模型頁取得目前的能力與價格，以相同任務比較候選模型。每次請求明確指定模型；更換模型可能改變價格、品質、工具與上下文，因此不要靜默切換。
 
-### 依任務類型的建議
+依 API 格式和模型設定輸出上限；不是所有模型都使用相同參數。減少重複上下文。媒體費用可能取決於數量、時長或解析度，昂貴生成應先顯示可取得的估價。
 
-| 任務 | 建議模型 | 原因 |
-|------|-------------------|-----------|
-| **簡單問答** | `gpt-5-mini`, `gemini-3.5-flash` | 快速、便宜、已足夠應付需求 |
-| **複雜推理** | `gpt-5.4`, `claude-opus-4-6` | 邏輯與規劃能力更佳 |
-| **程式撰寫** | `claude-sonnet-4-6`, `gpt-4o`, `deepseek-v3-2` | 針對程式碼進行最佳化 |
-| **創意寫作** | `claude-sonnet-4-6`, `gpt-4o` | 文字表達品質更佳 |
-| **視覺/影像** | `gpt-4o`, `claude-sonnet-4-6`, `gemini-3.5-flash` | 原生支援視覺能力 |
-| **長上下文** | `gemini-2.5-pro`, `claude-sonnet-4-6` | 1M+ token 視窗 |
-| **成本敏感** | `gpt-5-mini`, `gemini-3.5-flash`, `deepseek-v3-2` | 最佳性價比 |
+## 串流與重試
 
-### 成本層級
+串流能提早顯示文字，但不會減少 token 費用。中斷時保留有用的部分輸出，但不要標成完整答案。
 
-```
-$$$$ Premium: gpt-5.4, claude-opus-4-6
-$$$  Standard: claude-sonnet-4-6, gpt-4o
-$$   Budget:   gpt-5-mini, gemini-3.5-flash
-$    Economy:  deepseek-v3-2
-```
+429 應依 `Retry-After` 或 `retry_after` 等待；暫時性 5xx 可短暫退避。驗證、權限、餘額與上下文錯誤需要修正後再試。設定重試次數與總時限，避免與 SDK 內建重試疊加。
 
-## 成本最佳化
+- [串流](/zh-Hant/guides/streaming)
+- [429 / Retry-After](/zh-Hant/guides/rate-limits)
 
-### 1. 優先使用較小型的模型
+## 保護 Key 並記錄請求
+
+API Key 只放在伺服器環境或秘密管理工具中；不要放入瀏覽器、手機套件、公開倉庫或日誌。開發、正式環境和獨立應用程式使用不同 Key，限制模型與支出；外洩時立即撤銷。
 
 ```python
-def smart_query(question: str, complexity: str = "auto"):
-    """Use cheaper models for simple tasks."""
-
-    if complexity == "simple":
-        model = "gpt-5.6-luna"
-    elif complexity == "complex":
-        model = "gpt-5.6-terra"
-    else:
-        # Start cheap, escalate if needed
-        model = "gpt-5.6-luna"
-
-    response = client.chat.completions.create(
-        model=model,
-        messages=[{"role": "user", "content": question}]
-    )
-    return response
-```
-
-### 2. 設定 max_tokens
-
-請務必設定合理的 `max_tokens` 上限：
-
-```python
-# ❌ Bad: No limit, could generate thousands of tokens
-response = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": "Summarize this article"}]
-)
-
-# ✅ Good: Limit response length
-response = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": "Summarize this article"}],
-    max_tokens=500  # Reasonable limit for a summary
-)
-```
-
-### 3. 最佳化 Prompt
-
-```python
-# ❌ Verbose prompt (more input tokens)
-prompt = """
-I would like you to please help me by analyzing the following text
-and providing a comprehensive summary of the main points. Please be
-thorough but also concise in your response. The text is as follows:
-{text}
-"""
-
-# ✅ Concise prompt (fewer tokens)
-prompt = "Summarize the key points:\n{text}"
-```
-
-### 4. 批次處理相似請求
-
-```python
-# ❌ Many small requests
-for question in questions:
-    response = client.chat.completions.create(
-        model="gpt-5.6-terra",
-        messages=[{"role": "user", "content": question}]
-    )
-
-# ✅ Fewer larger requests
-combined_prompt = "\n".join([f"{i+1}. {q}" for i, q in enumerate(questions)])
-response = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": f"Answer each question:\n{combined_prompt}"}]
-)
-```
-
-## 效能最佳化
-
-### 5. 為 UX 使用串流回應
-
-串流回應可改善使用者感受到的效能：
-
-```python
-stream = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": "Write a long essay"}],
-    stream=True
-)
-
-for chunk in stream:
-    if chunk.choices[0].delta.content:
-        print(chunk.choices[0].delta.content, end="", flush=True)
-```
-
-### 6. 互動式使用情境選擇快速模型
-
-| 使用情境 | 建議 | 延遲 |
-|----------|-------------|---------|
-| 聊天 UI | `gpt-5-mini`, `gemini-3.5-flash` | ~200ms 首個 token |
-| Tab 補全 | `claude-haiku-4-5` | ~150ms 首個 token |
-| 背景處理 | `gpt-4o`, `claude-sonnet-4-6` | ~500ms 首個 token |
-
-### 7. 設定逾時
-
-```python
-client = OpenAI(
-    api_key="sk-your-key",
-    base_url="https://api.tokenlab.sh/v1",
-    timeout=60.0  # 60 second timeout
-)
-```
-
-## 可靠性
-
-### 8. 實作重試機制
-
-```python
-import time
-from openai import RateLimitError, APIError
-
-def chat_with_retry(messages, max_retries=3):
-    for attempt in range(max_retries):
-        try:
-            return client.chat.completions.create(
-                model="gpt-5.6-terra",
-                messages=messages
-            )
-        except RateLimitError:
-            wait = 2 ** attempt
-            print(f"Rate limited, waiting {wait}s...")
-            time.sleep(wait)
-        except APIError as e:
-            if attempt == max_retries - 1:
-                raise
-            time.sleep(1)
-    raise Exception("Max retries exceeded")
-```
-
-### 9. 妥善處理錯誤
-
-```python
-from openai import APIError, AuthenticationError, RateLimitError
-
-try:
-    response = client.chat.completions.create(...)
-except AuthenticationError:
-    # Check API key
-    notify_admin("Invalid API key")
-except RateLimitError:
-    # Queue for later or use backup
-    add_to_queue(request)
-except APIError as e:
-    if e.status_code == 402:
-        notify_admin("Balance low")
-    elif e.status_code >= 500:
-        # Server error, retry later
-        schedule_retry(request)
-```
-
-### 10. 使用備援模型
-
-```python
-FALLBACK_CHAIN = ["gpt-5.6-terra", "claude-sonnet-5", "gemini-3.5-flash"]
-
-def chat_with_fallback(messages):
-    for model in FALLBACK_CHAIN:
-        try:
-            return client.chat.completions.create(
-                model=model,
-                messages=messages
-            )
-        except APIError:
-            continue
-    raise Exception("All models failed")
-```
-
-## 安全性
-
-### 11. 保護 API Keys
-
-```python
-# ❌ Never hardcode keys
-client = OpenAI(api_key="sk-abc123...")
-
-# ✅ Use environment variables
 import os
-client = OpenAI(api_key=os.environ["TOKENLAB_API_KEY"])
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh/v1",
+    timeout=30.0,
+    max_retries=0,
+)
 ```
 
-### 12. 驗證使用者輸入
+記錄 `request_id`、`task_id`、回傳的 `billing_transaction_id`、模型、端點和自己的工作 ID。不要記錄憑據、完整私人提示、媒體或簽名 URL。最終費用以 Console Usage 或管理 API 用量記錄為準。
 
-```python
-def validate_message(content: str) -> bool:
-    """Validate user input before sending to API."""
-    if len(content) > 100000:
-        raise ValueError("Message too long")
-    # Add other validation as needed
-    return True
-```
+## 非同步工作
 
-### 13. 設定 API Key 限制
+非同步請求成功後立即保存 task ID 與 `poll_url`，持續查詢至 `completed` 或 `failed`。查詢失敗不等於生成失敗；逾時或重新整理後先恢復查詢，避免重複建立工作。端點支援時使用冪等鍵。
 
-為以下用途建立具備支出上限的獨立 API keys：
-- 開發/測試
-- 正式環境
-- 不同應用程式
+[非同步任務與輪詢](/zh-Hant/guides/async-jobs-polling)
 
-## 監控
+## 上線前
 
-### 14. 追蹤使用量
-
-請定期檢查您的 dashboard，以掌握：
-- 各模型的 token 使用量
-- 成本明細
-- 快取命中率
-- 錯誤率
-
-### 15. 記錄重要指標
-
-```python
-import logging
-
-response = client.chat.completions.create(...)
-
-logging.info({
-    "model": response.model,
-    "prompt_tokens": response.usage.prompt_tokens,
-    "completion_tokens": response.usage.completion_tokens,
-    "total_tokens": response.usage.total_tokens,
-})
-```
-
-### 16. 設定警示
-
-在您的 dashboard 中設定低餘額警示，以避免服務中斷。
-
-## 檢查清單
-
-<AccordionGroup>
-  <Accordion title="成本最佳化">
-    - [ ] 為每項任務使用適當的模型
-    - [ ] 設定 max_tokens 上限
-    - [ ] Prompt 保持精簡
-    - [ ] 在適當情況下啟用快取
-    - [ ] 批次處理相似請求
-  </Accordion>
-
-  <Accordion title="效能">
-    - [ ] 為互動式 UX 使用串流回應
-    - [ ] 即時使用情境採用快速模型
-    - [ ] 已設定逾時
-  </Accordion>
-
-  <Accordion title="可靠性">
-    - [ ] 已實作重試邏輯
-    - [ ] 已建立錯誤處理機制
-    - [ ] 已設定備援模型
-  </Accordion>
-
-  <Accordion title="安全性">
-    - [ ] API keys 存放於環境變數中
-    - [ ] 輸入驗證
-    - [ ] 為 dev/prod 使用獨立 keys
-    - [ ] 已設定支出上限
-  </Accordion>
-</AccordionGroup>
+上線前驗證實際使用的模型、格式、成功與常見錯誤、目前價格，以及重新整理和重複點擊的行為。

@@ -9,18 +9,22 @@ description: "تكوين TokenLab كموفر مخصص في OpenClaw باستخد
 
 ## موصى به: تثبيت الإضافة
 
-لتشغيل وكلاء OpenClaw بالطريقة القياسية، ثبّت إضافة موفر TokenLab:
+اختياريًا، ثبّت إضافة المزوّد المنشورة **0.1.0**. وفّر `TOKENLAB_API_KEY` في بيئة Gateway نفسها الموضحة أدناه واختر النموذج للجلسة فقط. يغيّر معالج الإعداد النموذج الافتراضي، لذا لا يشغّل هذا الدليل `openclaw onboard`. احتفظ بالإضافات والأذونات الحالية وتحقق من تحميل الإضافة وقائمة النماذج قبل أي طلب.
+
+راجع الإمكانات التي يطلبها المثبّت واتبع رسائل التأكيد في العميل. لا تمنح أذونات غير مرتبطة ولا تغيّر أذونات الإضافات الموجودة.
 
 ```bash
-openclaw plugins install @tokenlabai/openclaw-provider
-openclaw onboard
+openclaw plugins install @tokenlabai/openclaw-provider@0.1.0
+openclaw plugins list
+openclaw models list --provider tokenlab
 ```
 
-بعد التثبيت شغّل `openclaw onboard` واختر TokenLab وأدخل المفتاح في النافذة المحلية فقط. إن لم تُحمّل الإضافة، استخدم الإعداد اليدوي أدناه وتحقق من توافق الإصدار.
+```text
+/model tokenlab/claude-sonnet-5 -s
+/model default -s
+```
 
-تجلب الإضافة دليل نماذج المحادثة المباشر من TokenLab، وتحتفظ بـ 18 نموذجًا احتياطيًا للاكتشاف دون اتصال. تستخدم النماذج التنسيق `tokenlab/<model-id>`.
-
-[حزمة npm](https://www.npmjs.com/package/@tokenlabai/openclaw-provider) · [صفحة ClawHub](https://clawhub.ai/tokenlabai/plugins/openclaw-provider) · [الشيفرة المصدرية](https://github.com/hedging8563/tokenlab-openclaw-provider)
+[npm](https://www.npmjs.com/package/@tokenlabai/openclaw-provider/v/0.1.0) · [GitHub](https://github.com/hedging8563/tokenlab-openclaw-provider)
 
 ## تكوين الموفر يدويًا
 
@@ -45,6 +49,7 @@ openclaw onboard
 ## المتطلبات المسبقة
 
 - مثيل OpenClaw مستضاف محليًا (self-hosted)
+- يتطلب OpenClaw **2026.9.4** إصدار Node.js ضمن النطاق `>=24.16.0 <25 || >=26.1.0` ([متطلبات الإصدار](https://github.com/openclaw/openclaw/blob/v2026.9.4/package.json)). عند استخدام إصدار آخر من OpenClaw، تحقّق من متطلباته الخاصة.
 - مفتاح API من TokenLab — [Get one here](https://tokenlab.sh/dashboard/api?tab=keys)
 
 ## التكوين
@@ -57,15 +62,10 @@ openclaw onboard
 
 استخدم ملف التعريف و`OPENCLAW_STATE_DIR` و`OPENCLAW_CONFIG_PATH` نفسها الخاصة بالبوابة العاملة، وانسخ الإعدادات احتياطيًا. ضع `TOKENLAB_API_KEY` في `.env` العام الموثوق أو بيئة الخدمة لهذه النسخة. قد لا تصل متغيرات الطرفية أو `.env` المشروع إلى عملية الخلفية. راجع [البيئة](https://docs.openclaw.ai/help/environment).
 
+أنشئ نسخة احتياطية من الإعداد النشط. أضف عنصر TokenLab فقط واحتفظ بالمزوّدين والحسابات والنموذج الافتراضي والأذونات الحالية. إذا كان الاسم مستخدمًا، فاختر اسمًا آخر وعدّل الأوامر. للتراجع، احذف العنصر الذي أضفته فقط أو استعد نسخته الاحتياطية.
+
 ```json5
 {
-  agents: {
-    defaults: {
-      model: {
-        primary: "tokenlab-claude/claude-sonnet-5"
-      }
-    }
-  },
   models: {
     mode: "merge",
     providers: {
@@ -131,16 +131,11 @@ openclaw onboard
 
 لا يزال OpenClaw يشير إلى النماذج بصيغة `provider/model`:
 
-```json5
-{
-  agents: {
-    defaults: {
-      model: {
-        primary: "tokenlab-gemini/gemini-3.5-flash"
-      }
-    }
-  }
-}
+في **OpenClaw 2026.9.4**، اختر النموذج للجلسة الحالية فقط باستخدام `-s`. احتفظ بـ `agents.defaults.model` وإعدادات الوكيل الافتراضية والأذونات. استخدم `/model default -s` لإعادة الجلسة إلى نموذجها الافتراضي.
+
+```text
+/model tokenlab-claude/claude-sonnet-5 -s
+/model default -s
 ```
 
 ### أمثلة على النماذج

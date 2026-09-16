@@ -5,7 +5,8 @@ description: "リアルタイムのストリーミング応答を実装します
 
 ## 概要
 
-Streaming は出力を段階的に配信します。モデルがネイティブ Responses 契約を公開し、同一プロトコルの upstream ルートがある場合に Responses streaming を使用してください。それ以外は Chat Completions またはモデルが公開するネイティブプロトコルを使用します。
+ストリーミングは出力を順次返します。モデルの `accepted_request_formats` に `openai_responses` があれば Responses を使えます。既存の Chat Completions クライアントは同じ形式を維持できます。
+
 ## 推奨: Responses Streaming
 
 <CodeGroup>
@@ -22,42 +23,61 @@ curl https://api.tokenlab.sh/v1/responses \
 ```
 
 ```python Python
+import os
 from openai import OpenAI
 
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
-
-stream = client.responses.create(
-    model="gpt-5.6-terra",
-    input="Write a short poem.",
-    stream=True
-)
-
-for event in stream:
-    if event.type == "response.output_text.delta":
-        print(event.delta, end="", flush=True)
+with OpenAI(
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh/v1",
+    timeout=30.0,
+    max_retries=0,
+) as client:
+    completed = False
+    with client.responses.create(
+        model="gpt-5.6-terra",
+        input="Write a short poem.",
+        stream=True,
+    ) as stream:
+        for event in stream:
+            if event.type == "response.output_text.delta":
+                print(event.delta, end="", flush=True)
+            elif event.type == "response.completed":
+                completed = True
+            elif event.type in {"response.failed", "response.incomplete", "error"}:
+                raise RuntimeError(f"Stream ended with {event.type}")
+    if not completed:
+        raise RuntimeError("Stream closed before response.completed")
 ```
 
 ```javascript JavaScript
 import OpenAI from 'openai';
 
 const client = new OpenAI({
-  apiKey: 'sk-your-api-key',
-  baseURL: 'https://api.tokenlab.sh/v1'
+  apiKey: process.env.TOKENLAB_API_KEY,
+  baseURL: 'https://api.tokenlab.sh/v1',
+  timeout: 30_000,
+  maxRetries: 0,
 });
 
 const stream = await client.responses.create({
   model: 'gpt-5.6-terra',
   input: 'Write a short poem.',
-  stream: true
+  stream: true,
 });
-
-for await (const event of stream) {
-  if (event.type === 'response.output_text.delta') {
-    process.stdout.write(event.delta);
+let completed = false;
+try {
+  for await (const event of stream) {
+    if (event.type === 'response.output_text.delta') {
+      process.stdout.write(event.delta);
+    } else if (event.type === 'response.completed') {
+      completed = true;
+    } else if (['response.failed', 'response.incomplete', 'error'].includes(event.type)) {
+      throw new Error(`Stream ended with ${event.type}`);
+    }
   }
+  if (!completed) throw new Error('Stream closed before response.completed');
+} finally {
+  stream.controller.abort();
 }
 ```
 
@@ -66,26 +86,43 @@ for await (const event of stream) {
 
 ## Responses と Gemini の streaming 境界
 
-Responses SSE では upstream イベントの名前、順序、フィールドを保持し、wire を変えずに usage と終端状態を帯域外で読み取ります。最初のイベントを配信した後は、別の channel や credential を試しません。
+Responses SSE は公開されたイベント名、順序、フィールドを保持します。出力後に切断された応答は未完了で、自動的に再開されません。
 
-Responses WebSocket が受け付けるのは公式の `response.create` イベントだけです。stream は暗黙で、この transport では `background` と `response.cancel` を提供しません。background は HTTP のみです。接続は直列で multiplexing を行わず、上限は 60 分です。
+Responses WebSocket は `response.create` を使い、常にストリーミングします。`background` と `response.cancel` は利用できません。接続ごとに一度に一つの応答を処理し、上限は 60 分です。`generate: false` は継続用 ID を作成し、モデル出力やモデル料金を発生させません。
 
-Gemini SSE はネイティブ chunk を保持します。metadata のみのイベント、`finishReason` のない中間 chunk、自然な EOF は有効で、Chat の `[DONE]` を追加しません。
+Gemini SSE はネイティブのチャンクを返します。途中のイベントには `finishReason` がない場合があり、Chat の `[DONE]` なしで自然に終了できます。
+
 ## Chat Completions ストリーミング
 
 フレームワークが依然として `/v1/chat/completions` からの SSE チャンクを想定している場合でも、これも動作します。
 
 ```python
-stream = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": "Write a short poem"}],
-    stream=True
-)
+import os
+from openai import OpenAI
 
-for chunk in stream:
-    content = chunk.choices[0].delta.content
-    if content:
-        print(content, end="", flush=True)
+with OpenAI(
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh/v1",
+    timeout=30.0,
+    max_retries=0,
+) as client:
+    finish_reason = None
+    with client.chat.completions.create(
+        model="gpt-5.6-terra",
+        messages=[{"role": "user", "content": "Write a short poem."}],
+        stream=True,
+        stream_options={"include_usage": True},
+    ) as stream:
+        for chunk in stream:
+            if not chunk.choices:
+                continue
+            choice = chunk.choices[0]
+            if choice.delta.content:
+                print(choice.delta.content, end="", flush=True)
+            if choice.finish_reason:
+                finish_reason = choice.finish_reason
+    if finish_reason != "stop":
+        raise RuntimeError(f"Stream ended without a complete text answer: {finish_reason}")
 ```
 
 ## ストリーム終了条件
@@ -98,49 +135,13 @@ for chunk in stream:
 
 ## Web アプリのパターン
 
-```javascript
-async function streamChat(message) {
-  const response = await fetch('https://api.tokenlab.sh/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Bearer sk-your-api-key',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: 'gpt-5.6-terra',
-      messages: [{ role: 'user', content: message }],
-      stream: true
-    })
-  });
-
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-
-    const chunk = decoder.decode(value);
-    const lines = chunk.split('\\n').filter(line => line.startsWith('data: '));
-
-    for (const line of lines) {
-      const data = line.slice(6);
-      if (data === '[DONE]') return;
-      const parsed = JSON.parse(data);
-      const content = parsed.choices?.[0]?.delta?.content;
-      if (content) {
-        document.getElementById('output').textContent += content;
-      }
-    }
-  }
-}
-```
+SDK のストリーム処理はサーバーで実行してください。ブラウザーは認証済みの自前バックエンドを呼び出し、TokenLab キーはサーバー環境に保管します。テキスト差分をブラウザーへ転送し、停止や切断時には上流ストリームをキャンセルします。SSE の解析には SDK を使ってください。ネットワークのチャンク境界とイベント境界は一致しません。
 
 ## ベストプラクティス
 
 <AccordionGroup>
   <Accordion title="新規構築では Responses streaming を優先する">
-    SDK またはアプリがすでに `/v1/responses` をサポートしている場合は、それを使用してください。`/v1/chat/completions` のストリーミングは、互換性を重視した統合向けに維持してください。
+    ストリーミングは出力を順次返します。モデルの `accepted_request_formats` に `openai_responses` があれば Responses を使えます。既存の Chat Completions クライアントは同じ形式を維持できます。
   </Accordion>
 
   <Accordion title="出力を段階的に flush する">
@@ -148,6 +149,6 @@ async function streamChat(message) {
   </Accordion>
 
   <Accordion title="切断と再試行を処理する">
-    ネットワーク切断や上流側の切断は通常の障害モードとして扱い、長時間実行されるセッションでは慎重に再接続してください。
+    切断されたストリームを完全な回答として扱わないでください。有用な部分出力を保持し、再送すると別の出力や追加料金が発生し得ることを考慮してください。
   </Accordion>
 </AccordionGroup>

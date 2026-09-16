@@ -8,10 +8,12 @@ description: "استرجاع أصل مادي واحد من Seedance بواسطة
 
 إذا أرجع إنشاء الفيديو رسالة `Seedance material asset not found or not accessible`، فتأكد من أنك قمت بتمرير `id` الخاص بهذا الأصل المادي، وليس `group_id` الخاص بالمادة.
 
+يعزل `project_name` الموارد داخل المؤسسة المصادق عليها. قيمته الافتراضية `default`؛ استخدم القيمة نفسها مع مراعاة حالة الأحرف للمجموعات والأصول المرتبطة. أرسله في جسم JSON مع POST/PUT وفي معاملات الاستعلام مع GET/DELETE.
+
 ## مثال على الطلب
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr \
+curl "https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr?project_name=default" \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```
 
@@ -21,6 +23,7 @@ curl https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr \
 {
   "id": "asset-20260720123456-qn7wr",
   "object": "seedance.material_asset",
+  "project_name": "default",
   "group_id": "group-20260720123456-vrt01",
   "library_type": "aigc_avatar",
   "asset_name": "Front view",

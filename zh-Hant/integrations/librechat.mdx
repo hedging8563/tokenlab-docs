@@ -17,34 +17,39 @@ LibreChat 可透過自訂的 OpenAI 相容端點與 TokenLab 良好運作。
 
 ## 環境變數
 
+在 LibreChat 專案根目錄的 `.env` 檔案中加入：
+
 ```bash
 TOKENLAB_API_KEY=sk-your-tokenlab-key
 ```
 
 ## 端點範例
 
-將 TokenLab 加入您的 LibreChat 端點設定：
+如果 LibreChat 專案根目錄尚無 `librechat.yaml`，先從 `librechat.example.yaml` 複製。保留必要的 `version` 與既有設定，將以下項目合併到 `endpoints.custom`：
 
 ```yaml
-customEndpoints:
-  - name: 'TokenLab'
-    apiKey: '${TOKENLAB_API_KEY}'
-    baseURL: 'https://api.tokenlab.sh/v1'
-    models:
-      default:
-        - 'gpt-5.5'
-        - 'gpt-5.6-terra'
-        - 'gpt-5.6-luna'
-        - 'claude-opus-4-8'
-        - 'claude-sonnet-5'
-        - 'gemini-3.5-flash'
-        - 'deepseek-v4-pro'
-        - 'deepseek-v4-flash'
-      fetch: true
-    titleConvo: true
-    titleModel: 'gpt-5.6-luna'
-    modelDisplayLabel: 'TokenLab'
+endpoints:
+  custom:
+    - name: 'TokenLab'
+      apiKey: '${TOKENLAB_API_KEY}'
+      baseURL: 'https://api.tokenlab.sh/v1'
+      models:
+        default:
+          - 'gpt-5.5'
+          - 'gpt-5.6-terra'
+          - 'gpt-5.6-luna'
+          - 'claude-opus-4-8'
+          - 'claude-sonnet-5'
+          - 'gemini-3.5-flash'
+          - 'deepseek-v4-pro'
+          - 'deepseek-v4-flash'
+        fetch: true
+      titleConvo: true
+      titleModel: 'gpt-5.6-luna'
+      modelDisplayLabel: 'TokenLab'
 ```
+
+使用 Docker 時，將該檔案掛載到 API 容器的 `/app/librechat.yaml`。重新啟動同一個 LibreChat 實例，然後選擇 TokenLab。詳見 [LibreChat 設定指南](https://www.librechat.ai/docs/configuration/librechat_yaml)。
 
 ## 注意事項
 

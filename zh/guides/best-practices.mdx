@@ -22,14 +22,6 @@ description: "控制费用、重试、API 密钥和请求记录"
 
 使用文字模型时，把最大输出长度限制在产品真正用得上的范围内。不同 API 和模型使用的参数可能不同，发送 `max_tokens` 或 `max_output_tokens` 前请查看模型页面。
 
-```python
-response = client.chat.completions.create(
-    model="gpt-5.6-luna",
-    messages=[{"role": "user", "content": "Summarize this article in five bullets."}],
-    max_tokens=500,
-)
-```
-
 提示词不是越短越好，但重复的上下文和套话一定会增加输入 tokens。固定说明尽量简洁，只保留下一条回答真正需要的对话历史。
 
 图片、视频、音乐、3D 和 Worlds 的费用通常与数量、时长、分辨率或其他生成选项有关。API 能提供预估时，费用较高的生成应在用户确认前展示当前预估。
@@ -38,18 +30,7 @@ response = client.chat.completions.create(
 
 流式输出会边生成边显示，让用户更早看到内容，但不会减少 token 费用。
 
-```python
-stream = client.chat.completions.create(
-    model="gpt-5.6-luna",
-    messages=[{"role": "user", "content": "Explain this code."}],
-    stream=True,
-)
-
-for chunk in stream:
-    text = chunk.choices[0].delta.content
-    if text:
-        print(text, end="", flush=True)
-```
+包含客户端初始化和完成状态检查的完整示例，见[流式传输](/zh/guides/streaming)。
 
 连接中断时，这次回答仍未完成。不要把残缺内容标成成功，也不要在可能产生第二次副作用或收费时自动重发。
 
@@ -57,14 +38,7 @@ for chunk in stream:
 
 收到 `429` 后，按 `Retry-After` 响应头或 `retry_after` 字段等待。短暂的 `5xx` 错误可以使用有限次数的指数退避。鉴权、参数、余额和上下文长度错误需要应用或用户修改内容，原样重发没有用。
 
-```python
-import random
-
-def retry_delay(attempt, retry_after=None):
-    if retry_after is not None:
-        return float(retry_after)
-    return min(30, (2 ** attempt) + random.random())
-```
+尊重 `Retry-After`、限制尝试次数并关闭 SDK 重复重试的完整示例，见[请求速率限制](/zh/guides/rate-limits)。
 
 重试要同时限制次数和总时长。媒体创建请求超时后，请用已经取得的任务 ID 查询，确认没有创建成功再重新提交。接口支持幂等键时，请为同一次用户操作复用同一个键。
 
@@ -79,6 +53,8 @@ from openai import OpenAI
 client = OpenAI(
     api_key=os.environ["TOKENLAB_API_KEY"],
     base_url="https://api.tokenlab.sh/v1",
+    timeout=30.0,
+    max_retries=0,
 )
 ```
 

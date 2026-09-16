@@ -18,9 +18,10 @@ Phải cung cấp ít nhất một trường.
 |-------|------|---------------------|------|
 | `status` | enum | - | `active`, `inactive`, `revoked` |
 | `name` | string | độ dài `1-50` | Tên hiển thị đã cập nhật |
-| `limitAmount` | number \| null | tối thiểu `0`, input tối đa `1000000` | `null` = không giới hạn, `0` = quota bằng 0. Giá trị dương được chuẩn hoá thành trần lưu trữ không vượt quá tương đương `100000` USD |
-| `limitCurrency` | enum | mặc định `USD` | Chỉ hỗ trợ USD. Gửi `CNY` sẽ trả về `400 currency_retired`. |
+| `limitAmount` | number \| string \| null | `0–100000` USD | `null` nghĩa là không giới hạn; `0` ngăn phát sinh chi phí. Chuỗi thập phân hỗ trợ tối đa 6 chữ số sau dấu thập phân. |
+| `limitCurrency` | enum | mặc định `USD` | Chỉ hỗ trợ USD. Gửi `CNY` sẽ trả về `400 currency_retired`. Khi được chỉ định, phải có cả `limitAmount`. |
 | `models` | string[] | - | Danh sách cho phép model đã cập nhật |
+| `deliveryPolicy` | string \| null | `auto`, `verified`, `official`, `null` | `null` kế thừa chính sách cung cấp của không gian làm việc. |
 | `expiresAt` | string \| null | datetime RFC3339 | `null` sẽ xoá thời hạn hết hạn |
 
 ## Ghi Chú
@@ -67,7 +68,8 @@ Trang này cung cấp schema OpenAPI và các ví dụ yêu cầu có thể sao 
   ],
   "expires_at": "2026-12-31T23:59:59.000Z",
   "last_used_at": "2026-07-08T03:12:45.000Z",
-  "created_at": "2026-07-01T10:00:00.000Z"
+  "created_at": "2026-07-01T10:00:00.000Z",
+  "delivery_policy": null
 }
 ```
 </ResponseExample>
@@ -77,12 +79,13 @@ Trang này cung cấp schema OpenAPI và các ví dụ yêu cầu có thể sao 
 <ResponseField name="id" type="string">Mã định danh khóa API dùng trong các lệnh gọi API Quản lý tiếp theo.</ResponseField>
 <ResponseField name="name" type="string">Tên hiển thị của khóa API.</ResponseField>
 <ResponseField name="key_prefix" type="string">Tiền tố khóa không bí mật để hiển thị và hỗ trợ.</ResponseField>
-<ResponseField name="status" type="string">Một trong các giá trị `active`, `inactive` hoặc `revoked`.</ResponseField>
+<ResponseField name="status" type="string">Một trong các giá trị `active`, `inactive`, `suspended` hoặc `revoked`.</ResponseField>
 <ResponseField name="limit_amount" type="number | null">Hạn mức chi tiêu bằng USD dưới dạng số JSON để hiển thị. `null` nghĩa là không giới hạn.</ResponseField>
 <ResponseField name="limit_amount_decimal" type="string | null">Hạn mức chi tiêu chính xác bằng USD dưới dạng chuỗi thập phân. `null` nghĩa là không giới hạn.</ResponseField>
 <ResponseField name="used_amount" type="number">Chi phí sử dụng tích lũy bằng USD dưới dạng số JSON để hiển thị.</ResponseField>
 <ResponseField name="used_amount_decimal" type="string">Chi phí sử dụng tích lũy chính xác bằng USD dưới dạng chuỗi thập phân.</ResponseField>
 <ResponseField name="models" type="string[]">Danh sách mô hình được phép cho từng khóa. Mảng rỗng nghĩa là không có hạn chế mô hình bổ sung ở cấp khóa.</ResponseField>
+<ResponseField name="delivery_policy" type="string | null">`auto`, `verified`, `official`, `null`. `null` kế thừa chính sách cung cấp của không gian làm việc.</ResponseField>
 <ResponseField name="expires_at" type="string | null">Dấu thời gian ISO khi khóa hết hạn, hoặc `null` nếu không hết hạn.</ResponseField>
 <ResponseField name="last_used_at" type="string | null">Dấu thời gian ISO của lần sử dụng gần nhất, hoặc `null` nếu chưa từng sử dụng.</ResponseField>
 <ResponseField name="created_at" type="string">Dấu thời gian ISO khi tạo.</ResponseField>

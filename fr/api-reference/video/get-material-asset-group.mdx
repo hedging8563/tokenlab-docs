@@ -8,10 +8,12 @@ Récupérez un groupe de matériel. Le paramètre `library_type` vous indique si
 
 Utilisez cet endpoint avant le téléchargement si vous devez confirmer que le groupe existe toujours et possède le statut `status: "ACTIVE"`.
 
+`project_name` isole les ressources au sein de l’organisation authentifiée. Sa valeur par défaut est `default` ; utilisez la même valeur, sensible à la casse, pour les groupes et ressources associés. Envoyez-la dans le corps JSON pour POST/PUT et dans les paramètres de requête pour GET/DELETE.
+
 ## Exemple de requête
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01 \
+curl "https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01?project_name=default" \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```
 
@@ -21,6 +23,7 @@ curl https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01 
 {
   "id": "group-20260720123456-vrt01",
   "object": "seedance.material_asset_group",
+  "project_name": "default",
   "library_type": "aigc_avatar",
   "group_name": "Product references",
   "description": "Reusable product shots",

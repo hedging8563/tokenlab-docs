@@ -1,388 +1,82 @@
 ---
-title: "IDE & SDK 호환성"
-description: "AI 코딩 도구, SDK 및 프레임워크를 위한 검증된 호환성 가이드"
+title: "도구 및 SDK 호환성"
+description: "코딩 도구, 채팅 앱, SDK 및 프레임워크에 맞는 TokenLab 설정 찾기"
 ---
 
-## 개요
-
-TokenLab은 일반적인 코딩 도구, SDK 및 프레임워크가 최소한의 접착 코드(glue code)로 통합될 수 있도록 다양한 API 형식을 제공합니다.
-
-이 페이지는 마케팅용 매트릭스보다 의도적으로 더 구체적인 정보를 담고 있습니다:
-
-- **지원됨(Supported)**: 구체적인 설정 경로를 문서화했으며, TokenLab이 해당 경로에서 기대하는 프로토콜 형태를 노출함을 의미합니다.
-- **강력한 네이티브 경로(Strong native path)**: 해당 리포지토리에 해당 프로토콜 제품군을 위한 직접적인 어댑터나 요청 형식 증거가 있음을 의미합니다.
-- **최선형 지원(Best-effort)**: 통합이 작동할 수는 있지만, 업스트림 클라이언트가 이 사용자 지정 게이트웨이 워크플로우를 안정적인 계약으로 취급하지 않음을 의미합니다.
-
-<Note>
-  지원되지 않는 필드는 일관되게 처리되지 않습니다. 호환성 경로에서 일부 필드는 무시되거나 정규화됩니다. `/v1/responses` 경로에서는 해당 경로가 요청된 동작을 보장할 수 없을 때 명시적인 `400` 또는 `503` 오류를 반환할 수 있습니다.
-</Note>
-
-## 지원되는 API 형식
-
-| 엔드포인트 | 형식 | 사용 사례 |
-|----------|--------|----------|
-| `/v1/chat/completions` | OpenAI Chat | 범용 호환성 |
-| `/v1/responses` | OpenAI Responses | 상태 유지 대화 |
-| `/v1/messages` | Anthropic Messages | Claude 네이티브 기능 |
-| `/v1beta/models/:model:generateContent` | Google Gemini | Gemini 네이티브 기능 |
-
-## IDE 및 CLI 호환성
-
-### 문서화된 도구 경로
-
-| 도구 | 지원 수준 | 형식 | 참고 사항 |
-|------|---------------|--------|-------|
-| **Cursor** | 제한적 지원 | OpenAI 호환 | BYOK 표준 채팅/에디터 흐름에는 작동하지만, Tab Completion과 같은 Cursor 관리 기능의 대체재로는 작동하지 않음 |
-| **Claude Code CLI** | 강력한 네이티브 경로 | Anthropic | Thinking 및 `tool_choice`에 대한 어댑터 커버리지를 갖춘 네이티브 `/v1/messages` 경로 |
-| **Codex CLI** | 모델/경로 제한적 지원 | OpenAI Responses | `/v1/responses`를 Codex 전용 워크플로우를 위한 고급 경로로 취급; 일부 Responses 전용 필드는 모든 모델 및 경로에서 보장되지 않음 |
-| **Gemini CLI** | 최선형 / 실험적 | Gemini | 사용자 지정 TokenLab 베이스 URL 흐름은 공식 Gemini CLI 통합이 아님 |
-| **OpenCode** | 지원됨 | OpenAI 호환 | 기본적으로 OpenAI 호환 공급자를 사용하고, 명시적으로 필요한 경우에만 Responses 기반 공급자로 전환 |
-| **OpenHands** | 지원됨 | OpenAI 호환 | `openai/<model>` 및 TokenLab의 `/v1` 베이스 URL과 함께 LiteLLM/OpenAI 호환 경로 사용 |
-
-<Note>
-  다른 OpenAI 호환 에디터 및 에이전트 도구도 동일한 베이스 URL 패턴으로 작동하는 경우가 많습니다. 프로덕션 환경에서 사용하기 전에 해당 도구의 자체 사용자 지정 공급자 지원 여부를 확인하십시오.
-</Note>
-
-### 구성 예시
-
-<Tabs>
-  <Tab title="Cursor">
-    ```
-    Base URL: https://api.tokenlab.sh/v1
-    API Key: sk-your-tokenlab-key
-    ```
-    Cursor는 내부적으로 Anthropic 스타일의 도구 형식을 사용합니다. TokenLab은 다음 두 가지를 모두 지원합니다:
-    - OpenAI 형식: `{ type: "function", function: { name, parameters } }`
-    - Anthropic 형식: `{ name, input_schema }` (type 필드 없음)
-  </Tab>
-  <Tab title="Claude Code">
-    ```bash
-    export ANTHROPIC_BASE_URL="https://api.tokenlab.sh"
-    export ANTHROPIC_API_KEY="sk-your-tokenlab-key"
-    ```
-  </Tab>
-  <Tab title="OpenCode">
-    ```bash
-    export OPENAI_API_KEY="sk-your-tokenlab-key"
-    export LOCAL_ENDPOINT="https://api.tokenlab.sh/v1"
-    ```
-  </Tab>
-  <Tab title="Aider">
-    ```bash
-    export OPENAI_API_KEY="sk-your-tokenlab-key"
-    export OPENAI_BASE_URL="https://api.tokenlab.sh/v1"
-    aider --model gpt-5.4
-    ```
-  </Tab>
-</Tabs>
-
-## SDK 호환성
-
-### 문서화된 SDK 및 프레임워크 경로
-
-| SDK / 프레임워크 | 언어 | 지원 수준 | 참고 사항 |
-|-----------------|----------|---------------|-------|
-| **OpenAI SDK** | Python/JS/Go | 핵심 경로 지원 | `/v1` Chat Completions 및 Embeddings 호환 경로; 공급자별 동작에는 네이티브 공급자 경로를 사용하며, Responses 전용 필드가 모든 모델에서 작동한다고 가정하지 마십시오 |
-| **Anthropic SDK** | Python/JS | 강력한 네이티브 경로 | 도구, Thinking 및 프롬프트 캐싱에 대한 직접적인 증거를 갖춘 네이티브 Messages 경로 |
-| **Vercel AI SDK** | TypeScript | 권장 통합 패턴 | `@ai-sdk/openai-compatible`을 우선 사용; 명시적으로 Responses 네이티브 동작을 원할 때만 `@ai-sdk/openai` 사용 |
-| **LangChain** | Python/JS | 표준 인터페이스 지원 | `ChatOpenAI` 및 `OpenAIEmbeddings`가 의도된 범위임; 공급자 네이티브 추가 기능은 범위 밖임 |
-| **LlamaIndex** | Python | `OpenAILike`를 통해 지원 | TokenLab과 같은 타사 게이트웨이에는 내장 OpenAI 클래스가 아닌 `OpenAILike` 사용 |
-| **OpenAI Agents SDK** | Python | 채팅 완료 경로 지원 | `OpenAIChatCompletionsModel`과 함께 `AsyncOpenAI(base_url="https://api.tokenlab.sh/v1")` 사용; 네이티브 Responses 동작은 선택한 모델 및 경로에 따라 다름 |
-| **AutoGen** | Python | 사용자 지정 엔드포인트 경로 지원 | `base_url: https://api.tokenlab.sh/v1`과 함께 `OpenAIChatCompletionClient` 사용 |
-| **Semantic Kernel** | .NET | 사용자 지정 엔드포인트 경로 지원 | OpenAI 채팅 완료 커넥터 사용자 지정 엔드포인트를 사용하고 `https://api.tokenlab.sh/v1`을 가리킴 |
-| **CrewAI** | Python | 사용자 지정 엔드포인트 경로 지원 | `OPENAI_API_BASE` 또는 `LLM(base_url=...)`을 TokenLab의 `/v1` 엔드포인트로 설정 |
-| **Pydantic AI** | Python | OpenAI 호환 공급자 경로 지원 | `OpenAIProvider(base_url="https://api.tokenlab.sh/v1")`과 함께 `OpenAIChatModel` 사용 |
-| **DSPy** | Python | 사용자 지정 엔드포인트 경로 지원 | `dspy.LM("openai/<model>", api_base="https://api.tokenlab.sh/v1")` 사용 |
-| **Langflow** | Python / Web | 범위 제한적 지원 | OpenAI 구성 요소의 **OpenAI API Base** 필드에 TokenLab의 `/v1` 엔드포인트 사용 |
-| **Haystack** | Python | 사용자 지정 엔드포인트 경로 지원 | `OpenAIChatGenerator(api_base_url="https://api.tokenlab.sh/v1")` 사용 |
-| **Graphiti** | Python | 사용자 지정 엔드포인트 경로 지원 | TokenLab의 `/v1` 엔드포인트와 함께 `OpenAIGenericClient` 사용 |
-| **Dify** | - | 범위 제한적 지원 | OpenAI 공급자 및 채팅 완료 지향 흐름이 의도된 경로임; Codex 전용 Responses 또는 WebSocket 동작에는 적합하지 않음 |
-| **Flowise** | Web / Node | 범위 제한적 지원 | 사용 가능한 경우 TokenLab 채팅 노드를 사용하거나 `https://api.tokenlab.sh/v1`을 가리키는 ChatOpenAI 호환 노드 사용 |
-| **Mem0** | Python | 사용자 지정 엔드포인트 경로 지원 | OpenAI 공급자를 유지하고 `openai_base_url`을 TokenLab의 `/v1` 엔드포인트로 설정 |
-| **Agno** | Python | 지원되는 경로 | 사용 가능한 경우 TokenLab 모델 래퍼를 사용하거나 OpenAI 호환 베이스 URL 경로 사용 |
-| **Browser Use** | Python | 사용자 지정 엔드포인트 경로 지원 | TokenLab의 `/v1` 엔드포인트와 함께 `ChatOpenAILike` 사용 |
-| **VoltAgent** | TypeScript | 사용자 지정 엔드포인트 경로 지원 | `baseURL: "https://api.tokenlab.sh/v1"`로 구성된 AI SDK OpenAI 공급자 전달 |
-| **Ragas** | Python | 사용자 지정 엔드포인트 경로 지원 | `llm_factory`에 `AsyncOpenAI(base_url="https://api.tokenlab.sh/v1")` 전달 |
-| **Guardrails** | Python | 유효성 검사 경로 지원 | TokenLab의 `/v1` 엔드포인트로 구성된 OpenAI SDK 채팅 완료 호출 가능 객체 전달 |
-| **Prompt flow** | Python / CLI | 사용자 지정 엔드포인트 경로 지원 | `base_url=https://api.tokenlab.sh/v1`로 OpenAI 연결 생성 |
-| **Promptfoo** | CLI / Node | 지원되는 경로 | `apiBaseUrl: https://api.tokenlab.sh/v1`과 함께 OpenAI 채팅 또는 Responses 공급자 사용 |
-| **Portkey Gateway** | Gateway | 지원되는 경로 | OpenAI 호환 채팅 및 Responses 트래픽을 위한 업스트림 공급자로 TokenLab 사용 |
-| **Helicone** | Gateway / Observability | 관측 가능성 경로 지원 | `Helicone-Target-Url: https://api.tokenlab.sh`와 함께 Helicone Gateway를 통해 OpenAI 호환 요청 라우팅 |
-| **Langfuse** | Observability | 추적 경로 지원 | TokenLab의 `/v1` 베이스 URL로 Langfuse OpenAI 통합 구성 |
-| **OpenLIT** | Observability | 추적 경로 지원 | TokenLab의 `/v1` 베이스 URL로 구성된 OpenAI SDK 클라이언트 계측 |
-| **OpenLLMetry** | Observability | 추적 경로 지원 | TokenLab의 `/v1` 베이스 URL로 OpenAI SDK 계측 사용 |
-| **Phoenix** | Observability | 추적 경로 지원 | TokenLab의 `/v1` 베이스 URL로 구성된 OpenAI SDK 클라이언트 자동 계측 |
-| **Opik** | Observability | 추적 경로 지원 | TokenLab의 `/v1` 베이스 URL로 구성된 OpenAI SDK 클라이언트 래핑 |
-| **LangBot** | Bot Platform | 채팅 경로 지원 | 사용 가능한 경우 TokenLab 요청자를 사용하거나 TokenLab의 `/v1` 엔드포인트로 OpenAI 호환 요청자 구성 |
-| **Open WebUI** | Web Chat | 채팅 앱 경로 지원 | TokenLab을 OpenAI 호환 API 연결로 추가하고 모델 목록 새로 고침 |
-| **Chatbox / DeepChat / Jan / LibreChat / Cherry Studio** | Desktop / Web | 채팅 앱 경로 지원 | 각 앱의 OpenAI 호환 사용자 지정 공급자 흐름 사용; 이 앱들은 일반적으로 채팅 완료 지향적임 |
-
-## 채팅 완료(Chat Completions) 매개변수
-
-### 핵심 매개변수
-
-| 매개변수 | 유형 | 설명 |
-|-----------|------|-------------|
-| `model` | string | 모델 식별자 (필수) |
-| `messages` | array | 대화 메시지 (필수) |
-| `max_tokens` | integer | 최대 출력 토큰 |
-| `temperature` | number | 샘플링 온도 (0-2) |
-| `top_p` | number | 뉴클리어스 샘플링 (0-1) |
-| `stream` | boolean | 스트리밍 활성화 |
-
-### 도구 호출(Tool Calling)
-
-```json
-{
-  "tools": [
-    {
-      "type": "function",
-      "function": {
-        "name": "get_weather",
-        "description": "Get weather for a location",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "location": { "type": "string" }
-          }
-        },
-        "strict": true
-      }
-    }
-  ],
-  "tool_choice": "auto",
-  "parallel_tool_calls": true
-}
-```
-
-### 도구 선택 옵션
-
-| 형식 | 예시 | 설명 |
-|--------|---------|-------------|
-| String | `"auto"`, `"none"`, `"required"` | 단순 선택 |
-| OpenAI Object | `{ "type": "function", "function": { "name": "fn" } }` | 특정 함수 강제 |
-| Anthropic Object | `{ "type": "tool", "name": "fn", "disable_parallel_tool_use": true }` | Anthropic 네이티브 형식 |
-
-### 고급 매개변수
-
-| 매개변수 | 유형 | 설명 |
-|-----------|------|-------------|
-| `stream_options` | object | Chat Completions 전용: 토큰 수 계산을 위한 `{ include_usage: true }` |
-| `reasoning_effort` | string | 추론 활성화 GPT-5 모델을 위한 `"low"`, `"medium"`, `"high"` |
-| `service_tier` | string | `"auto"` 또는 `"default"` |
-| `seed` | integer | 결정론적 출력 |
-| `logprobs` | boolean | 로그 확률 반환 |
-| `top_logprobs` | integer | 상위 로그 확률 개수 (0-20) |
-| `logit_bias` | object | 토큰 편향 맵 (-100 ~ 100) |
-| `frequency_penalty` | number | 반복 페널티 (-2 ~ 2) |
-| `presence_penalty` | number | 주제 페널티 (-2 ~ 2) |
-| `stop` | string/array | 중지 시퀀스 |
-| `n` | integer | 완료 개수 (1-128) |
-| `user` | string | 추적을 위한 사용자 식별자 |
-
-### OpenAI 고급 기능
-
-| 매개변수 | 유형 | 설명 |
-|-----------|------|-------------|
-| `modalities` | array | 멀티모달을 위한 `["text", "audio"]` |
-| `audio` | object | 오디오 출력 구성 (음성, 형식) |
-| `prediction` | object | 더 빠른 완료를 위한 예측 출력 |
-| `metadata` | object | 추적을 위한 키-값 쌍 |
-| `store` | boolean | 나중에 검색할 수 있도록 저장 |
-
-### 공급자별 옵션
-
-```json
-{
-  "anthropic_options": {
-    "thinking": {
-      "type": "enabled",
-      "budget_tokens": 10000
-    },
-    "prompt_caching": true
-  },
-  "google_options": {
-    "safety_settings": [...],
-    "google_search": true,
-    "code_execution": true
-  }
-}
-```
-
-## Anthropic Messages 매개변수
-
-### 핵심 매개변수
-
-| 매개변수 | 유형 | 설명 |
-|-----------|------|-------------|
-| `model` | string | 모델 식별자 |
-| `messages` | array | 대화 메시지 |
-| `max_tokens` | integer | 최대 출력 (최대 128000) |
-| `system` | string/array | 시스템 프롬프트 |
-| `stream` | boolean | 스트리밍 활성화 |
-
-### 도구 호출(Tool Calling)
-
-```json
-{
-  "tools": [
-    {
-      "name": "get_weather",
-      "description": "Get weather",
-      "input_schema": {
-        "type": "object",
-        "properties": {
-          "location": { "type": "string" }
-        }
-      }
-    }
-  ],
-  "tool_choice": {
-    "type": "auto",
-    "disable_parallel_tool_use": false
-  }
-}
-```
-
-### 확장된 Thinking
-
-```json
-{
-  "model": "claude-opus-5",
-  "thinking": {
-    "type": "enabled",
-    "budget_tokens": 10000
-  }
-}
-```
-
-## Responses API 매개변수
-
-### 핵심 매개변수
-
-| 매개변수 | 유형 | 설명 |
-|-----------|------|-------------|
-| `model` | string | 모델 식별자 |
-| `input` | string/array | 입력 콘텐츠 |
-| `instructions` | string | 시스템 지침 |
-| `max_output_tokens` | integer | 최대 출력 토큰 |
-| `previous_response_id` | string | 대화 이어가기 |
-
-### 고급 매개변수
-
-| 매개변수 | 유형 | 설명 |
-|-----------|------|-------------|
-| `truncation_strategy` | string | `"auto"` 또는 `"disabled"` |
-| `include` | array | `["reasoning.encrypted_content"]` |
-| `reasoning_effort` | string | 추론 모델용 |
-| `service_tier` | string | 우선순위 계층 |
-
-### 도구 형식
-
-OpenAI 및 Anthropic 도구 형식을 모두 지원합니다:
-
-```json
-// OpenAI 형식
-{ "type": "function", "name": "fn", "parameters": {...} }
-
-// Anthropic 형식 (Cursor 호환성)
-{ "name": "fn", "input_schema": {...} }
-```
-
-## Gemini API 매개변수
-
-### 핵심 매개변수
-
-| 매개변수 | 유형 | 설명 |
-|-----------|------|-------------|
-| `contents` | array | 대화 콘텐츠 |
-| `systemInstruction` | object | 시스템 프롬프트 |
-| `generationConfig` | object | 생성 설정 |
-
-### 도구(Tools)
-
-```json
-{
-  "tools": [{
-    "functionDeclarations": [{
-      "name": "search",
-      "description": "Search the web",
-      "parameters": {...}
-    }],
-    "codeExecution": {},
-    "googleSearch": {}
-  }],
-  "toolConfig": {
-    "functionCallingConfig": {
-      "mode": "AUTO"
-    }
-  }
-}
-```
-
-### 안전 설정(Safety Settings)
-
-```json
-{
-  "safetySettings": [
-    {
-      "category": "HARM_CATEGORY_HARASSMENT",
-      "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-    }
-  ]
-}
-```
-
-### 추가 매개변수
-
-| 매개변수 | 유형 | 설명 |
-|-----------|------|-------------|
-| `cachedContent` | string | 캐시된 콘텐츠 참조 |
-| `responseMimeType` | string | `"text/plain"` 또는 `"application/json"` |
-| `responseSchema` | object | 구조화된 출력을 위한 JSON 스키마 |
-
-## 스트리밍
-
-채팅 완료 및 Responses를 포함하여 `stream: true`를 노출하는 생성 엔드포인트는 서버 전송 이벤트(SSE)를 사용합니다:
-
-```bash
-# 채팅 완료
-curl https://api.tokenlab.sh/v1/chat/completions \
-  -H "Authorization: Bearer sk-xxx" \
-  -d '{"model": "gpt-5.6-terra", "messages": [...], "stream": true}'
-
-# Chat Completions 사용량 추적
--d '{"...", "stream_options": {"include_usage": true}}'
-```
-
-## 오류 처리
-
-TokenLab은 OpenAI 호환 오류 응답을 반환합니다:
-
-```json
-{
-  "error": {
-    "message": "Invalid API key",
-    "type": "invalid_api_key",
-    "code": "invalid_api_key"
-  }
-}
-```
-
-자세한 내용은 [오류 처리 가이드](/guides/error-handling)를 참조하십시오.
-
-## 모범 사례
-
-<AccordionGroup>
-  <Accordion title="알 수 없는 매개변수에 대해 패스스루 사용">
-    알 수 없는 매개변수는 선택한 공개 경로와 모델이 지원하는 경우에만 전달됩니다.
-  </Accordion>
-
-  <Accordion title="Chat Completions에만 stream_options.include_usage 사용">
-    Chat Completions 스트리밍의 경우, 정확한 토큰 수를 위해 `stream_options.include_usage`를 활성화하십시오. Responses는 자체 스트리밍 계약을 가지고 있으며 이 채팅 전용 옵션을 공개하지 않습니다.
-  </Accordion>
-
-  <Accordion title="적절한 tool_choice 형식 사용">
-    SDK에서 기대하는 형식과 일치시키십시오. TokenLab은 OpenAI 및 Anthropic 형식을 모두 허용합니다.
-  </Accordion>
-</AccordionGroup>
+대부분의 도구는 API 키와 기본 URL을 변경해 TokenLab에 연결할 수 있습니다. 구체적인 설정은 도구에서 사용할 수 있는 API 형식에 따라 달라집니다.
+
+| API 형식 | 기본 URL | 주요 클라이언트 |
+| --- | --- | --- |
+| Chat Completions (OpenAI 호환) | `https://api.tokenlab.sh/v1` | OpenAI SDK, 여러 채팅 앱 및 프레임워크 |
+| OpenAI Responses | `https://api.tokenlab.sh/v1` | Responses 클라이언트 및 Responses 이벤트를 사용하는 도구 |
+| Anthropic Messages | `https://api.tokenlab.sh` | Anthropic SDK 및 Claude용 도구 |
+| Gemini | `https://api.tokenlab.sh` | 사용자 지정 호스트를 지원하는 Gemini REST 또는 SDK 클라이언트 |
+
+선택한 모델의 `accepted_request_formats`에 같은 형식이 포함되어야 합니다. 스트리밍과 도구 호출도 모델 기능과 클라이언트 지원에 따라 달라집니다. 예시는 [API 형식](/ko/guides/api-formats)을 참고하세요.
+
+## 호환성 상태
+
+| 상태 | 의미 |
+| --- | --- |
+| **사용 가능** | 연결된 페이지의 TokenLab 설정은 클라이언트가 공식 문서에서 제공하는 설정 옵션을 사용합니다 |
+| **일부 제한 있음** | 설정은 특정 기능이나 인증 방식에 적용되며, 공급업체의 다른 서비스에는 각각의 이용 조건이 적용됩니다 |
+
+이 상태는 연결된 페이지의 설정 방식을 설명합니다. 실제 기능의 사용 가능 여부는 선택한 모델과 클라이언트 버전에도 달려 있습니다.
+
+## 코딩 도구
+
+| 도구 | 상태 | API 형식 | 설명 |
+| --- | --- | --- | --- |
+| [Claude Code](/ko/integrations/claude-code) | 사용 가능 | Anthropic Messages | `ANTHROPIC_BASE_URL`과 TokenLab API 키 사용 |
+| [Codex CLI](/ko/integrations/codex-cli) | 일부 제한 있음 | Responses | Responses 사용. 사용 가능한 기능은 선택한 모델에 따라 다름 |
+| [Cursor](/ko/integrations/cursor) | 일부 제한 있음 | OpenAI 호환 | 사용자 지정 API 키와 URL을 허용하는 Cursor 기능에 적용 |
+| [Cline](/ko/integrations/cline) | 사용 가능 | OpenAI 호환 | **OpenAI Compatible**을 선택하고 기본 URL과 모델 ID 입력 |
+| [Kilo Code](/ko/integrations/kilo-code) | 사용 가능 | OpenAI 호환 | 사용자 지정 공급자와 모델 ID 설정 |
+| [OpenCode](/ko/integrations/opencode) | 사용 가능 | OpenAI 호환 | `OPENCODE_CONFIG`로 별도의 공급자 설정 로드 |
+| [OpenHands](/ko/integrations/openhands) | 사용 가능 | OpenAI 호환 | LiteLLM 기반 UI: **Advanced → Custom Model**(`openai/` 접두사) 및 **Base URL** |
+| [Gemini CLI](/ko/integrations/gemini-cli) | 일부 제한 있음 | Gemini | API 키 인증에서 `GOOGLE_GEMINI_BASE_URL` 사용. 별도의 `GEMINI_CLI_HOME`으로 기존 설정 유지 |
+
+## 채팅 앱
+
+| 앱 | 상태 | 설명 |
+| --- | --- | --- |
+| [Chatbox](/ko/integrations/chatbox) | 사용 가능 | **OpenAI API Compatible** 공급자 추가 |
+| [Cherry Studio](/ko/integrations/cherry-studio) | 사용 가능 | 공급자를 추가하고 **Verify and Enable** 완료 |
+| [DeepChat](/ko/integrations/deepchat) | 사용 가능 | Chat Completions를 사용하려면 **OpenAI Completions** 선택 |
+| [Jan](/ko/integrations/jan) | 사용 가능 | OpenAI 호환 서비스 추가 |
+| [LibreChat](/ko/integrations/librechat) | 사용 가능 | 사용자 지정 OpenAI 호환 엔드포인트 설정 |
+| [Open WebUI](/ko/integrations/open-webui) | 사용 가능 | OpenAI 호환 연결을 추가하고 API Type을 **Chat**으로 선택 |
+
+## SDK 및 프레임워크
+
+| 클라이언트 | 상태 | 설정 |
+| --- | --- | --- |
+| [OpenAI SDK](/ko/integrations/openai-sdk) | 사용 가능 | `base_url` / `baseURL`을 `https://api.tokenlab.sh/v1`로 설정 |
+| [Anthropic SDK](/ko/integrations/anthropic-sdk) | 사용 가능 | 기본 URL을 `https://api.tokenlab.sh`로 설정 |
+| [Vercel AI SDK](/ko/integrations/vercel-ai-sdk) | 사용 가능 | 사용자 지정 OpenAI 호환 공급자 생성 |
+| [LangChain](/ko/integrations/langchain) | 사용 가능 | `ChatOpenAI` 또는 `OpenAIEmbeddings`에 TokenLab URL 설정 |
+| [LlamaIndex](/ko/integrations/llamaindex) | 사용 가능 | OpenAI 호환 클라이언트 옵션 사용 |
+| [OpenAI Agents SDK](/ko/integrations/openai-agents-sdk) | 일부 제한 있음 | 가이드는 `OpenAIChatCompletionsModel` 사용. Responses 사용 전 모델과 SDK의 기능 지원 확인 |
+| [AutoGen](/ko/integrations/autogen) | 사용 가능 | OpenAI 호환 모델 클라이언트 사용 |
+| [CrewAI](/ko/integrations/crewai) | 사용 가능 | OpenAI 호환 LLM 클라이언트 설정 |
+| [PydanticAI](/ko/integrations/pydantic-ai) | 사용 가능 | OpenAI 호환 공급자 지정 |
+
+다른 프레임워크, 관측 도구, 게이트웨이 및 평가 제품은 Integrations 탐색 메뉴에서 찾을 수 있습니다.
+
+## 스트리밍 응답의 사용량
+
+Chat Completions 스트림은 `stream_options: { include_usage: true }`를 허용하며 스트림이 끝나기 전에 마지막 사용량 청크를 추가합니다. Responses API는 `include_usage`를 제공하지 않으며, Responses 스트림은 종료 이벤트에 사용량을 포함합니다.
+
+## 사용자 지정 API 키로 대체할 수 없는 항목
+
+일부 제품은 모델 호출과 함께 공급업체가 호스팅하는 기능을 제공합니다. TokenLab 키는 BYOK 설정에서 허용하는 모델 요청에 사용할 수 있지만, 별도의 구독, 자동 완성 서비스, 계정 기능 또는 독점 확장 기능을 대체하지는 않습니다.
+
+도구 업데이트로 설정 방식이 바뀌면 오래된 환경 변수 예시를 복사하지 말고 현재 통합 페이지를 참고하세요.
+
+## 기능 사용 전 확인 사항
+
+- 도구가 필요한 형식에 사용자 지정 기본 URL을 허용하는지 확인하세요.
+- 모델의 `accepted_request_formats`에 해당 형식이 포함되는지 확인하세요.
+- 워크플로에 필요하다면 스트리밍과 도구 호출을 확인하세요.
+- API 키는 신뢰할 수 있는 기기 또는 서버에 보관하세요.
+- 오류를 보고할 때 요청 ID를 기록하세요.

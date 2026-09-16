@@ -5,7 +5,7 @@ description: "使用 Guardrails 驗證 TokenLab 模型輸出"
 
 ## 概覽
 
-Guardrails 可以封裝任何與其 LLM API 介面相容的可呼叫物件 (callable)。對於 TokenLab，請使用 TokenLab 的 base URL 設定 OpenAI SDK，並將聊天完成 (chat completions) 的可呼叫物件傳遞給您的 guard。
+用 TokenLab Base URL 設定 OpenAI SDK，請求 JSON，再將傳回文字交給 `Guard.parse` 驗證。
 
 <Note>
 **類型**: 驗證與結構化輸出框架
@@ -14,6 +14,12 @@ Guardrails 可以封裝任何與其 LLM API 介面相容的可呼叫物件 (call
 
 **支援信心**: 支援相容 OpenAI 的路徑
 </Note>
+
+## 安裝
+
+```bash
+pip install guardrails-ai openai
+```
 
 ## 環境設定
 
@@ -43,11 +49,17 @@ client = OpenAI(
     base_url="https://api.tokenlab.sh/v1",
 )
 
-raw_output, validated_output, *rest = guard(
-    llm_api=client.chat.completions.create,
+response = client.chat.completions.create(
     model="claude-sonnet-5",
-    messages=[{"role": "user", "content": "What kind of pet should I get?"}],
+    response_format={"type": "json_object"},
+    messages=[{
+        "role": "user",
+        "content": "Suggest a pet. Return only JSON with string fields pet_type and name.",
+    }],
 )
+
+outcome = guard.parse(response.choices[0].message.content)
+print(outcome.validated_output)
 ```
 
 ## 端點注意事項

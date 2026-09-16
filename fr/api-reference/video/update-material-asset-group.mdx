@@ -6,6 +6,8 @@ description: "Met à jour un groupe de matériel Seedance appartenant à l'organ
 
 Mettez à jour le nom d'affichage, la description ou les métadonnées d'un groupe de matériel. Pour les groupes de personnes réelles gérés, le mappage de la personne vérifiée reste inchangé.
 
+`project_name` isole les ressources au sein de l’organisation authentifiée. Sa valeur par défaut est `default` ; utilisez la même valeur, sensible à la casse, pour les groupes et ressources associés. Envoyez-la dans le corps JSON pour POST/PUT et dans les paramètres de requête pour GET/DELETE.
+
 ## Exemple de requête
 
 ```bash
@@ -13,7 +15,7 @@ curl https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01 
   -X PUT \
   -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"group_name":"Updated references","description":"Images approved for summer videos"}'
+  -d '{"group_name":"Updated references","description":"Images approved for summer videos","project_name":"default"}'
 ```
 
 ## Exemple de réponse
@@ -22,6 +24,7 @@ curl https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01 
 {
   "id": "group-20260720123456-vrt01",
   "object": "seedance.material_asset_group",
+  "project_name": "default",
   "library_type": "aigc_avatar",
   "group_name": "Updated references",
   "description": "Images approved for summer videos",

@@ -1,22 +1,11 @@
 ---
 title: "Dify"
-description: "Tích hợp TokenLab với Dify sử dụng nhà cung cấp OpenAI và một base URL tùy chỉnh"
+description: "Tích hợp TokenLab với Dify sử dụng nhà cung cấp OpenAI-API-compatible và một base URL tùy chỉnh"
 ---
 
 ## Tổng quan
 
-Dify hoạt động hiệu quả với TokenLab thông qua luồng nhà cung cấp mô hình tương thích với OpenAI.
-
-Đây là lộ trình tích hợp hướng tới chat-completions. Tài liệu này không đảm bảo rằng Dify sẽ hiển thị các phản hồi (Responses) hoặc hành vi WebSocket giống như các tích hợp Codex chuyên dụng.
-
-Đối với các phiên bản Dify hiện tại, lộ trình an toàn nhất thường là:
-- chọn nhà cung cấp **OpenAI** tích hợp sẵn
-- thiết lập API key TokenLab của bạn
-- thiết lập base URL tùy chỉnh là `https://api.tokenlab.sh/v1`
-
-<Note>
-Một số bản dựng Dify cũ hơn hiển thị tùy chọn này dưới dạng `OpenAI-API-compatible` thay vì nhà cung cấp `OpenAI` tích hợp sẵn với trường base URL tùy chỉnh. Nếu giao diện Dify của bạn trông khác, hãy sử dụng luồng nhà cung cấp tùy chỉnh tương thích với OpenAI gần nhất có sẵn trong phiên bản đó.
-</Note>
+Dùng plugin nhà cung cấp mô hình **OpenAI-API-compatible** để kết nối Dify với TokenLab. Đặt loại mô hình là **LLM**, **Completion mode** là **Chat** và **API Type** là **Chat Completions API**. Hướng dẫn này sử dụng Chat Completions.
 
 <Note>
 **Loại**: Framework hoặc Nền tảng
@@ -45,8 +34,8 @@ Một số bản dựng Dify cũ hơn hiển thị tùy chọn này dưới dạ
   <Step title="Mở Model Providers">
     Trong Dify, đi tới **Settings** → **Model Providers**
   </Step>
-  <Step title="Chọn OpenAI">
-    Mở cài đặt nhà cung cấp **OpenAI**. Nếu phiên bản Dify của bạn không cung cấp base URL tùy chỉnh tại đây, hãy sử dụng tùy chọn nhà cung cấp tùy chỉnh tương thích với OpenAI được hiển thị trong phiên bản đó.
+  <Step title="Chọn OpenAI-API-compatible">
+    Mở **OpenAI-API-compatible**. Nếu chưa có, hãy cài plugin nhà cung cấp mô hình này từ Dify Marketplace. Chọn **Add model** để nhập cài đặt TokenLab.
   </Step>
   <Step title="Nhập cài đặt TokenLab">
     Sử dụng các giá trị sau:
@@ -54,7 +43,10 @@ Một số bản dựng Dify cũ hơn hiển thị tùy chọn này dưới dạ
     | Trường | Giá trị |
     |-------|-------|
     | API Key | `sk-your-tokenlab-key` |
-    | API Base URL / Custom Base URL | `https://api.tokenlab.sh/v1` |
+    | Model type | LLM |
+    | Completion mode | Chat |
+    | API Type | Chat Completions API |
+    | API Base URL | `https://api.tokenlab.sh/v1` |
   </Step>
   <Step title="Thêm các mô hình">
     Thêm các mô hình bạn muốn sử dụng, ví dụ:
@@ -70,7 +62,7 @@ Một số bản dựng Dify cũ hơn hiển thị tùy chọn này dưới dạ
 
 ### Bước 3: Kiểm tra kết nối
 
-1. Chọn một mô hình như `gpt-5-mini` hoặc `gpt-4o`
+1. Chọn một mô hình đã thêm, chẳng hạn `gpt-5.4-mini`.
 2. Gửi một prompt kiểm tra
 3. Xác nhận Dify nhận được phản hồi hợp lệ
 
@@ -94,16 +86,16 @@ Sau đó, đặt nó làm mô hình embedding mặc định trong cơ sở tri t
 ## Các phương pháp tốt nhất
 
 <AccordionGroup>
-  <Accordion title="Bắt đầu với nhà cung cấp OpenAI tích hợp sẵn">
-    Trong các phiên bản Dify mới hơn, nhà cung cấp OpenAI tích hợp sẵn với base URL tùy chỉnh thường là thiết lập sạch nhất cho TokenLab.
+  <Accordion title="Plugin OpenAI là một lựa chọn khác">
+    Plugin **OpenAI** riêng biệt có thể dùng cho các mô hình được danh mục của plugin hỗ trợ. Đặt base URL tùy chỉnh là `https://api.tokenlab.sh/v1` và **API Protocol** là **Chat Completions**; giá trị mặc định có thể là Responses. Đây không phải tên cũ của OpenAI-API-compatible và không chấp nhận mọi ID mô hình tùy chỉnh.
   </Accordion>
 
   <Accordion title="Sử dụng các mô hình rẻ hơn để lặp lại">
     Sử dụng `gpt-5.4-mini`, `gemini-3.5-flash`, hoặc `deepseek-v4-flash` trong khi lặp lại, sau đó chỉ chuyển các luồng công việc nặng hơn sang các mô hình mạnh hơn khi cần thiết.
   </Accordion>
 
-  <Accordion title="Lưu ý rằng Dify thường hướng tới chat-completions">
-    Hầu hết các luồng Dify sử dụng hành vi chat tương thích với OpenAI. Nếu bạn cần các phản hồi (Responses) hoặc hành vi WebSocket đặc thù của Codex, hãy sử dụng các tích hợp Codex chuyên dụng thay vì Dify.
+  <Accordion title="Cấu hình này sử dụng Chat Completions">
+    Giữ **Completion mode = Chat** và **API Type = Chat Completions API** cho cấu hình này. Responses là một tùy chọn API riêng; hướng dẫn này không cấu hình tùy chọn đó hay kết nối WebSocket.
   </Accordion>
 </AccordionGroup>
 

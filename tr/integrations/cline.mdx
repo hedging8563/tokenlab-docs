@@ -17,6 +17,8 @@ description: "Cline'ı TokenLab modellerini kullanacak şekilde yapılandırın"
 
 ## TokenLab'i yapılandırma
 
+Düzenlemeden önce mevcut sağlayıcı, model ve bağlantı ayarlarını yerel olarak kaydedin. Bu alanlar etkin modeli değiştirir; işiniz bitince önceki değerleri geri yükleyin. Oturum açılmış hesapları ve araç izinlerini koruyun. Geri yüklenebilir yedek olmadan başka bir OpenAI uyumlu bağlantının üzerine yazmayın.
+
 1. Uzantı mağazasından **Cline**'ı kurun ve panelini açın.
 2. Dişli simgesine tıklayıp **API Provider** altında **OpenAI Compatible** seçin.
 3. Şunları girin:
@@ -29,6 +31,6 @@ description: "Cline'ı TokenLab modellerini kullanacak şekilde yapılandırın"
 
 4. **Verify** düğmesine tıklayın.
 
-İsteğe bağlı gelişmiş ayarlarda giriş sınırını `1048576`, maksimum çıkışı `131072` yapın; görüntü ve araç / Computer Use desteğini etkinleştirin.
-
 Doğrulamadan sonra salt okunur bir görevle başlayın. 404 alırsanız Base URL'nin `/v1` ile bittiğini ve `/chat/completions` içermediğini kontrol edin. Kimlik `kimi-k3` olmalıdır, `kimi/kimi-k3` değil.
+
+Ayarları kaydetmek veya modelleri listelemek anahtarı ya da tamamlanmış bir isteği doğrulamaz. İstem TokenLab bakiyesini kullanır. Araçları denemeden önce yanıtı ve ilgili [istek kaydını](https://tokenlab.sh/dashboard/runs?section=requests) kontrol edin; yardımcı istekler de ücretlendirilebilir.

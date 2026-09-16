@@ -12,15 +12,17 @@ Cet endpoint retourne des agrégats de facturation basés sur la consommation po
 
 ## Remarques
 
-- Les champs monétaires prennent uniquement en charge l’USD. Les entrées `CNY` sont abandonnées et renvoient `400 currency_retired`.
+- Les champs monétaires prennent uniquement en charge l’USD.
 
 - Les recharges, factures et autres écritures financières au niveau de l'organisation sont exclues.
 
 ## Exemple
 
+Accepte les mêmes filtres de modèle, fournisseur, scène et date que l’[usage de la clé API](/fr/api-reference/management/get-api-key-usage). Renvoie les totaux sans pagination.
+
 <RequestExample>
 ```bash cURL
-curl -X GET "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/billing?startDate=2026-01-01&endDate=2026-01-31" \
+curl -X GET "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/billing?startDate=2026-07-01&endDate=2026-07-31" \
   -H "Authorization: Bearer mt-your-management-token"
 ```
 </RequestExample>
@@ -49,7 +51,8 @@ Cette page fournit le schéma OpenAPI et des exemples de requêtes à copier. En
     ],
     "expires_at": "2026-12-31T23:59:59.000Z",
     "last_used_at": "2026-07-08T03:12:45.000Z",
-    "created_at": "2026-07-01T10:00:00.000Z"
+    "created_at": "2026-07-01T10:00:00.000Z",
+    "delivery_policy": null
   },
   "summary": {
     "total_requests": 1,

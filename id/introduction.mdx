@@ -5,108 +5,23 @@ description: "Akses ratusan model AI melalui satu API terpadu"
 
 ## Apa itu TokenLab?
 
-TokenLab adalah platform agregasi API AI yang memberi Anda akses terpadu ke **ratusan model AI** dari penyedia seperti OpenAI, Anthropic, Google, DeepSeek, Moonshot, MiniMax, dan lainnya.
-
-<CardGroup cols={2}>
-  <Card title="Native + kompatibel" icon="plug">
-    Gunakan rute native Anthropic/Gemini saat perilaku penyedia penting, atau rute `/v1` yang kompatibel dengan OpenAI untuk alat bergaya OpenAI yang sudah ada.
-  </Card>
-  <Card title="Format Native" icon="shuffle">
-    Panggil endpoint bergaya OpenAI, Anthropic, Gemini, dan Responses dari satu platform.
-  </Card>
-  <Card title="Bayar Sesuai Pemakaian" icon="coins">
-    Tanpa langganan. Hanya bayar untuk apa yang benar-benar Anda gunakan.
-  </Card>
-  <Card title="Ketersediaan Tinggi" icon="shield-check">
-    Routing cerdas, failover, dan dukungan multi-saluran meningkatkan keandalan.
-  </Card>
-</CardGroup>
+TokenLab menghubungkan aplikasi atau alat pemrograman Anda ke model AI dengan satu kunci API dan saldo bersama workspace. Pilih model dan format API yang didukung; permintaan dikenakan tarif yang dipublikasikan.
 
 ## Kemampuan yang Didukung
 
-Katalog publik berubah seiring waktu. Periksa ketersediaan saat ini lewat `/v1/models`, `recommended_for`, atau halaman Models; contoh di bawah memakai ID model publik saat ini.
+Lihat [katalog model](https://tokenlab.sh/id/models) untuk ID, ketersediaan, format, dan harga terkini.
 
-| Kemampuan | Deskripsi | Contoh model |
-|---|---|---|
-| Chat dan penalaran | Pembuatan teks, perencanaan, tools | `gpt-5.4`, `claude-sonnet-4-6` |
-| Vision dan multimodal | Pemahaman gambar dan chat multimodal | `gpt-4o`, `claude-sonnet-4-6`, `gemini-3.5-flash` |
-| Pembuatan dan edit gambar | Text-to-image dan edit gambar | `gpt-image-2`, `flux-pro` |
-| Pembuatan video | Text/image/reference-to-video dan kontrol gerak | `veo3.1`, `wan-2.7`, `kling-3.0-video`, `happyhorse-1.0` |
-| Audio & Realtime WebSocket | TTS, transkripsi, terjemahan audio, dan sesi WebSocket realtime | `gpt-4o-mini-tts`, `whisper-1`, `gpt-realtime` |
-| Embeddings dan rerank | Vektorisasi teks dan pemeringkatan ulang | `text-embedding-3-small`, `qwen3-vl-rerank` |
-| Terjemahan | Alur terjemahan teks dan terjemahan suara melalui WebSocket | `doubao-seed-translation`, `gpt-realtime-translate` |
-| Musik dan 3D | Pembuatan musik dan asset 3D | `suno-music`, `tripo-h3.1` |
-| Worlds | Pembuatan world, polling status, dan alur media asset | Periksa ketersediaan lewat `/v1/worlds/generations` dan Models API |
-
-## Pilih Format Permintaan
-
-Mulailah dengan rute yang sesuai dengan perilaku yang Anda butuhkan. Gunakan rute native Anthropic/Gemini untuk fitur native penyedia; gunakan `/v1/chat/completions` yang kompatibel dengan OpenAI saat memigrasikan kode chat bergaya OpenAI yang sudah ada.
-
-<CodeGroup>
-
-```bash cURL
-curl https://api.tokenlab.sh/v1/chat/completions \
-  -H "Authorization: Bearer sk-your-api-key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "gpt-5.6-terra",
-    "messages": [
-      {"role": "user", "content": "Explain what TokenLab does in one sentence."}
-    ]
-  }'
-```
-
-```python Python
-from openai import OpenAI
-
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
-
-response = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": "Explain what TokenLab does in one sentence."}]
-)
-
-print(response.choices[0].message.content)
-```
-
-```javascript JavaScript
-import OpenAI from 'openai';
-
-const client = new OpenAI({
-  apiKey: 'sk-your-api-key',
-  baseURL: 'https://api.tokenlab.sh/v1'
-});
-
-const response = await client.chat.completions.create({
-  model: 'gpt-5.6-terra',
-  messages: [{ role: 'user', content: 'Explain what TokenLab does in one sentence.' }],
-});
-
-console.log(response.choices[0].message.content);
-```
-
-<Note>
-Gunakan `POST /v1/responses` hanya ketika Anda secara eksplisit memerlukan perilaku khusus Responses. Itu bukan jalur kompatibilitas default di semua model.
-</Note>
-
-</CodeGroup>
-
-## Fitur Utama
-
-<CardGroup cols={2}>
-  <Card title="Beberapa Format API" icon="layers" href="/guides/api-formats">
-    Gunakan format OpenAI, Anthropic, Gemini, atau native Responses dengan satu akun.
-  </Card>
-  <Card title="Kesalahan Berorientasi Agen" icon="wand-magic-sparkles" href="/guides/agent-first-api">
-    Petunjuk terstruktur membantu agen pengodean mengoreksi diri lebih cepat.
-  </Card>
-  <Card title="Cakupan Integrasi" icon="toolbox" href="/guides/ide-sdk-compatibility">
-    Hubungkan IDE, SDK, framework, dan aplikasi chat dengan lebih sedikit perubahan spesifik penyedia.
-  </Card>
-</CardGroup>
+| Kemampuan | Deskripsi |
+|---|---|
+| Chat dan penalaran | Pembuatan teks, perencanaan, tools |
+| Vision dan multimodal | Pemahaman gambar dan chat multimodal |
+| Pembuatan dan edit gambar | Text-to-image dan edit gambar |
+| Pembuatan video | Text/image/reference-to-video dan kontrol gerak |
+| Audio & Realtime WebSocket | TTS, transkripsi, terjemahan audio, dan sesi WebSocket realtime |
+| Embeddings dan rerank | Vektorisasi teks dan pemeringkatan ulang |
+| Terjemahan | Alur terjemahan teks dan terjemahan suara melalui WebSocket |
+| Musik dan 3D | Pembuatan musik dan asset 3D |
+| Worlds | Pembuatan world, polling status, dan alur media asset |
 
 ## Langkah Selanjutnya
 

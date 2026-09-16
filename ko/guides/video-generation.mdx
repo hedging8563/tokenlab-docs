@@ -7,7 +7,9 @@ import VideoModelContracts from "../snippets/generated/video-model-contracts.mdx
 
 비디오 생성은 비동기입니다. `POST /v1/videos/generations`는 공개 작업 ID를 반환하며 일반적으로 `poll_url`을 포함합니다; 최종 비디오는 이후 상태 응답에서 나타납니다.
 
-선택한 Seedance 모델이 TokenLab 소재 라이브러리를 사용할 수 있으면 이미지 URL과 지원되는 인라인 data URL이 생성 전에 재사용 가능한 TokenLab 소재로 준비됩니다. 준비가 60초를 넘으면 반환된 `auto_material_asset_ids`가 `ACTIVE`가 된 후 다시 시도하세요. 선택한 모델이 소재 라이브러리를 사용할 수 없으면 일반 이미지 입력은 일반 이미지 경로로 계속 처리됩니다.
+선택한 모델이 지원하는 이미지 필드에 공개 HTTP(S) URL 또는 지원되는 data URL을 넣을 수 있습니다. 일반 미디어 입력으로 처리되며 재사용 소재 ID를 자동으로 만들지 않습니다.
+
+명시한 소재가 준비 중이면 `POST /v1/videos/generations`가 `409 seedance_material_preparing`과 `inactive_asset_ids`를 반환합니다. 소재가 `ACTIVE`가 될 때까지 조회한 뒤 같은 ID로 재시도하세요. `FAILED`라면 먼저 `error_message`에 따라 수정하거나 다시 가져오세요.
 
 ## 모델 세부정보
 
@@ -27,20 +29,20 @@ import VideoModelContracts from "../snippets/generated/video-model-contracts.mdx
 ## 모델 발견
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \\
+curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 
-`model`에는 TokenLab에 표시되는 모델 ID를 사용하고, 기능 변형은 `operation`과 해당 미디어 입력으로 선택하세요. 예: `wan-2.7`, `happyhorse-1.0`, `viduq3`, `viduq3-mix`, `pixverse-v6`, `kling-3.0-video`, `veo3.1`, `seedance-2.0`. 작업별 접미사를 TokenLab 모델명으로 사용하지 마세요.
+`model`에는 TokenLab에 표시되는 모델 ID를 사용하고, 기능 변형은 `operation`과 해당 미디어 입력으로 선택하세요. 예: `wan-2.7`, `happyhorse-1.0`, `viduq3`, `viduq3-mix`, `pixverse-v6`, `veo3.1`, `seedance-2.0`. 작업별 접미사를 TokenLab 모델명으로 사용하지 마세요.
 
 `reference_images`, `kling_elements`, `output_audio`, `duration`, `resolution`, 또는 `aspect_ratio`와 같은 전문 필드에 의존하기 전에 선택한 모델 세부정보를 읽으십시오.
 
 ## 요청 생성
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/generations \\
-  -H "Authorization: Bearer sk-your-api-key" \\
-  -H "Content-Type: application/json" \\
+curl https://api.tokenlab.sh/v1/videos/generations \
+  -H "Authorization: Bearer sk-your-api-key" \
+  -H "Content-Type: application/json" \
   -d '{
     "model": "veo3.1",
     "operation": "text-to-video",
@@ -55,9 +57,8 @@ curl https://api.tokenlab.sh/v1/videos/generations \\
 ## 입력 및 모델별 필드
 
 - Veo 3 계열 요청은 `output_audio`가 생략될 경우 기본적으로 오디오가 켜집니다. 모델이 토글을 지원하고 사용자 경험이 사운드에 의존하는 경우 명시적으로 설정하십시오.
-- `kling_elements`는 `kling-3.0-video` 이미지 조건 요청을 위한 것입니다. 각 요소를 `prompt`에서 `@name`으로 참조하십시오; `output_audio=true`와 결합하지 마십시오.
 - Seedance 2.0 패밀리의 4K 출력, Fast/Mini 해상도 제한, 멀티모달 참조 입력을 사용하기 전에 [Seedance 2.0 비디오 모델 가이드](/ko/guides/seedance-2-video)를 읽으세요.
-- `grok-imagine-video`의 경우, video-to-video는 공개 `.mp4` `video_url`을 사용합니다; 모델별 제한 사항인 `duration` 및 `resolution`은 모델 계약에서 제공되어야 합니다.
+- `grok-imagine-video`의 video-to-video에는 `prompt`와 공개 HTTPS `.mp4` `video_url`을 보냅니다. 이 작업은 `duration`, `resolution`, `aspect_ratio` 옵션을 사용하지 않습니다.
 
 <VideoModelContracts />
 

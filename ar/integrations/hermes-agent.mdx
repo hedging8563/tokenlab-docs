@@ -13,6 +13,8 @@ description: "ربط Hermes Agent مع TokenLab"
 
 استخدم مجلد `HERMES_HOME` إن كان محددًا، وإلا `~/.hermes` (Windows: `%USERPROFILE%\.hermes`). انسخ `config.yaml` احتياطيًا ثم ادمج العناصر التالية دون استبدال بقية الإعدادات. اختر نموذجًا حاليًا يدعم Chat Completions واستدعاء الأدوات.
 
+أنشئ نسخة احتياطية من الإعداد النشط. أضف عنصر TokenLab فقط واحتفظ بالمزوّدين والحسابات والنموذج الافتراضي والأذونات الحالية. إذا كان الاسم مستخدمًا، فاختر اسمًا آخر وعدّل الأوامر. للتراجع، احذف العنصر الذي أضفته فقط أو استعد نسخته الاحتياطية.
+
 ```yaml
 providers:
   tokenlab:
@@ -20,16 +22,17 @@ providers:
     key_env: TOKENLAB_API_KEY
     transport: chat_completions
     default_model: gpt-5.6-luna
-model:
-  provider: custom:tokenlab
-  default: gpt-5.6-luna
 ```
 
 أنشئ مفتاحًا من [مفاتيح API](https://tokenlab.sh/dashboard/api?tab=keys). خزنه محليًا باسم `TOKENLAB_API_KEY` في ملف `.env` بمجلد Hermes أو في بيئة العملية التي تشغله. لا تلصق المفتاح في المحادثة أو YAML الخاص بالمزود.
 
 ## التحقق ثم إرسال طلب
 
-شغّل `hermes config get model.provider` و`hermes config get model.default`؛ ينبغي أن يعرضا `custom:tokenlab` والنموذج المختار. ابدأ جلسة جديدة لأن الجلسات القديمة قد تحتفظ بالنموذج السابق. فحص الإعدادات لا يثبت صلاحية المفتاح أو نجاح استدعاء النموذج.
+تحقق من المزوّد عبر `hermes config get providers.tokenlab.api`؛ يجب أن يعرض `https://api.tokenlab.sh/v1`. احتفظ بقسم `model` الحالي. ابدأ جلسة جديدة بالمزوّد والنموذج المحددين أدناه؛ التشغيل العادي دون هذه الخيارات يستخدم الإعداد الافتراضي السابق. فحص الإعداد لا يثبت صلاحية المفتاح.
+
+```bash
+hermes chat --provider custom:tokenlab --model gpt-5.6-luna
+```
 
 عندما تكون مستعدًا لاستخدام رصيد TokenLab، أرسل نصًا قصيرًا وطابق الرد مع [سجل الطلب](https://tokenlab.sh/dashboard/runs?section=requests). جرّب بعدها مهمة أداة للقراءة فقط. قد تستخدم النماذج المساعدة والأدوات الاختيارية مزودات أو مفاتيح منفصلة.
 

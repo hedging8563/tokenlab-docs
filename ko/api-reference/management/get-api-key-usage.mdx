@@ -26,7 +26,7 @@ playground: simple
 
 ## 참고 사항
 
-- 금액 필드는 USD만 지원합니다. `CNY` 입력은 지원이 종료되었으며 `400 currency_retired`가 반환됩니다.
+- 금액 필드는 USD만 지원합니다.
 
 - 응답은 페이지네이션됩니다.
 - 응답에는 공개 가능한 과금 및 리포팅 필드만 포함됩니다.
@@ -37,7 +37,7 @@ playground: simple
 
 <RequestExample>
 ```bash cURL
-curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page=1&limit=20&scene=video&startDate=2026-03-01&endDate=2026-03-31" \
+curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page=1&limit=20&scene=chat&startDate=2026-07-01&endDate=2026-07-31" \
   -H "Authorization: Bearer mt-your-management-token"
 ```
 </RequestExample>
@@ -66,7 +66,8 @@ curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page
     ],
     "expires_at": "2026-12-31T23:59:59.000Z",
     "last_used_at": "2026-07-08T03:12:45.000Z",
-    "created_at": "2026-07-01T10:00:00.000Z"
+    "created_at": "2026-07-01T10:00:00.000Z",
+    "delivery_policy": null
   },
   "items": [
     {
@@ -88,7 +89,10 @@ curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page
       "cache_write_tokens_1h": 0,
       "cost": 0.0012,
       "cost_decimal": "0.0012",
-      "created_at": "2026-07-08T03:15:00.000Z"
+      "created_at": "2026-07-08T03:15:00.000Z",
+      "requested_policy": null,
+      "resolved_tier": null,
+      "charged_price_basis": null
     }
   ],
   "pagination": {
@@ -188,6 +192,9 @@ curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page
 <ResponseField name="items[].cache_write_tokens_1h" type="number">1시간 캐시 쓰기 token 수입니다.</ResponseField>
 <ResponseField name="items[].cost" type="number">표시용 JSON 숫자로 반환되는 USD 비용입니다.</ResponseField>
 <ResponseField name="items[].cost_decimal" type="string">10진 문자열로 반환되는 정확한 USD 비용입니다.</ResponseField>
+<ResponseField name="items[].requested_policy" type="string | null">`auto`, `verified`, `official`, `null`. 기록된 요청 전달 정책입니다.</ResponseField>
+<ResponseField name="items[].resolved_tier" type="string | null">`verified`, `official`, `null`. 기록된 실제 전달 등급입니다.</ResponseField>
+<ResponseField name="items[].charged_price_basis" type="object | null">기록된 적용 가격과 청구 사용량입니다.</ResponseField>
 <ResponseField name="items[].created_at" type="string">사용 내역의 ISO 타임스탬프입니다.</ResponseField>
 <ResponseField name="summary.total_requests" type="number">전체 요청 수입니다.</ResponseField>
 <ResponseField name="summary.total_cost" type="number">표시용 JSON 숫자로 반환되는 USD 총비용입니다.</ResponseField>

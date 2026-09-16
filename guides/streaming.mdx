@@ -5,7 +5,7 @@ description: "Show model output as it arrives"
 
 ## Overview
 
-Streaming delivers model output in small events instead of waiting for the full answer. Use Responses streaming for a model that lists `responses` in `accepted_request_formats`; keep Chat Completions streaming when that is what your SDK or application already expects.
+Streaming delivers model output in small events instead of waiting for the full answer. Use Responses streaming for a model that lists `openai_responses` in `accepted_request_formats`; keep Chat Completions streaming when that is what your SDK or application already expects.
 
 ## Responses streaming
 
@@ -23,42 +23,61 @@ curl https://api.tokenlab.sh/v1/responses \
 ```
 
 ```python Python
+import os
 from openai import OpenAI
 
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
-
-stream = client.responses.create(
-    model="gpt-5.6-terra",
-    input="Write a short poem.",
-    stream=True
-)
-
-for event in stream:
-    if event.type == "response.output_text.delta":
-        print(event.delta, end="", flush=True)
+with OpenAI(
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh/v1",
+    timeout=30.0,
+    max_retries=0,
+) as client:
+    completed = False
+    with client.responses.create(
+        model="gpt-5.6-terra",
+        input="Write a short poem.",
+        stream=True,
+    ) as stream:
+        for event in stream:
+            if event.type == "response.output_text.delta":
+                print(event.delta, end="", flush=True)
+            elif event.type == "response.completed":
+                completed = True
+            elif event.type in {"response.failed", "response.incomplete", "error"}:
+                raise RuntimeError(f"Stream ended with {event.type}")
+    if not completed:
+        raise RuntimeError("Stream closed before response.completed")
 ```
 
 ```javascript JavaScript
 import OpenAI from 'openai';
 
 const client = new OpenAI({
-  apiKey: 'sk-your-api-key',
-  baseURL: 'https://api.tokenlab.sh/v1'
+  apiKey: process.env.TOKENLAB_API_KEY,
+  baseURL: 'https://api.tokenlab.sh/v1',
+  timeout: 30_000,
+  maxRetries: 0,
 });
 
 const stream = await client.responses.create({
   model: 'gpt-5.6-terra',
   input: 'Write a short poem.',
-  stream: true
+  stream: true,
 });
-
-for await (const event of stream) {
-  if (event.type === 'response.output_text.delta') {
-    process.stdout.write(event.delta);
+let completed = false;
+try {
+  for await (const event of stream) {
+    if (event.type === 'response.output_text.delta') {
+      process.stdout.write(event.delta);
+    } else if (event.type === 'response.completed') {
+      completed = true;
+    } else if (['response.failed', 'response.incomplete', 'error'].includes(event.type)) {
+      throw new Error(`Stream ended with ${event.type}`);
+    }
   }
+  if (!completed) throw new Error('Stream closed before response.completed');
+} finally {
+  stream.controller.abort();
 }
 ```
 
@@ -77,16 +96,32 @@ Each connection handles one active response at a time and lasts up to 60 minutes
 If your framework still expects SSE chunks from `/v1/chat/completions`, that also works:
 
 ```python
-stream = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": "Write a short poem"}],
-    stream=True
-)
+import os
+from openai import OpenAI
 
-for chunk in stream:
-    content = chunk.choices[0].delta.content
-    if content:
-        print(content, end="", flush=True)
+with OpenAI(
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh/v1",
+    timeout=30.0,
+    max_retries=0,
+) as client:
+    finish_reason = None
+    with client.chat.completions.create(
+        model="gpt-5.6-terra",
+        messages=[{"role": "user", "content": "Write a short poem."}],
+        stream=True,
+        stream_options={"include_usage": True},
+    ) as stream:
+        for chunk in stream:
+            if not chunk.choices:
+                continue
+            choice = chunk.choices[0]
+            if choice.delta.content:
+                print(choice.delta.content, end="", flush=True)
+            if choice.finish_reason:
+                finish_reason = choice.finish_reason
+    if finish_reason != "stop":
+        raise RuntimeError(f"Stream ended without a complete text answer: {finish_reason}")
 ```
 
 ## Gemini Streaming
@@ -103,43 +138,7 @@ Typical completion conditions:
 
 ## Web App Pattern
 
-```javascript
-async function streamChat(message) {
-  const response = await fetch('https://api.tokenlab.sh/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Bearer sk-your-api-key',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: 'gpt-5.6-terra',
-      messages: [{ role: 'user', content: message }],
-      stream: true
-    })
-  });
-
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-
-    const chunk = decoder.decode(value);
-    const lines = chunk.split('\\n').filter(line => line.startsWith('data: '));
-
-    for (const line of lines) {
-      const data = line.slice(6);
-      if (data === '[DONE]') return;
-      const parsed = JSON.parse(data);
-      const content = parsed.choices?.[0]?.delta?.content;
-      if (content) {
-        document.getElementById('output').textContent += content;
-      }
-    }
-  }
-}
-```
+Run the SDK stream consumer on your server. The browser should call your own authenticated backend; keep the TokenLab key in the server environment. Forward text deltas to the browser and cancel the upstream stream when the user stops or disconnects. Use the SDK to parse SSE events: one network chunk is not necessarily one complete event.
 
 ## Handle streams well
 

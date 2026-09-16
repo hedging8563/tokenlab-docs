@@ -8,10 +8,12 @@ Ambil satu material asset dan periksa status pemrosesannya. Asset tersebut hanya
 
 Jika pembuatan video mengembalikan pesan `Seedance material asset not found or not accessible`, pastikan Anda telah memasukkan `id` material asset ini, bukan `group_id` material tersebut.
 
+`project_name` memisahkan sumber daya dalam organisasi yang terautentikasi. Nilai default adalah `default`; gunakan nilai yang sama dan peka huruf besar-kecil untuk grup dan aset terkait. Kirim di body JSON untuk POST/PUT dan parameter kueri untuk GET/DELETE.
+
 ## Contoh Permintaan
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr \
+curl "https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr?project_name=default" \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```
 
@@ -21,6 +23,7 @@ curl https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr \
 {
   "id": "asset-20260720123456-qn7wr",
   "object": "seedance.material_asset",
+  "project_name": "default",
   "group_id": "group-20260720123456-vrt01",
   "library_type": "aigc_avatar",
   "asset_name": "Front view",

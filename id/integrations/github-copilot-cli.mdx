@@ -18,20 +18,39 @@ description: "Hubungkan GitHub Copilot CLI ke TokenLab dengan BYOK"
 ## Instalasi dan konfigurasi
 
 ```bash
-npm install -g @github/copilot
+npm install -g @github/copilot@1.0.85
 copilot --version
 ```
 
-Instalasi npm memerlukan Node.js 22 atau yang lebih baru. GitHub saat ini memerlukan paket Copilot aktif; akun organisasi juga harus mengaktifkan kebijakan Copilot CLI.
+Instalasi npm memerlukan Node.js 22 atau yang lebih baru.
 
-```bash
-export COPILOT_PROVIDER_TYPE="openai"
-export COPILOT_PROVIDER_BASE_URL="https://api.tokenlab.sh/v1"
-export COPILOT_PROVIDER_API_KEY="sk-your-tokenlab-key"
-export COPILOT_MODEL="kimi-k3"
+Ikuti langkah terminal [panduan cepat](/id/quickstart) untuk macOS, Linux, WSL, atau Windows PowerShell guna mengatur `TOKENLAB_API_KEY` tanpa menulis kunci ke riwayat perintah. Jalankan Copilot CLI dari terminal tersebut. Untuk penggunaan berkelanjutan, gunakan pengelola rahasia lokal, bukan kunci teks biasa di profil shell.
 
-copilot
+Variabel ini hanya berlaku untuk peluncuran ini; akun, model default, dan izin tersimpan tetap ada. Jalankan tanpa variabel tersebut untuk memakai konfigurasi sebelumnya. Jangan simpan dalam profil shell.
+
+<CodeGroup>
+```bash macOS / Linux / WSL
+COPILOT_PROVIDER_TYPE=openai COPILOT_PROVIDER_BASE_URL=https://api.tokenlab.sh/v1 COPILOT_PROVIDER_API_KEY="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" copilot --model kimi-k3
 ```
+
+```powershell Windows PowerShell
+if (-not $env:TOKENLAB_API_KEY) { throw 'Set TOKENLAB_API_KEY first' }
+$previous = @{}
+$previous['COPILOT_PROVIDER_TYPE'] = [Environment]::GetEnvironmentVariable('COPILOT_PROVIDER_TYPE', 'Process')
+$previous['COPILOT_PROVIDER_BASE_URL'] = [Environment]::GetEnvironmentVariable('COPILOT_PROVIDER_BASE_URL', 'Process')
+$previous['COPILOT_PROVIDER_API_KEY'] = [Environment]::GetEnvironmentVariable('COPILOT_PROVIDER_API_KEY', 'Process')
+try {
+  $env:COPILOT_PROVIDER_TYPE = 'openai'
+  $env:COPILOT_PROVIDER_BASE_URL = 'https://api.tokenlab.sh/v1'
+  $env:COPILOT_PROVIDER_API_KEY = $env:TOKENLAB_API_KEY
+  copilot --model kimi-k3
+} finally {
+  foreach ($name in $previous.Keys) {
+    [Environment]::SetEnvironmentVariable($name, $previous[$name], 'Process')
+  }
+}
+```
+</CodeGroup>
 
 Model harus mendukung streaming dan pemanggilan alat. `kimi-k3` mendukung alat dan memiliki konteks lebih besar dari rekomendasi GitHub 128K.
 
@@ -40,3 +59,5 @@ Mulai dengan tugas hanya-baca yang tidak mengubah berkas. Jika model tidak ditem
 <Warning>
 Jangan simpan API Key dalam berkas yang dilacak Git. Rotasi Key yang terlihat di riwayat terminal, tangkapan layar, atau log.
 </Warning>
+
+Menyimpan pengaturan atau menampilkan model tidak memvalidasi kunci maupun permintaan yang selesai. Prompt memakai saldo TokenLab. Periksa respons dan [catatan permintaan terkait](https://tokenlab.sh/dashboard/runs?section=requests) sebelum mencoba alat; permintaan tambahan juga dapat dikenai biaya.

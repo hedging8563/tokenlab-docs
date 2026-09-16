@@ -8,10 +8,12 @@ Löschen Sie eine Materialgruppe und die darin enthaltenen TokenLab-Material-Ass
 
 Wenn die TokenLab-Materialbibliothek den Löschvorgang nicht abschließen kann, weil der aktuelle Autorisierungsstatus dies nicht zulässt, gibt TokenLab einen neutralen Material-Library-Fehler zurück. Nach dem Löschen können die Gruppe und ihre Assets nicht mehr für die Videogenerierung verwendet werden.
 
+`project_name` trennt Ressourcen innerhalb der authentifizierten Organisation. Der Standard ist `default`; verwenden Sie für zugehörige Gruppen und Assets denselben Wert mit gleicher Groß- und Kleinschreibung. Senden Sie ihn bei POST/PUT im JSON-Body und bei GET/DELETE als Query-Parameter.
+
 ## Beispielanfrage
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01 \
+curl "https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01?project_name=default" \
   -X DELETE \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```

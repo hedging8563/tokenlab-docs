@@ -19,7 +19,7 @@ Gunakan `/v1/worlds/generations/{id}` untuk tugas yang pending atau gagal. Dafta
 </ParamField>
 
 <ParamField body="status" type="string">
-  Filter status opsional. TokenLab mengembalikan world selesai untuk `SUCCEEDED`; status lain berada di endpoint tugas generasi.
+  Filter opsional: `SUCCEEDED`, `PENDING`, `RUNNING`, atau `FAILED`. Endpoint ini mencantumkan world yang selesai; tiga nilai lainnya mengembalikan daftar kosong. Ambil tugas generasi untuk melihat kemajuannya.
 </ParamField>
 
 <ParamField body="model" type="string">
@@ -56,7 +56,7 @@ Gunakan `/v1/worlds/generations/{id}` untuk tugas yang pending atau gagal. Dafta
   Array catatan world.
 </ResponseField>
 
-<ResponseField name="next_page_token" type="string">
+<ResponseField name="next_page_token" type="string | null">
   Token halaman berikutnya atau `null`.
 </ResponseField>
 

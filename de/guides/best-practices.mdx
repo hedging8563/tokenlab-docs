@@ -1,295 +1,47 @@
 ---
-title: "Bewährte Vorgehensweisen"
-description: "Optimieren Sie Ihre Nutzung der TokenLab API im Hinblick auf Kosten, Performance und Zuverlässigkeit"
+title: "TokenLab zuverlässig integrieren"
+description: "TokenLab zuverlässig integrieren"
 ---
 
-## Modellauswahl
+## Modelle und Kosten
 
-Die Wahl des richtigen Modells kann Kosten und Qualität erheblich beeinflussen.
+Prüfen Sie aktuelle Fähigkeiten und Preise in der Modell-API oder auf der Modellseite. Vergleichen Sie gleiche Aufgaben und nennen Sie das Modell in jeder Anfrage. Wechseln Sie es nicht stillschweigend: Preis, Qualität, Tools und Kontext können sich ändern.
 
-### Aufgabenbasierte Empfehlungen
+Begrenzen Sie die Ausgabe passend zu API-Format und Modell und vermeiden Sie doppelten Kontext. Medienkosten können von Anzahl, Dauer oder Auflösung abhängen; zeigen Sie eine verfügbare Schätzung vor teuren Generierungen an.
 
-| Aufgabe | Empfohlene Modelle | Begründung |
-|------|-------------------|-----------|
-| **Einfache Fragen & Antworten** | `gpt-5-mini`, `gemini-3.5-flash` | Schnell, günstig, ausreichend gut |
-| **Komplexes Schlussfolgern** | `gpt-5.4`, `claude-opus-4-6` | Bessere Logik und Planung |
-| **Programmierung** | `claude-sonnet-4-6`, `gpt-4o`, `deepseek-v3-2` | Für Code optimiert |
-| **Kreatives Schreiben** | `claude-sonnet-4-6`, `gpt-4o` | Bessere Prosaqualität |
-| **Vision/Bilder** | `gpt-4o`, `claude-sonnet-4-6`, `gemini-3.5-flash` | Native Vision-Unterstützung |
-| **Langer Kontext** | `gemini-2.5-pro`, `claude-sonnet-4-6` | 1M+ token-Fenster |
-| **Kostensensitiv** | `gpt-5-mini`, `gemini-3.5-flash`, `deepseek-v3-2` | Bestes Preis-Leistungs-Verhältnis |
+## Streaming und Wiederholungen
 
-### Kostenstufen
+Streaming zeigt Text früher, senkt aber nicht die Tokenkosten. Bewahren Sie nützliche Teilausgaben nach einem Abbruch auf, ohne sie als vollständige Antwort zu kennzeichnen.
 
-```
-$$$$ Premium: gpt-5.4, claude-opus-4-6
-$$$  Standard: claude-sonnet-4-6, gpt-4o
-$$   Budget:   gpt-5-mini, gemini-3.5-flash
-$    Economy:  deepseek-v3-2
-```
+Warten Sie bei 429 gemäß `Retry-After` oder `retry_after`; nutzen Sie kurzen Backoff bei vorübergehenden 5xx. Authentifizierung, Berechtigungen, Guthaben, Validierung und Kontextfehler erfordern Korrekturen. Begrenzen Sie Versuche und Gesamtdauer, ohne SDK-Wiederholungen zu verdoppeln.
 
-## Kostenoptimierung
+- [Streaming](/de/guides/streaming)
+- [429 / Retry-After](/de/guides/rate-limits)
 
-### 1. Zuerst kleinere Modelle verwenden
+## Schlüssel und Aufzeichnungen
+
+Speichern Sie Schlüssel auf dem Server oder im Secret-Manager, niemals im Browser, App-Bundle, öffentlichen Repository oder Log. Trennen Sie Entwicklung, Produktion und Anwendungen, begrenzen Sie Modelle und Ausgaben und widerrufen Sie offengelegte Schlüssel.
 
 ```python
-def smart_query(question: str, complexity: str = "auto"):
-    """Use cheaper models for simple tasks."""
-
-    if complexity == "simple":
-        model = "gpt-5.6-luna"
-    elif complexity == "complex":
-        model = "gpt-5.6-terra"
-    else:
-        # Start cheap, escalate if needed
-        model = "gpt-5.6-luna"
-
-    response = client.chat.completions.create(
-        model=model,
-        messages=[{"role": "user", "content": question}]
-    )
-    return response
-```
-
-### 2. `max_tokens` festlegen
-
-Legen Sie immer ein sinnvolles Limit für `max_tokens` fest:
-
-```python
-# ❌ Bad: No limit, could generate thousands of tokens
-response = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": "Summarize this article"}]
-)
-
-# ✅ Good: Limit response length
-response = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": "Summarize this article"}],
-    max_tokens=500  # Reasonable limit for a summary
-)
-```
-
-### 3. Prompts optimieren
-
-```python
-# ❌ Verbose prompt (more input tokens)
-prompt = """
-I would like you to please help me by analyzing the following text
-and providing a comprehensive summary of the main points. Please be
-thorough but also concise in your response. The text is as follows:
-{text}
-"""
-
-# ✅ Concise prompt (fewer tokens)
-prompt = "Summarize the key points:\n{text}"
-```
-
-### 4. Ähnliche Anfragen bündeln
-
-```python
-# ❌ Many small requests
-for question in questions:
-    response = client.chat.completions.create(
-        model="gpt-5.6-terra",
-        messages=[{"role": "user", "content": question}]
-    )
-
-# ✅ Fewer larger requests
-combined_prompt = "\n".join([f"{i+1}. {q}" for i, q in enumerate(questions)])
-response = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": f"Answer each question:\n{combined_prompt}"}]
-)
-```
-
-## Performance-Optimierung
-
-### 5. Streaming für UX verwenden
-
-Streaming verbessert die wahrgenommene Performance:
-
-```python
-stream = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": "Write a long essay"}],
-    stream=True
-)
-
-for chunk in stream:
-    if chunk.choices[0].delta.content:
-        print(chunk.choices[0].delta.content, end="", flush=True)
-```
-
-### 6. Schnelle Modelle für interaktive Nutzung wählen
-
-| Anwendungsfall | Empfohlen | Latenz |
-|----------|-------------|---------|
-| Chat-UI | `gpt-5-mini`, `gemini-3.5-flash` | ~200ms bis zum ersten token |
-| Tab-Vervollständigung | `claude-haiku-4-5` | ~150ms bis zum ersten token |
-| Hintergrundverarbeitung | `gpt-4o`, `claude-sonnet-4-6` | ~500ms bis zum ersten token |
-
-### 7. Timeouts festlegen
-
-```python
-client = OpenAI(
-    api_key="sk-your-key",
-    base_url="https://api.tokenlab.sh/v1",
-    timeout=60.0  # 60 second timeout
-)
-```
-
-## Zuverlässigkeit
-
-### 8. Retries implementieren
-
-```python
-import time
-from openai import RateLimitError, APIError
-
-def chat_with_retry(messages, max_retries=3):
-    for attempt in range(max_retries):
-        try:
-            return client.chat.completions.create(
-                model="gpt-5.6-terra",
-                messages=messages
-            )
-        except RateLimitError:
-            wait = 2 ** attempt
-            print(f"Rate limited, waiting {wait}s...")
-            time.sleep(wait)
-        except APIError as e:
-            if attempt == max_retries - 1:
-                raise
-            time.sleep(1)
-    raise Exception("Max retries exceeded")
-```
-
-### 9. Fehler robust behandeln
-
-```python
-from openai import APIError, AuthenticationError, RateLimitError
-
-try:
-    response = client.chat.completions.create(...)
-except AuthenticationError:
-    # Check API key
-    notify_admin("Invalid API key")
-except RateLimitError:
-    # Queue for later or use backup
-    add_to_queue(request)
-except APIError as e:
-    if e.status_code == 402:
-        notify_admin("Balance low")
-    elif e.status_code >= 500:
-        # Server error, retry later
-        schedule_retry(request)
-```
-
-### 10. Fallback-Modelle verwenden
-
-```python
-FALLBACK_CHAIN = ["gpt-5.6-terra", "claude-sonnet-5", "gemini-3.5-flash"]
-
-def chat_with_fallback(messages):
-    for model in FALLBACK_CHAIN:
-        try:
-            return client.chat.completions.create(
-                model=model,
-                messages=messages
-            )
-        except APIError:
-            continue
-    raise Exception("All models failed")
-```
-
-## Sicherheit
-
-### 11. API-Keys schützen
-
-```python
-# ❌ Never hardcode keys
-client = OpenAI(api_key="sk-abc123...")
-
-# ✅ Use environment variables
 import os
-client = OpenAI(api_key=os.environ["TOKENLAB_API_KEY"])
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh/v1",
+    timeout=30.0,
+    max_retries=0,
+)
 ```
 
-### 12. Benutzereingaben validieren
+Speichern Sie `request_id`, `task_id`, die zurückgegebene `billing_transaction_id`, Modell, Endpunkt und eigene Job-ID. Protokollieren Sie keine Zugangsdaten, vollständigen privaten Prompts, Medien oder signierten URLs. Der endgültige Betrag steht in Usage oder der Management-API.
 
-```python
-def validate_message(content: str) -> bool:
-    """Validate user input before sending to API."""
-    if len(content) > 100000:
-        raise ValueError("Message too long")
-    # Add other validation as needed
-    return True
-```
+## Asynchrone Aufgaben
 
-### 13. Limits für API-Keys festlegen
+Speichern Sie bei asynchroner Erstellung ID und `poll_url` und fragen Sie bis `completed` oder `failed` ab. Ein Abfragefehler bedeutet keinen Generierungsfehler. Setzen Sie nach Timeout oder Neuladen die gespeicherte Aufgabe fort; verwenden Sie Idempotenzschlüssel, sofern unterstützt.
 
-Erstellen Sie separate API-Keys mit Ausgabenlimits für:
-- Entwicklung/Tests
-- Produktion
-- Verschiedene Anwendungen
+[Asynchrone Jobs & Abfragen](/de/guides/async-jobs-polling)
 
-## Überwachung
+## Vor dem Start
 
-### 14. Nutzung nachverfolgen
-
-Prüfen Sie regelmäßig Ihr Dashboard auf:
-- token-Nutzung nach Modell
-- Kostenaufschlüsselung
-- Cache-Trefferraten
-- Fehlerraten
-
-### 15. Wichtige Metriken protokollieren
-
-```python
-import logging
-
-response = client.chat.completions.create(...)
-
-logging.info({
-    "model": response.model,
-    "prompt_tokens": response.usage.prompt_tokens,
-    "completion_tokens": response.usage.completion_tokens,
-    "total_tokens": response.usage.total_tokens,
-})
-```
-
-### 16. Alerts einrichten
-
-Konfigurieren Sie Warnungen bei niedrigem Guthaben in Ihrem Dashboard, um Service-Unterbrechungen zu vermeiden.
-
-## Checkliste
-
-<AccordionGroup>
-  <Accordion title="Kostenoptimierung">
-    - [ ] Für jede Aufgabe das passende Modell verwenden
-    - [ ] `max_tokens`-Limits festlegen
-    - [ ] Prompts sind prägnant
-    - [ ] Caching aktiviert, wo sinnvoll
-    - [ ] Ähnliche Anfragen bündeln
-  </Accordion>
-
-  <Accordion title="Performance">
-    - [ ] Streaming für interaktive UX
-    - [ ] Schnelle Modelle für Echtzeitnutzung
-    - [ ] Timeouts konfiguriert
-  </Accordion>
-
-  <Accordion title="Zuverlässigkeit">
-    - [ ] Retry-Logik implementiert
-    - [ ] Fehlerbehandlung vorhanden
-    - [ ] Fallback-Modelle konfiguriert
-  </Accordion>
-
-  <Accordion title="Sicherheit">
-    - [ ] API-Keys in Umgebungsvariablen
-    - [ ] Eingabevalidierung
-    - [ ] Separate Keys für Dev/Prod
-    - [ ] Ausgabenlimits festgelegt
-  </Accordion>
-</AccordionGroup>
+Prüfen Sie vor dem Start das konkrete Modell und Format, Erfolge und übliche Fehler, aktuelle Preise sowie Neuladen und wiederholte Klicks.

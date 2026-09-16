@@ -8,13 +8,15 @@ description: "Seedanceバーチャルアバターのマテリアルグループ�
 
 新しい実在人物のマテリアルグループは、[ビジュアル確認セッションの作成](/ja/api-reference/video/create-visual-validation-session)を通じて作成されるため、このエンドポイントから直接作成することはできません。
 
+`project_name` は認証済み組織内のリソースを分離します。デフォルトは `default` です。関連するグループと素材には、大文字と小文字を区別した同じ値を使用してください。POST/PUT では JSON ボディ、GET/DELETE ではクエリに指定します。
+
 ## リクエスト例
 
 ```bash
 curl https://api.tokenlab.sh/v1/videos/assets/groups \
   -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"library_type":"aigc_avatar","group_name":"Product references","description":"Reusable product shots"}'
+  -d '{"library_type":"aigc_avatar","group_name":"Product references","description":"Reusable product shots","project_name":"default"}'
 ```
 
 ## レスポンス例
@@ -23,6 +25,7 @@ curl https://api.tokenlab.sh/v1/videos/assets/groups \
 {
   "id": "group-20260720123456-vrt01",
   "object": "seedance.material_asset_group",
+  "project_name": "default",
   "library_type": "aigc_avatar",
   "group_name": "Product references",
   "description": "Reusable product shots",

@@ -23,6 +23,8 @@ export OPIK_PROJECT_NAME="tokenlab-integration-demo"
 
 ## 封装 OpenAI 客户端
 
+运行示例前先配置 Opik：Opik Cloud 需要 `OPIK_API_KEY`，并可按需指定 `OPIK_WORKSPACE`。已有自托管部署则需将 `OPIK_URL_OVERRIDE` 设为其 API 地址，例如 `http://localhost:5173/api`。参见 [Opik 配置指南](https://www.comet.com/docs/opik/tracing/advanced/sdk_configuration)。
+
 ```python
 import os
 

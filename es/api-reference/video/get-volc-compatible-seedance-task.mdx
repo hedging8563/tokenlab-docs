@@ -9,10 +9,10 @@ description: "Obtenga una tarea de compatibilidad de Seedance mediante su ID de 
 Utilice el ID `cgt-...` devuelto por create. Realice consultas cada pocos segundos mientras la tarea esté en estado `queued` o `running`. Deténgase cuando la tarea esté en estado `succeeded`, `failed`, `cancelled` o `expired`.
 
 <Warning>
-No reutilice el enum de tarea unificado v1 ni la estructura de respuesta aquí. `/v1/tasks/{id}` utiliza `pending`, `processing`, `completed` y `failed`; este endpoint v3 utiliza el enum oficial anterior. En el objeto JSON v3, `duration` es una cadena cuando está presente y `error` se omite a menos que la tarea haya fallado. Un cliente Go estricto debe declarar `Duration` como `string` con la etiqueta JSON `duration,omitempty`, y detenerse en cada estado terminal v3.
+No reutilice el enum de tarea unificado v1 ni la estructura de respuesta aquí. `/v1/tasks/{id}` utiliza `pending`, `processing`, `completed` y `failed`; este endpoint v3 utiliza el enum oficial anterior. En el objeto JSON v3, `duration` es una cadena cuando está presente y `error` es opcional y contiene los detalles de error disponibles. Un cliente Go estricto debe declarar `Duration` como `string` con la etiqueta JSON `duration,omitempty`, y detenerse en cada estado terminal v3.
 </Warning>
 
-Consulte también [Modelos de video Seedance 2.0](/guides/seedance-2-video) y [Generación de video](/guides/video-generation).
+Consulte también [Modelos de video Seedance 2.0](/es/guides/seedance-2-video) y [Generación de video](/es/guides/video-generation).
 
 ## Valores de estado
 
@@ -32,7 +32,7 @@ Consulte también [Modelos de video Seedance 2.0](/guides/seedance-2-video) y [G
 - `content.last_frame_url`: presente solo cuando se solicita y está disponible.
 - `usage`: uso de tokens cuando está disponible.
 - `created_at` y `updated_at`: marcas de tiempo de la tarea.
-- `error`: presente solo cuando la tarea falló; omitido para tareas que no fallaron.
+- `error`: Detalles de error opcionales cuando están disponibles. Consulte `error.code` y `error.message`; no deduzca la presencia del campo solo a partir de `status`.
 
 La respuesta nunca añade campos de TokenLab como `progress`, `return_last_frame`, `watermark`, `priority` o `camera_fixed`.
 

@@ -28,7 +28,7 @@ curl "https://api.tokenlab.sh/v1/models?recommended_for=stt" \
 
 ## Audio requests
 
-Speech, transcription, and translation return in the HTTP response. Large files can take longer than a client's default timeout, so allow enough time and keep the Request ID.
+Speech returns audio in the HTTP response. Transcription and translation can return final text or an accepted task. When the body contains a task ID and status instead of final text, save the ID and follow `poll_url` until completion or failure. Allow enough time for large files and keep the Request ID.
 
 ```bash
 curl -X POST "https://api.tokenlab.sh/v1/audio/speech" \
@@ -48,14 +48,27 @@ Open a WebSocket with the model in the query string and the API key in the Autho
 
 This guide covers the WebSocket subset only. TokenLab does not currently provide OpenAI Realtime REST client secret, translation client secret, Calls, or legacy beta session management endpoints.
 
+For the server-side example below, install `ws` and set `TOKENLAB_REALTIME_MODEL` to a current model whose detail declares `/v1/realtime`. Provide `TOKENLAB_API_KEY` in the server environment; the name alone does not establish realtime support.
+
+```bash
+npm install ws
+```
+
 ```javascript
 import WebSocket from 'ws';
 
-const socket = new WebSocket('wss://api.tokenlab.sh/v1/realtime?model=gpt-realtime', {
-  headers: { Authorization: 'Bearer sk-your-api-key' }
-});
+const model = process.env.TOKENLAB_REALTIME_MODEL;
+const apiKey = process.env.TOKENLAB_API_KEY;
+if (!model || !apiKey) throw new Error('Set TOKENLAB_REALTIME_MODEL and TOKENLAB_API_KEY');
 
+const url = new URL('wss://api.tokenlab.sh/v1/realtime');
+url.searchParams.set('model', model);
+const socket = new WebSocket(url, {
+  headers: { Authorization: `Bearer ${apiKey}` },
+});
 socket.on('message', (event) => console.log(event.toString()));
+socket.on('error', (error) => console.error(error.message));
+process.once('SIGINT', () => socket.close(1000, 'Client stopped'));
 ```
 
 ## Show progress safely

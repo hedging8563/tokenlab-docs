@@ -8,7 +8,7 @@ description: "根据与查询的相关性对文档进行重排序"
 
 ## 请求体
 
-**请求超时：** 文档较多时可能超过客户端默认超时，建议把 HTTP 超时设为至少 `120s`。
+输入较多时，请将 HTTP 客户端超时设为至少 `120s`；接口会在处理完成后返回。
 
 <ParamField body="model" type="string" required>
   要使用的重排序模型 ID（例如 `qwen3-vl-rerank`）。
@@ -23,7 +23,7 @@ description: "根据与查询的相关性对文档进行重排序"
 </ParamField>
 
 <ParamField body="top_n" type="integer">
-  返回前多少个结果。默认返回全部文档；最小为 `1`，最大不能超过 `documents.length`。个别模型可能有更低上限，以模型详情为准。
+  返回的前若干个结果，范围为 `1` 到 `documents.length`。省略时由所选模型决定返回数量。
 </ParamField>
 
 <ParamField body="return_documents" type="boolean" default="false">
@@ -37,16 +37,16 @@ description: "根据与查询的相关性对文档进行重排序"
 
   每个结果包含：
   - `index` (integer): 原始文档索引
-  - `relevance_score` (number): 相关性评分 (0-1)
+  - `relevance_score` (number): 相关性评分，取值范围由所选模型决定。
   - `document` (string): 原始文本（如果 `return_documents=true`）
 </ResponseField>
 
 <ResponseField name="model" type="string">
-  用于重排序的模型。
+  用于重排序的模型。 可用时返回。
 </ResponseField>
 
 <ResponseField name="usage" type="object">
-  Token 使用统计。
+  Token 使用统计。 可用时返回。
 </ResponseField>
 
 <RequestExample>

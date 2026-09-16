@@ -8,16 +8,20 @@ description: "將音訊翻譯為英文文字"
 
 將任何支援語言的音訊翻譯為英文文字。不同於轉錄，無論輸入語言為何，此端點一律輸出英文文字。
 
+<Note>
+  本端點將音訊翻譯為英文。請勿傳送 `language`；音訊翻譯不支援此參數，可能回傳 `unsupported_parameter`。文字翻譯請使用 `POST /v1/translations`；`recommended_for=translation` 指向該文字端點。
+</Note>
+
 ## 請求本文
 
-**同步請求逾時：** 這個非聊天端點會等待路由到的模型完成處理。大型輸入、長音訊或大量批次可能超過常見的 30s 用戶端預設逾時，因此請將 HTTP 用戶端逾時設定為至少 `120s`。
+翻譯處理完成後回傳。音訊較長時，請將 HTTP 用戶端逾時設為至少 `120s`。
 
 <ParamField body="file" type="file" required>
   要翻譯的音訊檔案。支援的格式：`flac`、`mp3`、`mp4`、`mpeg`、`mpga`、`m4a`、`ogg`、`wav`、`webm`。檔案大小上限為 25 MB。
 </ParamField>
 
 <ParamField body="model" type="string" default="whisper-1">
-  要使用的模型。目前僅支援 `whisper-1`。
+  音訊翻譯模型 ID，例如 `whisper-1`。請在目前模型詳情中確認其支援 `POST /v1/audio/translations`。
 </ParamField>
 
 <ParamField body="prompt" type="string">
@@ -25,14 +29,16 @@ description: "將音訊翻譯為英文文字"
 </ParamField>
 
 <ParamField body="response_format" type="string" default="json">
-  輸出格式。可選項目：`json`、`text`、`srt`、`verbose_json`、`vtt`。
+  輸出格式。Whisper 支援 `json`、`text`、`srt`、`verbose_json` 和 `vtt`；其他模型支援的範圍可能不同，請查詢模型詳情。
 </ParamField>
 
 <ParamField body="temperature" type="number">
-  取樣溫度，介於 0 到 1 之間。較高的值（如 0.8）會產生更隨機的輸出，而較低的值（如 0.2）會使輸出更集中且更具確定性。
+  取樣溫度，範圍為 0–1，僅適用於支援此參數的模型。
 </ParamField>
 
 ## 回應
+
+以下欄位用於 JSON 轉錄或翻譯回應。`text`、`srt` 和 `vtt` 回傳原始文字或字幕，而不是 JSON 物件。附加欄位取決於模型和輸出格式。
 
 <ResponseField name="text" type="string">
   英文翻譯文字。
@@ -41,7 +47,7 @@ description: "將音訊翻譯為英文文字"
 對於 `verbose_json` 格式，回應還包括：
 
 <ResponseField name="language" type="string">
-  輸入音訊所偵測到的語言。
+  回應提供的語言標記，僅在回傳時存在。
 </ResponseField>
 
 <ResponseField name="duration" type="number">
@@ -130,7 +136,6 @@ echo $data['text'];
 ```json verbose_json
 {
   "task": "translate",
-  "language": "german",
   "duration": 8.470000267028809,
   "text": "Hello, my name is Wolfgang and I come from Germany. Where are you from?",
   "segments": [
@@ -158,7 +163,3 @@ echo $data['text'];
 | 輸出語言 | 一律為英文 | 與輸入相同 |
 | 使用情境 | 將外語音訊轉為英文 | 保留原始語言 |
 | 語言參數 | 不適用 | 可選提示 |
-
-<Note>
-  翻譯端點會自動偵測來源語言並翻譯為英文。來自轉錄的 `language` 參數會被忽略。
-</Note>

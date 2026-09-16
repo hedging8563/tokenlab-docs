@@ -7,46 +7,45 @@ Most tools connect to TokenLab by changing an API key and base URL. The exact se
 
 | API format | Base URL | Common clients |
 | --- | --- | --- |
-| OpenAI-compatible Chat Completions | `https://api.tokenlab.sh/v1` | OpenAI SDKs, many chat apps and frameworks |
+| Chat Completions (OpenAI-compatible) | `https://api.tokenlab.sh/v1` | OpenAI SDKs, many chat apps and frameworks |
 | OpenAI Responses | `https://api.tokenlab.sh/v1` | Responses clients and tools built around Responses events |
 | Anthropic Messages | `https://api.tokenlab.sh` | Anthropic SDKs and Claude-oriented tools |
 | Gemini | `https://api.tokenlab.sh` | Gemini REST and SDK clients that allow a custom host |
 
-The selected model must list the same format in `accepted_request_formats`. See [API formats](/guides/api-formats) for examples.
+The selected model must list the same format in `accepted_request_formats`. Streaming and tool calling also depend on the model’s capabilities and the client. See [API formats](/guides/api-formats) for examples.
 
 ## Compatibility labels
 
 | Label | Meaning |
 | --- | --- |
-| **Works** | The repository includes a TokenLab configuration that matches the tool's documented custom-provider options |
-| **Works with limits** | Core requests work, but some tool-managed or vendor-specific features stay with the tool's own service |
-| **Experimental** | The setup depends on an undocumented or changing custom-host option and may break after a tool update |
+| **Works** | The linked TokenLab setup uses the client’s documented configuration options |
+| **Works with limits** | The configuration applies to specific features or authentication modes; other vendor services keep their own requirements |
 
-These labels describe the setup documented here, not every feature or plugin offered by a third-party product.
+These labels describe the configuration on the linked page. Feature availability also depends on the selected model and client version.
 
 ## Coding tools
 
 | Tool | Status | API format | Notes |
 | --- | --- | --- | --- |
 | [Claude Code](/integrations/claude-code) | Works | Anthropic Messages | Uses `ANTHROPIC_BASE_URL` and a TokenLab API key |
-| [Codex CLI](/integrations/codex-cli) | Works with limits | Responses | Responses-only features depend on the selected model |
+| [Codex CLI](/integrations/codex-cli) | Works with limits | Responses | Uses Responses; available features depend on the selected model |
 | [Cursor](/integrations/cursor) | Works with limits | OpenAI-compatible | Applies to Cursor features that accept a custom API key and URL |
-| [Cline](/integrations/cline) | Works | OpenAI-compatible | Configure TokenLab as a custom OpenAI-compatible service |
+| [Cline](/integrations/cline) | Works | OpenAI-compatible | Select **OpenAI Compatible** and enter a base URL and model ID |
 | [Kilo Code](/integrations/kilo-code) | Works | OpenAI-compatible | Uses a custom provider and model ID |
-| [OpenCode](/integrations/opencode) | Works | OpenAI-compatible | Configure an OpenAI-compatible provider |
-| [OpenHands](/integrations/openhands) | Works | OpenAI-compatible | Uses its custom LLM settings |
-| [Gemini CLI](/integrations/gemini-cli) | Experimental | Gemini | Custom host behavior is not a stable Google integration contract |
+| [OpenCode](/integrations/opencode) | Works | OpenAI-compatible | Load a separate provider configuration with `OPENCODE_CONFIG` |
+| [OpenHands](/integrations/openhands) | Works | OpenAI-compatible | LiteLLM-backed UI: **Advanced → Custom Model** (`openai/` prefix) and **Base URL** |
+| [Gemini CLI](/integrations/gemini-cli) | Works with limits | Gemini | Use `GOOGLE_GEMINI_BASE_URL` with API-key authentication; a separate `GEMINI_CLI_HOME` preserves the existing setup |
 
 ## Chat applications
 
 | App | Status | Notes |
 | --- | --- | --- |
-| [Chatbox](/integrations/chatbox) | Works | Add an OpenAI-compatible service |
-| [Cherry Studio](/integrations/cherry-studio) | Works | Add TokenLab in custom model settings |
-| [DeepChat](/integrations/deepchat) | Works | Use the OpenAI-compatible client configuration |
+| [Chatbox](/integrations/chatbox) | Works | Add an **OpenAI API Compatible** provider |
+| [Cherry Studio](/integrations/cherry-studio) | Works | Add a provider and complete **Verify and Enable** |
+| [DeepChat](/integrations/deepchat) | Works | Choose **OpenAI Completions** for Chat Completions |
 | [Jan](/integrations/jan) | Works | Add an OpenAI-compatible service |
 | [LibreChat](/integrations/librechat) | Works | Configure a custom OpenAI-compatible endpoint |
-| [Open WebUI](/integrations/open-webui) | Works | Add an OpenAI-compatible connection |
+| [Open WebUI](/integrations/open-webui) | Works | Add an OpenAI-compatible connection with API Type **Chat** |
 
 ## SDKs and frameworks
 
@@ -57,12 +56,12 @@ These labels describe the setup documented here, not every feature or plugin off
 | [Vercel AI SDK](/integrations/vercel-ai-sdk) | Works | Create a custom OpenAI-compatible provider |
 | [LangChain](/integrations/langchain) | Works | Configure `ChatOpenAI` or `OpenAIEmbeddings` with the TokenLab URL |
 | [LlamaIndex](/integrations/llamaindex) | Works | Use its OpenAI-compatible client options |
-| [OpenAI Agents SDK](/integrations/openai-agents-sdk) | Works with limits | Use a Chat Completions model unless the selected model documents Responses support |
+| [OpenAI Agents SDK](/integrations/openai-agents-sdk) | Works with limits | The guide uses `OpenAIChatCompletionsModel`; check model and SDK feature support before using Responses |
 | [AutoGen](/integrations/autogen) | Works | Use an OpenAI-compatible model client |
 | [CrewAI](/integrations/crewai) | Works | Configure its OpenAI-compatible LLM client |
 | [PydanticAI](/integrations/pydantic-ai) | Works | Supply an OpenAI-compatible provider |
 
-More frameworks, observability tools, gateways, and evaluation products are listed under [Integrations](/integrations/openai-sdk).
+More frameworks, observability tools, gateways, and evaluation products are listed in the Integrations navigation.
 
 ## Usage in streamed responses
 

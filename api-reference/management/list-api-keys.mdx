@@ -12,11 +12,14 @@ Returns user API keys in the organization associated with the current management
 
 ## Notes
 
-- Monetary fields are USD-only. `CNY` inputs are retired and return `400 currency_retired`.
+- Monetary fields are USD-only.
 
 - System-managed keys are excluded.
 
 ## Example
+
+<ParamField query="page" type="integer" default="1">Page number starting at 1.</ParamField>
+<ParamField query="limit" type="integer" default="50">Page size from 1 to 100.</ParamField>
 
 <RequestExample>
 ```bash cURL
@@ -51,7 +54,8 @@ This page provides the OpenAPI schema and copyable request examples. Send manage
       ],
       "expires_at": "2026-12-31T23:59:59.000Z",
       "last_used_at": "2026-07-08T03:12:45.000Z",
-      "created_at": "2026-07-01T10:00:00.000Z"
+      "created_at": "2026-07-01T10:00:00.000Z",
+      "delivery_policy": null
     }
   ],
   "pagination": {
@@ -72,12 +76,13 @@ This page provides the OpenAPI schema and copyable request examples. Send manage
 <ResponseField name="data[].id" type="string">API key identifier used in follow-up Management API calls.</ResponseField>
 <ResponseField name="data[].name" type="string">Display name for the API key.</ResponseField>
 <ResponseField name="data[].key_prefix" type="string">Non-secret key prefix for display and support.</ResponseField>
-<ResponseField name="data[].status" type="string">One of `active`, `inactive`, or `revoked`.</ResponseField>
+<ResponseField name="data[].status" type="string">One of `active`, `inactive`, `suspended`, or `revoked`.</ResponseField>
 <ResponseField name="data[].limit_amount" type="number | null">Spending cap in USD as a JSON number for display. `null` means unlimited.</ResponseField>
 <ResponseField name="data[].limit_amount_decimal" type="string | null">Exact spending cap in USD as a decimal string. `null` means unlimited.</ResponseField>
 <ResponseField name="data[].used_amount" type="number">Accumulated usage in USD as a JSON number for display.</ResponseField>
 <ResponseField name="data[].used_amount_decimal" type="string">Exact accumulated usage in USD as a decimal string.</ResponseField>
 <ResponseField name="data[].models" type="string[]">Per-key model allowlist. Empty array means no additional key-level model restriction.</ResponseField>
+<ResponseField name="data[].delivery_policy" type="string | null">`auto`, `verified`, `official`, `null`. `null` inherits the Workspace delivery policy.</ResponseField>
 <ResponseField name="data[].expires_at" type="string | null">ISO timestamp when the key expires, or `null` for no expiry.</ResponseField>
 <ResponseField name="data[].last_used_at" type="string | null">ISO timestamp for the most recent use, or `null` when unused.</ResponseField>
 <ResponseField name="data[].created_at" type="string">ISO creation timestamp.</ResponseField>

@@ -9,7 +9,7 @@ Seedance 素材は、組織内で再利用できる画像、ビデオ、音声�
 
 | 目的 | 必要なフロー |
 | --- | --- |
-| 一度だけ画像 URL を使う | ビデオリクエストに URL を直接指定すると、対応モデルが自動で素材を準備 |
+| 一度だけ画像 URL を使う | 対応する画像フィールドに URL を指定；再利用可能な素材 ID は作成されません |
 | アバター、商品、スタイルを再利用する | `aigc_avatar` グループと素材を作成し、`ACTIVE` を待って素材 ID を使用 |
 | 実在人物を再利用する | 視覚認証を完了し、`GroupId` を取得して素材を作成し、`ACTIVE` を待って素材 ID を使用 |
 | Volcengine 素材クライアントを移行する | Action 形式を維持して Volcengine 互換素材リファレンスを使用: [素材 Action（Volcengine 互換）](/ja/api-reference/video/volc-compatible-material-actions) |
@@ -27,11 +27,13 @@ Seedanceの素材は、ビデオ生成時に後から選択できる、組織ス
 
 `group_id` と素材アセットの `id` は分けて管理してください。`group_id` はアップロードの整理用であり、素材アセットの `id` はビデオ生成用です。ビデオのリクエストで `Seedance material asset not found or not accessible` が返された場合は、`group_id` ではなく素材アセットの `id` を渡しているか、そのアセットが同じ組織に属しているか、削除されていないか、および `status: "ACTIVE"` であるかを確認してください。
 
-## 画像素材の自動準備
+## 画像 URL と再利用可能な素材
 
-選択した Seedance モデルが TokenLab 素材ライブラリを使用できる場合、`image`, `image_url`, `image_urls`, `reference_images`, `start_image`, `end_image` に画像 URL または対応するインライン data URL を直接送信できます。TokenLab はそれらを組織のデフォルトのバーチャルアバター素材グループに取り込み、最初のフレーム、最後のフレーム、参照画像としての役割を保持します。
+選択したモデルが対応する画像フィールドに公開 HTTP(S) URL または対応する data URL を指定できます。通常のメディア入力として処理され、再利用可能な素材 ID は自動作成されません。
 
-素材が 60 秒以内に `ACTIVE` になれば、同じリクエストで生成が続行されます。完了しない場合、API は `auto_material_asset_ids` 付きの `409 seedance_material_preparing` を返します。素材が `ACTIVE` になるまで取得または一覧で確認し、その後 `material_asset_id` または `material_asset_ids` で再試行してください。選択したモデルが素材ライブラリを使用できない場合、通常の画像 URL または data URL は通常の画像パスで処理され、明示的な素材 ID は再試行可能な素材可用性エラーで安全に失敗します。既存のバーチャルアバター素材 ID と実在人物素材 ID はそのまま使用され、再インポートされません。
+再利用する場合は素材 API でアセットを作成し、`ACTIVE` を待ってから `material_asset_id`、`material_asset_ids`、または対応するメディアフィールドの `asset://<id>` を使用します。最初のフレーム、最後のフレーム、参照画像の役割を維持してください。
+
+明示した素材が準備中の場合、`POST /v1/videos/generations` は `409 seedance_material_preparing` と `inactive_asset_ids` を返します。素材が `ACTIVE` になるまで確認し、同じ ID で再試行してください。`FAILED` の場合は `error_message` に従って修正または再インポートします。
 
 ## 実在人物の素材認証
 
@@ -44,6 +46,8 @@ Seedanceの素材は、ビデオ生成時に後から選択できる、組織ス
 5. `GroupId` を保存し、`liveness_face` 素材作成時の `group_id` として使用します。
 
 `BytedToken` の有効期間は30分です。両方の Action リクエストで同じ `ProjectName` を使用してください。認証には `Authorization: Bearer <TOKENLAB_API_KEY>` を使用し、Volc AK/SK 署名は受け付けません。
+
+作成直後に返された `H5Link` を開いてください。トークンの有効期間中ならいつでも検証ページを初めて開ける、という意味ではありません。
 
 オプション：[テストコンソール](https://tokenlab.sh/dashboard/seedance-assets) を使用して、リクエストとコールバックフローの検証、素材グループの確認、および認証履歴の確認を行ってください。本番環境の統合では、APIを直接呼び出す必要があります。
 
@@ -63,9 +67,11 @@ Seedanceの素材は、ビデオ生成時に後から選択できる、組織ス
 
 | タイプ | サポートされている入力 |
 |------|-----------------|
-| 画像 | `jpeg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`; アスペクト比 `(0.4, 2.5)`; 幅と高さ `(300, 6000)` px; 30 MB未満。 |
-| ビデオ | `mp4`, `mov`; `480p`, `720p`, または `1080p`; 2〜15秒; アスペクト比 `[0.4, 2.5]`; 幅と高さ `[300, 6000]` px; 総ピクセル数 409600〜2068676; 最大200 MB; 24〜60 FPS。 |
-| オーディオ | `aac`, `wav`, `mp3`; 2〜15秒; 最大15 MB。 |
+| 画像 | `jpeg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`; ≤ 30 MiB; 幅と高さ [300, 6000] px; 縦横比 [0.4, 2.5] |
+| ビデオ | `mp4`, `mov`; ≤ 200 MiB |
+| オーディオ | `aac`, `wav`, `mp3`; ≤ 15 MiB |
+
+表はファイルの取り込み上限です。取り込み要求の成功は、メディアや実在人物の検証成功を保証しません。`ACTIVE` を待ち、`FAILED` なら `error_message` に従って元ファイルを修正してから再取り込みしてください。
 
 素材の取り込みは非同期で行われます。`status` が `ACTIVE` になるまで [マテリアルアセットの取得](/ja/api-reference/video/get-material-asset) をポーリングしてください。HTTPレスポンスが成功したことは、リクエストが受け付けられたことを意味するだけであり、常にビジネスステータスを確認してください。ステータスが `FAILED` の場合は、`error_message` を確認し、ソース素材を修正して新しいアセットを作成してください。
 

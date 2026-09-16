@@ -6,6 +6,10 @@ description: "Sohbet mesajı için bir tamamlamayı oluşturur"
 
 ## İstek Gövdesi
 
+<Note>
+Desteklenen isteğe bağlı parametreler, kabul edilen değerler ve varsayılanlar seçilen modele bağlıdır. Örnekleme, akıl yürütme veya araç seçeneklerini ayarlamadan önce [model ayrıntılarını](/tr/api-reference/models/get-model) kontrol edin.
+</Note>
+
 <ParamField body="model" type="string" required>
   Kullanılacak modelin ID'si. Mevcut seçenekler için [Models](https://tokenlab.sh/tr/models) sayfasına bakın.
 </ParamField>
@@ -14,8 +18,10 @@ description: "Sohbet mesajı için bir tamamlamayı oluşturur"
   Konuşmayı oluşturan mesajların listesi.
 
   Her mesaj nesnesi şunları içerir:
-  - `role` (string): `system`, `user`, veya `assistant`
-  - `content` (string | array): Mesaj içeriği
+  - `role` (string): `system`, `developer`, `user`, `assistant`, `tool`, `function`
+  - `content` (string | array | null): Mesaj içeriği
+
+  `tool_calls` içeren bir `assistant` mesajında `content` atlanabilir veya `null` olarak ayarlanabilir.
 
   `content` bir dizi olduğunda, TokenLab uyumlu modeller için yapılandırılmış multimodal blokları destekler:
   - text: `{ "type": "text", "text": "..." }`
@@ -23,11 +29,11 @@ description: "Sohbet mesajı için bir tamamlamayı oluşturur"
   - video: `{ "type": "video_url", "video_url": { "url": "https://..." } }`
   - audio: `{ "type": "audio_url", "audio_url": { "url": "https://..." } }`
 
-  Multimodal üretim trafiği için genel erişimli `https` URL'leri tercih edin. TokenLab, bu medya bloklarını yönlendirilen fiziksel modelin gerektirdiği sağlayıcıya özgü istek biçimine dönüştürecektir.
+  Multimodal girdi için herkese açık `https` URL’leri kullanın. Desteklenen medya türleri seçilen modele bağlıdır.
 </ParamField>
 
-<ParamField body="temperature" type="number" default="1">
-  0 ile 2 arasında örnekleme sıcaklığı. Daha yüksek değerler çıktıyı daha rastgele yapar.
+<ParamField body="temperature" type="number">
+  Örnekleme sıcaklığı. Destek, izin verilen değerler ve varsayılan değer seçilen modele bağlıdır. Modelin varsayılanını kullanmak için bu alanı atlayın.
 </ParamField>
 
 <ParamField body="max_tokens" type="integer">
@@ -42,20 +48,20 @@ description: "Sohbet mesajı için bir tamamlamayı oluşturur"
   Akışlama için seçenekler. Token kullanımını akış parçalarında almak için `include_usage: true` olarak ayarlayın.
 </ParamField>
 
-<ParamField body="top_p" type="number" default="1">
+<ParamField body="top_p" type="number">
   Nucleus örnekleme parametresi. Genellikle bunu veya temperature parametresini değiştirmenizi öneririz, her ikisini birden değil.
 </ParamField>
 
-<ParamField body="frequency_penalty" type="number" default="0">
+<ParamField body="frequency_penalty" type="number">
   -2.0 ile 2.0 arasında bir sayı. Pozitif değerler tekrarlanan tokenleri cezalandırır.
 </ParamField>
 
-<ParamField body="presence_penalty" type="number" default="0">
+<ParamField body="presence_penalty" type="number">
   -2.0 ile 2.0 arasında bir sayı. Pozitif değerler metinde zaten bulunan tokenleri cezalandırır.
 </ParamField>
 
 <ParamField body="stop" type="string | array">
-  API'nin token üretimini durduracağı en fazla 4 dizilim.
+  Durdurma dizisi veya dizi listesi. Destek ve dizi sayısı sınırı seçilen modele bağlıdır.
 </ParamField>
 
 <ParamField body="tools" type="array">
@@ -66,8 +72,8 @@ description: "Sohbet mesajı için bir tamamlamayı oluşturur"
   Modelin araçları nasıl kullandığını kontrol eder. Seçenekler: `auto`, `none`, `required`, veya belirli bir araç nesnesi.
 </ParamField>
 
-<ParamField body="parallel_tool_calls" type="boolean" default="true">
-  Paralel fonksiyon çağrılarını etkinleştirip etkinleştirmeyeceği. Fonksiyonları sıralı olarak çağırmak için false yapın.
+<ParamField body="parallel_tool_calls" type="boolean">
+  Seçilen model destekliyorsa asistanın aynı turda birden fazla araç çağrısı yapmasına izin verir.
 </ParamField>
 
 <ParamField body="max_completion_tokens" type="integer">
@@ -75,14 +81,14 @@ description: "Sohbet mesajı için bir tamamlamayı oluşturur"
 </ParamField>
 
 <ParamField body="reasoning_effort" type="string">
-  Akıl yürütme destekli modeller için akıl yürütme çabası düzeyi. Seçenekler: `low`, `medium`, `high`.
+  Destekleyen modeller için akıl yürütme çabası. Kabul edilen değerler seçilen modele bağlıdır.
 </ParamField>
 
 <ParamField body="seed" type="integer">
-  Deterministik örnekleme için rastgele tohum (seed).
+  Destekleyen modeller için örnekleme tohumu. Aynı çıktının üretilmesi garanti edilmez.
 </ParamField>
 
-<ParamField body="n" type="integer" default="1">
+<ParamField body="n" type="integer">
   Oluşturulacak tamamlamaların sayısı (1-128).
 </ParamField>
 
@@ -95,11 +101,11 @@ description: "Sohbet mesajı için bir tamamlamayı oluşturur"
 </ParamField>
 
 <ParamField body="top_k" type="integer">
-  Top-K örnekleme parametresi (Anthropic/Gemini modelleri için).
+  Destekleyen modeller için Top-K örneklemesi.
 </ParamField>
 
 <ParamField body="response_format" type="object">
-  Yanıt formatı spesifikasyonu. JSON modu için `{"type": "json_object"}` kullanın. `{"type": "json_schema", "json_schema": {...}}` ise seçilen modele ve yönlendirilen davranışa bağlı olarak en iyi çabayla uygulanabilecek bir yoldur.
+  Yanıt biçimi. JSON modu için `{"type": "json_object"}`, JSON şeması için `{"type": "json_schema", "json_schema": {...}}` kullanın. Destek seçilen modele bağlıdır.
 </ParamField>
 
 <ParamField body="logit_bias" type="object">
@@ -135,7 +141,7 @@ description: "Sohbet mesajı için bir tamamlamayı oluşturur"
   Her seçenek şunları içerir:
   - `index` (integer): Seçeneğin indeksi
   - `message` (object): Üretilen mesaj
-  - `finish_reason` (string): Modelin neden durduğu (`stop`, `length`, `tool_calls`)
+  - `finish_reason` (string): Modelin durma nedeni; örneğin `stop`, `length` veya `tool_calls`
 </ResponseField>
 
 <ResponseField name="usage" type="object">
@@ -157,7 +163,6 @@ curl -X POST "https://api.tokenlab.sh/v1/chat/completions" \
       {"role": "system", "content": "You are a helpful assistant."},
       {"role": "user", "content": "Hello!"}
     ],
-    "temperature": 0.7,
     "max_tokens": 1000
   }'
 ```
@@ -176,7 +181,6 @@ response = client.chat.completions.create(
         {"role": "system", "content": "You are a helpful assistant."},
         {"role": "user", "content": "Hello!"}
     ],
-    temperature=0.7,
     max_tokens=1000
 )
 
@@ -197,7 +201,6 @@ const response = await client.chat.completions.create({
     { role: 'system', content: 'You are a helpful assistant.' },
     { role: 'user', content: 'Hello!' }
   ],
-  temperature: 0.7,
   max_tokens: 1000
 });
 
@@ -221,7 +224,6 @@ curl_setopt_array($ch, [
             ['role' => 'system', 'content' => 'You are a helpful assistant.'],
             ['role' => 'user', 'content' => 'Hello!']
         ],
-        'temperature' => 0.7,
         'max_tokens' => 1000
     ])
 ]);

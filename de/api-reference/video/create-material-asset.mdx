@@ -10,11 +10,15 @@ Für `library_type: "aigc_avatar"` ist `group_id` optional; TokenLab verwendet o
 
 | Typ | Unterstützte Eingabe |
 |------|-----------------|
-| Bild | `jpeg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`; Seitenverhältnis `(0.4, 2.5)`; Breite und Höhe `(300, 6000)` px; unter 30 MB. |
-| Video | `mp4`, `mov`; `480p`, `720p` oder `1080p`; 2-15 Sekunden; Seitenverhältnis `[0.4, 2.5]`; Breite und Höhe `[300, 6000]` px; Gesamtpixel zwischen 409600 und 2068676; bis zu 200 MB; 24-60 FPS. |
-| Audio | `aac`, `wav`, `mp3`; 2-15 Sekunden; bis zu 15 MB. |
+| Bild | `jpeg`, `jpg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`; ≤30 MiB; Breite und Höhe `[300, 6000]` px; Seitenverhältnis `[0.4, 2.5]`. |
+| Video | `mp4`, `mov`; ≤200 MiB. |
+| Audio | `aac`, `wav`, `mp3`; ≤15 MiB. |
+
+TokenLab prüft Quell-URL, Medientyp, Dateigröße und lesbare Bildabmessungen. Ein angenommener Import bedeutet noch keine Verfügbarkeit: Warten Sie auf `ACTIVE` und prüfen Sie bei einem Verarbeitungsfehler `error_message`. Weitere Medien- und Gesichtsanforderungen werden während der Verarbeitung geprüft.
 
 Die Erstellung erfolgt asynchron. Fragen Sie [Material-Asset abrufen](/de/api-reference/video/get-material-asset) ab, bis der `status` auf `ACTIVE` steht. Bei Gruppen für echte Personen wird eine Gruppe einer verifizierten Person zugeordnet; Uploads mit mehreren Gesichtern oder einem Gesicht, das nicht mit der verifizierten Person übereinstimmt, können fehlschlagen.
+
+`project_name` trennt Ressourcen innerhalb der authentifizierten Organisation. Der Standard ist `default`; verwenden Sie für zugehörige Gruppen und Assets denselben Wert mit gleicher Groß- und Kleinschreibung. Senden Sie ihn bei POST/PUT im JSON-Body und bei GET/DELETE als Query-Parameter.
 
 ## Beispielanfrage
 
@@ -22,7 +26,7 @@ Die Erstellung erfolgt asynchron. Fragen Sie [Material-Asset abrufen](/de/api-re
 curl https://api.tokenlab.sh/v1/videos/assets \
   -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"library_type":"aigc_avatar","group_id":"group-20260720123456-vrt01","asset_url":"https://example.com/reference.png","asset_type":"Image","asset_name":"Front view"}'
+  -d '{"library_type":"aigc_avatar","group_id":"group-20260720123456-vrt01","asset_url":"https://example.com/reference.png","asset_type":"Image","asset_name":"Front view","project_name":"default"}'
 ```
 
 ## Beispielantwort
@@ -31,6 +35,7 @@ curl https://api.tokenlab.sh/v1/videos/assets \
 {
   "id": "asset-20260720123456-qn7wr",
   "object": "seedance.material_asset",
+  "project_name": "default",
   "group_id": "group-20260720123456-vrt01",
   "library_type": "aigc_avatar",
   "asset_name": "Front view",

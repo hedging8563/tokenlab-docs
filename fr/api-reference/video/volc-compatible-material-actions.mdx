@@ -4,7 +4,7 @@ openapi: "POST /api/v3"
 description: "Référence des dix Actions compatibles Volcengine pour les ressources et leurs groupes."
 ---
 
-Un client de ressources Volcengine existant peut conserver les noms d’Action, `Version=2024-01-01`, le JSON PascalCase, les filtres, le tri, la pagination et l’enveloppe `ResponseMetadata + Result`. TokenLab ne remplace que le point de terminaison et l’authentification.
+Ces endpoints prennent en charge les Actions et champs de ressources ci-dessous, avec l’authentification Bearer TokenLab et l’enveloppe `ResponseMetadata + Result`.
 
 ## Point de terminaison et authentification
 
@@ -23,7 +23,7 @@ Content-Type: application/json
 | Action | Objectif | JSON |
 | --- | --- | --- |
 | `CreateAssetGroup` | Créer un groupe de ressources classique | `Name`; `Description`; `GroupType: "AIGC"`; `ProjectName` |
-| `ListAssetGroups` | Lister les groupes d’un projet | `Filter`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
+| `ListAssetGroups` | Lister les groupes d’un projet | `Filter.GroupIds`; `Filter.GroupType`; `Filter.Name`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
 | `GetAssetGroup` | Lire un groupe | `Id`; `ProjectName` |
 | `UpdateAssetGroup` | Modifier le nom ou la description | `Id`; `Name`; `Description`; `ProjectName` |
 | `DeleteAssetGroup` | Supprimer le groupe et ses ressources | `Id`; `ProjectName` |
@@ -57,12 +57,14 @@ curl 'https://api.tokenlab.sh/?Action=CreateAssetGroup&Version=2024-01-01' \
 | Action | Objectif | JSON |
 | --- | --- | --- |
 | `CreateAsset` | Importer une URL publique d’image, de vidéo ou d’audio | `GroupId`; `URL`; `Name`; `AssetType`; `ProjectName` |
-| `ListAssets` | Lister les ressources d’un projet | `Filter`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
+| `ListAssets` | Lister les ressources d’un projet | `Filter.GroupIds`; `Filter.GroupType`; `Filter.Statuses`; `Filter.Name`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
 | `GetAsset` | Lire une ressource et son URL temporaire | `Id`; `ProjectName` |
 | `UpdateAsset` | Renommer une ressource | `Id`; `Name`; `ProjectName` |
 | `DeleteAsset` | Supprimer une ressource | `Id`; `ProjectName` |
 
 `AssetType` accepte `Image`, `Video` et `Audio`. Le groupe cible détermine s’il s’agit d’une ressource `AIGC` classique ou `LivenessFace` vérifiée.
+
+Utilisez les ID de ressources TokenLab. `CreateAsset` renvoie `Result.Id` avant la fin du traitement ; interrogez `GetAsset` jusqu’à ce que `Result.Status` soit `Active` ou `Failed`. `ListAssets` accepte aussi `SortBy: "GroupId"`.
 
 ### Créer une ressource
 
@@ -119,7 +121,7 @@ Les erreurs conservent l’enveloppe Volcengine ; le code et le message se trouv
 }
 ```
 
-`InvalidCredential`, `InvalidVersion`, `InvalidParameter`, `NotFound`, `Conflict`, `MethodNotAllowed`, `InternalError`.
+`InvalidCredential`, `InvalidVersion`, `InvalidParameter`, `NotFound`, `Conflict`, `OperationDenied`, `MethodNotAllowed`, `InternalError`.
 
 ## Alternative REST
 

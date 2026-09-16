@@ -1,136 +1,18 @@
 ---
 title: "Kostenoptimierung für Coding Agents"
-description: "Praktische Strategien zur Senkung der Coding-Agent-API-Kosten um 60–90%"
+description: "Kosten mit tatsächlichen Nutzungsdaten begrenzen"
 ---
 
-## Das Kostenproblem
+Vergleichen Sie ähnliche Aufgaben anhand der endgültigen Kosten in der Nutzungsauswertung Ihres Workspaces. Erfassen Sie Modell, API-Schlüssel, Eingabe-, Ausgabe- und Cache-Tokens sowie fehlgeschlagene oder wiederholte Anfragen.
 
-Eine typische Coding-Agent-Sitzung verbraucht Tokens schnell:
+Halten Sie Anweisungen und Kontext zielgerichtet. Beginnen Sie eine neue Sitzung, wenn alte Inhalte nicht mehr helfen. Verwenden Sie Ausgabelimits nur gemäß dem gewählten API-Format und mit genug Spielraum für die Aufgabe.
 
-| Aktivität | Tokens pro Aufruf | Aufrufe pro Stunde | Tokens pro Stunde |
-|-----------|-------------------|--------------------|--------------------|
-| Code-Generierung | 5.000–50.000 | 10–30 | 150K–1,5M |
-| Codebase-Suche | 2.000–20.000 | 20–50 | 100K–1M |
-| Code-Review | 10.000–80.000 | 5–10 | 100K–800K |
-| Autovervollständigung | 500–3.000 | 50–200 | 50K–600K |
-| **Gesamt** | | | **400K–4M+** |
+Cache-Rabatte und Trefferquoten sind nicht garantiert. Prüfen Sie die aktuellen Modelldetails und den tatsächlich erfassten Cache-Verbrauch. Nutzen Sie getrennte API-Schlüssel und passende Limits für Projekte. Entscheidend sind die Kosten pro korrekt erledigter Aufgabe, nicht allein der Tokenpreis.
 
-Bei Premium-Modell-Tarifen sind das $3–30 pro Stunde pro Entwickler. Bei einem 10-Personen-Team $500–5.000 pro Monat.
+## Einrichtung und weitere Informationen
 
-## Intelligente Modellauswahl
-
-Nicht jede Coding-Aufgabe braucht das teuerste Modell:
-
-| Aufgabe | Empfohlen | Kostenstufe | Grund |
-|---------|-----------|-------------|-------|
-| Architekturdesign | `claude-opus-4-6`, `gpt-5.4` | $$$$ Premium | Komplexes Reasoning nötig |
-| Code-Generierung | `claude-sonnet-4-6`, `gemini-3.1-pro-preview` | $$$ Standard | Bestes Qualität/Kosten-Verhältnis |
-| Code-Review | `claude-sonnet-4-6`, `deepseek-v4-pro` | $$–$$$ | Pattern Matching |
-| Bug-Fixing | `claude-sonnet-4-6`, `gpt-5-mini` | $$–$$$ | Fokussierte Aufgaben |
-| Tab-Vervollständigung | `gpt-5-mini`, `gemini-3.5-flash` | $$ Budget | Geschwindigkeit wichtiger als Tiefe |
-| Boilerplate | `deepseek-v4-flash`, `gpt-5-mini` | $ Economy | Einfache, wiederholende Muster |
-
-<Tip>
-Siehe [Modellauswahl-Leitfaden](/de/guides/coding-agent-models) für detaillierte Modellvergleiche und Tool-Konfigurationen.
-</Tip>
-
-## Caching-Strategien
-
-### Prompt Cache (Provider-Ebene)
-
-Prompt Cache auf Provider-Ebene funktioniert automatisch über TokenLab:
-
-| Anbieter | Cache-Rabatt | Min. Tokens |
-|----------|-------------|-------------|
-| Anthropic | 90% Rabatt auf Lesen | 1.024 |
-| OpenAI | 50% Rabatt auf Lesen | 1.024 |
-| DeepSeek | 90% Rabatt auf Lesen | 64 |
-
-Prompt Cache-Trefferquoten liegen typischerweise bei **70–90%**.
-
-### Kombinierte Einsparungen
-
-Für eine Anfrage mit 50.000 Input-Tokens:
-
-```
-Direkte API (kein Cache):
-  50.000 Tokens × $3,00/1M = $0,150
-
-Mit Prompt Cache (40.000 gecacht + 10.000 neu):
-  Cache:  40.000 × $0,30/1M = $0,012
-  Neu:    10.000 × $3,00/1M = $0,030
-  Gesamt: $0,042 (72% Ersparnis)
-
-```
-
-## Realer Kostenvergleich
-
-Geschätzte Kosten für eine typische 1-Stunden-Coding-Sitzung (~3M Tokens):
-
-| Setup | Kosten/Stunde | Monatlich (160h) |
-|-------|---------------|------------------|
-| Direkte API (Premium-Modell) | ~$15–25 | ~$2.400–4.000 |
-| TokenLab (Smart Routing) | ~$10–18 | ~$1.600–2.900 |
-| TokenLab + Prompt Cache | ~$4–8 | ~$640–1.280 |
-
-<Warning>
-Dies sind illustrative Schätzungen. Tatsächliche Kosten hängen von Modellwahl, Nutzungsmustern und Cache-Trefferquoten ab. Aktuelle Tarife unter [Echtzeit-Preise](/de/api-reference/pricing/get-pricing).
-</Warning>
-
-## Token-Management-Tipps
-
-### max_tokens setzen
-
-```json
-{
-  "model": "claude-sonnet-5",
-  "max_tokens": 4096,
-  "messages": [...]
-}
-```
-
-### Auto-Compact nutzen
-
-- **Claude Code**: Eingebautes Auto-Compact bei Kontextlimits
-- **Cursor**: Automatisches Kontextmanagement
-- **Codex CLI**: `--max-context` Flag verwenden
-
-### Kontext-Aufblähung vermeiden
-
-- Nicht ganze Dateien einfügen, wenn eine Funktion reicht
-- `.gitignore`-Muster zum Ausschluss irrelevanter Dateien nutzen
-- Gesprächsverlauf beim Aufgabenwechsel löschen
-
-## Schnellkonfiguration
-
-<AccordionGroup>
-  <Accordion title="Claude Code">
-    ```bash
-    export ANTHROPIC_API_KEY="sk-your-tokenlab-key"
-    export ANTHROPIC_BASE_URL="https://api.tokenlab.sh"
-    ```
-    [Vollständige Anleitung →](/de/integrations/claude-code)
-  </Accordion>
-
-  <Accordion title="Cursor">
-    Einstellungen → Modelle → OpenAI-API-Schlüssel: `sk-your-key`, Basis-URL: `https://api.tokenlab.sh/v1`
-
-    [Vollständige Anleitung →](/de/integrations/cursor)
-  </Accordion>
-
-  <Accordion title="Codex CLI">
-    ```bash
-    export OPENAI_API_KEY="sk-your-tokenlab-key"
-    export OPENAI_BASE_URL="https://api.tokenlab.sh/v1"
-    ```
-    [Vollständige Anleitung →](/de/integrations/codex-cli)
-  </Accordion>
-
-  <Accordion title="Gemini CLI">
-    ```bash
-    export GEMINI_API_KEY="sk-your-tokenlab-key"
-    export GOOGLE_GEMINI_BASE_URL="https://api.tokenlab.sh"
-    ```
-    [Vollständige Anleitung →](/de/integrations/gemini-cli)
-  </Accordion>
-</AccordionGroup>
+- [Claude Code](/de/integrations/claude-code)
+- [Codex CLI](/de/integrations/codex-cli)
+- [Cursor](/de/integrations/cursor)
+- [OpenCode](/de/integrations/opencode)
+- [Kostenoptimierung für Coding Agents](/de/guides/coding-agent-models)

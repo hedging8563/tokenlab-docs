@@ -18,6 +18,10 @@ Si une réponse de création inclut `poll_url`, appelez ce chemin exact. Pour le
 
 ## Réponse
 
+<Note>
+Les champs de résultat, d’erreur, d’horodatage et de modèle sont renvoyés lorsqu’ils sont disponibles pour la tâche.
+</Note>
+
 <ResponseField name="id" type="string">
   Identifiant de la tâche.
 </ResponseField>
@@ -54,13 +58,33 @@ Si une réponse de création inclut `poll_url`, appelez ce chemin exact. Pour le
   URL de l’asset de résultat lorsque la tâche est terminée et produit une vidéo.
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="video" type="object">
+  Charge utile d'une seule vidéo avec `url`, `duration`, `width` et `height` lorsque disponible.
+</ResponseField>
+
+<ResponseField name="videos" type="array">
+  Plusieurs charges utiles vidéo lorsque la tâche de génération renvoie plus d'une sortie.
+</ResponseField>
+
+<ResponseField name="created" type="integer">
+  Horodatage de création.
+</ResponseField>
+
+<ResponseField name="updated" type="integer">
+  Horodatage de la dernière mise à jour.
+</ResponseField>
+
+<ResponseField name="model" type="string">
+  Modèle utilisé pour la tâche.
+</ResponseField>
+
+<ResponseField name="error" type="string | object">
   Message d’erreur lorsque la tâche échoue.
 </ResponseField>
 
 ## Comportement d’erreur
 
-Si la tâche n’existe plus, a expiré ou n’est plus disponible dans l’enregistrement public de tâche, TokenLab renvoie :
+Une tâche publique expirée ou indisponible peut renvoyer `404 async_task_not_found`. Si son appartenance à la clé API actuelle ne peut pas être établie, la réponse est `403 task_not_owned`.
 
 ```json
 {

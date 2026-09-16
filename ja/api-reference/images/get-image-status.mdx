@@ -15,11 +15,22 @@ description: "非同期画像生成タスクのステータスと結果を取得
 
 `ldtask_...` のような公開画像タスク ID は `/v1/images/{id}` でもポーリングできます。この互換エイリアスは `/v1/images/generations/{id}` と同じ認証、所有権チェック、課金ヘッダー、終端スナップショット、レスポンス形式を使います。
 
-
-タスクがもう存在しない、または公開タスクレコードで確認できない場合、TokenLab は `async_task_not_found` とメッセージ `Task not found or no longer available.` を返します。
+期限切れまたは利用できない公開タスクでは `404 async_task_not_found` が返る場合があります。現在の API キーでタスクの所有権を確認できない場合は `403 task_not_owned` が返ります。
 </Info>
 
 ## レスポンス
+
+<Note>
+結果、エラー、タイムスタンプ、モデルのフィールドはタスクで利用可能な場合に返されます。
+</Note>
+
+<ResponseField name="id" type="string">
+  標準的な非同期タスク識別子。
+</ResponseField>
+
+<ResponseField name="poll_url" type="string">
+  create レスポンスが提供する場合の推奨ポーリングURL。
+</ResponseField>
 
 <ResponseField name="created" type="integer">
   作成時のUnixタイムスタンプ。
@@ -38,10 +49,10 @@ description: "非同期画像生成タスクのステータスと結果を取得
 
   各オブジェクトの内容:
   - `url` (string): 生成された画像のURL
-  - `revised_prompt` (string): 生成に使用されたプロンプト
+  - `revised_prompt` (string): 上流モデルが返した任意のプロンプト修正版（提供者が返す場合のみ）
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="error" type="string | object">
   エラーメッセージ（`status` が `failed` の場合のみ存在）。
 </ResponseField>
 
@@ -59,6 +70,7 @@ response = requests.get(
     headers={"Authorization": "Bearer sk-your-api-key"}
 )
 
+response.raise_for_status()
 data = response.json()
 print(f"Status: {data['status']}")
 
@@ -76,6 +88,7 @@ const response = await fetch(
   }
 );
 
+if (!response.ok) throw new Error(`HTTP ${response.status}`);
 const data = await response.json();
 console.log(`Status: ${data.status}`);
 
@@ -93,12 +106,7 @@ if (data.status === 'completed') {
   "task_id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "poll_url": "/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "status": "pending",
-  "data": [
-    {
-      "url": "",
-      "revised_prompt": "a beautiful sunset over mountains"
-    }
-  ]
+  "data": []
 }
 ```
 
@@ -134,7 +142,7 @@ if (data.status === 'completed') {
 ## ポーリングのベストプラクティス
 
 <Tip>
-**推奨されるポーリング間隔**: 3〜5秒。ほとんどの画像生成タスクは、モデルやルーティングされたプロバイダーのパスに応じて30〜120秒以内に完了します。
+`pending` または `processing` の間は 3〜5 秒間隔で確認し、`completed` または `failed` になったら停止してください。
 </Tip>
 
 ```python
@@ -148,7 +156,8 @@ def poll_image_task(task_id, api_key, max_wait=300, interval=3):
 
     start_time = time.time()
     while time.time() - start_time < max_wait:
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=30)
+        response.raise_for_status()
         data = response.json()
 
         if data["status"] == "completed":

@@ -8,7 +8,7 @@ Semantik benzerlik modellerini kullanarak dokümanları yeniden sıralayın. Ara
 
 ## İstek Gövdesi
 
-**Senkron istek zaman aşımı:** Bu chat dışı endpoint, yönlendirilen modelin tamamlanmasını bekler. Büyük girdiler, uzun sesler veya büyük batch’ler yaygın 30s istemci varsayılanlarını aşabilir; bu yüzden HTTP istemcisi zaman aşımını en az `120s` olarak ayarlayın.
+Büyük girdiler için HTTP istemcisi zaman aşımını en az `120s` olarak ayarlayın. İşleme tamamlandığında yanıt döner.
 
 <ParamField body="model" type="string" required>
   Kullanılacak reranker modelinin kimliği (örneğin, `qwen3-vl-rerank`).
@@ -23,7 +23,7 @@ Semantik benzerlik modellerini kullanarak dokümanları yeniden sıralayın. Ara
 </ParamField>
 
 <ParamField body="top_n" type="integer">
-  Döndürülecek en iyi sonuç sayısı. Varsayılan olarak tüm documents döner. En az `1` olmalı ve `documents.length` değerini aşmamalıdır. Bir provider ileride daha sıkı bir public limit yayımlarsa TokenLab bunu burada dokümante eder ve uygular.
+  Döndürülecek en iyi sonuç sayısı, `1` ile `documents.length` arasındadır. Atlanırsa sayıyı seçilen model belirler.
 </ParamField>
 
 <ParamField body="return_documents" type="boolean" default="false">
@@ -37,16 +37,16 @@ Semantik benzerlik modellerini kullanarak dokümanları yeniden sıralayın. Ara
 
   Her sonuç şunları içerir:
   - `index` (integer): Orijinal doküman dizini
-  - `relevance_score` (number): İlgi düzeyi puanı (0-1)
+  - `relevance_score` (number): İlgililik puanı. Aralığı seçilen modele bağlıdır.
   - `document` (string): Orijinal metin (eğer `return_documents=true` ise)
 </ResponseField>
 
 <ResponseField name="model" type="string">
-  Yeniden sıralama için kullanılan model.
+  Yeniden sıralama için kullanılan model. Varsa döndürülür.
 </ResponseField>
 
 <ResponseField name="usage" type="object">
-  Token kullanım istatistikleri.
+  Token kullanım istatistikleri. Varsa döndürülür.
 </ResponseField>
 
 <RequestExample>

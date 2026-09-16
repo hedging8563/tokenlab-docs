@@ -8,7 +8,7 @@ Ordnen Sie Dokumente mithilfe von semantischen Ähnlichkeitsmodellen neu. Nützl
 
 ## Anfragekörper
 
-**Timeout für synchrone Anfragen:** Dieser Nicht-Chat-Endpunkt wartet, bis das geroutete Modell fertig ist. Große Eingaben, lange Audiodateien oder große Batches können übliche 30s-Client-Defaults überschreiten; setzen Sie das Timeout Ihres HTTP-Clients daher auf mindestens `120s`.
+Setzen Sie bei großen Eingaben das HTTP-Client-Timeout auf mindestens `120s`. Die Antwort erfolgt nach Abschluss der Verarbeitung.
 
 <ParamField body="model" type="string" required>
   ID des zu verwendenden Reranker-Modells (z. B. `qwen3-vl-rerank`).
@@ -23,7 +23,7 @@ Ordnen Sie Dokumente mithilfe von semantischen Ähnlichkeitsmodellen neu. Nützl
 </ParamField>
 
 <ParamField body="top_n" type="integer">
-  Anzahl der Top-Ergebnisse, die zurückgegeben werden. Standardmäßig werden alle documents zurückgegeben. Der Wert muss mindestens `1` sein und darf `documents.length` nicht überschreiten. Wenn ein Provider später ein strengeres öffentliches Limit veröffentlicht, dokumentiert und erzwingt TokenLab es hier.
+  Anzahl der besten Ergebnisse zwischen `1` und `documents.length`. Ohne Angabe bestimmt das gewählte Modell die Ergebnisanzahl.
 </ParamField>
 
 <ParamField body="return_documents" type="boolean" default="false">
@@ -37,16 +37,16 @@ Ordnen Sie Dokumente mithilfe von semantischen Ähnlichkeitsmodellen neu. Nützl
 
   Jedes Ergebnis enthält:
   - `index` (integer): Ursprünglicher Dokument-Index
-  - `relevance_score` (number): Relevanz-Score (0-1)
+  - `relevance_score` (number): Relevanzwert. Der Wertebereich hängt vom gewählten Modell ab.
   - `document` (string): Ursprünglicher Text (wenn `return_documents=true`)
 </ResponseField>
 
 <ResponseField name="model" type="string">
-  Das für das Reranking verwendete Modell.
+  Das für das Reranking verwendete Modell. Wird zurückgegeben, sofern verfügbar.
 </ResponseField>
 
 <ResponseField name="usage" type="object">
-  Statistiken zur Token-Nutzung.
+  Statistiken zur Token-Nutzung. Wird zurückgegeben, sofern verfügbar.
 </ResponseField>
 
 <RequestExample>

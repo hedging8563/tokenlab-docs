@@ -5,19 +5,7 @@ description: "將 OpenAI Codex CLI 配置為使用 TokenLab API"
 
 ## 概覽
 
-
-
-<Note>
-**類型**: Coding Tool
-
-**主要路徑**: OpenAI Responses（進階可選路徑）
-
-**支援信心**: 在模型/路徑限制下受到支援
-</Note>
-
-OpenAI Codex 是一個開源的命令列工具（CLI），作為輕量的程式撰寫代理，能在終端機中閱讀、修改與執行程式碼。它建構於 GPT 模型之上，並針對程式碼生成進行最佳化。
-
-對於 TokenLab，Codex CLI 可以使用 `/v1/responses`，但您應將其視為進階相容路徑。某些僅限 Responses 的功能並不保證在每個模型與路由上都可用。
+Codex CLI 透過 `/v1/responses` 連線至 TokenLab。所選模型的 `tokenlab.accepted_request_formats` 必須包含 `openai_responses`，功能可能因模型而異。
 
 Codex CLI 遠端壓縮支援 `POST /v1/responses/compact`。Codex 在 `/compact` 和自動壓縮時會把目前工作階段的 `model` 放在 `body.model` 中，因此請確保要用於壓縮的模型在 Responses 路徑上可用；不要設定 `/v1/compact`。
 
@@ -28,7 +16,7 @@ macOS、Linux 或 Windows 請依[官方 CLI 指南](https://learn.chatgpt.com/do
 ## 安裝
 
 ```bash
-npm install -g @openai/codex
+npm install -g @openai/codex@0.149.0
 ```
 
 驗證安裝：
@@ -41,33 +29,11 @@ codex --version
 
 ### 第 1 步：設定 API Key
 
-**暫時（當前工作階段）:**
+依[快速開始](/zh-Hant/quickstart)的 macOS、Linux、WSL 或 Windows PowerShell 步驟設定 `TOKENLAB_API_KEY`，避免把金鑰寫入命令歷史，再從同一終端機啟動 Codex。長期使用請透過本地秘密管理工具提供金鑰，不要把明文金鑰附加至 shell 設定檔。
 
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
+### 第 2 步：設定 tokenlab.config.toml
 
-**永久設定:**
-
-加入至 `~/.bashrc`、`~/.zshrc` 或 `~/.bash_profile`：
-
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
-
-然後重新載入：
-
-```bash
-source ~/.zshrc  # or source ~/.bashrc
-```
-
-### 第 2 步：設定 config.toml
-
-將這些設定合併至使用者層級的 `~/.codex/config.toml`，不要覆寫整個檔案。保留其他 provider、帳戶、沙箱設定與核准規則。Provider 與驗證設定應放在使用者設定中，不要放進專案的 `.codex/config.toml`。請參閱[官方設定指南](https://learn.chatgpt.com/docs/config-file/config-advanced#custom-model-providers)。
-
-若要保留目前預設供應商，Codex 0.134.0 以後請將下方設定存為 `~/.codex/tokenlab.config.toml`，以 `codex --profile tokenlab` 啟動。若有自訂 `CODEX_HOME`，使用實際目錄。勿新增舊版 `[profiles.tokenlab]`、覆蓋 `auth.json`、登出既有帳戶或修改審批設定。還原時不帶此 profile 啟動。
-
-下方每組命令請依實際設定位置擇一：存為 `tokenlab.config.toml` 時選 **TokenLab profile**；只有已將設定合併至 `config.toml` 時才選 **TokenLab 預設設定**。單獨執行 `codex` 會使用預設設定，不會繼承上一個工作階段選過的 profile。
+在 Codex **0.149.0** 使用中的 `CODEX_HOME`（通常為 `~/.codex`）新增獨立的 `tokenlab.config.toml`。只在名稱未被使用時建立；修改既有 TokenLab profile 前先備份。使用 `codex --profile tokenlab` 明確載入，保留預設 `config.toml`、`auth.json`、帳戶及權限規則。不要使用舊式 `[profiles.tokenlab]` 表。正常啟動時不加此 profile 即可回到原設定。請參閱[官方 profile 設定](https://learn.chatgpt.com/docs/config-file/config-advanced#profiles)。
 
 ```toml
 model_provider = "tokenlab"
@@ -92,54 +58,32 @@ websocket_connect_timeout_ms = 15000
 目前 Codex 使用 `wire_api = "responses"`，勿設定 `chat/completions`。此供應商的 `requires_openai_auth` 應省略或為 false，以使用 `env_key`。
 
 <Note>
-TokenLab 會 best-effort 透傳未知 Responses 欄位，不會將請求悄悄降級成 Chat Completions；欄位或組合是否支援由選中的 upstream 決定。
+Responses 請求不會轉換為 Chat Completions。選用與未來欄位的支援取決於所選模型。
 </Note>
 
 ## 基本用法
 
 **啟動互動模式:**
 
-<CodeGroup>
-```bash TokenLab profile
+```bash
 codex --profile tokenlab
 ```
 
-```bash TokenLab 預設設定
-codex
-```
-</CodeGroup>
-
 **直接指令:**
 
-<CodeGroup>
-```bash TokenLab profile
+```bash
 codex --profile tokenlab "Fix the bug in main.py line 42"
 ```
 
-```bash TokenLab 預設設定
-codex "Fix the bug in main.py line 42"
-```
-</CodeGroup>
-
 **指定模型:**
 
-<CodeGroup>
-```bash TokenLab profile
+```bash
 codex --profile tokenlab -m gpt-5.6-sol "Build a REST API server"
 ```
 
-```bash TokenLab 預設設定
-codex -m gpt-5.6-sol "Build a REST API server"
-```
-</CodeGroup>
+## 選擇模型
 
-## 推薦模型
-
-| 模型 | 適用情境 |
-|-------|----------|
-| `gpt-5.6-sol` | 程式編寫與推理的最佳預設選擇 |
-| `gpt-5-mini` | 更快速、更便宜的程式工作流程備援 |
-| `claude-sonnet-4-6` | 程式碼審查、文件撰寫 |
+選擇目前 `tokenlab.accepted_request_formats` 包含 `openai_responses` 的模型。請用自己的程式設計工作比較候選模型，並在[模型頁](https://tokenlab.sh/zh-TW/models)查看目前價格。
 
 ## 互動指令
 
@@ -167,71 +111,41 @@ fi
 
 準備好發出真實請求後，再執行下列命令；它會使用 TokenLab 餘額。核對回覆與[請求記錄](https://tokenlab.sh/dashboard/runs?section=requests)中的對應記錄。環境檢查通過或用戶端成功啟動，都不等於請求已成功。
 
-<CodeGroup>
-```bash TokenLab profile
+```bash
 codex --profile tokenlab "Reply only with OK. Do not use tools or modify files."
 ```
-
-```bash TokenLab 預設設定
-codex "Reply only with OK. Do not use tools or modify files."
-```
-</CodeGroup>
 
 ## 常見用例
 
 **程式碼審查:**
 
-<CodeGroup>
-```bash TokenLab profile
+```bash
 git diff | codex --profile tokenlab "Review these code changes"
 ```
 
-```bash TokenLab 預設設定
-git diff | codex "Review these code changes"
-```
-</CodeGroup>
-
 **產生 commit 訊息:**
 
-<CodeGroup>
-```bash TokenLab profile
+```bash
 git diff --staged | codex --profile tokenlab "Generate a commit message for these changes"
 ```
 
-```bash TokenLab 預設設定
-git diff --staged | codex "Generate a commit message for these changes"
-```
-</CodeGroup>
-
 **修復錯誤:**
 
-<CodeGroup>
-```bash TokenLab profile
+```bash
 codex --profile tokenlab "Fix the TypeScript errors in src/components/"
 ```
 
-```bash TokenLab 預設設定
-codex "Fix the TypeScript errors in src/components/"
-```
-</CodeGroup>
-
 **解釋程式碼:**
 
-<CodeGroup>
-```bash TokenLab profile
+```bash
 cat main.py | codex --profile tokenlab "Explain what this code does"
 ```
-
-```bash TokenLab 預設設定
-cat main.py | codex "Explain what this code does"
-```
-</CodeGroup>
 
 ## 故障排除
 
 <AccordionGroup>
   <Accordion title="連線錯誤">
-    - 驗證 `base_url` 在 config.toml 中是否為 `https://api.tokenlab.sh/v1`
+    - 驗證 `base_url` 在 tokenlab.config.toml 中是否為 `https://api.tokenlab.sh/v1`
     - 檢查網路連線
     - 確保沒有代理干擾
   </Accordion>

@@ -13,6 +13,8 @@ Die [offizielle Anleitung](https://hermes-agent.nousresearch.com/docs/getting-st
 
 Verwenden Sie das Verzeichnis aus `HERMES_HOME`, sonst `~/.hermes` (Windows: `%USERPROFILE%\.hermes`). Sichern Sie `config.yaml` und ergänzen Sie die folgenden Einträge, ohne andere Einstellungen zu ersetzen. Wählen Sie ein aktuelles Modell mit Chat Completions und Werkzeugaufrufen.
 
+Sichern Sie die aktive Konfiguration. Ergänzen Sie nur den TokenLab-Eintrag und erhalten Sie vorhandene Anbieter, Konten, Standardmodell und Berechtigungen. Wählen Sie bei einem belegten Namen einen anderen und passen Sie die Befehle an. Entfernen Sie zum Rückgängigmachen nur den neuen Eintrag oder stellen Sie dessen Sicherung wieder her.
+
 ```yaml
 providers:
   tokenlab:
@@ -20,16 +22,17 @@ providers:
     key_env: TOKENLAB_API_KEY
     transport: chat_completions
     default_model: gpt-5.6-luna
-model:
-  provider: custom:tokenlab
-  default: gpt-5.6-luna
 ```
 
 Erstellen Sie unter [API-Schlüssel](https://tokenlab.sh/dashboard/api?tab=keys) einen Schlüssel. Speichern Sie ihn lokal als `TOKENLAB_API_KEY` in der `.env` im Hermes-Verzeichnis oder in der Umgebung des startenden Prozesses. Fügen Sie ihn weder in Chats noch in die Anbieter-YAML ein.
 
 ## Konfiguration prüfen, dann anfragen
 
-`hermes config get model.provider` und `hermes config get model.default` müssen `custom:tokenlab` und das gewählte Modell zeigen. Starten Sie eine neue Sitzung; bestehende Sitzungen können das alte Modell behalten. Diese Prüfung bestätigt weder den Schlüssel noch einen erfolgreichen Modellaufruf.
+Prüfen Sie den Anbieter mit `hermes config get providers.tokenlab.api`; erwartet wird `https://api.tokenlab.sh/v1`. Lassen Sie den bisherigen Abschnitt `model` unverändert. Starten Sie eine neue Sitzung mit dem folgenden Anbieter und Modell. Ohne diese Optionen gilt wieder Ihr bisheriger Standard. Die Konfigurationsprüfung bestätigt nicht die Schlüsselgültigkeit.
+
+```bash
+hermes chat --provider custom:tokenlab --model gpt-5.6-luna
+```
 
 Wenn Sie TokenLab-Guthaben verwenden möchten, senden Sie eine kurze Textanfrage und vergleichen Antwort und [Anfrageprotokoll](https://tokenlab.sh/dashboard/runs?section=requests). Testen Sie danach eine nur lesende Werkzeugaufgabe. Hilfsmodelle und optionale Werkzeuge können eigene Anbieter oder Schlüssel nutzen.
 

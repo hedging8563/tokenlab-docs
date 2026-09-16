@@ -19,7 +19,7 @@ Bekleyen veya başarısız üretim görevleri için `/v1/worlds/generations/{id}
 </ParamField>
 
 <ParamField body="status" type="string">
-  İsteğe bağlı durum filtresi. TokenLab `SUCCEEDED` için tamamlanan world kayıtlarını döndürür; diğer durumlar üretim görevi endpointine aittir.
+  İsteğe bağlı filtre: `SUCCEEDED`, `PENDING`, `RUNNING` veya `FAILED`. Bu uç nokta tamamlanan dünyaları listeler; diğer üç değer boş liste döndürür. İlerlemeyi görmek için üretim görevini sorgulayın.
 </ParamField>
 
 <ParamField body="model" type="string">
@@ -56,7 +56,7 @@ Bekleyen veya başarısız üretim görevleri için `/v1/worlds/generations/{id}
   World kayıtları dizisi.
 </ResponseField>
 
-<ResponseField name="next_page_token" type="string">
+<ResponseField name="next_page_token" type="string | null">
   Sonraki sayfa tokenı veya `null`.
 </ResponseField>
 

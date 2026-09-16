@@ -22,14 +22,6 @@ Do not switch models silently. A replacement can change output quality, price, c
 
 For text models, limit output to the length your product can actually use. The parameter name depends on the API and model, so check the model page before sending `max_tokens` or `max_output_tokens`.
 
-```python
-response = client.chat.completions.create(
-    model="gpt-5.6-luna",
-    messages=[{"role": "user", "content": "Summarize this article in five bullets."}],
-    max_tokens=500,
-)
-```
-
 Shorter instructions are not automatically better, but duplicated context and repeated boilerplate always add input tokens. Keep stable instructions concise and send only the history needed for the next answer.
 
 For image, video, music, 3D, and Worlds requests, cost often depends on output count, duration, resolution, or another media option. Show the current estimate before a user confirms an expensive generation whenever the API can provide one.
@@ -38,18 +30,7 @@ For image, video, music, 3D, and Worlds requests, cost often depends on output c
 
 Streaming shows the answer as it arrives and avoids making the user wait for the complete response. It does not reduce token cost.
 
-```python
-stream = client.chat.completions.create(
-    model="gpt-5.6-luna",
-    messages=[{"role": "user", "content": "Explain this code."}],
-    stream=True,
-)
-
-for chunk in stream:
-    text = chunk.choices[0].delta.content
-    if text:
-        print(text, end="", flush=True)
-```
+For a complete example with client setup and completion checks, see [Streaming](/guides/streaming).
 
 Handle a disconnect as an incomplete answer. Do not present partial output as successfully finished, and do not repeat a request automatically when doing so could create a second side effect or charge.
 
@@ -57,15 +38,7 @@ Handle a disconnect as an incomplete answer. Do not present partial output as su
 
 Retry `429` responses after `Retry-After` or `retry_after`. A short exponential backoff is appropriate for transient `5xx` responses. Authentication, validation, balance, and context-length errors need a change from the application or user; sending the same request again will not fix them.
 
-```python
-import random
-import time
-
-def delay(attempt, retry_after=None):
-    if retry_after is not None:
-        return float(retry_after)
-    return min(30, (2 ** attempt) + random.random())
-```
+See [Rate limits](/guides/rate-limits) for a bounded retry example that respects `Retry-After` and disables duplicate SDK retries.
 
 Set a retry limit and a total time limit. For media creation, save the returned task ID and check it after a timeout before creating another task. Use an idempotency key when the endpoint supports one.
 
@@ -80,6 +53,8 @@ from openai import OpenAI
 client = OpenAI(
     api_key=os.environ["TOKENLAB_API_KEY"],
     base_url="https://api.tokenlab.sh/v1",
+    timeout=30.0,
+    max_retries=0,
 )
 ```
 

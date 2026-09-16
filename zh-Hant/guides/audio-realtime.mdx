@@ -28,7 +28,7 @@ curl "https://api.tokenlab.sh/v1/models?recommended_for=stt" \
 
 ## 同步音訊請求
 
-語音、轉寫和翻譯會在 HTTP 請求中直接返回。大輸入可能超過常見客戶端逾時，建議設定更寬鬆的逾時並保存 request ID 方便排查。
+語音合成在 HTTP 回應中傳回音訊。轉寫與翻譯可能傳回最終文字，也可能傳回已受理的任務。若回應含任務 ID 與狀態而非最終文字，請保存 ID 並依 `poll_url` 輪詢至完成或失敗。大型檔案應保留足夠逾時時間與 Request ID。
 
 ```bash
 curl -X POST "https://api.tokenlab.sh/v1/audio/speech" \
@@ -48,14 +48,27 @@ curl -X POST "https://api.tokenlab.sh/v1/audio/speech" \
 
 本指南只涵蓋 WebSocket 子集。TokenLab 目前不提供 OpenAI Realtime REST client secret、translation client secret、Calls 或 legacy beta session 管理端點。
 
+執行下方伺服器端範例前，安裝 `ws`，將 `TOKENLAB_REALTIME_MODEL` 設為目前模型詳情明確宣告 `/v1/realtime` 的模型。透過伺服器環境提供 `TOKENLAB_API_KEY`；不能只憑模型名稱判斷即時支援。
+
+```bash
+npm install ws
+```
+
 ```javascript
 import WebSocket from 'ws';
 
-const socket = new WebSocket('wss://api.tokenlab.sh/v1/realtime?model=gpt-realtime', {
-  headers: { Authorization: 'Bearer sk-your-api-key' }
-});
+const model = process.env.TOKENLAB_REALTIME_MODEL;
+const apiKey = process.env.TOKENLAB_API_KEY;
+if (!model || !apiKey) throw new Error('Set TOKENLAB_REALTIME_MODEL and TOKENLAB_API_KEY');
 
+const url = new URL('wss://api.tokenlab.sh/v1/realtime');
+url.searchParams.set('model', model);
+const socket = new WebSocket(url, {
+  headers: { Authorization: `Bearer ${apiKey}` },
+});
 socket.on('message', (event) => console.log(event.toString()));
+socket.on('error', (error) => console.error(error.message));
+process.once('SIGINT', () => socket.close(1000, 'Client stopped'));
 ```
 
 ## 狀態處理

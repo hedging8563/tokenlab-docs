@@ -16,8 +16,8 @@ Base URL cho Anthropic SDK: `https://api.tokenlab.sh` (không có hậu tố `/v
 
 ## Header của Request
 
-<ParamField header="x-api-key" type="string" required>
-  API key TokenLab của bạn. Phương án thay thế cho Bearer token.
+<ParamField header="x-api-key" type="string">
+  API key TokenLab của bạn. Gửi qua `x-api-key` hoặc `Authorization: Bearer <API_KEY>`.
 </ParamField>
 
 <ParamField header="anthropic-version" type="string" required>
@@ -26,8 +26,12 @@ Base URL cho Anthropic SDK: `https://api.tokenlab.sh` (không có hậu tố `/v
 
 ## Body của Request
 
+<Note>
+Các tham số tùy chọn được hỗ trợ, giá trị hợp lệ và giá trị mặc định phụ thuộc vào mô hình đã chọn. Xem [chi tiết mô hình](/vi/api-reference/models/get-model) trước khi đặt tùy chọn lấy mẫu, suy luận hoặc công cụ.
+</Note>
+
 <ParamField body="model" type="string" required>
-  ID model Claude (ví dụ: `claude-sonnet-4-6` hoặc `claude-opus-4-6`).
+  ID của mô hình hỗ trợ định dạng `anthropic_messages`. Xem [chi tiết mô hình](/vi/api-reference/models/get-model) để biết khả năng hiện tại.
 </ParamField>
 
 <ParamField body="messages" type="array" required>
@@ -38,12 +42,12 @@ Base URL cho Anthropic SDK: `https://api.tokenlab.sh` (không có hậu tố `/v
   Số lượng token tối đa để tạo.
 </ParamField>
 
-<ParamField body="system" type="string">
-  System prompt (tách biệt với mảng messages).
+<ParamField body="system" type="string | array">
+  Lời nhắc hệ thống dạng chuỗi hoặc mảng khối nội dung, tách biệt với mảng `messages`.
 </ParamField>
 
-<ParamField body="temperature" type="number" default="1">
-  Nhiệt độ lấy mẫu (0-1).
+<ParamField body="temperature" type="number">
+  Nhiệt độ lấy mẫu. Khả năng hỗ trợ, giá trị hợp lệ và giá trị mặc định phụ thuộc vào mô hình đã chọn. Bỏ qua trường này để dùng mặc định của mô hình.
 </ParamField>
 
 <ParamField body="stream" type="boolean" default="false">
@@ -51,10 +55,7 @@ Base URL cho Anthropic SDK: `https://api.tokenlab.sh` (không có hậu tố `/v
 </ParamField>
 
 <ParamField body="thinking" type="object">
-  Cấu hình extended thinking (Claude Opus 4.5).
-
-  - `type` (string): `"enabled"` để bật
-  - `budget_tokens` (integer): Ngân sách token cho thinking
+  Cấu hình thinking gốc. Các chế độ, ngân sách được hỗ trợ và cách kết hợp với tham số khác phụ thuộc vào mô hình đã chọn.
 </ParamField>
 
 <ParamField body="tools" type="array">
@@ -62,7 +63,7 @@ Base URL cho Anthropic SDK: `https://api.tokenlab.sh` (không có hậu tố `/v
 </ParamField>
 
 <ParamField body="tool_choice" type="object">
-  Cách model nên sử dụng công cụ. Các tùy chọn: `auto`, `any`, `tool` (công cụ cụ thể).
+  Đối tượng chọn công cụ gốc, chẳng hạn `{"type":"auto"}`. Các loại được hỗ trợ phụ thuộc vào mô hình đã chọn.
 </ParamField>
 
 <ParamField body="top_p" type="number">
@@ -96,7 +97,7 @@ Base URL cho Anthropic SDK: `https://api.tokenlab.sh` (không có hậu tố `/v
 </ResponseField>
 
 <ResponseField name="content" type="array">
-  Mảng các khối nội dung (text, thinking, tool_use).
+  Mảng khối nội dung, chẳng hạn `text`, `thinking` hoặc `tool_use`.
 </ResponseField>
 
 <ResponseField name="model" type="string">
@@ -104,7 +105,7 @@ Base URL cho Anthropic SDK: `https://api.tokenlab.sh` (không có hậu tố `/v
 </ResponseField>
 
 <ResponseField name="stop_reason" type="string">
-  Lý do việc tạo nội dung dừng lại (`end_turn`, `max_tokens`, `tool_use`).
+  Lý do dừng tạo nội dung, chẳng hạn `end_turn`, `max_tokens`, `stop_sequence` hoặc `tool_use`.
 </ResponseField>
 
 <ResponseField name="usage" type="object">
@@ -315,9 +316,19 @@ Với các mô hình Claude có hỗ trợ thị giác, hãy đặt hình ảnh 
 
 ## Ví dụ về Extended Thinking
 
+Đặt `TOKENLAB_THINKING_MODEL` thành mô hình hỗ trợ thinking thủ công với `type: "enabled"` và `budget_tokens`. Điều chỉnh cả hai ngân sách token theo giới hạn của mô hình đó. Mô hình khác có thể cần cấu hình thinking khác.
+
 ```python
+import os
+from anthropic import Anthropic
+
+client = Anthropic(
+    api_key="sk-your-api-key",
+    base_url="https://api.tokenlab.sh"
+)
+
 message = client.messages.create(
-    model="claude-opus-5",
+    model=os.environ["TOKENLAB_THINKING_MODEL"],
     max_tokens=16000,
     thinking={
         "type": "enabled",
@@ -331,7 +342,7 @@ for block in message.content:
         print(f"Thinking: {block.thinking}")
     elif block.type == "text":
         print(f"Response: {block.text}")
-```}
+```
 ## Các lô tin nhắn Anthropic
 
 TokenLab hiện cũng cung cấp luồng Anthropic Message Batches gốc bên cạnh `/v1/messages`.

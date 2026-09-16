@@ -4,7 +4,7 @@ openapi: "POST /api/v3"
 description: "Referensi untuk sepuluh Action material dan grup yang kompatibel dengan Volcengine."
 ---
 
-Klien material Volcengine dapat mempertahankan nama Action, `Version=2024-01-01`, JSON PascalCase, filter, pengurutan, paginasi, dan envelope `ResponseMetadata + Result`. TokenLab hanya mengganti endpoint dan autentikasi.
+Endpoint ini mendukung Action dan field material di bawah dengan autentikasi Bearer TokenLab dan envelope `ResponseMetadata + Result`.
 
 ## Endpoint dan autentikasi
 
@@ -23,7 +23,7 @@ Content-Type: application/json
 | Action | Tujuan | JSON |
 | --- | --- | --- |
 | `CreateAssetGroup` | Membuat grup material biasa | `Name`; `Description`; `GroupType: "AIGC"`; `ProjectName` |
-| `ListAssetGroups` | Mencantumkan grup dalam project | `Filter`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
+| `ListAssetGroups` | Mencantumkan grup dalam project | `Filter.GroupIds`; `Filter.GroupType`; `Filter.Name`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
 | `GetAssetGroup` | Mengambil satu grup | `Id`; `ProjectName` |
 | `UpdateAssetGroup` | Mengubah nama atau deskripsi | `Id`; `Name`; `Description`; `ProjectName` |
 | `DeleteAssetGroup` | Menghapus grup dan materialnya | `Id`; `ProjectName` |
@@ -57,12 +57,14 @@ curl 'https://api.tokenlab.sh/?Action=CreateAssetGroup&Version=2024-01-01' \
 | Action | Tujuan | JSON |
 | --- | --- | --- |
 | `CreateAsset` | Mengimpor satu URL gambar, video, atau audio publik | `GroupId`; `URL`; `Name`; `AssetType`; `ProjectName` |
-| `ListAssets` | Mencantumkan material dalam project | `Filter`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
+| `ListAssets` | Mencantumkan material dalam project | `Filter.GroupIds`; `Filter.GroupType`; `Filter.Statuses`; `Filter.Name`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
 | `GetAsset` | Mengambil material dan URL sementara | `Id`; `ProjectName` |
 | `UpdateAsset` | Mengganti nama material | `Id`; `Name`; `ProjectName` |
 | `DeleteAsset` | Menghapus satu material | `Id`; `ProjectName` |
 
 `AssetType` menerima `Image`, `Video`, dan `Audio`. Grup tujuan menentukan apakah material termasuk `AIGC` biasa atau `LivenessFace` terverifikasi.
+
+Gunakan ID material TokenLab. `CreateAsset` mengembalikan `Result.Id` sebelum pemrosesan selesai; lakukan polling `GetAsset` hingga `Result.Status` menjadi `Active` atau `Failed`. `ListAssets` juga menerima `SortBy: "GroupId"`.
 
 ### Membuat material
 
@@ -119,7 +121,7 @@ Error mempertahankan envelope respons Volcengine; kode dan pesan berada di `Resp
 }
 ```
 
-`InvalidCredential`, `InvalidVersion`, `InvalidParameter`, `NotFound`, `Conflict`, `MethodNotAllowed`, `InternalError`.
+`InvalidCredential`, `InvalidVersion`, `InvalidParameter`, `NotFound`, `Conflict`, `OperationDenied`, `MethodNotAllowed`, `InternalError`.
 
 ## Alternatif REST
 

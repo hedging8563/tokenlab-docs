@@ -19,7 +19,7 @@ description: "列出当前工作区已完成的 Marble Worlds"
 </ParamField>
 
 <ParamField body="status" type="string">
-  状态筛选。该列表只支持 `SUCCEEDED`。
+  可选值为 `SUCCEEDED`、`PENDING`、`RUNNING` 或 `FAILED`。此接口列出已完成的 World，后三种值返回空列表；任务进度请查询生成任务接口。
 </ParamField>
 
 <ParamField body="model" type="string">
@@ -56,7 +56,7 @@ description: "列出当前工作区已完成的 Marble Worlds"
   World 记录数组。
 </ResponseField>
 
-<ResponseField name="next_page_token" type="string">
+<ResponseField name="next_page_token" type="string | null">
   下一页 token，或 `null`。
 </ResponseField>
 

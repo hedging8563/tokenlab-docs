@@ -15,6 +15,12 @@ description: "استخدم TokenLab كمزود LLM لـ Graphiti متوافق م
 **مستوى دعم الموثوقية**: مسار مدعوم ومتوافق مع OpenAI
 </Note>
 
+## التثبيت
+
+```bash
+pip install graphiti-core httpx
+```
+
 ## البيئة
 
 ```bash
@@ -36,7 +42,10 @@ llm_config = LLMConfig(
     base_url="https://api.tokenlab.sh/v1",
 )
 
-llm_client = OpenAIGenericClient(config=llm_config)
+llm_client = OpenAIGenericClient(
+    config=llm_config,
+    structured_output_mode="json_object",
+)
 ```
 
 قم بتمرير `llm_client` إلى مثيل `Graphiti(...)` الخاص بك بجانب إعدادات قاعدة بيانات الرسم البياني والمُضمّن (embedder) لديك.

@@ -1,7 +1,7 @@
 ---
 title: "파일 업로드"
 openapi: "POST /v1/files"
-description: "나중에 배치 생성을 위해 JSONL 배치 입력 파일을 업로드합니다."
+description: "배치 파일, 이미지 참조 파일 또는 Anthropic 형식 파일을 업로드합니다."
 ---
 
 ## 개요
@@ -43,7 +43,6 @@ curl -X POST "https://api.tokenlab.sh/v1/files" \
 
 - 멱등성 있는 다운스트림 조정을 위해 `custom_id`를 사용하세요.
 - 작업자가 배치를 완료한 후에만 `output_file_id`와 `error_file_id`를 기대하세요.
-- 배치 가격은 `isBatchRequest=true` 할인 규칙이 적용되기 때문에 동기 가격과 다를 수 있습니다.
 ## 이미지 파일 입력
 
 같은 `/v1/files` 경로에서 `/v1/images/edits`용 이미지 참조 파일도 업로드할 수 있습니다.

@@ -1,22 +1,11 @@
 ---
 title: "Dify"
-description: "使用 OpenAI 提供者與自訂 Base URL 將 TokenLab 整合至 Dify"
+description: "使用 OpenAI-API-compatible 提供者與自訂 Base URL 將 TokenLab 整合至 Dify"
 ---
 
 ## 概覽
 
-Dify 可透過其相容 OpenAI 的模型提供者流程與 TokenLab 良好運作。
-
-這是一個以 chat-completions 為導向的整合路徑。請勿將其視為 Dify 會提供與專用 Codex 整合相同之 Responses 或 WebSocket 行為的保證。
-
-對於目前的 Dify 版本，最安全的路徑通常是：
-- 選擇內建的 **OpenAI** 提供者
-- 設定您的 TokenLab API key
-- 設定自訂 Base URL 為 `https://api.tokenlab.sh/v1`
-
-<Note>
-部分較舊的 Dify 版本將此功能顯示為 `OpenAI-API-compatible`，而非帶有自訂 Base URL 欄位的內建 `OpenAI` 提供者。如果您的 Dify UI 介面不同，請使用該版本中可用的、最接近的 OpenAI 相容自訂提供者流程。
-</Note>
+使用模型提供者外掛 **OpenAI-API-compatible** 將 Dify 連接至 TokenLab。將模型類型設為 **LLM**、**Completion mode** 設為 **Chat**、**API Type** 設為 **Chat Completions API**。本指南使用 Chat Completions。
 
 <Note>
 **類型**: 框架或平台
@@ -45,8 +34,8 @@ Dify 可透過其相容 OpenAI 的模型提供者流程與 TokenLab 良好運作
   <Step title="開啟模型提供者">
     在 Dify 中，前往 **Settings** → **Model Providers**
   </Step>
-  <Step title="選擇 OpenAI">
-    開啟 **OpenAI** 提供者設定。如果您的 Dify 版本在此處未提供自訂 Base URL，請改用該版本提供的 OpenAI 相容自訂提供者選項。
+  <Step title="選擇 OpenAI-API-compatible">
+    開啟 **OpenAI-API-compatible**。若未顯示，請先從 Dify Marketplace 安裝此模型提供者外掛。選擇 **Add model**，輸入 TokenLab 設定。
   </Step>
   <Step title="輸入 TokenLab 設定">
     使用以下數值：
@@ -54,7 +43,10 @@ Dify 可透過其相容 OpenAI 的模型提供者流程與 TokenLab 良好運作
     | 欄位 | 數值 |
     |-------|-------|
     | API Key | `sk-your-tokenlab-key` |
-    | API Base URL / Custom Base URL | `https://api.tokenlab.sh/v1` |
+    | Model type | LLM |
+    | Completion mode | Chat |
+    | API Type | Chat Completions API |
+    | API Base URL | `https://api.tokenlab.sh/v1` |
   </Step>
   <Step title="新增模型">
     新增您想要使用的模型，例如：
@@ -70,7 +62,7 @@ Dify 可透過其相容 OpenAI 的模型提供者流程與 TokenLab 良好運作
 
 ### 步驟 3：測試連線
 
-1. 選擇一個模型，例如 `gpt-5-mini` 或 `gpt-4o`
+1. 選擇已新增的模型，例如 `gpt-5.4-mini`。
 2. 發送測試提示詞 (prompt)
 3. 確認 Dify 收到有效的回應
 
@@ -94,16 +86,16 @@ Dify 可透過其相容 OpenAI 的模型提供者流程與 TokenLab 良好運作
 ## 最佳實踐
 
 <AccordionGroup>
-  <Accordion title="從內建的 OpenAI 提供者開始">
-    在較新的 Dify 版本中，使用帶有自訂 Base URL 的內建 OpenAI 提供者通常是 TokenLab 最簡潔的設定方式。
+  <Accordion title="以 OpenAI 外掛作為備選">
+    獨立的 **OpenAI** 外掛可用於其目錄支援的模型。將自訂 Base URL 設為 `https://api.tokenlab.sh/v1`，並將 **API Protocol** 設為 **Chat Completions**；預設值可能是 Responses。它不是 OpenAI-API-compatible 的舊名稱，也不接受所有自訂模型 ID。
   </Accordion>
 
   <Accordion title="在迭代時使用較便宜的模型">
     在迭代過程中請使用 `gpt-5.4-mini`、`gemini-3.5-flash` 或 `deepseek-v4-flash`，僅在必要時才將繁重的工作流程切換至更強大的模型。
   </Accordion>
 
-  <Accordion title="請記住 Dify 通常是以 chat-completions 為導向">
-    大多數 Dify 流程使用 OpenAI 相容的聊天行為。如果您需要 Codex 特有的 Responses 或 WebSocket 行為，請改用專用的 Codex 整合，而非 Dify。
+  <Accordion title="此設定使用 Chat Completions">
+    此設定請保持 **Completion mode = Chat** 與 **API Type = Chat Completions API**。Responses 是獨立的 API 選項；本指南不設定該選項或 WebSocket 連線。
   </Accordion>
 </AccordionGroup>
 

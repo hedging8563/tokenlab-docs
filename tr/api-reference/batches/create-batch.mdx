@@ -11,10 +11,10 @@ Bu uç nokta, TokenLab'nın OpenAI uyumlu Toplu API'sinin bir parçasıdır. Top
 ## Notlar
 
 - Toplu girdi dosyaları `purpose=batch` kullanmalıdır.
-- `completion_window` şu anda `24s`.
+- `completion_window` şu anda `24h`.
 - Çıktı sıralaması garanti edilmez; her zaman `custom_id` ile eşleştirin.
 - Toplu öğeler içinde akış desteği yoktur.
-- Şu anda desteklenen toplu öğe uç noktaları `/v1/chat/completions` ve `/v1/embeddings`tir; native Responses toplu yürütücüsü hazır olana kadar `/v1/responses` toplu işleri reddedilir.
+- Desteklenen batch öğesi uç noktaları `/v1/chat/completions` ve `/v1/embeddings`tir. `/v1/responses` desteklenmez.
 
 ## Örnek
 
@@ -39,7 +39,6 @@ Tam şema için yukarıdaki etkileşimli OpenAPI panelini kullanın.
 
 - İdempotent aşağı akış uzlaştırması için `custom_id` kullanın.
 - `output_file_id` ve `error_file_id`'yi yalnızca işçi toplu işi tamamladıktan sonra bekleyin.
-- Toplu fiyatlandırma, `isBatchRequest=true` indirim kuralları uygulandığı için senkron fiyatlandırmadan farklı olabilir.
 
 ## Yanıt örneği
 

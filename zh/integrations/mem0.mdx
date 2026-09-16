@@ -8,6 +8,12 @@ description: "在 Mem0 OSS 中将 TokenLab 用作兼容 OpenAI 的 LLM 提供商
 Mem0 OSS 中保持 `provider: "openai"`，再把 `openai_base_url` 设为 TokenLab 地址即可。
 
 
+## 安装
+
+```bash
+pip install mem0ai
+```
+
 ## 环境配置
 
 ```bash
@@ -31,9 +37,17 @@ config = {
             "temperature": 0.1,
         },
     },
+    "embedder": {
+        "provider": "openai",
+        "config": {
+            "model": "text-embedding-3-small",
+            "api_key": os.environ["TOKENLAB_API_KEY"],
+            "openai_base_url": "https://api.tokenlab.sh/v1",
+        },
+    },
     "vector_store": {
         "provider": "qdrant",
-        "config": {"host": "localhost", "port": 6333},
+        "config": {"path": "./mem0-qdrant"},
     },
 }
 
@@ -44,7 +58,7 @@ memory = Memory.from_config(config)
 
 ```python
 memory.add("The user prefers concise engineering summaries.", user_id="demo")
-results = memory.search("How should I answer?", user_id="demo")
+results = memory.search("How should I answer?", filters={"user_id": "demo"})
 print(results)
 ```
 

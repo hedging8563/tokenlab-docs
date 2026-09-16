@@ -5,108 +5,23 @@ description: "Tek bir API üzerinden yüzlerce AI modeline erişim"
 
 ## TokenLab Nedir?
 
-TokenLab, OpenAI, Anthropic, Google, DeepSeek, Moonshot, MiniMax ve diğerleri gibi sağlayıcılardan **yüzlerce AI modele** birleşik erişim sağlayan bir AI API toplama platformudur.
-
-<CardGroup cols={2}>
-  <Card title="Yerel + uyumlu" icon="plug">
-    Sağlayıcı davranışı önemli olduğunda yerel Anthropic/Gemini yollarını, mevcut OpenAI tarzı araçlar için ise OpenAI uyumlu `/v1` yollarını kullanın.
-  </Card>
-  <Card title="Yerel Formatlar" icon="shuffle">
-    Tek bir platformdan OpenAI, Anthropic, Gemini ve Responses tarzı endpoint'leri çağırın.
-  </Card>
-  <Card title="Kullandıkça Öde" icon="coins">
-    Abonelik yok. Yalnızca gerçekten kullandığınız için ödeme yapın.
-  </Card>
-  <Card title="Yüksek Erişilebilirlik" icon="shield-check">
-    Akıllı yönlendirme, failover ve çok kanallı destek güvenilirliği artırır.
-  </Card>
-</CardGroup>
+TokenLab, tek API anahtarı ve ortak çalışma alanı bakiyesiyle uygulamanızı veya kodlama aracınızı yapay zekâ modellerine bağlar. Bir model ve desteklediği API biçimini seçin; istekler yayımlanan fiyat üzerinden ücretlendirilir.
 
 ## Desteklenen Yetenekler
 
-Public katalog zamanla değişir. Güncel kullanılabilirliği `/v1/models`, `recommended_for` veya Models sayfasından kontrol edin; aşağıdaki örnekler güncel public model ID’lerini kullanır.
+Güncel model kimlikleri, kullanılabilirlik, biçimler ve fiyatlar için [model kataloğuna](https://tokenlab.sh/tr/models) bakın.
 
-| Yetenek | Açıklama | Örnek modeller |
-|---|---|---|
-| Chat ve akıl yürütme | Metin üretimi, planlama, araçlar | `gpt-5.4`, `claude-sonnet-4-6` |
-| Vision ve multimodal | Görüntü anlama ve multimodal sohbet | `gpt-4o`, `claude-sonnet-4-6`, `gemini-3.5-flash` |
-| Görüntü üretimi ve düzenleme | Metinden görüntü ve görüntü düzenleme | `gpt-image-2`, `flux-pro` |
-| Video üretimi | Metin/görüntü/referanstan video ve hareket kontrolü | `veo3.1`, `wan-2.7`, `kling-3.0-video`, `happyhorse-1.0` |
-| Ses ve Realtime | TTS, transkripsiyon, çeviri ve realtime oturumlar | `gpt-4o-mini-tts`, `whisper-1`, `gpt-realtime` |
-| Embeddings ve rerank | Metin vektörleştirme ve yeniden sıralama | `text-embedding-3-small`, `qwen3-vl-rerank` |
-| Çeviri | Metin çevirisi ve WebSocket konuşma çevirisi iş akışları | `doubao-seed-translation`, `gpt-realtime-translate` |
-| Müzik ve 3D | Müzik ve 3D asset üretimi | `suno-music`, `tripo-h3.1` |
-| Worlds | World üretimi, durum polling ve media asset iş akışları | Güncel kullanılabilirliği `/v1/worlds/generations` ve Models API ile kontrol edin |
-
-## İstek Formatını Seçin
-
-İhtiyacınız olan davranışa uyan rotayla başlayın. Sağlayıcıya özgü özellikler için yerel Anthropic/Gemini rotalarını kullanın; mevcut OpenAI tarzı sohbet kodunu taşırken OpenAI uyumlu `/v1/chat/completions` kullanın.
-
-<CodeGroup>
-
-```bash cURL
-curl https://api.tokenlab.sh/v1/chat/completions \
-  -H "Authorization: Bearer sk-your-api-key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "gpt-5.6-terra",
-    "messages": [
-      {"role": "user", "content": "Explain what TokenLab does in one sentence."}
-    ]
-  }'
-```
-
-```python Python
-from openai import OpenAI
-
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
-
-response = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": "Explain what TokenLab does in one sentence."}]
-)
-
-print(response.choices[0].message.content)
-```
-
-```javascript JavaScript
-import OpenAI from 'openai';
-
-const client = new OpenAI({
-  apiKey: 'sk-your-api-key',
-  baseURL: 'https://api.tokenlab.sh/v1'
-});
-
-const response = await client.chat.completions.create({
-  model: 'gpt-5.6-terra',
-  messages: [{ role: 'user', content: 'Explain what TokenLab does in one sentence.' }],
-});
-
-console.log(response.choices[0].message.content);
-```
-
-<Note>
-Yalnızca Responses'a özgü davranışa açıkça ihtiyaç duyduğunuzda `POST /v1/responses` kullanın. Bu tüm modeller için varsayılan uyumluluk yolu değildir.
-</Note>
-
-</CodeGroup>
-
-## Temel Özellikler
-
-<CardGroup cols={2}>
-  <Card title="Birden Fazla API Formatı" icon="layers" href="/guides/api-formats">
-    Tek bir hesapla OpenAI, Anthropic, Gemini veya Responses-yerel formatlarını kullanın.
-  </Card>
-  <Card title="Agent-First Hataları" icon="wand-magic-sparkles" href="/guides/agent-first-api">
-    Yapılandırılmış ipuçları, kodlama agentlerinin kendini daha hızlı düzeltmesine yardımcı olur.
-  </Card>
-  <Card title="Entegrasyon Kapsamı" icon="toolbox" href="/guides/ide-sdk-compatibility">
-    IDE'leri, SDK'ları, framework'leri ve sohbet uygulamalarını sağlayıcıya özgü değişiklikleri azaltarak bağlayın.
-  </Card>
-</CardGroup>
+| Yetenek | Açıklama |
+|---|---|
+| Chat ve akıl yürütme | Metin üretimi, planlama, araçlar |
+| Vision ve multimodal | Görüntü anlama ve multimodal sohbet |
+| Görüntü üretimi ve düzenleme | Metinden görüntü ve görüntü düzenleme |
+| Video üretimi | Metin/görüntü/referanstan video ve hareket kontrolü |
+| Ses ve Realtime | TTS, transkripsiyon, çeviri ve realtime oturumlar |
+| Embeddings ve rerank | Metin vektörleştirme ve yeniden sıralama |
+| Çeviri | Metin çevirisi ve WebSocket konuşma çevirisi iş akışları |
+| Müzik ve 3D | Müzik ve 3D asset üretimi |
+| Worlds | World üretimi, durum polling ve media asset iş akışları |
 
 ## Sonraki Adımlar
 

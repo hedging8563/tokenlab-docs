@@ -13,7 +13,7 @@ Bu endpoint, eski OpenAI uyumlu variation istemcileri için korunur. Güncel ima
 **Senkron istek zaman aşımı:** Bazı yönlendirilmiş görsel sağlayıcıları son görseli inline döndürür ve üretimin tamamlanmasını bekler. Yüksek çözünürlüklü veya yüksek kaliteli istekler bir dakikaya yakın ya da daha uzun sürebilir; bu yüzden HTTP istemcisi zaman aşımını en az `120s` olarak ayarlayın. Oluşturma yanıtı `status: "pending"`, `task_id` veya `poll_url` içeriyorsa, dönen `poll_url` ile polling yapın.
 
 <ParamField body="image" type="file" required>
-  Varyasyon için temel olarak kullanılacak görsel. Geçerli bir PNG dosyası, 50MB'dan küçük ve kare olmalıdır.
+  Multipart kaynak görsel. Dosya ve isteğin tamamı ayrı ayrı 50 MiB sınırını aşmamalıdır. Biçim ve boyutlar modele bağlıdır; güncel model ayrıntıları `/v1/images/variations` yolunu açıkça listelemelidir.
 </ParamField>
 
 <ParamField body="model" type="string" required>
@@ -21,14 +21,14 @@ Bu endpoint, eski OpenAI uyumlu variation istemcileri için korunur. Güncel ima
 </ParamField>
 
 <ParamField body="n" type="integer" default="1">
-  Oluşturulacak görsel sayısı. 1 ile 10 arasında olmalıdır.
+  Üretilecek görsel sayısı (1-10, modele bağlı).
 </ParamField>
 
 <ParamField body="size" type="string">
   Eski variation uyumlu rotalarda üretilen görüntülerin boyutu. Desteklenen değerler seçilen modele bağlıdır.
 </ParamField>
 
-<ParamField body="response_format" type="string" default="url">
+<ParamField body="response_format" type="string">
   Oluşturulan görsellerin döndürüleceği format. `url` veya `b64_json` olmalıdır.
 </ParamField>
 

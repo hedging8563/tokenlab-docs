@@ -4,7 +4,8 @@ openapi: "POST /v1beta/models/{model}:streamGenerateContent"
 description: "Melakukan streaming pembuatan konten menggunakan format Google Gemini API"
 ---
 
-Varian SSE streaming native dari Gemini `generateContent`. TokenLab mempertahankan event, urutan, dan field upstream; event metadata-only, chunk perantara tanpa `finishReason`, dan EOF alami semuanya valid. TokenLab tidak menambahkan marker Chat Completions `[DONE]` dan tidak fallback ke Chat.
+Versi SSE dari Gemini `generateContent`. Event dapat hanya berisi metadata atau konten sementara tanpa `finishReason`. Stream berakhir pada EOF tanpa menambahkan penanda `[DONE]`.
+
 ## Parameter Path
 
 <ParamField path="model" type="string" required>
@@ -19,9 +20,9 @@ Varian SSE streaming native dari Gemini `generateContent`. TokenLab mempertahank
 
 ## Isi Permintaan
 
-Sama dengan [Buat Konten](/api-reference/gemini/generate-content).
+Sama dengan [Buat Konten](/id/api-reference/gemini/generate-content).
 
-`generationConfig.candidateCount`, kombinasi tool, dan field mendatang diteruskan tanpa perubahan ke upstream; TokenLab tidak memberlakukan batas streaming lokal.
+Dukungan untuk `generationConfig.candidateCount`, tool, jenis media, dan field opsional lainnya bergantung pada model yang dipilih.
 
 ## Respons
 
@@ -29,7 +30,7 @@ Mengembalikan stream objek JSON, yang masing-masing berisi respons parsial.
 
 <RequestExample>
 ```bash cURL
-curl -X POST "https://api.tokenlab.sh/v1beta/models/gemini-2.5-pro:streamGenerateContent?key=sk-your-api-key" \
+curl -N -X POST "https://api.tokenlab.sh/v1beta/models/gemini-2.5-pro:streamGenerateContent?key=sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
     "contents": [
@@ -53,7 +54,10 @@ model = genai.GenerativeModel("gemini-2.5-pro")
 response = model.generate_content("Tell me a story", stream=True)
 
 for chunk in response:
-    print(chunk.text, end="")
+    for candidate in chunk.candidates:
+        for part in candidate.content.parts:
+            if part.text:
+                print(part.text, end="")
 ```
 
 ```javascript JavaScript
@@ -74,7 +78,7 @@ const decoder = new TextDecoder();
 while (true) {
   const { done, value } = await reader.read();
   if (done) break;
-  console.log(decoder.decode(value));
+  console.log(decoder.decode(value, { stream: true }));
 }
 ```
 

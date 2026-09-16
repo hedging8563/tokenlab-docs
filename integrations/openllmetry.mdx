@@ -11,7 +11,7 @@ Configure the OpenAI SDK with TokenLab `/v1`, then use OpenLLMetry to record tho
 ## Installation
 
 ```bash
-pip install opentelemetry-instrumentation-openai openai
+pip install opentelemetry-instrumentation-openai opentelemetry-sdk openai
 ```
 
 ## Environment
@@ -22,11 +22,20 @@ export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 
 ## Example
 
+This standalone example writes spans to your terminal. If your application already has an OpenTelemetry tracer provider, reuse that provider and its exporter.
+
 ```python
 import os
 
 from openai import OpenAI
+from opentelemetry import trace
 from opentelemetry.instrumentation.openai import OpenAIInstrumentor
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import ConsoleSpanExporter, SimpleSpanProcessor
+
+tracer_provider = TracerProvider()
+tracer_provider.add_span_processor(SimpleSpanProcessor(ConsoleSpanExporter()))
+trace.set_tracer_provider(tracer_provider)
 
 OpenAIInstrumentor().instrument()
 

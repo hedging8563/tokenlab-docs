@@ -6,6 +6,8 @@ description: "更新當前組織所擁有的 Seedance 素材群組。"
 
 更新素材群組的顯示名稱、描述或元數據 (metadata)。對於受管理的真人群組，已驗證的人員映射將保持不變。
 
+`project_name` 用於同一組織內的資源隔離，預設為 `default`。相關素材群組和素材須使用相同且區分大小寫的值；POST/PUT 在 JSON 請求主體中傳入，GET/DELETE 在查詢參數中傳入。
+
 ## 請求範例
 
 ```bash
@@ -13,7 +15,7 @@ curl https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01 
   -X PUT \
   -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"group_name":"Updated references","description":"Images approved for summer videos"}'
+  -d '{"group_name":"Updated references","description":"Images approved for summer videos","project_name":"default"}'
 ```
 
 ## 回應範例
@@ -22,6 +24,7 @@ curl https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01 
 {
   "id": "group-20260720123456-vrt01",
   "object": "seedance.material_asset_group",
+  "project_name": "default",
   "library_type": "aigc_avatar",
   "group_name": "Updated references",
   "description": "Images approved for summer videos",

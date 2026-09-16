@@ -28,7 +28,7 @@ curl "https://api.tokenlab.sh/v1/models?recommended_for=stt" \
 
 ## Yêu Cầu Âm Thanh Đồng Bộ
 
-Yêu cầu speech, transcription và translation trả về trực tiếp trong HTTP request. Đầu vào lớn có thể lâu hơn timeout phổ biến của client, vì vậy hãy đặt timeout rộng và lưu request ID để hỗ trợ.
+Tổng hợp giọng nói trả âm thanh trong phản hồi HTTP. Chép lời và dịch có thể trả văn bản cuối cùng hoặc tác vụ đã nhận. Nếu phản hồi chứa ID và trạng thái tác vụ thay vì văn bản, hãy lưu ID và theo dõi `poll_url` đến khi hoàn tất hoặc thất bại. Dành đủ thời gian cho tệp lớn và giữ Request ID.
 
 ```bash
 curl -X POST "https://api.tokenlab.sh/v1/audio/speech" \
@@ -48,14 +48,27 @@ Mở WebSocket với model trong query string và API key trong header Authoriza
 
 Hướng dẫn này chỉ bao phủ WebSocket subset. TokenLab hiện chưa cung cấp các endpoint REST của OpenAI Realtime cho client secret, translation client secret, Calls hoặc quản lý legacy beta session.
 
+Với ví dụ máy chủ, cài `ws` và đặt `TOKENLAB_REALTIME_MODEL` thành mô hình hiện tại có chi tiết khai báo `/v1/realtime`. Cung cấp `TOKENLAB_API_KEY` trong môi trường máy chủ; tên mô hình không đủ chứng minh hỗ trợ realtime.
+
+```bash
+npm install ws
+```
+
 ```javascript
 import WebSocket from 'ws';
 
-const socket = new WebSocket('wss://api.tokenlab.sh/v1/realtime?model=gpt-realtime', {
-  headers: { Authorization: 'Bearer sk-your-api-key' }
-});
+const model = process.env.TOKENLAB_REALTIME_MODEL;
+const apiKey = process.env.TOKENLAB_API_KEY;
+if (!model || !apiKey) throw new Error('Set TOKENLAB_REALTIME_MODEL and TOKENLAB_API_KEY');
 
+const url = new URL('wss://api.tokenlab.sh/v1/realtime');
+url.searchParams.set('model', model);
+const socket = new WebSocket(url, {
+  headers: { Authorization: `Bearer ${apiKey}` },
+});
 socket.on('message', (event) => console.log(event.toString()));
+socket.on('error', (error) => console.error(error.message));
+process.once('SIGINT', () => socket.close(1000, 'Client stopped'));
 ```
 
 ## Xử Lý Trạng Thái

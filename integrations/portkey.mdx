@@ -5,15 +5,15 @@ description: "Connect Portkey Gateway to TokenLab"
 
 ## Overview
 
-Add TokenLab as a Portkey provider for OpenAI-compatible Chat Completions. Use Responses only when your Portkey version supports a custom Responses endpoint.
+Configure TokenLab as a custom OpenAI-compatible host in Portkey. Use Responses only when your Portkey version supports a custom Responses endpoint.
 
 
 ## Provider Values
 
 | Field | Value |
 |-------|-------|
-| Provider | `tokenlab` |
-| Base URL | `https://api.tokenlab.sh/v1` |
+| Provider | `openai` |
+| Custom Host | `https://api.tokenlab.sh/v1` |
 | API key | `sk-your-tokenlab-key` |
 | Model | A current TokenLab model ID |
 
@@ -21,10 +21,13 @@ Add TokenLab as a Portkey provider for OpenAI-compatible Chat Completions. Use R
 
 Use TokenLab for OpenAI-compatible chat requests:
 
+The example requires a running self-hosted Portkey Gateway; replace the gateway URL with your deployment URL. For Portkey Cloud, also send `x-portkey-api-key` with your Portkey API key. See the [Portkey configuration guide](https://portkey.ai/docs/api-reference/inference-api/headers).
+
 ```bash
 curl https://your-portkey-gateway.example/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -H "x-portkey-provider: tokenlab" \
+  -H "x-portkey-provider: openai" \
+  -H "x-portkey-custom-host: https://api.tokenlab.sh/v1" \
   -H "Authorization: Bearer sk-your-tokenlab-key" \
   -d '{
     "model": "gpt-5.6-luna",

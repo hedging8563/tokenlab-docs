@@ -9,11 +9,11 @@ Hasilkan musik dan lirik menggunakan AI. Ini adalah API asinkron. Respons create
 ## Body Permintaan
 
 <ParamField body="model" type="string" default="suno_music">
-  Model yang digunakan: `suno_music` untuk pembuatan musik, `suno_lyrics` hanya untuk lirik.
+  ID model musik, misalnya `suno-music`. Untuk lirik saja, pilih model yang operasi publik terkininya mencakup `lyrics`.
 </ParamField>
 
 <ParamField body="prompt" type="string">
-  Deskripsi musik. Wajib untuk request music, lyrics, upload-cover, dan upload-extend; hilangkan untuk add-instrumental.
+  Deskripsi musik atau teks pengganti. Wajib untuk musik, lirik, upload-cover, upload-extend, dan replace-section; opsional untuk add-instrumental dan pemisahan trek.
 </ParamField>
 
 <ParamField body="title" type="string">
@@ -29,11 +29,11 @@ Hasilkan musik dan lirik menggunakan AI. Ini adalah API asinkron. Respons create
 </ParamField>
 
 <ParamField body="action" type="string">
-  Tipe pembuatan: `MUSIC` (default) atau `LYRICS`.
+  Nilai opsional `MUSIC` atau `LYRICS`. Pilih model yang mendukung operasi publik terkait; field ini tidak menambahkan kemampuan lirik pada model khusus musik.
 </ParamField>
 
 <ParamField body="mv" type="string">
-  Versi model Suno resmi. Wajib untuk pembuatan musik (ketika `action` dihilangkan atau bernilai `MUSIC`); hilangkan untuk permintaan lirik saja. Nilai yang didukung: `chirp-v3-5`, `chirp-v4`, `chirp-v4-5`, `chirp-v4.5`, `chirp-v4-5plus`, `chirp-v4.5plus`, `chirp-v4-5all`, `chirp-v4.5all`, `chirp-v5`, `chirp-v5-5`, `chirp-v5.5`.
+  Pemilih versi Suno. Wajib untuk pembuatan, upload-cover, upload-extend, add-instrumental, dan penggantian dari `audio_url`. Hilangkan untuk lirik, penggantian dari `task_id` + `audio_id`, dan pemisahan trek. Nilai yang diterima: `chirp-v3-5`, `chirp-v4`, `chirp-v4-5`, `chirp-v4.5`, `chirp-v4-5plus`, `chirp-v4.5plus`, `chirp-v4-5all`, `chirp-v4.5all`, `chirp-v5`, `chirp-v5-5`, `chirp-v5.5`.
 </ParamField>
 
 <ParamField body="make_instrumental" type="boolean">
@@ -45,7 +45,35 @@ Hasilkan musik dan lirik menggunakan AI. Ini adalah API asinkron. Respons create
 </ParamField>
 
 <ParamField body="audio_operation" type="string">
-  Mode audio unggahan: `upload-cover`, `upload-extend`, atau `add-instrumental`. `upload-extend` memerlukan `continue_at`; `add-instrumental` memerlukan `audio_url`, `title`, `tags`, dan `negative_tags`.
+  Operasi audio: `upload-cover`, `upload-extend`, `add-instrumental`, `replace-section`, `vocal-separate`, `multi-stem-separation`, `advanced-split`.
+
+  `vocal-separate`, `multi-stem-separation`, dan `advanced-split` memerlukan `task_id` + `audio_id`; `advanced-split` juga memerlukan `stem_name`. `upload-extend` memerlukan `continue_at` lebih besar dari 0. `add-instrumental` memerlukan `audio_url`, `title`, `tags`, dan `negative_tags`.
+
+  `replace-section` memerlukan `prompt`, `tags`, `title`, `infill_start_s`, `infill_end_s`, dan `full_lyrics`. Pilih tepat satu sumber: `task_id` + `audio_id`, atau `audio_url` + `mv`. Interval penggantian harus 6–60 detik.
+</ParamField>
+
+<ParamField body="task_id" type="string">
+  ID tugas sumber milik organisasi Anda, untuk mengganti audio yang dihasilkan atau memisahkan trek.
+</ParamField>
+
+<ParamField body="audio_id" type="string">
+  ID audio yang dikembalikan dalam hasil tugas sumber. Wajib bersama `task_id` untuk penggantian audio yang dihasilkan dan pemisahan trek.
+</ParamField>
+
+<ParamField body="infill_start_s" type="number">
+  Awal penggantian dalam detik, minimal 0. Wajib untuk `replace-section`.
+</ParamField>
+
+<ParamField body="infill_end_s" type="number">
+  Akhir penggantian dalam detik. Wajib untuk `replace-section`, 6–60 detik setelah `infill_start_s`.
+</ParamField>
+
+<ParamField body="full_lyrics" type="string">
+  Lirik lengkap lagu hasil. Wajib untuk `replace-section`.
+</ParamField>
+
+<ParamField body="stem_name" type="string">
+  Nama trek. Wajib untuk `advanced-split`.
 </ParamField>
 
 <ParamField body="continue_clip_id" type="string">
@@ -53,8 +81,12 @@ Hasilkan musik dan lirik menggunakan AI. Ini adalah API asinkron. Respons create
 </ParamField>
 
 <ParamField body="continue_at" type="number">
-  Timestamp dalam detik untuk mulai melanjutkan. Wajib saat `audio_operation` bernilai `upload-extend`.
+  Waktu dalam detik untuk melanjutkan. Wajib dan lebih besar dari 0 untuk `upload-extend`.
 </ParamField>
+
+<Note>
+`prompt` menerima hingga 5000 karakter; `tags` dan `negative_tags` masing-masing hingga 1000 karakter. Operasi dan parameter yang didukung mengikuti detail model terkini.
+</Note>
 
 ## Respons
 
@@ -63,7 +95,7 @@ Hasilkan musik dan lirik menggunakan AI. Ini adalah API asinkron. Respons create
 </ResponseField>
 
 <ResponseField name="task_id" type="string">
-  Alias identifier tugas asinkron ketika dikembalikan oleh adapter.
+  Alias dari ID tugas asinkron yang sama, jika dikembalikan.
 </ResponseField>
 
 <ResponseField name="poll_url" type="string">
@@ -75,7 +107,7 @@ Hasilkan musik dan lirik menggunakan AI. Ini adalah API asinkron. Respons create
 </ResponseField>
 
 <ResponseField name="created" type="integer">
-  Unix timestamp pembuatan tugas.
+  Timestamp Unix pembuatan tugas, jika dikembalikan.
 </ResponseField>
 
 <RequestExample>
@@ -84,7 +116,7 @@ curl -X POST "https://api.tokenlab.sh/v1/music/generations" \
   -H "Authorization: Bearer sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "suno_music",
+    "model": "suno-music",
     "mv": "chirp-v4",
     "prompt": "An upbeat electronic dance track with heavy bass",
     "title": "Night Drive",
@@ -99,7 +131,7 @@ response = requests.post(
     "https://api.tokenlab.sh/v1/music/generations",
     headers={"Authorization": "Bearer sk-your-api-key"},
     json={
-        "model": "suno_music",
+        "model": "suno-music",
         "mv": "chirp-v4",
         "prompt": "An upbeat electronic dance track with heavy bass",
         "title": "Night Drive",
@@ -107,8 +139,11 @@ response = requests.post(
     }
 )
 
-task_id = response.json()["id"]
-print(f"Task ID: {task_id}")
+response.raise_for_status()
+task = response.json()
+task_id = task["id"]
+poll_url = task.get("poll_url") or f"/v1/tasks/{task_id}"
+print(f"Task ID: {task_id}; poll URL: {poll_url}")
 ```
 
 ```javascript JavaScript
@@ -119,7 +154,7 @@ const response = await fetch('https://api.tokenlab.sh/v1/music/generations', {
     'Content-Type': 'application/json'
   },
   body: JSON.stringify({
-    model: 'suno_music',
+    model: 'suno-music',
     mv: 'chirp-v4',
     prompt: 'An upbeat electronic dance track with heavy bass',
     title: 'Night Drive',
@@ -127,8 +162,10 @@ const response = await fetch('https://api.tokenlab.sh/v1/music/generations', {
   })
 });
 
+if (!response.ok) throw new Error(await response.text());
 const data = await response.json();
-console.log(`Task ID: ${data.id}`);
+const pollUrl = data.poll_url || `/v1/tasks/${data.id}`;
+console.log(`Task ID: ${data.id}; poll URL: ${pollUrl}`);
 ```
 
 ```go Go
@@ -143,7 +180,7 @@ import (
 
 func main() {
     payload := map[string]interface{}{
-        "model":  "suno_music",
+        "model":  "suno-music",
         "mv":     "chirp-v4",
         "prompt": "An upbeat electronic dance track with heavy bass",
         "title":  "Night Drive",
@@ -177,7 +214,7 @@ curl_setopt_array($ch, [
         'Authorization: Bearer sk-your-api-key'
     ],
     CURLOPT_POSTFIELDS => json_encode([
-        'model' => 'suno_music',
+        'model' => 'suno-music',
         'mv' => 'chirp-v4',
         'prompt' => 'An upbeat electronic dance track with heavy bass',
         'title' => 'Night Drive',
@@ -200,8 +237,7 @@ echo "Task ID: " . $data['id'];
   "task_id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "poll_url": "/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "status": "pending",
-  "created": 1706000000,
-  "model": "suno_music"
+  "model": "suno-music"
 }
 ```
 </ResponseExample>

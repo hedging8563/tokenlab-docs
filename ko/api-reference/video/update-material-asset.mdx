@@ -6,6 +6,8 @@ description: "현재 조직이 소유한 Seedance 머티리얼 에셋을 업데�
 
 머티리얼 이름이나 메타데이터를 업데이트합니다. 소스 URL과 에셋 유형은 생성 후에는 고정되므로, 소스 파일이 변경되면 새 에셋을 생성해야 합니다.
 
+`project_name`은 인증된 조직 내 리소스를 분리합니다. 기본값은 `default`이며 관련 그룹과 소재에는 대소문자를 구분하는 동일한 값을 사용하세요. POST/PUT은 JSON 본문에, GET/DELETE는 쿼리 매개변수에 지정합니다.
+
 ## 요청 예시
 
 ```bash
@@ -13,7 +15,7 @@ curl https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr \
   -X PUT \
   -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"asset_name":"Front view approved","metadata":{"approved_by":"creative-team"}}'
+  -d '{"asset_name":"Front view approved","metadata":{"approved_by":"creative-team"},"project_name":"default"}'
 ```
 
 ## 응답 예시
@@ -22,14 +24,15 @@ curl https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr \
 {
   "id": "asset-20260720123456-qn7wr",
   "object": "seedance.material_asset",
+  "project_name": "default",
   "group_id": "group-20260720123456-vrt01",
   "library_type": "aigc_avatar",
   "asset_name": "Front view approved",
   "asset_type": "Image",
-  "status": "PROCESSING",
-  "ready": false,
+  "status": "ACTIVE",
+  "ready": true,
   "error_message": null,
-  "metadata": null,
+  "metadata": {"approved_by": "creative-team"},
   "created_at": 1782998400000
 }
 ```

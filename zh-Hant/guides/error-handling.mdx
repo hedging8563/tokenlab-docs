@@ -31,7 +31,7 @@ Chat Completions 和 Responses 使用 OpenAI 風格的 `error` 物件。Anthropi
 | `402` | 餘額不足或達到 API-key 限制 | 儲值、提高限制或減少請求量 |
 | `403` | 此 key 無權使用該資源或模型 | 更改 key 的權限或更換模型 |
 | `404` | 資源不存在或已無法存取 | 檢查 ID 以及建立該資源的 API key |
-| `413` | 請求或上傳的檔案過大 | 根據文件限制減少輸入內容或調整端點限制 |
+| `413` | 請求或上傳的檔案過大 | 縮減輸入內容或檔案，使其符合模型或端點公布的限制 |
 | `429` | 已達請求限制 | 等待 `Retry-After` 指定的時間 |
 | `500`–`504` | 暫時性的服務或網路故障 | 在請求可安全重複的情況下，使用限制次數與退避機制 (backoff) 進行重試 |
 
@@ -39,8 +39,8 @@ Chat Completions 和 Responses 使用 OpenAI 風格的 `error` 物件。Anthropi
 
 | 代碼 | 含義 | 應採取的變更 |
 | --- | --- | --- |
-| `invalid_api_key` | API key 遺失或無效 | 檢查 Authorization 標頭與 key 值 |
-| `expired_api_key` | key 已過期或被撤銷 | 建立或選擇一個有效的 key |
+| `invalid_api_key` | API 金鑰缺失、無效、已停用或撤銷 | 檢查 Authorization 標頭與 key 值 |
+| `expired_api_key` | API 金鑰已過期 | 建立或選擇一個有效的 key |
 | `insufficient_balance` | 帳戶餘額不足以支付請求 | 儲值、減少請求量或選擇價格較低的模型 |
 | `quota_exceeded` | API key 已達其自身限制 | 提高該 key 的限制或使用其他已授權的 key |
 | `model_not_allowed` | 此 key 無權使用請求的模型 | 更新 key 的模型列表或選擇允許的模型 |
@@ -65,43 +65,10 @@ Chat Completions 和 Responses 使用 OpenAI 風格的 `error` 物件。Anthropi
 
 對於圖像、影片、音樂、3D 和 Worlds 的建立任務，請在收到任務 ID 後立即儲存。如果建立請求逾時，請在發送另一個建立請求前檢查任務記錄。
 
-## Python 範例
-
-```python
-import random
-import time
-from openai import OpenAI, APIConnectionError, APIStatusError, RateLimitError
-
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1",
-)
-
-def chat(messages, model="gpt-5.6-luna", attempts=3):
-    for attempt in range(attempts):
-        try:
-            return client.chat.completions.create(
-                model=model,
-                messages=messages,
-            )
-        except RateLimitError as exc:
-            if attempt == attempts - 1:
-                raise
-            retry_after = exc.response.headers.get("Retry-After")
-            wait = float(retry_after) if retry_after else (2 ** attempt + random.random())
-            time.sleep(wait)
-        except APIStatusError as exc:
-            if exc.status_code < 500 or attempt == attempts - 1:
-                raise
-            time.sleep(2 ** attempt + random.random())
-        except APIConnectionError:
-            if attempt == attempts - 1:
-                raise
-            time.sleep(2 ** attempt + random.random())
-```
-
 ## 保留 Request ID
 
 回應標頭包含用於追蹤的 Request ID。請將其與端點、模型、時間以及您自己的使用者或工作 ID 一併儲存。對於非同步工作，若存在 `task_id` 和 `billing_transaction_id`，也請一併儲存。
 
 聯繫支援團隊時，請提供這些 ID 以及去識別化後的範例。切勿傳送 API keys、管理權杖 (management tokens)、私人媒體、簽名 URL 或完整的私人提示詞 (prompts)。
+
+[從請求詳情到調查與人工支援](/zh-Hant/guides/observability-troubleshooting)

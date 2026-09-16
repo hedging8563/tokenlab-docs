@@ -5,9 +5,7 @@ description: "OpenAI Codex CLIをTokenLab APIで使用するように設定す�
 
 ## 概要
 
-OpenAI Codexは、ターミナル上でコードを読み取り、修正し、実行する軽量なコーディングエージェントとして機能するオープンソースのコマンドラインツール（CLI）です。GPTモデルに基づいて構築され、コード生成に最適化されています。
-
-TokenLab向けに、Codex CLIは`/v1/responses`を使用できますが、これは上級の互換性経路として扱うべきです。Responses専用の一部機能は、すべてのモデルやルートで保証されるわけではありません。
+Codex CLI は `/v1/responses` で TokenLab に接続します。選択したモデルの `tokenlab.accepted_request_formats` に `openai_responses` が必要です。機能はモデルごとに異なります。
 
 Codex CLI のリモート圧縮は `POST /v1/responses/compact` でサポートされています。Codex は `/compact` と自動圧縮で現在のセッションの `model` を `body.model` に送るため、圧縮に使うモデルを Responses 経路で利用可能にしてください。`/v1/compact` は設定しないでください。
 
@@ -18,7 +16,7 @@ macOS、Linux、Windows は[公式 CLI 手順](https://learn.chatgpt.com/docs/co
 ## インストール
 
 ```bash
-npm install -g @openai/codex
+npm install -g @openai/codex@0.149.0
 ```
 
 インストール確認:
@@ -31,33 +29,11 @@ codex --version
 
 ### ステップ1: APIキーを設定
 
-**一時的（現在のセッション）:**
+[クイックスタート](/ja/quickstart)の macOS、Linux、WSL、Windows PowerShell 向け手順で、キーをコマンド履歴に残さず `TOKENLAB_API_KEY` を設定し、同じターミナルから Codex を起動します。継続して使う場合はローカルのシークレット管理ツールを利用し、平文のキーをシェル設定へ追記しないでください。
 
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
+### ステップ2: tokenlab.config.toml を設定
 
-**恒久的な設定:**
-
-`~/.bashrc`, `~/.zshrc`, または `~/.bash_profile` に追加:
-
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
-
-その後リロード:
-
-```bash
-source ~/.zshrc  # or source ~/.bashrc
-```
-
-### ステップ2: config.toml を設定
-
-次の設定をユーザー用の `~/.codex/config.toml` にマージし、ファイル全体を上書きしないでください。他のプロバイダー、アカウント、サンドボックス設定、承認ルールは維持してください。プロバイダーと認証の設定はユーザー設定に置き、プロジェクトの `.codex/config.toml` には置かないでください。[公式設定ガイド](https://learn.chatgpt.com/docs/config-file/config-advanced#custom-model-providers)を参照してください。
-
-既存の標準プロバイダーを維持するには、Codex 0.134.0 以降で以下を `~/.codex/tokenlab.config.toml` に保存し、`codex --profile tokenlab` で起動します。変更済みなら実際の `CODEX_HOME` を使います。旧 `[profiles.tokenlab]`、`auth.json` の上書き、ログアウト、承認設定の変更は不要です。復元時はこの profile なしで起動します。
-
-以下の各コマンドグループでは、`tokenlab.config.toml` を使う場合は **TokenLab プロファイル**を選びます。**TokenLab を既定に設定**は、設定を `config.toml` にマージした場合にのみ使ってください。単独の `codex` は既定の設定を使い、前のセッションで選んだプロファイルを引き継ぎません。
+Codex **0.149.0** では、使用中の `CODEX_HOME`（通常は `~/.codex`）に独立した `tokenlab.config.toml` を用意します。名前が未使用の場合だけ作成し、既存の TokenLab プロファイルを編集する場合は先にバックアップしてください。`codex --profile tokenlab` で明示的に読み込み、`config.toml`、`auth.json`、アカウント、権限は変更しません。旧形式の `[profiles.tokenlab]` テーブルは使わないでください。通常の設定に戻すにはこのプロファイルなしで起動します。[公式プロファイル設定](https://learn.chatgpt.com/docs/config-file/config-advanced#profiles)を参照してください。
 
 ```toml
 model_provider = "tokenlab"
@@ -82,54 +58,32 @@ websocket_connect_timeout_ms = 15000
 現在の Codex は `wire_api = "responses"` を使います。`chat/completions` は指定しません。`env_key` を使うため、このプロバイダーの `requires_openai_auth` は省略または false にします。
 
 <Note>
-TokenLab は未知の Responses フィールドを best-effort で転送し、リクエストを Chat Completions へ暗黙にダウングレードしません。フィールドや組み合わせへの対応可否は、選択された upstream が判断します。
+Responses リクエストは Chat Completions に変換されません。任意のフィールドや今後のフィールドは選択したモデルによって異なります。
 </Note>
 
 ## 基本的な使い方
 
 **対話モードを開始:**
 
-<CodeGroup>
-```bash TokenLab プロファイル
+```bash
 codex --profile tokenlab
 ```
 
-```bash TokenLab を既定に設定
-codex
-```
-</CodeGroup>
-
 **直接コマンド:**
 
-<CodeGroup>
-```bash TokenLab プロファイル
+```bash
 codex --profile tokenlab "Fix the bug in main.py line 42"
 ```
 
-```bash TokenLab を既定に設定
-codex "Fix the bug in main.py line 42"
-```
-</CodeGroup>
-
 **モデルを指定:**
 
-<CodeGroup>
-```bash TokenLab プロファイル
+```bash
 codex --profile tokenlab -m gpt-5.6-sol "Build a REST API server"
 ```
 
-```bash TokenLab を既定に設定
-codex -m gpt-5.6-sol "Build a REST API server"
-```
-</CodeGroup>
+## モデルを選ぶ
 
-## 推奨モデル
-
-| モデル | 最適用途 |
-|-------|----------|
-| `gpt-5.6-sol` | コーディングと推論のデフォルトとして最適 |
-| `gpt-5-mini` | コーディングワークフロー向けの高速で安価なフォールバック |
-| `claude-sonnet-4-6` | コードレビュー、ドキュメント作成 |
+現在の `tokenlab.accepted_request_formats` に `openai_responses` を含むモデルを選んでください。実際のコーディング作業で比較し、料金は[モデルページ](https://tokenlab.sh/ja/models)で確認します。
 
 ## インタラクティブコマンド
 
@@ -157,71 +111,41 @@ Codex を起動して `/status` を実行し、現在のモデルと権限を確
 
 実際のリクエストを送る準備ができたら、次のコマンドを実行してください。TokenLab の残高を使用します。応答と[リクエスト履歴](https://tokenlab.sh/dashboard/runs?section=requests)の対応する記録を確認してください。環境変数の確認や正常な起動だけでは、リクエストの成功は確認できません。
 
-<CodeGroup>
-```bash TokenLab プロファイル
+```bash
 codex --profile tokenlab "Reply only with OK. Do not use tools or modify files."
 ```
-
-```bash TokenLab を既定に設定
-codex "Reply only with OK. Do not use tools or modify files."
-```
-</CodeGroup>
 
 ## よくあるユースケース
 
 **コードレビュー:**
 
-<CodeGroup>
-```bash TokenLab プロファイル
+```bash
 git diff | codex --profile tokenlab "Review these code changes"
 ```
 
-```bash TokenLab を既定に設定
-git diff | codex "Review these code changes"
-```
-</CodeGroup>
-
 **コミットメッセージ生成:**
 
-<CodeGroup>
-```bash TokenLab プロファイル
+```bash
 git diff --staged | codex --profile tokenlab "Generate a commit message for these changes"
 ```
 
-```bash TokenLab を既定に設定
-git diff --staged | codex "Generate a commit message for these changes"
-```
-</CodeGroup>
-
 **エラー修正:**
 
-<CodeGroup>
-```bash TokenLab プロファイル
+```bash
 codex --profile tokenlab "Fix the TypeScript errors in src/components/"
 ```
 
-```bash TokenLab を既定に設定
-codex "Fix the TypeScript errors in src/components/"
-```
-</CodeGroup>
-
 **コードの説明:**
 
-<CodeGroup>
-```bash TokenLab プロファイル
+```bash
 cat main.py | codex --profile tokenlab "Explain what this code does"
 ```
-
-```bash TokenLab を既定に設定
-cat main.py | codex "Explain what this code does"
-```
-</CodeGroup>
 
 ## トラブルシューティング
 
 <AccordionGroup>
   <Accordion title="接続エラー">
-    - `config.toml` の `base_url` が正確に `https://api.tokenlab.sh/v1` であることを確認してください
+    - `tokenlab.config.toml` の `base_url` が正確に `https://api.tokenlab.sh/v1` であることを確認してください
     - ネットワーク接続を確認してください
     - プロキシの干渉がないことを確認してください
   </Accordion>

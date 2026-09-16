@@ -81,7 +81,8 @@ Nicht unterstützte Aufgaben geben `400 unsupported_task_cancel` zurück. Aufgab
 
 | Symptom                              | Wahrscheinliche Ursache                                                                 | Was zu überprüfen ist                       |
 |--------------------------------------|----------------------------------------------------------------------------------------|---------------------------------------------|
-| `async_task_not_found`               | Aufgabe ist unbekannt, abgelaufen, für diesen API-Schlüssel nicht zugänglich oder keine öffentliche asynchrone Aufgabe | Bestätigen Sie den Besitz des API-Schlüssels und die gespeicherte öffentliche `task_id` |
+| `404 async_task_not_found` | Die Aufgabe ist abgelaufen oder nicht mehr verfügbar | Gespeicherte `task_id` und `poll_url` prüfen |
+| `403 task_not_owned` | Die Aufgabe kann dem aktuellen Workspace nicht zugeordnet werden | Den zum API-Schlüssel gehörenden Workspace oder die Organisation prüfen |
 | Aufgabe scheint nie zu enden         | Client fragt die falsche URL ab oder hat vor dem terminalen Status gestoppt            | Verwenden Sie `poll_url` oder `/v1/tasks/{id}` und überprüfen Sie den neuesten Status |
 | Endgültige Medien-URL fehlt          | Aufgabe ist nicht abgeschlossen oder der upstream-Job wurde ohne verwendbare Ausgabe abgeschlossen | Fragen Sie weiter ab, bis terminal, und behandeln Sie fehlende Ausgaben als fehlgeschlagen |
 | Benutzer sieht Duplikate             | Der Wiederholungsweg hat nach Zeitüberschreitung oder Aktualisierung eine neue Aufgabe erstellt | Dedupizieren Sie nach Ihrer eigenen Job-ID und gespeicherter `task_id` |

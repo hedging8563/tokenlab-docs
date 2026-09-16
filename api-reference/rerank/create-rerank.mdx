@@ -27,7 +27,7 @@ This endpoint returns after ranking finishes. For large document sets, set your 
 </ParamField>
 
 <ParamField body="top_n" type="integer">
-  Number of top results to return. Defaults to all documents. Must be at least `1` and no greater than `documents.length`. If a provider publishes a stricter public limit later, TokenLab will document and enforce it here.
+  Number of top results to return, from `1` to `documents.length`. If omitted, the selected model determines the number of results.
 </ParamField>
 
 <ParamField body="return_documents" type="boolean" default="false">
@@ -41,16 +41,16 @@ This endpoint returns after ranking finishes. For large document sets, set your 
 
   Each result contains:
   - `index` (integer): Original document index
-  - `relevance_score` (number): Relevance score (0-1)
+  - `relevance_score` (number): Relevance score. Its range depends on the selected model.
   - `document` (string): Original text (if `return_documents=true`)
 </ResponseField>
 
 <ResponseField name="model" type="string">
-  The model used for reranking.
+  The model used for reranking. When available.
 </ResponseField>
 
 <ResponseField name="usage" type="object">
-  Token usage statistics.
+  Token usage statistics. When available.
 </ResponseField>
 
 <RequestExample>

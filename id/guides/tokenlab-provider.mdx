@@ -9,18 +9,22 @@ Panduan ini ditujukan untuk pengguna **self-hosted OpenClaw** yang ingin menghub
 
 ## Disarankan: instal plugin
 
-Untuk eksekusi agen OpenClaw standar, instal plugin penyedia TokenLab:
+Opsional: pasang plugin penyedia **0.1.0** yang telah dirilis. Sediakan `TOKENLAB_API_KEY` melalui lingkungan Gateway yang dijelaskan di bawah dan pilih model hanya untuk sesi. Wizard onboarding mengubah model default, jadi panduan ini tidak menjalankan `openclaw onboard`. Pertahankan plugin dan izin yang ada; periksa pemuatan plugin dan daftar model sebelum mengirim permintaan.
+
+Tinjau kapabilitas yang diminta penginstal dan ikuti konfirmasi klien. Jangan berikan izin yang tidak terkait atau ubah izin plugin yang sudah ada.
 
 ```bash
-openclaw plugins install @tokenlabai/openclaw-provider
-openclaw onboard
+openclaw plugins install @tokenlabai/openclaw-provider@0.1.0
+openclaw plugins list
+openclaw models list --provider tokenlab
 ```
 
-Setelah instalasi, jalankan `openclaw onboard`, pilih TokenLab, dan masukkan kunci hanya pada dialog lokal. Jika plugin gagal dimuat, gunakan pengaturan manual berikut dan periksa kompatibilitas versi.
+```text
+/model tokenlab/claude-sonnet-5 -s
+/model default -s
+```
 
-Plugin mengambil katalog model chat aktif TokenLab dan menyimpan 18 model fallback untuk penemuan offline. Model menggunakan format `tokenlab/<model-id>`.
-
-[Paket npm](https://www.npmjs.com/package/@tokenlabai/openclaw-provider) · [Daftar ClawHub](https://clawhub.ai/tokenlabai/plugins/openclaw-provider) · [Kode sumber](https://github.com/hedging8563/tokenlab-openclaw-provider)
+[npm](https://www.npmjs.com/package/@tokenlabai/openclaw-provider/v/0.1.0) · [GitHub](https://github.com/hedging8563/tokenlab-openclaw-provider)
 
 ## Konfigurasi penyedia manual
 
@@ -45,6 +49,7 @@ Penyedia native seperti `anthropic-messages` dan `google-generative-ai` harus me
 ## Prasyarat
 
 - Instance OpenClaw self-hosted
+- OpenClaw **2026.9.4** memerlukan Node.js `>=24.16.0 <25 || >=26.1.0` ([persyaratan versi](https://github.com/openclaw/openclaw/blob/v2026.9.4/package.json)). Untuk rilis OpenClaw lainnya, periksa persyaratan rilis tersebut.
 - Kunci API TokenLab — [Dapatkan satu di sini](https://tokenlab.sh/dashboard/api?tab=keys)
 
 ## Konfigurasi
@@ -57,15 +62,10 @@ Tambahkan penyedia TokenLab di bawah `models.providers`:
 
 Gunakan profil, `OPENCLAW_STATE_DIR`, dan `OPENCLAW_CONFIG_PATH` yang sama dengan Gateway aktif, lalu cadangkan konfigurasi. Simpan `TOKENLAB_API_KEY` di `.env` global tepercaya atau lingkungan layanan instansi itu. Export terminal atau `.env` proyek mungkin tidak diteruskan ke proses latar. Lihat [lingkungan](https://docs.openclaw.ai/help/environment).
 
+Cadangkan konfigurasi aktif. Tambahkan hanya entri TokenLab dan pertahankan penyedia, akun, model default, serta izin yang ada. Jika namanya sudah dipakai, pilih nama lain dan sesuaikan perintah. Untuk membatalkan, hapus hanya entri tambahan atau pulihkan cadangan sebelumnya.
+
 ```json5
 {
-  agents: {
-    defaults: {
-      model: {
-        primary: "tokenlab-claude/claude-sonnet-5"
-      }
-    }
-  },
   models: {
     mode: "merge",
     providers: {
@@ -131,16 +131,11 @@ Array `models` di atas hanya menampilkan contoh umum. Tambahkan lebih banyak ID 
 
 OpenClaw masih merujuk model dengan format `provider/model`:
 
-```json5
-{
-  agents: {
-    defaults: {
-      model: {
-        primary: "tokenlab-gemini/gemini-3.5-flash"
-      }
-    }
-  }
-}
+Pada **OpenClaw 2026.9.4**, pilih model hanya untuk sesi saat ini dengan `-s`. Pertahankan `agents.defaults.model`, default agen, dan izin. Gunakan `/model default -s` untuk mengembalikan sesi ini ke model default.
+
+```text
+/model tokenlab-claude/claude-sonnet-5 -s
+/model default -s
 ```
 
 ### Contoh Model

@@ -29,6 +29,8 @@ export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 
 ## Phoenix'i Kaydedin
 
+Bu örneği çalıştırmadan önce Phoenix’i yerel olarak başlatın veya mevcut bir dağıtımı kullanın. `register()`, varsayılan olarak trace verilerini `http://localhost:4317` adresindeki yerel OTLP/gRPC collector’a gönderir. Başka bir dağıtım için collector uç noktasını ve kimlik doğrulamayı [Phoenix kılavuzuna](https://arize.com/docs/phoenix/sdk-api-reference/python/arize-phoenix-otel) göre yapılandırın. SDK kurulumu collector’ı başlatmaz.
+
 ```python
 from phoenix.otel import register
 

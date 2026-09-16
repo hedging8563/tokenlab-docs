@@ -1,22 +1,11 @@
 ---
 title: "Dify"
-description: "OpenAIプロバイダーとカスタムベースURLを使用して、TokenLabをDifyに統合する"
+description: "OpenAI-API-compatibleプロバイダーとカスタムベースURLを使用して、TokenLabをDifyに統合する"
 ---
 
 ## 概要
 
-Difyは、OpenAI互換のモデルプロバイダーフローを通じてTokenLabとスムーズに連携します。
-
-これはチャット補完（chat-completions）指向の統合パスです。Difyが専用のCodex統合と同じレスポンスやWebSocketの動作を保証するものではないことに注意してください。
-
-現在のDifyバージョンにおいて、最も安全な手順は以下の通りです：
-- 標準の **OpenAI** プロバイダーを選択する
-- TokenLabのAPIキーを設定する
-- カスタムベースURLに `https://api.tokenlab.sh/v1` を設定する
-
-<Note>
-一部の古いDifyビルドでは、カスタムベースURLフィールドを持つ標準の `OpenAI` プロバイダーではなく、`OpenAI-API-compatible` として公開されている場合があります。お使いのDifyのUIが異なる場合は、そのバージョンで利用可能な、最も近いOpenAI互換のカスタムプロバイダーフローを使用してください。
-</Note>
+モデルプロバイダープラグイン **OpenAI-API-compatible** を使ってDifyをTokenLabに接続します。モデルタイプを **LLM**、**Completion mode** を **Chat**、**API Type** を **Chat Completions API** に設定します。このガイドではChat Completionsを使用します。
 
 <Note>
 **タイプ**: フレームワークまたはプラットフォーム
@@ -45,8 +34,8 @@ Difyは、OpenAI互換のモデルプロバイダーフローを通じてTokenLa
   <Step title="モデルプロバイダーを開く">
     Difyで、**設定** → **モデルプロバイダー** に移動します
   </Step>
-  <Step title="OpenAIを選択">
-    **OpenAI** プロバイダーの設定を開きます。お使いのDifyのバージョンでカスタムベースURLが提供されていない場合は、そのバージョンで公開されているOpenAI互換のカスタムプロバイダーオプションを使用してください。
+  <Step title="OpenAI-API-compatibleを選択">
+    **OpenAI-API-compatible** を開きます。表示されない場合は、Dify Marketplaceからこのモデルプロバイダープラグインをインストールしてください。**Add model** を選択し、TokenLabの設定を入力します。
   </Step>
   <Step title="TokenLabの設定を入力">
     以下の値を入力します：
@@ -54,7 +43,10 @@ Difyは、OpenAI互換のモデルプロバイダーフローを通じてTokenLa
     | フィールド | 値 |
     |-------|-------|
     | API Key | `sk-your-tokenlab-key` |
-    | API Base URL / Custom Base URL | `https://api.tokenlab.sh/v1` |
+    | Model type | LLM |
+    | Completion mode | Chat |
+    | API Type | Chat Completions API |
+    | API Base URL | `https://api.tokenlab.sh/v1` |
   </Step>
   <Step title="モデルの追加">
     使用したいモデルを追加します。例：
@@ -70,7 +62,7 @@ Difyは、OpenAI互換のモデルプロバイダーフローを通じてTokenLa
 
 ### ステップ 3: 接続テスト
 
-1. `gpt-5-mini` や `gpt-4o` などのモデルを1つ選択します
+1. `gpt-5.4-mini` など、追加したモデルを選択します。
 2. テストプロンプトを送信します
 3. Difyが有効なレスポンスを受信することを確認します
 
@@ -94,16 +86,16 @@ RAGやナレッジベースのインデックス作成には、以下のよう�
 ## ベストプラクティス
 
 <AccordionGroup>
-  <Accordion title="標準のOpenAIプロバイダーから始める">
-    新しいDifyバージョンでは、カスタムベースURLを備えた標準のOpenAIプロバイダーが、TokenLabにとって最もクリーンなセットアップとなります。
+  <Accordion title="OpenAIプラグインを代替として使う場合">
+    別のプラグインである **OpenAI** は、そのカタログで対応しているモデルに使用できます。カスタムベースURLを `https://api.tokenlab.sh/v1`、**API Protocol** を **Chat Completions** に設定してください。デフォルトはResponsesの場合があります。OpenAI-API-compatibleの旧名ではなく、任意のカスタムモデルIDを受け付けるわけではありません。
   </Accordion>
 
   <Accordion title="反復作業には安価なモデルを使用する">
     反復作業中は `gpt-5.4-mini`、`gemini-3.5-flash`、または `deepseek-v4-flash` を使用し、必要に応じてより強力なモデルへ切り替えてください。
   </Accordion>
 
-  <Accordion title="Difyは通常チャット補完指向であることを理解する">
-    ほとんどのDifyフローはOpenAI互換のチャット動作を使用します。Codex固有のレスポンスやWebSocketの動作が必要な場合は、Difyではなく専用のCodex統合を使用してください。
+  <Accordion title="この設定ではChat Completionsを使用">
+    この設定では **Completion mode = Chat** と **API Type = Chat Completions API** を維持してください。Responsesは別のAPIオプションです。このガイドではResponsesやWebSocket接続を設定しません。
   </Accordion>
 </AccordionGroup>
 

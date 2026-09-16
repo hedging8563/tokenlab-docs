@@ -6,14 +6,14 @@ description: "Transcribe audio al idioma de entrada"
 
 ## Cuerpo de la solicitud
 
-**Tiempo de espera de solicitudes síncronas:** este endpoint no-chat espera a que el modelo enrutado termine. Entradas grandes, audio largo o lotes grandes pueden superar los valores predeterminados habituales de 30s del cliente, así que configura el timeout de tu cliente HTTP en al menos `120s`.
+La transcripción puede devolver el texto directamente o aceptar una tarea asíncrona con HTTP `200`, `id` y `status`. Para una tarea aceptada, sigue `poll_url` o consulta `/v1/tasks/{id}`. Para audio largo procesado de forma síncrona, permite al menos `120s` de espera.
 
 <ParamField body="file" type="file" required>
-  Archivo de audio para transcribir. Formatos compatibles: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, webm.
+  Archivo de audio para transcribir. Formatos compatibles: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, webm. Tamaño máximo del archivo: 25 MB.
 </ParamField>
 
 <ParamField body="model" type="string" default="whisper-1">
-  Modelo que se utilizará. Actualmente solo se admite `whisper-1`.
+  ID del modelo de transcripción, como `whisper-1` o `gpt-4o-transcribe`. Consulta las opciones actuales con `GET /v1/models?recommended_for=stt`.
 </ParamField>
 
 <ParamField body="language" type="string">
@@ -25,18 +25,20 @@ description: "Transcribe audio al idioma de entrada"
 </ParamField>
 
 <ParamField body="response_format" type="string" default="json">
-  Formato de salida: `json`, `text`, `srt`, `verbose_json`, `vtt`.
+  Formato de salida. Whisper admite `json`, `text`, `srt`, `verbose_json` y `vtt`; otros modelos pueden admitir un conjunto distinto. Consulta los detalles del modelo.
 </ParamField>
 
-<ParamField body="temperature" type="number" default="0">
-  Temperatura de muestreo (0 a 1).
+<ParamField body="temperature" type="number">
+  Temperatura de muestreo de 0 a 1, solo para modelos compatibles con este parámetro.
 </ParamField>
 
 <ParamField body="timestamp_granularities" type="array">
-  Granularidad de las marcas de tiempo: `word` y/o `segment`. Requiere `verbose_json`.
+  `word` y/o `segment`, si el modelo los admite. Whisper requiere `response_format=verbose_json`. En multipart, repite `timestamp_granularities[]` para enviar varios valores.
 </ParamField>
 
 ## Respuesta
+
+Los campos siguientes describen respuestas JSON de transcripción o traducción. `text`, `srt` y `vtt` devuelven texto o subtítulos sin envolverlos en JSON. Los campos adicionales dependen del modelo y del formato.
 
 <ResponseField name="text" type="string">
   El texto transcrito.
@@ -45,7 +47,7 @@ description: "Transcribe audio al idioma de entrada"
 Para `verbose_json`:
 
 <ResponseField name="task" type="string">
-  Siempre `transcribe`.
+  Nombre de la tarea cuando se devuelve, como `transcribe`.
 </ResponseField>
 
 <ResponseField name="language" type="string">
@@ -62,6 +64,24 @@ Para `verbose_json`:
 
 <ResponseField name="words" type="array">
   Marcas de tiempo a nivel de palabra (si se solicitan).
+</ResponseField>
+
+Una tarea asíncrona de transcripción aceptada devuelve los campos siguientes en lugar del texto:
+
+<ResponseField name="id" type="string">
+  ID de la tarea.
+</ResponseField>
+
+<ResponseField name="task_id" type="string">
+  Alias del identificador de tarea asíncrona cuando está disponible.
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Estado de la tarea: `pending`, `processing`, `completed` o `failed`.
+</ResponseField>
+
+<ResponseField name="poll_url" type="string">
+  URL de sondeo preferida cuando la respuesta de creación la proporciona.
 </ResponseField>
 
 <RequestExample>
@@ -155,9 +175,18 @@ echo $data['text'];
       "start": 0.0,
       "end": 2.5,
       "text": "Hello, this is a test",
-      "tokens": [...]
+      "tokens": [50364, 2425, 11]
     }
   ]
+}
+```
+
+```json HTTP 200 (async)
+{
+  "id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "task_id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "status": "pending",
+  "poll_url": "/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 }
 ```
 </ResponseExample>
@@ -167,8 +196,11 @@ echo $data['text'];
 Para traducir audio al inglés, utiliza el endpoint de traducciones:
 
 ```python
-response = client.audio.translations.create(
-    model="whisper-1",
-    file=audio_file
-)
+with open("audio.mp3", "rb") as audio_file:
+    response = client.audio.translations.create(
+        model="whisper-1",
+        file=audio_file
+    )
+
+print(response.text)
 ```

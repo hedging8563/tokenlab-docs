@@ -6,13 +6,15 @@ description: "Brechen Sie eine wartende oder abbrechbare Seedance-Kompatibilitä
 
 ## Überblick
 
-Diese Endpunkte sind für Teams gedacht, die bereits die Volc-ähnliche Seedance-Aufgabenstruktur verwenden. Die Authentifizierung erfolgt mit einem TokenLab Bearer API Key. Die zurückgegebene Aufgaben-ID beginnt mit `cgt-`; fragen Sie den Status ab, bis `status` `succeeded`, `failed`, `cancelled` oder `expired` ist.
+Fordern Sie den Abbruch mit einem TokenLab Bearer API-Key und der `cgt-...`-ID an. Der Abbruch wird bestmöglich versucht und gelingt nur, solange die Aufgabe noch abbrechbar ist.
 
 Siehe auch [Seedance 2.0 Videomodelle](/de/guides/seedance-2-video) und [Videogenerierung](/de/guides/video-generation).
 
 ## Antwortformat
 
 Eine erfolgreiche Abbruchanfrage gibt HTTP 200 mit leerem Body zurück. Fragen Sie die Aufgabe anschließend ab, wenn Sie den endgültigen Status bestätigen möchten.
+
+Bei abgeschlossenen, fehlgeschlagenen, abgelaufenen oder nicht mehr abbrechbaren Aufgaben gibt der Endpunkt einen Fehler zurück. Rufen Sie die Aufgabe zur Statusprüfung ab. Eine abgebrochene Aufgabe hat kein Videoergebnis.
 
 ## Beispiel
 

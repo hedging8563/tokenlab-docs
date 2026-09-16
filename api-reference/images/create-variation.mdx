@@ -13,7 +13,7 @@ This endpoint supports existing OpenAI Variations clients. For new image-to-imag
 Some requests return the final image immediately. Set your HTTP client timeout to at least `120s`. If the response includes `status: "pending"`, `task_id`, or `poll_url`, use the returned URL to retrieve the result.
 
 <ParamField body="image" type="file" required>
-  The image to use as the basis for the variation. Must be a valid PNG file, less than 50MB, and square.
+  Multipart source image. The file and complete request body must each fit within 50 MiB. Supported formats and dimensions depend on the selected model; its current model details must explicitly list `/v1/images/variations`.
 </ParamField>
 
 <ParamField body="model" type="string" required>
@@ -21,14 +21,14 @@ Some requests return the final image immediately. Set your HTTP client timeout t
 </ParamField>
 
 <ParamField body="n" type="integer" default="1">
-  The number of images to generate. Must be between 1 and 10.
+  Number of images to generate (1-10, model dependent).
 </ParamField>
 
 <ParamField body="size" type="string">
   Generated image size. Supported values depend on the selected model.
 </ParamField>
 
-<ParamField body="response_format" type="string" default="url">
+<ParamField body="response_format" type="string">
   The format in which the generated images are returned. Must be `url` or `b64_json`.
 </ParamField>
 

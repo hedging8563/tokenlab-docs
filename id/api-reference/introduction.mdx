@@ -15,13 +15,19 @@ https://api.tokenlab.sh
 
 ## Autentikasi
 
-Semua endpoint API memerlukan autentikasi menggunakan Bearer token:
+Permintaan model menggunakan kunci API TokenLab. Header autentikasi standar adalah:
 
 ```bash
 Authorization: Bearer sk-your-api-key
 ```
 
+`GET /v1/models`, `GET /v1/models/{model}`, dan `GET /v1/pricing` bersifat publik tanpa kunci. Anthropic Messages juga menerima `x-api-key`; Gemini menerima `x-goog-api-key` atau `?key=` selain Bearer. `/v1/management/*` memerlukan token manajemen (`mt-...`).
+
 Dapatkan API key Anda dari [Dashboard](https://tokenlab.sh/dashboard).
+
+<Note>
+Permintaan generasi menerima `X-TokenLab-Delivery-Policy: auto | verified | official`. Header mengungguli pengaturan kunci API, lalu pengaturan ruang kerja. `auto` mengutamakan TokenLab Verified, lalu Official bila perlu; biaya mengikuti metode yang menyelesaikan permintaan. `verified` memakai harga TokenLab; `official` berdasarkan harga publik pembuat model dengan harga yang ditampilkan TokenLab. Realtime memakai pengaturan kunci atau ruang kerja tanpa penimpaan lewat query. Header tidak valid menghasilkan `400`; metode yang tidak tersedia menghasilkan `503 delivery_tier_unavailable` beserta ID permintaan.
+</Note>
 
 <Warning>
 **Tentang Interactive Playground**: Playground di situs dokumentasi ini hanya untuk tujuan demonstrasi dan tidak mendukung penginputan API key. Untuk menguji API, silakan gunakan:
@@ -56,7 +62,7 @@ Dapatkan API key Anda dari [Dashboard](https://tokenlab.sh/dashboard).
 | `/v1/images/generations/{id}` | GET | Path status tugas gambar untuk respons gambar berbasis tugas |
 
 <Info>
-Beberapa model gambar mungkin mengembalikan hasil secara inline, beberapa mungkin mengembalikan respons berbasis tugas, dan beberapa mungkin berperilaku keduanya tergantung pada jalur provider yang diarahkan. Jika respons pembuatan menyertakan `poll_url`, ikuti URL tersebut sepenuhnya.
+Model gambar dapat mengembalikan gambar jadi atau tugas asinkron. Jika respons berisi `poll_url`, gunakan URL tersebut untuk memeriksa tugas.
 </Info>
 
 ### Audio
@@ -142,7 +148,7 @@ Endpoint Gemini mendukung autentikasi parameter query `?key=` selain Bearer toke
 
 ## Format Respons
 
-Semua respons mengikuti format yang konsisten:
+Setiap endpoint mempertahankan format API-nya. Contoh sukses dan error di bawah menggunakan format Chat Completions.
 
 ### Respons Berhasil
 
@@ -152,7 +158,7 @@ Semua respons mengikuti format yang konsisten:
   "object": "chat.completion",
   "created": 1234567890,
   "model": "gpt-5.6-terra",
-  "choices": [...],
+  "choices": [{"index": 0, "message": {"role": "assistant", "content": "Hello!"}, "finish_reason": "stop"}],
   "usage": {
     "prompt_tokens": 10,
     "completion_tokens": 20,

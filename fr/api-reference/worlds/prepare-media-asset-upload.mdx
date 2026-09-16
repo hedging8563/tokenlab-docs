@@ -18,11 +18,11 @@ TokenLab enregistre le propriétaire du média. Seule la même organisation peut
   Type de média: `image` ou `video`.
 </ParamField>
 
-<ParamField body="extension" type="string">
+<ParamField body="extension" type="string | null">
   Extension optionnelle, par exemple `png`, `jpg` ou `mp4`.
 </ParamField>
 
-<ParamField body="metadata" type="object">
+<ParamField body="metadata" type="object | null">
   Objet de métadonnées optionnel stocké avec le média upstream.
 </ParamField>
 
@@ -34,6 +34,14 @@ TokenLab enregistre le propriétaire du média. Seule la même organisation peut
 
 <ResponseField name="upload_info.upload_url" type="string">
   URL upstream signée où uploader le fichier binaire.
+</ResponseField>
+
+<ResponseField name="upload_info.upload_method" type="string">
+  Méthode HTTP à utiliser pour envoyer le fichier binaire à `upload_info.upload_url`, lorsqu’elle est renvoyée.
+</ResponseField>
+
+<ResponseField name="upload_info.required_headers" type="object">
+  En-têtes à inclure lors de l’envoi du fichier binaire, lorsqu’ils sont renvoyés.
 </ResponseField>
 
 <RequestExample>

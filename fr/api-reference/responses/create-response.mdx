@@ -4,7 +4,8 @@ openapi: "POST /v1/responses"
 description: "Crée une réponse en utilisant le format OpenAI Responses API"
 ---
 
-Responses est le protocole natif stateful d’OpenAI. TokenLab ne l’expose que lorsque les détails du modèle annoncent le format Responses et qu’une route upstream du même protocole est disponible ; cela n’est pas déduit du nom du modèle ou du fournisseur, et la requête ne se replie jamais sur Chat Completions. TokenLab conserve la forme JSON, y compris les champs inconnus, `null` explicite et les tableaux vides, puis la transmet au mieux.
+Utilisez cet endpoint lorsque `accepted_request_formats` dans les détails du modèle contient `openai_responses`. Les requêtes et les réponses utilisent le format Responses API. Les champs facultatifs et les valeurs acceptées dépendent du modèle choisi.
+
 ## Corps de la requête
 
 <ParamField body="model" type="string" required>
@@ -21,7 +22,7 @@ Responses est le protocole natif stateful d’OpenAI. TokenLab ne l’expose que
   - `function_call` : Une requête d'appel de fonction
   - `function_call_output` : Sortie d'un appel de fonction
 
-  Pour les entrées multimodales, `message.content` peut être soit une chaîne simple, soit un tableau de blocs de contenu. Pour les modèles capables de traiter des images, comme les variantes GPT-5.4, transmettez les images en tant que blocs `input_image` au lieu d'incorporer directement des URLs ou des chaînes Base64 dans du texte brut.
+  Pour les entrées multimodales, `message.content` peut être soit une chaîne simple, soit un tableau de blocs de contenu. Pour les modèles capables de traiter des images, comme les variantes GPT-5.6 Terra, transmettez les images en tant que blocs `input_image` au lieu d'incorporer directement des URLs ou des chaînes Base64 dans du texte brut.
 
   Exemples de blocs de contenu :
   - `{ "type": "input_text", "text": "Describe this image" }`
@@ -37,12 +38,12 @@ Responses est le protocole natif stateful d’OpenAI. TokenLab ne l’expose que
   Nombre maximal de tokens à générer.
 </ParamField>
 
-<ParamField body="temperature" type="number" default="1">
-  Température d'échantillonnage entre 0 et 2.
+<ParamField body="temperature" type="number">
+  Température d’échantillonnage. Les valeurs acceptées et les valeurs par défaut dépendent du modèle choisi.
 </ParamField>
 
 <ParamField body="tools" type="array">
-  Liste des outils que le modèle peut appeler. TokenLab transmet les définitions natives sans allowlist locale ; l’upstream sélectionné décide des types et combinaisons pris en charge.
+  Outils que le modèle peut appeler. Les types et combinaisons acceptés dépendent du modèle choisi.
 </ParamField>
 
 <ParamField body="stream" type="boolean" default="false">
@@ -57,12 +58,20 @@ Responses est le protocole natif stateful d’OpenAI. TokenLab ne l’expose que
   Indique s'il faut stocker la réponse pour une récupération ultérieure.
 </ParamField>
 
+<ParamField body="background" type="boolean" default="false">
+  Demande une exécution asynchrone. La prise en charge dépend du modèle choisi.
+</ParamField>
+
+<ParamField body="prompt" type="object">
+  Référence à un modèle de prompt réutilisable et à ses variables.
+</ParamField>
+
 <ParamField body="metadata" type="object">
   Métadonnées à attacher à la réponse à des fins de suivi.
 </ParamField>
 
 <ParamField body="text" type="object">
-  Options de configuration pour la génération de texte. Le comportement de `text.format` dépend du modèle sélectionné et du chemin routé ; il n'est pas garanti de manière uniforme sur tous les modèles.
+  Paramètres de sortie textuelle. La prise en charge de `text.format` dépend du modèle choisi.
 </ParamField>
 
 <ParamField body="parallel_tool_calls" type="boolean" default="true">
@@ -74,9 +83,7 @@ Responses est le protocole natif stateful d’OpenAI. TokenLab ne l’expose que
 </ParamField>
 
 <ParamField body="reasoning" type="object">
-  Configuration du raisonnement pour les modèles prenant en charge le raisonnement, tels que les variantes de la famille GPT-5.
-
-  - `effort` (string) : Niveau d'effort de raisonnement (`low`, `medium`, `high`)
+  Les options de raisonnement, dont `effort`, dépendent du modèle choisi.
 </ParamField>
 
 ## Réponse
@@ -93,6 +100,10 @@ Responses est le protocole natif stateful d’OpenAI. TokenLab ne l’expose que
   Timestamp Unix de création de la réponse.
 </ResponseField>
 
+<ResponseField name="status" type="string">
+  État de la réponse : `queued`, `in_progress`, `completed`, `incomplete`, `failed` ou `cancelled`. Vérifiez ce champ même si la requête HTTP réussit.
+</ResponseField>
+
 <ResponseField name="output" type="array">
   Liste des éléments de sortie générés par le modèle.
 </ResponseField>
@@ -100,6 +111,13 @@ Responses est le protocole natif stateful d’OpenAI. TokenLab ne l’expose que
 <ResponseField name="usage" type="object">
   Statistiques d'utilisation des tokens.
 </ResponseField>
+
+## Endpoints associés
+
+- `GET /v1/responses/{id}` récupère une réponse enregistrée et accepte `include`, `include_obfuscation`, `stream` et `starting_after`.
+- `DELETE /v1/responses/{id}` supprime une réponse enregistrée. Cela n’annule pas la génération.
+- `POST /v1/responses/compact` renvoie un objet `response.compaction`.
+- Les endpoints d’annulation, input-items et input-tokens ne sont pas disponibles actuellement.
 
 <RequestExample>
 ```bash cURL
@@ -268,14 +286,17 @@ Utilisez les modèles capables d'images en plaçant les images dans `message.con
 {
   "id": "resp_abc123",
   "object": "response",
-  "created": 1706000000,
+  "created_at": 1706000000,
+  "status": "completed",
   "model": "gpt-5.6-terra",
   "output": [
     {
+      "id": "msg_abc123",
       "type": "message",
+      "status": "completed",
       "role": "assistant",
       "content": [
-        {"type": "text", "text": "Hello! How can I help you today?"}
+        {"type": "output_text", "text": "Hello! How can I help you today?", "annotations": []}
       ]
     }
   ],

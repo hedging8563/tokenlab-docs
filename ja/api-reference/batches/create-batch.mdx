@@ -14,7 +14,7 @@ description: "アップロードされた入力ファイルからOpenAI互換の
 - `completion_window`は現在`24h`です。
 - 出力の順序は保証されていません。常に`custom_id`で一致させてください。
 - バッチアイテム内でのストリーミングはサポートされていません。
-- 現在サポートされているバッチアイテムのエンドポイントは `/v1/chat/completions` と `/v1/embeddings` です。ネイティブの Responses バッチ executor が利用可能になるまで、`/v1/responses` のバッチジョブは拒否されます。
+- 対応するバッチ項目のエンドポイントは `/v1/chat/completions` と `/v1/embeddings` です。`/v1/responses` には対応していません。
 
 ## 例
 
@@ -39,7 +39,6 @@ curl -X POST "https://api.tokenlab.sh/v1/batches" \
 
 - 冪等性のある下流の調整には`custom_id`を使用してください。
 - ワーカーがバッチを最終化した後にのみ`output_file_id`と`error_file_id`を期待してください。
-- バッチの価格は、`isBatchRequest=true`の割引ルールが適用されるため、同期価格とは異なる場合があります。
 
 ## レスポンス例
 

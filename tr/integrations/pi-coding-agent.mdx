@@ -8,11 +8,13 @@ description: "Pi'yi TokenLab ile kullanın. Pi, OpenAI, Anthropic ve Google tarz
 [Resmî kurulumu](https://pi.dev/) kullanın. npm paketi `@earendil-works/pi-coding-agent` adını taşır. Windows varsayılan olarak Git Bash kullanır; [kabuk ayarlarına](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/windows.md) bakın. Pi kuruluysa kurulumu atlayın.
 
 ```bash
-npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+npm install -g --ignore-scripts @earendil-works/pi-coding-agent@0.85.1
 pi --version
 ```
 
-Bunları `~/.pi/agent/models.json` dosyasına veya `PI_CODING_AGENT_DIR` dizinine birleştirin. Dosyayı yedekleyin ve diğer sağlayıcıları koruyun. `TOKENLAB_API_KEY` değişkenini yerel başlatma ortamında tanımlayın, sohbete yapıştırmayın. Yalnızca Base URL değişkeni sağlayıcıyı oluşturmaz.
+Aşağıdaki yapılandırma **Pi 0.85.1** ile doğrulanmıştır. Diğer sürümler kendi resmî belgelerine göre ayrıca doğrulanmalıdır.
+
+`~/.pi/agent/models.json` dosyasını yedekleyip `tokenlab` girdisini `providers` içindeki mevcut girdilerin sonuna ekleyin; yalnızca dosya yoksa oluşturun. Boş olmayan `PI_CODING_AGENT_DIR`, `models.json` dizinini belirler. Sağlayıcı sırasını, `settings.json` dosyasını, hesapları, varsayılan model alanlarını ve izinleri koruyun. Yapılandırmada veya kayıtlı hesaplarda `tokenlab` varsa başka ad seçip başlatma komutunu değiştirin. macOS, Linux, WSL veya Windows PowerShell için [hızlı başlangıç](/tr/quickstart) ile `TOKENLAB_API_KEY` değerini yerel ortamda ayarlayın, sohbete yapıştırmayın.
 
 ```json
 {
@@ -29,11 +31,18 @@ Bunları `~/.pi/agent/models.json` dosyasına veya `PI_CODING_AGENT_DIR` dizinin
 
 `"$TOKENLAB_API_KEY"` içindeki `$` zorunludur; olmazsa değer düz metin sayılır. Chat Completions ve araçları destekleyen güncel bir model seçin. Sınırları, görüntü ve akıl yürütme seçeneklerini model ayrıntılarına göre ayarlayın.
 
+İsteğe bağlı: Python 3.11+ ile [geri alınabilir Pi yapılandırma yardımcısı](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/skills/tokenlab-api-integration/references/pi_setup.md) önizleme, uygulama ve özgün dosyayı geri yükleme sunar. TokenLab Skills eklentisi **0.1.2** bu betikleri içerir; bağımsız Skill de betikleri içeren bir sürüme güncellendiğinde kullanılabilir. Kurulu eklenti veya bağımsız Skill için [README güncelleme adımlarını](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/README.md#update-an-existing-installation) izleyip betiğin bulunduğunu doğrulayın. Bu sayfadaki elle yapılandırma yardımcı olmadan da tamamlanabilir.
+
 ## Kontrol ve geri alma
 
-`pi --list-models` komutunu çalıştırıp `/model` içinde `tokenlab/gpt-5.6-luna` seçin. Seçici `models.json` dosyasını yeniden yükler. Bu, model kaydını ve kimlik bilgilerinin varlığını kontrol eder; geçerliliği veya API başarısını kanıtlamaz.
+Aynı terminal ve Agent dizininde yüklemeyi kontrol edip bu oturum için TokenLab modelini açıkça seçin. `TOKENLAB_API_KEY` yoksa sağlayıcı listede görünmeyebilir. Liste yalnızca kayıt ve kimlik bilgilerinin varlığını doğrular; geçerliliği veya API başarısını kanıtlamaz.
 
-Metin isteği TokenLab bakiyesini kullanır. Araçları denemeden önce yanıtı [istek kaydıyla](https://tokenlab.sh/dashboard/runs?section=requests) karşılaştırın. Geri almak için önceki sağlayıcıyı seçip yalnızca eklenen TokenLab girdisini kaldırın.
+```bash
+pi --list-models tokenlab
+pi --provider tokenlab --model gpt-5.6-luna
+```
+
+İstem göndermek TokenLab bakiyesini kullanır. Araçları denemeden önce yanıtı [istek kaydıyla](https://tokenlab.sh/dashboard/runs?section=requests) karşılaştırın. Elle yapılandırmayı geri alırken yalnızca eklediğiniz sağlayıcıyı kaldırın, diğer ayarları ve hesapları koruyun.
 
 ## Skills ve MCP
 

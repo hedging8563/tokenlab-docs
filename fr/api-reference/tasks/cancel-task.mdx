@@ -10,7 +10,7 @@ Utilisez `DELETE /v1/tasks/{id}` pour annuler une tâche asynchrone qui n’a pa
 
 ## Tâches prises en charge
 
-L’annulation est prise en charge pour les tâches vidéo Seedance en file d’attente lorsque le fournisseur sélectionné pour cette tâche prend en charge l’annulation. Les modèles concernés sont `seedance-1.5-pro`, `seedance-2.0` et `seedance-2.0-fast`. Les tâches déjà en `processing`/running ne peuvent pas être annulées. Les tâches terminées, échouées, expirées ou non prises en charge restent consultables pour le statut et le rapprochement de facturation.
+Les tâches Seedance en attente utilisant `seedance-1.5-pro`, `seedance-2.0`, `seedance-2.0-fast` ou `seedance-2.5` peuvent être annulées si elles le permettent. Les tâches en cours ou dans un état final ne peuvent pas être annulées. Le statut reste consultable tant que leur enregistrement public est conservé.
 
 ## Paramètres de chemin
 

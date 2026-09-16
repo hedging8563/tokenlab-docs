@@ -10,13 +10,15 @@ For `library_type: "aigc_avatar"`, `group_id` is optional; TokenLab uses or crea
 
 | Type | Supported input |
 |------|-----------------|
-| Image | `jpeg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`; aspect ratio `(0.4, 2.5)`; width and height `(300, 6000)` px; under 30 MB. |
-| Video | `mp4`, `mov`; `480p`, `720p`, or `1080p`; 2-15 seconds; aspect ratio `[0.4, 2.5]`; width and height `[300, 6000]` px; total pixels between 409600 and 2068676; up to 200 MB; 24-60 FPS. |
-| Audio | `aac`, `wav`, `mp3`; 2-15 seconds; up to 15 MB. |
+| Image | `jpeg`, `jpg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`; ≤30 MiB; width and height `[300, 6000]` px; aspect ratio `[0.4, 2.5]`. |
+| Video | `mp4`, `mov`; ≤200 MiB. |
+| Audio | `aac`, `wav`, `mp3`; ≤15 MiB. |
 
-TokenLab validates the source URL, declared or detected media format, and file-size limit. Dimensions, aspect ratio, duration, resolution, total pixels, and FPS are passed through on a best-effort basis and are finally evaluated by the selected video service.
+TokenLab checks the source URL, media type, file size, and image dimensions when readable. Import acceptance does not mean the asset is ready: wait for `ACTIVE` and inspect `error_message` if processing fails. Other media and face requirements are evaluated during processing.
 
 Creation is asynchronous. Poll [Get Material Asset](/api-reference/video/get-material-asset) until `status` is `ACTIVE`. For real-person groups, one group maps to one verified person; uploads with multiple faces or a face that does not match the verified person can fail.
+
+`project_name` isolates resources within the authenticated organization. It defaults to `default`; use the same case-sensitive value for related groups and assets. Send it in the JSON body for POST/PUT and in the query string for GET/DELETE.
 
 ## Example Request
 
@@ -24,7 +26,7 @@ Creation is asynchronous. Poll [Get Material Asset](/api-reference/video/get-mat
 curl https://api.tokenlab.sh/v1/videos/assets \
   -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"library_type":"aigc_avatar","group_id":"group-20260720123456-vrt01","asset_url":"https://example.com/reference.png","asset_type":"Image","asset_name":"Front view"}'
+  -d '{"library_type":"aigc_avatar","group_id":"group-20260720123456-vrt01","asset_url":"https://example.com/reference.png","asset_type":"Image","asset_name":"Front view","project_name":"default"}'
 ```
 
 ## Example Response
@@ -33,6 +35,7 @@ curl https://api.tokenlab.sh/v1/videos/assets \
 {
   "id": "asset-20260720123456-qn7wr",
   "object": "seedance.material_asset",
+  "project_name": "default",
   "group_id": "group-20260720123456-vrt01",
   "library_type": "aigc_avatar",
   "asset_name": "Front view",

@@ -16,8 +16,8 @@ Anthropic SDK の Base URL: `https://api.tokenlab.sh`（`/v1` サフィックス
 
 ## リクエストヘッダー
 
-<ParamField header="x-api-key" type="string" required>
-  あなたの TokenLab API key です。Bearer token の代替として使用できます。
+<ParamField header="x-api-key" type="string">
+  TokenLab API キー。`x-api-key` または `Authorization: Bearer <API_KEY>` のいずれかで送信してください。
 </ParamField>
 
 <ParamField header="anthropic-version" type="string" required>
@@ -26,8 +26,12 @@ Anthropic SDK の Base URL: `https://api.tokenlab.sh`（`/v1` サフィックス
 
 ## リクエストボディ
 
+<Note>
+任意パラメーターの対応状況、指定可能な値、既定値は選択したモデルによって異なります。サンプリング、推論、ツールのオプションを設定する前に[モデルの詳細](/ja/api-reference/models/get-model)を確認してください。
+</Note>
+
 <ParamField body="model" type="string" required>
-  Claude モデル ID（例: `claude-sonnet-4-6` または `claude-opus-4-6`）。
+  `anthropic_messages` 形式に対応するモデルの ID。現在の機能は[モデルの詳細](/ja/api-reference/models/get-model)で確認してください。
 </ParamField>
 
 <ParamField body="messages" type="array" required>
@@ -38,12 +42,12 @@ Anthropic SDK の Base URL: `https://api.tokenlab.sh`（`/v1` サフィックス
   生成する最大 token 数。
 </ParamField>
 
-<ParamField body="system" type="string">
-  System prompt（messages 配列とは別）。
+<ParamField body="system" type="string | array">
+  文字列またはコンテンツブロックの配列で指定するシステムプロンプト。`messages` 配列とは別に指定します。
 </ParamField>
 
-<ParamField body="temperature" type="number" default="1">
-  Sampling temperature（0-1）。
+<ParamField body="temperature" type="number">
+  サンプリング温度。対応状況、指定可能な値、既定値は選択したモデルによって異なります。省略するとモデルの既定値を使用します。
 </ParamField>
 
 <ParamField body="stream" type="boolean" default="false">
@@ -51,10 +55,7 @@ Anthropic SDK の Base URL: `https://api.tokenlab.sh`（`/v1` サフィックス
 </ParamField>
 
 <ParamField body="thinking" type="object">
-  Extended thinking の設定（Claude Opus 4.5）。
-
-  - `type` (string): 有効化するには `"enabled"`
-  - `budget_tokens` (integer): thinking 用の token 予算
+  ネイティブの thinking 設定。対応するモード、予算、他のパラメーターとの組み合わせは選択したモデルによって異なります。
 </ParamField>
 
 <ParamField body="tools" type="array">
@@ -62,7 +63,7 @@ Anthropic SDK の Base URL: `https://api.tokenlab.sh`（`/v1` サフィックス
 </ParamField>
 
 <ParamField body="tool_choice" type="object">
-  モデルがツールをどのように使用すべきか。オプション: `auto`、`any`、`tool`（特定のツール）。
+  `{"type":"auto"}` などのネイティブなツール選択オブジェクト。対応する種類は選択したモデルによって異なります。
 </ParamField>
 
 <ParamField body="top_p" type="number">
@@ -96,7 +97,7 @@ Anthropic SDK の Base URL: `https://api.tokenlab.sh`（`/v1` サフィックス
 </ResponseField>
 
 <ResponseField name="content" type="array">
-  content block（text、thinking、tool_use）の配列。
+  `text`、`thinking`、`tool_use` などのコンテンツブロックの配列。
 </ResponseField>
 
 <ResponseField name="model" type="string">
@@ -104,7 +105,7 @@ Anthropic SDK の Base URL: `https://api.tokenlab.sh`（`/v1` サフィックス
 </ResponseField>
 
 <ResponseField name="stop_reason" type="string">
-  生成が停止した理由（`end_turn`、`max_tokens`、`tool_use`）。
+  生成が停止した理由。例：`end_turn`、`max_tokens`、`stop_sequence`、`tool_use`。
 </ResponseField>
 
 <ResponseField name="usage" type="object">
@@ -315,9 +316,19 @@ echo $data['content'][0]['text'];
 
 ## Extended Thinking の例
 
+`TOKENLAB_THINKING_MODEL` に、`type: "enabled"` と `budget_tokens` による手動の思考設定に対応するモデルを指定してください。両方のトークン予算をモデルの制限に合わせて調整します。他のモデルでは異なる thinking 設定が必要な場合があります。
+
 ```python
+import os
+from anthropic import Anthropic
+
+client = Anthropic(
+    api_key="sk-your-api-key",
+    base_url="https://api.tokenlab.sh"
+)
+
 message = client.messages.create(
-    model="claude-opus-5",
+    model=os.environ["TOKENLAB_THINKING_MODEL"],
     max_tokens=16000,
     thinking={
         "type": "enabled",

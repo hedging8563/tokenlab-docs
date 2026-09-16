@@ -15,6 +15,12 @@ description: "استخدم نماذج TokenLab في وكلاء VoltAgent"
 **مستوى الدعم**: مسار متوافق مع OpenAI مدعوم
 </Note>
 
+## التثبيت
+
+```bash
+npm install @voltagent/core@2 ai@6 @ai-sdk/openai@3 zod
+```
+
 ## البيئة
 
 ```bash
@@ -35,7 +41,7 @@ const tokenlab = createOpenAI({
 const agent = new Agent({
   name: "tokenlab-agent",
   instructions: "Answer concisely.",
-  model: tokenlab("claude-sonnet-5"),
+  model: tokenlab.chat("claude-sonnet-5"),
 });
 ```
 

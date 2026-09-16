@@ -4,7 +4,7 @@ openapi: "POST /api/v3"
 description: "مرجع لعشرة إجراءات متوافقة مع Volcengine للمواد ومجموعاتها."
 ---
 
-يمكن لعميل مواد Volcengine الاحتفاظ بأسماء Action و`Version=2024-01-01` وJSON بصيغة PascalCase والفلاتر والترتيب والترقيم وغلاف `ResponseMetadata + Result`. يغير TokenLab نقطة النهاية والمصادقة فقط.
+تدعم نقاط النهاية هذه إجراءات المواد والحقول المذكورة أدناه، باستخدام مصادقة Bearer من TokenLab وغلاف `ResponseMetadata + Result`.
 
 ## نقطة النهاية والمصادقة
 
@@ -23,7 +23,7 @@ Content-Type: application/json
 | Action | الهدف | JSON |
 | --- | --- | --- |
 | `CreateAssetGroup` | إنشاء مجموعة مواد عادية | `Name`; `Description`; `GroupType: "AIGC"`; `ProjectName` |
-| `ListAssetGroups` | عرض مجموعات المشروع | `Filter`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
+| `ListAssetGroups` | عرض مجموعات المشروع | `Filter.GroupIds`; `Filter.GroupType`; `Filter.Name`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
 | `GetAssetGroup` | جلب مجموعة واحدة | `Id`; `ProjectName` |
 | `UpdateAssetGroup` | تغيير الاسم أو الوصف | `Id`; `Name`; `Description`; `ProjectName` |
 | `DeleteAssetGroup` | حذف المجموعة وموادها | `Id`; `ProjectName` |
@@ -57,12 +57,14 @@ curl 'https://api.tokenlab.sh/?Action=CreateAssetGroup&Version=2024-01-01' \
 | Action | الهدف | JSON |
 | --- | --- | --- |
 | `CreateAsset` | استيراد رابط عام لصورة أو فيديو أو صوت | `GroupId`; `URL`; `Name`; `AssetType`; `ProjectName` |
-| `ListAssets` | عرض مواد المشروع | `Filter`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
+| `ListAssets` | عرض مواد المشروع | `Filter.GroupIds`; `Filter.GroupType`; `Filter.Statuses`; `Filter.Name`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
 | `GetAsset` | جلب مادة ورابطها المؤقت | `Id`; `ProjectName` |
 | `UpdateAsset` | إعادة تسمية مادة | `Id`; `Name`; `ProjectName` |
 | `DeleteAsset` | حذف مادة واحدة | `Id`; `ProjectName` |
 
 يقبل `AssetType` القيم `Image` و`Video` و`Audio`. تحدد المجموعة الهدف ما إذا كانت المادة `AIGC` عادية أم `LivenessFace` موثقة.
+
+استخدم معرفات مواد TokenLab. يعيد `CreateAsset` الحقل `Result.Id` قبل اكتمال المعالجة؛ استعلم عن `GetAsset` حتى تصبح `Result.Status` إما `Active` أو `Failed`. يدعم `ListAssets` أيضًا `SortBy: "GroupId"`.
 
 ### إنشاء مادة
 
@@ -119,7 +121,7 @@ curl 'https://api.tokenlab.sh/?Action=CreateAsset&Version=2024-01-01' \
 }
 ```
 
-`InvalidCredential`, `InvalidVersion`, `InvalidParameter`, `NotFound`, `Conflict`, `MethodNotAllowed`, `InternalError`.
+`InvalidCredential`, `InvalidVersion`, `InvalidParameter`, `NotFound`, `Conflict`, `OperationDenied`, `MethodNotAllowed`, `InternalError`.
 
 ## بديل REST
 

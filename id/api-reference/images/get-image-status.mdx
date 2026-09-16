@@ -15,11 +15,22 @@ Jika respons pembuatan menyertakan `poll_url`, lebih baik panggil URL tersebut u
 
 Kamu juga dapat melakukan polling ID tugas gambar publik seperti `ldtask_...` melalui `/v1/images/{id}`. Alias kompatibilitas ini memakai otorisasi, pemeriksaan ownership, header billing, snapshot terminal, dan bentuk respons yang sama dengan `/v1/images/generations/{id}`.
 
-
-Jika tugas tidak lagi ada atau tidak lagi tersedia di catatan tugas publik, TokenLab mengembalikan `async_task_not_found` dengan pesan `Task not found or no longer available.`
+Task publik yang kedaluwarsa atau tidak tersedia dapat mengembalikan `404 async_task_not_found`. Jika kepemilikan task untuk API key saat ini tidak dapat dipastikan, responsnya adalah `403 task_not_owned`.
 </Info>
 
 ## Respons
+
+<Note>
+Field hasil, error, timestamp, dan model dikembalikan jika tersedia untuk task.
+</Note>
+
+<ResponseField name="id" type="string">
+  Pengidentifikasi task.
+</ResponseField>
+
+<ResponseField name="poll_url" type="string">
+  URL polling yang diutamakan saat respons pembuatan menyediakannya.
+</ResponseField>
 
 <ResponseField name="created" type="integer">
   Unix timestamp saat pembuatan.
@@ -38,10 +49,10 @@ Jika tugas tidak lagi ada atau tidak lagi tersedia di catatan tugas publik, Toke
 
   Setiap objek berisi:
   - `url` (string): URL dari gambar yang dihasilkan
-  - `revised_prompt` (string): Prompt yang digunakan untuk pembuatan
+  - `revised_prompt` (string): Revisi prompt opsional jika model yang dipilih mengembalikannya
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="error" type="string | object">
   Pesan kesalahan (hanya ada saat `status` bernilai `failed`).
 </ResponseField>
 
@@ -59,6 +70,7 @@ response = requests.get(
     headers={"Authorization": "Bearer sk-your-api-key"}
 )
 
+response.raise_for_status()
 data = response.json()
 print(f"Status: {data['status']}")
 
@@ -76,6 +88,7 @@ const response = await fetch(
   }
 );
 
+if (!response.ok) throw new Error(`HTTP ${response.status}`);
 const data = await response.json();
 console.log(`Status: ${data.status}`);
 
@@ -93,12 +106,7 @@ if (data.status === 'completed') {
   "task_id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "poll_url": "/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "status": "pending",
-  "data": [
-    {
-      "url": "",
-      "revised_prompt": "a beautiful sunset over mountains"
-    }
-  ]
+  "data": []
 }
 ```
 
@@ -134,7 +142,7 @@ if (data.status === 'completed') {
 ## Praktik Terbaik Polling
 
 <Tip>
-**Interval polling yang direkomendasikan**: 3-5 detik. Sebagian besar tugas pembuatan gambar selesai dalam waktu 30-120 detik tergantung pada model dan jalur penyedia yang diarahkan.
+Periksa setiap 3–5 detik saat status `pending` atau `processing`, dan berhenti pada `completed` atau `failed`.
 </Tip>
 
 ```python
@@ -148,7 +156,8 @@ def poll_image_task(task_id, api_key, max_wait=300, interval=3):
 
     start_time = time.time()
     while time.time() - start_time < max_wait:
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=30)
+        response.raise_for_status()
         data = response.json()
 
         if data["status"] == "completed":

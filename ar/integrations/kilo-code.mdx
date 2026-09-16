@@ -20,11 +20,13 @@ description: "اربط Kilo Code وKilo CLI بـ TokenLab"
 ثبّت قناة ما قبل الإصدار من **Kilo Code** في VS Code أو ثبّت CLI:
 
 ```bash
-npm install -g @kilocode/cli
+npm install -g @kilocode/cli@7.7.2
 kilo --version
 ```
 
 افتح **Settings → Providers → Custom provider**.
+
+احفظ إعدادات المزوّد والنموذج والاتصال الحالية محليًا قبل التعديل. تغيّر هذه الخيارات النموذج النشط؛ استعد القيم السابقة عند الانتهاء. أبقِ الحسابات المسجّلة وأذونات الأدوات كما هي، ولا تستبدل اتصالًا آخر متوافقًا مع OpenAI دون نسخة احتياطية قابلة للاستعادة.
 
 | الحقل | القيمة |
 |---|---|
@@ -39,18 +41,17 @@ kilo --version
 
 ## تهيئة CLI
 
-ضع المفتاح في متغير بيئة وعدّل الملف العام الموثوق `~/.config/kilo/kilo.jsonc`:
+اتبع خطوات الطرفية في [البدء السريع](/ar/quickstart) لنظام macOS أو Linux أو WSL أو Windows PowerShell لتعيين `TOKENLAB_API_KEY` دون كتابة المفتاح في سجل الأوامر. شغّل Kilo من الطرفية نفسها. للاستخدام الدائم، استخدم مدير أسرار محليًا ولا تُضف المفتاح كنص صريح إلى ملف إعدادات الصدفة.
 
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
+قبل تشغيل Kilo **7.7.2**، انسخ الإعداد العام النشط احتياطيًا وافحص `permission.bash`. يضيف هذا الإصدار `bash: "allow"` إلى الإعداد الموجود إذا لم توجد هذه القاعدة الصريحة، حتى لو كانت `permission["*"]` تساوي `deny`. احتفظ بقاعدة الصدفة الحالية صراحةً في الملف العام: إذا كانت قاعدة البدل `deny`، فادمج `"bash": "deny"` في كائن `permission` الموجود مع إبقاء بقية القواعد. ملف المزوّد المستقل أدناه لا يمنع هذا الترحيل.
+
+احفظ الإعداد في ملف مستقل `~/.config/kilo/tokenlab.jsonc`. إذا كان `XDG_CONFIG_HOME` محددًا، فاستخدم `kilo/tokenlab.jsonc` داخل ذلك المجلد. احتفظ بملفات `kilo.json` / `kilo.jsonc` المعتادة والحسابات والنموذج الافتراضي والأذونات. لا يُحمّل الملف المستقل إلا عند اختياره عبر `KILO_CONFIG` لهذا التشغيل. إذا كان الملف أو اسم المزوّد مستخدمًا، فاختر اسمًا آخر وعدّل الأوامر.
 
 ```jsonc
 {
   "$schema": "https://app.kilo.ai/config.json",
-  "model": "openai-compatible/kimi-k3",
   "provider": {
-    "openai-compatible": {
+    "tokenlab": {
       "options": {
         "apiKey": "{env:TOKENLAB_API_KEY}",
         "baseURL": "https://api.tokenlab.sh/v1"
@@ -61,18 +62,46 @@ export TOKENLAB_API_KEY="sk-your-tokenlab-key"
           "tool_call": true,
           "reasoning": true,
           "modalities": {
-            "input": ["text", "image"],
-            "output": ["text"]
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
           },
           "limit": {
             "context": 1048576,
             "output": 131072
           }
         }
-      }
+      },
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "TokenLab"
     }
   }
 }
 ```
 
-أعد تشغيل Kilo ثم نفّذ `kilo models`. لا تُحل `{env:...}` إلا في إعداد عام موثوق أو مُدار. لا تكتب المفتاح الحقيقي في إعداد مشروع قد يُرسل إلى Git.
+<CodeGroup>
+```bash macOS / Linux / WSL
+KILO_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/kilo/tokenlab.jsonc" kilo models tokenlab
+KILO_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/kilo/tokenlab.jsonc" kilo --model tokenlab/kimi-k3
+```
+
+```powershell Windows PowerShell
+$previous = @{}
+$previous['KILO_CONFIG'] = [Environment]::GetEnvironmentVariable('KILO_CONFIG', 'Process')
+try {
+  $env:KILO_CONFIG = (Join-Path $(if ($env:XDG_CONFIG_HOME) { $env:XDG_CONFIG_HOME } else { Join-Path $HOME '.config' }) 'kilo/tokenlab.jsonc')
+  kilo models tokenlab
+  kilo --model tokenlab/kimi-k3
+} finally {
+  foreach ($name in $previous.Keys) {
+    [Environment]::SetEnvironmentVariable($name, $previous[$name], 'Process')
+  }
+}
+```
+</CodeGroup>
+
+حفظ الإعدادات أو عرض النماذج لا يتحقق من صلاحية المفتاح أو اكتمال طلب. تستخدم المطالبة رصيد TokenLab. راجع الرد و[سجل الطلب المطابق](https://tokenlab.sh/dashboard/runs?section=requests) قبل تجربة الأدوات؛ وقد تُحتسب الطلبات المساعدة أيضًا.

@@ -5,7 +5,8 @@ description: "Mengimplementasikan respons streaming real-time"
 
 ## Ringkasan
 
-Streaming mengirim output secara bertahap. Gunakan Responses streaming ketika model mengiklankan kontrak Responses native dan tersedia rute upstream dengan protokol yang sama; jika tidak, gunakan Chat Completions atau protokol native yang dipublikasikan model.
+Streaming mengirim keluaran bertahap. Gunakan Responses jika model memuat `openai_responses` dalam `accepted_request_formats`; klien Chat Completions yang ada dapat mempertahankan formatnya.
+
 ## Direkomendasikan: Responses Streaming
 
 <CodeGroup>
@@ -22,42 +23,61 @@ curl https://api.tokenlab.sh/v1/responses \
 ```
 
 ```python Python
+import os
 from openai import OpenAI
 
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
-
-stream = client.responses.create(
-    model="gpt-5.6-terra",
-    input="Write a short poem.",
-    stream=True
-)
-
-for event in stream:
-    if event.type == "response.output_text.delta":
-        print(event.delta, end="", flush=True)
+with OpenAI(
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh/v1",
+    timeout=30.0,
+    max_retries=0,
+) as client:
+    completed = False
+    with client.responses.create(
+        model="gpt-5.6-terra",
+        input="Write a short poem.",
+        stream=True,
+    ) as stream:
+        for event in stream:
+            if event.type == "response.output_text.delta":
+                print(event.delta, end="", flush=True)
+            elif event.type == "response.completed":
+                completed = True
+            elif event.type in {"response.failed", "response.incomplete", "error"}:
+                raise RuntimeError(f"Stream ended with {event.type}")
+    if not completed:
+        raise RuntimeError("Stream closed before response.completed")
 ```
 
 ```javascript JavaScript
 import OpenAI from 'openai';
 
 const client = new OpenAI({
-  apiKey: 'sk-your-api-key',
-  baseURL: 'https://api.tokenlab.sh/v1'
+  apiKey: process.env.TOKENLAB_API_KEY,
+  baseURL: 'https://api.tokenlab.sh/v1',
+  timeout: 30_000,
+  maxRetries: 0,
 });
 
 const stream = await client.responses.create({
   model: 'gpt-5.6-terra',
   input: 'Write a short poem.',
-  stream: true
+  stream: true,
 });
-
-for await (const event of stream) {
-  if (event.type === 'response.output_text.delta') {
-    process.stdout.write(event.delta);
+let completed = false;
+try {
+  for await (const event of stream) {
+    if (event.type === 'response.output_text.delta') {
+      process.stdout.write(event.delta);
+    } else if (event.type === 'response.completed') {
+      completed = true;
+    } else if (['response.failed', 'response.incomplete', 'error'].includes(event.type)) {
+      throw new Error(`Stream ended with ${event.type}`);
+    }
   }
+  if (!completed) throw new Error('Stream closed before response.completed');
+} finally {
+  stream.controller.abort();
 }
 ```
 
@@ -66,26 +86,43 @@ for await (const event of stream) {
 
 ## Batas Streaming Responses dan Gemini
 
-Pada Responses SSE, TokenLab mempertahankan nama, urutan, dan field event upstream serta membaca usage dan status terminal secara out-of-band tanpa mengubah wire. Setelah event pertama dikirim, channel atau credential lain tidak dicoba.
+Responses SSE mempertahankan nama, urutan, dan field peristiwa publik. Koneksi yang putus setelah keluaran tiba menghasilkan respons belum lengkap dan tidak dimulai ulang otomatis.
 
-Responses WebSocket hanya menerima event resmi `response.create`. Stream bersifat implisit; `background` dan `response.cancel` tidak tersedia pada transport ini, sedangkan background hanya berjalan melalui HTTP. Setiap koneksi bersifat serial, tanpa multiplexing, dan dibatasi 60 menit.
+Responses WebSocket memakai `response.create` dan selalu streaming; `background` serta `response.cancel` tidak didukung. Satu koneksi memproses satu respons sekaligus, hingga 60 menit. `generate: false` membuat ID kelanjutan tanpa keluaran atau biaya model.
 
-Gemini SSE mempertahankan chunk native. Event metadata-only, chunk perantara tanpa `finishReason`, dan EOF alami valid; TokenLab tidak menambahkan marker Chat `[DONE]`.
+Gemini SSE mengirim chunk native. Peristiwa antara dapat tidak memuat `finishReason`, dan aliran bisa berakhir tanpa penanda Chat `[DONE]`.
+
 ## Streaming Chat Completions
 
 Jika framework Anda masih mengharapkan chunk SSE dari `/v1/chat/completions`, itu juga berfungsi:
 
 ```python
-stream = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": "Write a short poem"}],
-    stream=True
-)
+import os
+from openai import OpenAI
 
-for chunk in stream:
-    content = chunk.choices[0].delta.content
-    if content:
-        print(content, end="", flush=True)
+with OpenAI(
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh/v1",
+    timeout=30.0,
+    max_retries=0,
+) as client:
+    finish_reason = None
+    with client.chat.completions.create(
+        model="gpt-5.6-terra",
+        messages=[{"role": "user", "content": "Write a short poem."}],
+        stream=True,
+        stream_options={"include_usage": True},
+    ) as stream:
+        for chunk in stream:
+            if not chunk.choices:
+                continue
+            choice = chunk.choices[0]
+            if choice.delta.content:
+                print(choice.delta.content, end="", flush=True)
+            if choice.finish_reason:
+                finish_reason = choice.finish_reason
+    if finish_reason != "stop":
+        raise RuntimeError(f"Stream ended without a complete text answer: {finish_reason}")
 ```
 
 ## Kondisi Akhir Stream
@@ -98,49 +135,13 @@ Kondisi penyelesaian yang umum:
 
 ## Pola Aplikasi Web
 
-```javascript
-async function streamChat(message) {
-  const response = await fetch('https://api.tokenlab.sh/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Bearer sk-your-api-key',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: 'gpt-5.6-terra',
-      messages: [{ role: 'user', content: message }],
-      stream: true
-    })
-  });
-
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-
-    const chunk = decoder.decode(value);
-    const lines = chunk.split('\\n').filter(line => line.startsWith('data: '));
-
-    for (const line of lines) {
-      const data = line.slice(6);
-      if (data === '[DONE]') return;
-      const parsed = JSON.parse(data);
-      const content = parsed.choices?.[0]?.delta?.content;
-      if (content) {
-        document.getElementById('output').textContent += content;
-      }
-    }
-  }
-}
-```
+Jalankan pemroses stream SDK di server. Browser memanggil backend Anda yang terautentikasi; simpan kunci TokenLab di lingkungan server. Teruskan potongan teks dan batalkan stream saat pengguna berhenti atau terputus. Gunakan SDK untuk mengurai SSE: satu blok jaringan belum tentu berisi satu peristiwa lengkap.
 
 ## Praktik Terbaik
 
 <AccordionGroup>
   <Accordion title="Utamakan Responses streaming untuk build baru">
-    Gunakan `/v1/responses` jika SDK atau aplikasi Anda sudah mendukungnya. Pertahankan streaming `/v1/chat/completions` untuk integrasi yang didorong oleh kebutuhan kompatibilitas.
+    Streaming mengirim keluaran bertahap. Gunakan Responses jika model memuat `openai_responses` dalam `accepted_request_formats`; klien Chat Completions yang ada dapat mempertahankan formatnya.
   </Accordion>
 
   <Accordion title="Flush output secara bertahap">
@@ -148,6 +149,6 @@ async function streamChat(message) {
   </Accordion>
 
   <Accordion title="Tangani pemutusan koneksi dan percobaan ulang">
-    Perlakukan gangguan jaringan dan pemutusan koneksi upstream sebagai mode kegagalan yang normal, dan lakukan koneksi ulang dengan hati-hati untuk sesi yang berjalan lama.
+    Jangan tandai streaming terputus sebagai jawaban lengkap. Simpan keluaran parsial yang berguna; mengulang permintaan dapat menghasilkan keluaran dan tagihan lain.
   </Accordion>
 </AccordionGroup>

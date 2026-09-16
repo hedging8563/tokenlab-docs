@@ -10,7 +10,7 @@ Gunakan `DELETE /v1/tasks/{id}` untuk membatalkan task asinkron yang belum mulai
 
 ## Task yang didukung
 
-Pembatalan didukung untuk task video Seedance yang masih antre ketika provider yang dipilih untuk task tersebut mendukung pembatalan. Model yang didukung adalah `seedance-1.5-pro`, `seedance-2.0`, dan `seedance-2.0-fast`. Task yang sudah `processing`/running tidak dapat dibatalkan. Task yang selesai, gagal, kedaluwarsa, atau tidak didukung tetap dapat ditanyakan untuk rekonsiliasi status dan billing.
+Task Seedance dalam antrean dengan `seedance-1.5-pro`, `seedance-2.0`, `seedance-2.0-fast`, atau `seedance-2.5` dapat dibatalkan jika task mendukungnya. Task yang sudah berjalan atau berstatus akhir tidak dapat dibatalkan. Status dapat ditanyakan selama catatan task publik masih disimpan.
 
 ## Parameter path
 

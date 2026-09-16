@@ -6,12 +6,12 @@ description: "Menghasilkan audio dari teks input"
 
 ## Body Permintaan
 
-**Timeout permintaan sinkron:** endpoint non-chat ini menunggu model yang dirutekan selesai. Input besar, audio panjang, atau batch besar dapat melebihi default client umum 30s, jadi atur timeout HTTP client Anda minimal `120s`.
+Mode respons bergantung pada model yang dipilih dan `stream_format`. Untuk input panjang, atur batas waktu HTTP setidaknya `120s`.
 
-Field opsional yang didukung berbeda menurut family model. TokenLab memvalidasi matriks field ini sebelum routing: OpenAI TTS menerima `voice`, `instructions`, `response_format`, `stream_format`, dan `speed`; MiniMax speech menerima `voice`, `voice_id`, `response_format`, `stream_format`, dan `speed`; Gemini TTS menerima `prompt`, `language_code`, `voice`, `response_format`, `stream_format`, `speed`, dan `temperature`; route TTS yang lebih sempit seperti Vidu/Kling mungkin hanya menerima `input` dan `stream_format`. Field top-level yang tidak dikenal, termasuk `user`, akan mengembalikan `400 unsupported_parameter` alih-alih diabaikan.
+Field opsional, suara, format keluaran, dan dukungan SSE bergantung pada model. Periksa `GET /v1/models/{model}` sebelum mengirimnya. Parameter yang tidak didukung dapat mengembalikan `400 unsupported_parameter`.
 
 <ParamField body="model" type="string" default="tts-1">
-  Model TTS. Contohnya `tts-1`, `gpt-4o-mini-tts`, `speech-02-hd`, dan `gemini-2.5-flash-tts`. Kueri `GET /v1/models?recommended_for=tts` untuk daftar terbaru.
+  ID model TTS. Temukan pilihan terkini melalui `GET /v1/models?recommended_for=tts`.
 </ParamField>
 
 <ParamField body="input" type="string" required>
@@ -23,7 +23,7 @@ Field opsional yang didukung berbeda menurut family model. TokenLab memvalidasi 
 </ParamField>
 
 <ParamField body="voice_id" type="string">
-  Selector suara native provider untuk model speech yang kompatibel dengan MiniMax.
+  ID suara untuk model yang mendukung parameter ini, seperti model suara MiniMax yang kompatibel.
 </ParamField>
 
 <ParamField body="instructions" type="string">
@@ -56,7 +56,7 @@ Field opsional yang didukung berbeda menurut family model. TokenLab memvalidasi 
 
 ## Respons
 
-Mengembalikan file audio dalam format yang diminta.
+`stream_format=audio` mengembalikan byte audio. Model yang mendukung `stream_format=sse` mengembalikan `text/event-stream`; proses event-nya alih-alih menyimpan seluruh respons sebagai file audio.
 
 <RequestExample>
 ```bash cURL
@@ -134,6 +134,8 @@ file_put_contents('speech.mp3', $audio);
 
 ## Sampel Voice
 
+Suara yang tersedia bergantung pada model. Nama di bawah hanya contoh, bukan daftar suara bersama untuk semua model TTS.
+
 | Voice | Deskripsi |
 |-------|-------------|
 | `alloy` | Netral, seimbang |
@@ -158,5 +160,9 @@ file_put_contents('speech.mp3', $audio);
 
 ## Field penting
 
-<ResponseField name="Content-Type" type="string">Tipe event atau message yang dikembalikan API.</ResponseField>
-<ResponseField name="body" type="binary">Body respons mentah. Simpan langsung, jangan parse sebagai JSON.</ResponseField>
+<ResponseField name="Content-Type" type="string">
+  Jenis media respons HTTP: format audio atau `text/event-stream` untuk SSE.
+</ResponseField>
+<ResponseField name="body" type="binary | SSE">
+  Byte audio untuk `audio`; aliran event untuk `sse`. Pilih parser sesuai `Content-Type` dan mode yang diminta.
+</ResponseField>

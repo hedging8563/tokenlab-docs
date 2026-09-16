@@ -6,12 +6,14 @@ description: "سرد مجموعات مواد Seedance المملوكة للمؤ�
 
 سرد مجموعات المواد المملوكة للمؤسسة التي تم التحقق من هويتها. قم بالتصفية حسب `library_type` و `status` للفصل بين مجموعات الصور الرمزية الافتراضية (virtual-avatar) ومجموعات الأشخاص الحقيقيين.
 
-استخدم `group_id` المُعاد عند تحميل المواد. لا تقم بتمرير `group_id` كـ `material_asset_id` أثناء إنشاء الفيديو؛ حيث يتطلب الإنشاء `id` خاص بأصل المادة.
+استخدم `id` المُعاد عند تحميل المواد. لا تقم بتمرير `group_id` كـ `material_asset_id` أثناء إنشاء الفيديو؛ حيث يتطلب الإنشاء `id` خاص بأصل المادة.
+
+يعزل `project_name` الموارد داخل المؤسسة المصادق عليها. قيمته الافتراضية `default`؛ استخدم القيمة نفسها مع مراعاة حالة الأحرف للمجموعات والأصول المرتبطة. أرسله في جسم JSON مع POST/PUT وفي معاملات الاستعلام مع GET/DELETE.
 
 ## مثال على الطلب
 
 ```bash
-curl "https://api.tokenlab.sh/v1/videos/assets/groups?library_type=aigc_avatar&page_size=20" \
+curl "https://api.tokenlab.sh/v1/videos/assets/groups?library_type=aigc_avatar&page_size=20&project_name=default" \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```
 
@@ -23,6 +25,7 @@ curl "https://api.tokenlab.sh/v1/videos/assets/groups?library_type=aigc_avatar&p
     {
       "id": "group-20260720123456-vrt01",
       "object": "seedance.material_asset_group",
+      "project_name": "default",
       "library_type": "aigc_avatar",
       "group_name": "Product references",
       "status": "ACTIVE",

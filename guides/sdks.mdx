@@ -11,8 +11,7 @@ You do not need a TokenLab-specific SDK. Keep the client your application alread
 - **Anthropic SDKs** work with Claude Messages.
 - **Gemini / Google AI SDKs** work with Gemini requests.
 
-Open the matching integration page for a working configuration and any model-specific limits.
-
+Open the matching integration page for client configuration and model-specific limits. For a complete first request, use the [Quickstart](/quickstart).
 ## Choose an SDK
 
 <CardGroup cols={2}>
@@ -44,7 +43,7 @@ client = OpenAI(
 
 response = client.responses.create(
     model="gpt-5.6-terra",
-    input="Explain TokenLab in one sentence."
+    input="Reply with: Connected to TokenLab."
 )
 
 print(response.output_text)

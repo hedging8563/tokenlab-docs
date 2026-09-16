@@ -4,7 +4,8 @@ openapi: "POST /v1beta/models/{model}:streamGenerateContent"
 description: "Google Gemini API形式を使用してコンテンツ生成をストリーミングします"
 ---
 
-Gemini `generateContent` のネイティブ SSE streaming 版です。TokenLab は upstream のイベント、順序、フィールドを保持します。metadata のみのイベント、`finishReason` のない中間 chunk、自然な EOF はすべて有効です。Chat Completions の `[DONE]` を追加せず、Chat にフォールバックしません。
+Gemini `generateContent` の SSE 版です。メタデータのみのイベントや、`finishReason` のない途中の内容も返されます。ストリームは自然な EOF で終了し、`[DONE]` マーカーは追加されません。
+
 ## パスパラメータ
 
 <ParamField path="model" type="string" required>
@@ -19,9 +20,9 @@ Gemini `generateContent` のネイティブ SSE streaming 版です。TokenLab �
 
 ## リクエストボディ
 
-[コンテンツ生成](/api-reference/gemini/generate-content)と同じです。
+[コンテンツ生成](/ja/api-reference/gemini/generate-content)と同じです。
 
-`generationConfig.candidateCount`、ツール構成、将来のフィールドは変更せず upstream へ転送し、TokenLab 独自の streaming 制限は設けません。
+`generationConfig.candidateCount`、ツール、メディア形式、その他の任意フィールドへの対応は選択したモデルによって異なります。
 
 ## レスポンス
 
@@ -29,7 +30,7 @@ Gemini `generateContent` のネイティブ SSE streaming 版です。TokenLab �
 
 <RequestExample>
 ```bash cURL
-curl -X POST "https://api.tokenlab.sh/v1beta/models/gemini-2.5-pro:streamGenerateContent?key=sk-your-api-key" \
+curl -N -X POST "https://api.tokenlab.sh/v1beta/models/gemini-2.5-pro:streamGenerateContent?key=sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
     "contents": [
@@ -53,7 +54,10 @@ model = genai.GenerativeModel("gemini-2.5-pro")
 response = model.generate_content("Tell me a story", stream=True)
 
 for chunk in response:
-    print(chunk.text, end="")
+    for candidate in chunk.candidates:
+        for part in candidate.content.parts:
+            if part.text:
+                print(part.text, end="")
 ```
 
 ```javascript JavaScript
@@ -74,7 +78,7 @@ const decoder = new TextDecoder();
 while (true) {
   const { done, value } = await reader.read();
   if (done) break;
-  console.log(decoder.decode(value));
+  console.log(decoder.decode(value, { stream: true }));
 }
 ```
 

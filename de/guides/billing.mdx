@@ -1,117 +1,25 @@
 ---
-title: "Abrechnung & Preise"
-description: "Verstehen Sie das Pay-as-you-go-Preismodell von TokenLab"
+title: "Abrechnung und Preise"
+description: "Abrechnung und Preise"
 ---
 
-## Übersicht
+Ein TokenLab-Guthaben gilt für alle Modelle. Es gibt kein Abonnement und keinen Mindestumsatz; abgerechnet werden Modell und erfasste Nutzung.
 
-TokenLab nutzt ein **Pay-as-you-go-Preismodell**. Sie zahlen nur für das, was Sie tatsächlich nutzen, ohne Abonnements oder Mindestverpflichtungen.
+## Preise und Lieferoptionen
 
-## So funktioniert die Abrechnung
+Aktuelle Preise finden Sie auf der Modellseite, unter `GET /v1/models/{model}/pricing` oder in der Pricing API. Hinterlegen Sie keine kopierte Preistabelle als feste Werte. Text und Embeddings können nach Eingabe-, Ausgabe- oder Cache-Tokens berechnet werden, Medien auch pro Bild, Sekunde, Minute, Anfrage oder Aufgabe.
 
-1. **Guthaben hinzufügen** zu Ihrem Konto
-2. **Die API nutzen** – Kosten werden pro Anfrage abgezogen
-3. **Nutzung überwachen** in Ihrem Dashboard
-4. **Aufladen**, wenn Ihr Guthaben niedrig ist
+`TokenLab Verified` nutzt öffentliche TokenLab-Preise, `Official` die Official-Preise auf Grundlage der veröffentlichten Herstellerpreise. `Auto` bevorzugt Verified und nutzt bei Bedarf Official; berechnet wird einmal die Option, die das Ergebnis liefert. Console zeigt vor kostenpflichtiger Generierung die maximale Schätzung, danach den Endbetrag in Runs und Usage.
 
-## Preismodelle
+[Pricing API](/de/api-reference/pricing/get-pricing)
 
-Live-Preise können sich mit Providern, Routen und Modellverträgen ändern. Maßgeblich sind Dashboard, Modellseite, `GET /v1/models/:model/pricing` und die [Pricing API](/api-reference/pricing/get-pricing).
+## Asynchrone Abrechnung und Belege
 
-### Tokenbasierte Preise
+Manche Aufgaben reservieren bei Erstellung die geschätzten Kosten. Speichern Sie ID und `poll_url` und fragen Sie bis `completed` oder `failed` ab. Erfolgreiche Aufgaben werden einmal berechnet und ungenutzte Reserven freigegeben; bei Fehlern wird der ausstehende Betrag freigegeben oder erstattet.
 
-Die meisten Chat-, Reasoning-, Embedding-, Rerank- und einige Bildmodelle werden nach Input-, Output-, Cache- oder Bild-Output-Tokens abgerechnet.
+OpenAI-kompatible Antworten ohne Streaming können nach Abrechnung `billing_transaction_id` oder `X-Billing-Transaction-ID` enthalten. Native Formate verwenden gegebenenfalls nur den Header. Asynchrone und Streaming-Ergebnisse können vor dem Buchungseintrag eintreffen; fehlt die ID, prüfen Sie Usage.
 
-| Preisfamilie | Beispiele | Aktuellen Preis prüfen |
-|---|---|---|
-| Chat / Responses | `gpt-5.4`, `claude-sonnet-4-6`, `gemini-3.5-flash` | Modellseite oder Pricing API |
-| Embeddings / Rerank | `text-embedding-3-small`, `qwen3-vl-rerank` | Modelldetails zur Preisgestaltung |
-| Tokenbasierte Bilder | `gpt-image-2` | `GET /v1/models/gpt-image-2/pricing` |
-
-<Note>
-Kopieren Sie keine statischen Preistabellen in Produktionslogik. Speichern Sie im Code nur Modell-IDs und prüfen Sie Preise vor dem Launch.
-</Note>
-
-### Request- und Task-Preise
-
-Bild-, Video-, Musik-, 3D-, Audio- und World-Generierungsmodelle können pro Anfrage, Bild, Sekunde/Minute, Task oder providerspezifischer Nutzung abgerechnet werden.
-
-| Familie | Beispiele |
-|---|---|
-| Bilder | `flux-pro` |
-| Video | `veo3.1`, `seedance-2.0` |
-| Musik | `suno-music` |
-| 3D | `tripo-h3.1` |
-| Audio | `tts-1`, `whisper-1` |
-
-### Abrechnung für asynchrone Aufgaben (Video/Musik/3D und einige Bildmodelle)
-
-<Note>
-  Bei aufgabenbasierter Generierung kann beim Erstellen der Aufgabe ein geschätzter Betrag reserviert oder vorab abgezogen werden. Die endgültige Abrechnung erfolgt erst, nachdem die asynchrone Aufgabe beim Polling oder bei der Finalisierung einen erfolgreichen Endstatus erreicht hat.
-</Note>
-
-Für aufgabenbasierte Generierungsabläufe (Video, Musik, 3D und einige Bildmodelle):
-
-1. Übermitteln Sie die Aufgabe. TokenLab kann einen geschätzten Betrag vorab abziehen oder reservieren, um Guthaben und API-Key-Ausgabenlimits zu prüfen.
-2. Fragen Sie die zurückgegebene `poll_url` ab oder rufen Sie `GET /v1/tasks/{id}` auf, bis die Aufgabe einen Endstatus erreicht.
-3. Wenn die Aufgabe erfolgreich abgeschlossen ist, zeichnet die endgültige Abrechnung die Nutzung auf und die Task-Antwort enthält `billing_transaction_id`.
-4. Wenn die Erstellung fehlschlägt oder der Endstatus failed ist, wird der ausstehende Betrag erstattet oder freigegeben und die Anfrage als nicht abrechenbar markiert.
-
-Wenn im dashboard nach sichtbarem Endstatus keine Abrechnung oder Erstattung erscheint, wenden Sie sich bitte an support@tokenlab.sh.
-
-```python
-# Beispiel: Abrechnung der Videogenerierung
-response = client.post("/v1/videos/generations", json={
-    "model": "veo3.1",
-    "prompt": "A sunset over the ocean"
-})
-# Der geschätzte Betrag kann jetzt reserviert werden; die endgültige Abrechnung erscheint nach Erfolg.
-
-poll_url = response.json()["poll_url"]
-task_id = response.json()["task_id"]
-# poll_url für Status abfragen; billing_transaction_id erscheint nach der Abrechnung.
-```
-
-### Billing-Transaktions-IDs
-
-Erfolgreiche abrechenbare, nicht-streamende OpenAI-kompatible JSON-Antworten enthalten `billing_transaction_id`, wenn die Abrechnung vor dem Abschluss der Antwort beendet wurde. Derselbe Wert wird auch als `X-Billing-Transaction-ID`-Antwortheader ausgegeben, damit Browser- und Serverintegrationen ihn lesen können. Native Kompatibilitätsrouten wie Gemini `/v1beta` können den Wert nur per Header ausgeben, um die provider-native Antwortform beizubehalten. Für asynchrone Medienaufgaben sollten Sie die zurückgegebene `poll_url` oder `GET /v1/tasks/{id}` abfragen; die Task-Antwort enthält `billing_transaction_id`, sobald die Abrechnung abgeschlossen ist. Streaming-Antworten können erst nach dem Versand des Streams abgerechnet werden. Wenn der Header fehlt, verwenden Sie die Dashboard-Nutzungslogs für den Abgleich.
-
-## Token-Zählung
-
-Token sind die Grundeinheiten der Textverarbeitung:
-
-- ~4 Zeichen = 1 Token (Englisch)
-- ~1-2 Zeichen = 1 Token (Chinesisch)
-- 1 Bild = variiert je nach Größe und Detailgrad
-
-### Token-Schätzung
-
-```python
-# Grobe Schätzung
-def estimate_tokens(text):
-    return len(text) / 4  # Ungefähr für Englisch
-
-# Tatsächliche Anzahl (für OpenAI-Modelle)
-import tiktoken
-encoder = tiktoken.encoding_for_model("gpt-5.6-terra")
-tokens = encoder.encode("Your text here")
-print(f"Token-Anzahl: {len(tokens)}")
-```
-
-## Nutzungsverfolgung
-
-### Dashboard
-
-Überwachen Sie Ihre Nutzung im [Dashboard](https://tokenlab.sh/dashboard):
-
-- Echtzeit-Guthaben
-- Nutzungshistorie nach Modell
-- Kostenaufschlüsselung
-- API-Key-Nutzung
-
-### API-Antwort
-
-Jede Antwort enthält Informationen zur Nutzung:
+Usage zeigt Modell, Schlüssel, Kosten und Verbrauch. Die Tokenisierung hängt von Modell, Sprache und Medien ab; Zeichenschätzungen ersetzen keine Endabrechnung. Streaming senkt die berechneten Tokens nicht. Vergleichen Sie die Endkosten gleicher Aufgaben und setzen Sie unterstützte Ausgabelimits.
 
 ```json
 {
@@ -123,71 +31,13 @@ Jede Antwort enthält Informationen zur Nutzung:
 }
 ```
 
-## Kostenoptimierung
+- [Usage](https://tokenlab.sh/dashboard/usage)
+- [Asynchrone Jobs & Abfragen](/de/guides/async-jobs-polling)
 
-<AccordionGroup>
-  <Accordion title="Geeignete Modelle verwenden">
-    Verwenden Sie kleinere Modelle (GPT-4o-mini, Gemini Flash) für einfache Aufgaben.
-  </Accordion>
+## Console verwenden
 
-  <Accordion title="Caching implementieren">
-    Speichern Sie Antworten für wiederholte identische Anfragen im Cache.
-  </Accordion>
+Wählen Sie unter Console → Billing Betrag und eine angebotene Zahlungsmethode. Nach Bestätigung durch den Zahlungsdienst wird das Guthaben aktualisiert.
 
-  <Accordion title="Prompts optimieren">
-    Halten Sie Prompts prägnant und wahren Sie gleichzeitig die Klarheit.
-  </Accordion>
+Beim Erstellen oder Bearbeiten eines Schlüssels unter Console → API Keys können Sie ein Ausgabenlimit setzen. Bei Erreichen liefert die API `402 Payment Required`.
 
-  <Accordion title="max_tokens festlegen">
-    Begrenzen Sie die Antwortlänge, wenn keine vollständigen Antworten benötigt werden.
-  </Accordion>
-
-  <Accordion title="Streaming für lange Antworten nutzen">
-    Streaming verursacht keine zusätzlichen Kosten, verbessert aber die wahrgenommene Leistung.
-  </Accordion>
-</AccordionGroup>
-
-## Benachrichtigungen bei niedrigem Guthaben
-
-Konfigurieren Sie Warnmeldungen, wenn Ihr Guthaben sinkt:
-
-1. Gehen Sie zu **Dashboard → Einstellungen → Benachrichtigungen**
-2. Legen Sie Ihren Schwellenwert fest
-3. Erhalten Sie E-Mail-Benachrichtigungen
-
-## Guthaben hinzufügen
-
-### Zahlungsmethoden
-
-- Stripe (Visa, Mastercard)
-
-### Schritte
-
-1. Melden Sie sich im [Dashboard](https://tokenlab.sh/dashboard) an
-2. Klicken Sie auf **Guthaben hinzufügen**
-3. Wählen Sie Betrag und Zahlungsmethode aus
-4. Schließen Sie die Zahlung ab
-
-Das Guthaben wird sofort nach der Zahlungsbestätigung gutgeschrieben.
-
-## API-Key-Limits
-
-Sie können Ausgabenlimits für einzelne API-Keys festlegen:
-
-1. Gehen Sie zu **Dashboard → API-Keys**
-2. Klicken Sie auf einen Key zum Bearbeiten
-3. Legen Sie ein **Nutzunglimit** fest
-
-Wenn das Limit erreicht ist, geben Anfragen mit diesem Key den Fehler `402 Payment Required` zurück.
-
-## Rechnungen
-
-Für Geschäftskonten sind Rechnungen verfügbar:
-
-1. Gehen Sie zu **Dashboard → Abrechnung**
-2. Transaktionsverlauf anzeigen
-3. Rechnungen als PDF herunterladen
-
-## Fragen?
-
-Kontaktieren Sie support@tokenlab.sh bei Fragen zur Abrechnung.
+Unter Console → Settings lassen sich Guthabenwarnungen einstellen. Senden Sie bei Abrechnungsfragen Request ID und Aufgaben-ID an support@tokenlab.sh, niemals den API-Schlüssel.

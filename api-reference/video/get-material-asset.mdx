@@ -8,10 +8,12 @@ Retrieve one material asset and inspect its processing status. The asset can be 
 
 If video generation returns `Seedance material asset not found or not accessible`, verify that you passed this material asset `id`, not the material `group_id`.
 
+`project_name` isolates resources within the authenticated organization. It defaults to `default`; use the same case-sensitive value for related groups and assets. Send it in the JSON body for POST/PUT and in the query string for GET/DELETE.
+
 ## Example Request
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr \
+curl "https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr?project_name=default" \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```
 
@@ -21,6 +23,7 @@ curl https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr \
 {
   "id": "asset-20260720123456-qn7wr",
   "object": "seedance.material_asset",
+  "project_name": "default",
   "group_id": "group-20260720123456-vrt01",
   "library_type": "aigc_avatar",
   "asset_name": "Front view",

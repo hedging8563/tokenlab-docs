@@ -10,11 +10,15 @@ description: "Seedance 머티리얼 에셋을 TokenLab 머티리얼 그룹에 �
 
 | 유형 | 지원되는 입력 |
 |------|-----------------|
-| 이미지 | `jpeg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`; 가로세로 비율 `(0.4, 2.5)`; 너비 및 높이 `(300, 6000)` px; 30 MB 미만. |
-| 비디오 | `mp4`, `mov`; `480p`, `720p` 또는 `1080p`; 2-15초; 가로세로 비율 `[0.4, 2.5]`; 너비 및 높이 `[300, 6000]` px; 총 픽셀 수 409600 ~ 2068676; 최대 200 MB; 24-60 FPS. |
-| 오디오 | `aac`, `wav`, `mp3`; 2-15초; 최대 15 MB. |
+| 이미지 | `jpeg`, `jpg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`; ≤30 MiB; 너비 및 높이 `[300, 6000]` px; 가로세로 비율 `[0.4, 2.5]`. |
+| 비디오 | `mp4`, `mov`; ≤200 MiB. |
+| 오디오 | `aac`, `wav`, `mp3`; ≤15 MiB. |
+
+TokenLab은 소스 URL, 미디어 유형, 파일 크기와 읽을 수 있는 이미지 크기를 확인합니다. 가져오기 접수가 준비 완료를 뜻하지는 않습니다. `ACTIVE`를 기다리고 처리 실패 시 `error_message`를 확인하세요. 나머지 미디어 및 얼굴 조건은 처리 중에 검증됩니다.
 
 생성 과정은 비동기식으로 진행됩니다. `status`가 `ACTIVE`가 될 때까지 [머티리얼 에셋 가져오기](/ko/api-reference/video/get-material-asset)을 폴링하십시오. 실존 인물 그룹의 경우, 하나의 그룹은 한 명의 인증된 인물과 매핑됩니다. 여러 얼굴이 포함되어 있거나 인증된 인물과 일치하지 않는 얼굴이 포함된 경우 업로드가 실패할 수 있습니다.
+
+`project_name`은 인증된 조직 내 리소스를 분리합니다. 기본값은 `default`이며 관련 그룹과 소재에는 대소문자를 구분하는 동일한 값을 사용하세요. POST/PUT은 JSON 본문에, GET/DELETE는 쿼리 매개변수에 지정합니다.
 
 ## 요청 예시
 
@@ -22,7 +26,7 @@ description: "Seedance 머티리얼 에셋을 TokenLab 머티리얼 그룹에 �
 curl https://api.tokenlab.sh/v1/videos/assets \
   -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"library_type":"aigc_avatar","group_id":"group-20260720123456-vrt01","asset_url":"https://example.com/reference.png","asset_type":"Image","asset_name":"Front view"}'
+  -d '{"library_type":"aigc_avatar","group_id":"group-20260720123456-vrt01","asset_url":"https://example.com/reference.png","asset_type":"Image","asset_name":"Front view","project_name":"default"}'
 ```
 
 ## 응답 예시
@@ -31,6 +35,7 @@ curl https://api.tokenlab.sh/v1/videos/assets \
 {
   "id": "asset-20260720123456-qn7wr",
   "object": "seedance.material_asset",
+  "project_name": "default",
   "group_id": "group-20260720123456-vrt01",
   "library_type": "aigc_avatar",
   "asset_name": "Front view",

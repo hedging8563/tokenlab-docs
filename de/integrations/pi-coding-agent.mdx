@@ -8,11 +8,13 @@ description: "Pi mit TokenLab verwenden. Pi ist ein minimalistisches Terminal-Co
 Nutzen Sie die [offizielle Installation](https://pi.dev/). Das npm-Paket heißt `@earendil-works/pi-coding-agent`. Windows verwendet standardmäßig Git Bash; beachten Sie die [Shell-Anleitung](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/windows.md). Eine vorhandene Installation genügt.
 
 ```bash
-npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+npm install -g --ignore-scripts @earendil-works/pi-coding-agent@0.85.1
 pi --version
 ```
 
-Ergänzen Sie `~/.pi/agent/models.json` oder dieselbe Datei unter `PI_CODING_AGENT_DIR`. Sichern Sie die Datei und erhalten Sie andere Anbieter. Setzen Sie `TOKENLAB_API_KEY` lokal in der Startumgebung, niemals im Chat. Eine Base-URL-Umgebungsvariable allein erstellt diesen Anbieter nicht.
+Die folgende Konfiguration wurde mit **Pi 0.85.1** geprüft. Andere Versionen müssen anhand ihrer offiziellen Dokumentation separat überprüft werden.
+
+Sichern Sie `~/.pi/agent/models.json` und ergänzen Sie `tokenlab` am Ende der vorhandenen Einträge unter `providers`. Erstellen Sie die Datei nur, wenn sie fehlt. Ein nicht leeres `PI_CODING_AGENT_DIR` bestimmt das Verzeichnis von `models.json`. Erhalten Sie Anbieterreihenfolge, `settings.json`, Konten, Standardmodellfelder und Berechtigungen. Ist `tokenlab` bereits in der Konfiguration oder in gespeicherten Konten vorhanden, wählen Sie einen anderen Namen und passen Sie den Startbefehl an. Setzen Sie `TOKENLAB_API_KEY` lokal mit dem [Schnellstart](/de/quickstart) für macOS, Linux, WSL oder Windows PowerShell; niemals im Chat.
 
 ```json
 {
@@ -29,11 +31,18 @@ Ergänzen Sie `~/.pi/agent/models.json` oder dieselbe Datei unter `PI_CODING_AGE
 
 Das `$` in `"$TOKENLAB_API_KEY"` ist erforderlich; ohne `$` wird der Text als Schlüssel verwendet. Wählen Sie ein aktuelles Modell mit Chat Completions und Werkzeugunterstützung. Grenzen sowie Bild- und Reasoning-Einstellungen richten sich nach dessen Modelldetails.
 
+Optional bietet der [wiederherstellbare Pi-Konfigurationshelfer](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/skills/tokenlab-api-integration/references/pi_setup.md) mit Python 3.11+ eine Vorschau, Anwendung und Wiederherstellung der Originaldatei. Das TokenLab-Skills-Plugin **0.1.2** enthält die neuen Skripte. Ein einzeln installierter Skill kann ebenfalls verwendet werden, sobald er auf eine Version mit diesen Skripten aktualisiert wurde. Aktualisieren Sie vorhandene Plugins oder einzeln installierte Skills gemäß der [README-Anleitung](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/README.md#update-an-existing-installation) und prüfen Sie, ob das Skript vorhanden ist. Die manuelle Konfiguration auf dieser Seite funktioniert auch ohne Helfer.
+
 ## Prüfen und wiederherstellen
 
-Führen Sie `pi --list-models` aus und wählen Sie in `/model` den Eintrag `tokenlab/gpt-5.6-luna`. Der Dialog lädt `models.json` neu. Das bestätigt die Registrierung und das Vorhandensein von Zugangsdaten, nicht die Authentifizierung oder einen API-Aufruf.
+Prüfen Sie das Laden im selben Terminal und Agent-Verzeichnis und wählen Sie TokenLab explizit für diese Sitzung. Ohne `TOKENLAB_API_KEY` kann der Anbieter in der Liste fehlen. Die Liste bestätigt Registrierung und vorhandene Zugangsdaten, nicht deren Gültigkeit oder einen erfolgreichen API-Aufruf.
 
-Eine kurze Textanfrage verbraucht TokenLab-Guthaben. Prüfen Sie Antwort und [Anfrageprotokoll](https://tokenlab.sh/dashboard/runs?section=requests), bevor Sie Werkzeuge testen. Zur Wiederherstellung wählen Sie den alten Anbieter und entfernen nur Ihren TokenLab-Eintrag.
+```bash
+pi --list-models tokenlab
+pi --provider tokenlab --model gpt-5.6-luna
+```
+
+Ein Prompt verbraucht TokenLab-Guthaben. Prüfen Sie Antwort und [Anfrageprotokoll](https://tokenlab.sh/dashboard/runs?section=requests), bevor Sie Werkzeuge testen. Entfernen Sie zum Rückgängigmachen nur den hinzugefügten Anbietereintrag und erhalten Sie alle anderen Einstellungen und Konten.
 
 ## Skills und MCP
 

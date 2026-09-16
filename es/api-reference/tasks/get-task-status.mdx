@@ -18,6 +18,10 @@ Si una respuesta de creación incluye `poll_url`, llama a esa ruta exacta. Para 
 
 ## Respuesta
 
+<Note>
+Los campos de resultado, error, marcas de tiempo y modelo se devuelven cuando están disponibles para la tarea.
+</Note>
+
 <ResponseField name="id" type="string">
   Identificador de la tarea.
 </ResponseField>
@@ -54,13 +58,33 @@ Si una respuesta de creación incluye `poll_url`, llama a esa ruta exacta. Para 
   URL del recurso resultante cuando la tarea se completa y produce un video.
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="video" type="object">
+  Objeto de video único con `url`, `duration`, `width` y `height` cuando estén disponibles.
+</ResponseField>
+
+<ResponseField name="videos" type="array">
+  Múltiples cargas útiles de video cuando la tarea de generación devuelve más de una salida.
+</ResponseField>
+
+<ResponseField name="created" type="integer">
+  Marca de tiempo de creación.
+</ResponseField>
+
+<ResponseField name="updated" type="integer">
+  Marca de tiempo de la última actualización.
+</ResponseField>
+
+<ResponseField name="model" type="string">
+  Modelo usado para la tarea.
+</ResponseField>
+
+<ResponseField name="error" type="string | object">
   Mensaje de error cuando la tarea falla.
 </ResponseField>
 
 ## Comportamiento de error
 
-Si la tarea ya no existe, ha expirado o ya no está disponible en el registro público de tareas, TokenLab devuelve:
+Una tarea pública caducada o no disponible puede devolver `404 async_task_not_found`. Si no se puede confirmar que pertenece a la clave API actual, devuelve `403 task_not_owned`.
 
 ```json
 {

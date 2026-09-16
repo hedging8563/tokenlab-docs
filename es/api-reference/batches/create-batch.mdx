@@ -14,7 +14,7 @@ Este endpoint es parte de la API de Lotes compatible con OpenAI de TokenLab. Los
 - `completion_window` es actualmente `24h`.
 - El orden de salida no está garantizado; siempre coincida por `custom_id`.
 - La transmisión no es compatible dentro de los elementos del lote.
-- Los endpoints de elementos de lote admitidos actualmente son `/v1/chat/completions` y `/v1/embeddings`; los trabajos por lotes de `/v1/responses` se rechazan hasta que esté disponible un ejecutor de lotes nativo de Responses.
+- Los endpoints admitidos para elementos de lote son `/v1/chat/completions` y `/v1/embeddings`. No se admite `/v1/responses`.
 
 ## Ejemplo
 
@@ -39,7 +39,6 @@ Utilice el panel interactivo de OpenAPI arriba para el esquema exacto.
 
 - Use `custom_id` para la reconciliación idempotente en downstream.
 - Espere `output_file_id` y `error_file_id` solo después de que el trabajador finalice el lote.
-- La fijación de precios por lotes puede diferir de la fijación de precios sincrónica porque se aplican las reglas de descuento `isBatchRequest=true`.
 
 ## Ejemplo de respuesta
 

@@ -18,9 +18,10 @@ A requisição PATCH deve incluir pelo menos um campo.
 |-------|------|-------------------|-----------|
 | `status` | enum | - | `active`, `inactive`, `revoked` |
 | `name` | string | tamanho `1-50` | Nome de exibição atualizado |
-| `limitAmount` | number \| null | mínimo `0`, máximo de entrada `1000000` | `null` = ilimitado, `0` = quota zero. Valores positivos são normalizados para um teto armazenado que não pode exceder `100000` USD equivalente. |
-| `limitCurrency` | enum | padrão `USD` | Apenas USD. Enviar `CNY` retorna `400 currency_retired`. |
+| `limitAmount` | number \| string \| null | `0–100000` USD | `null` significa sem limite; `0` impede gastos. Strings decimais aceitam até 6 casas decimais. |
+| `limitCurrency` | enum | padrão `USD` | Apenas USD. Enviar `CNY` retorna `400 currency_retired`. Se informado, `limitAmount` também é obrigatório. |
 | `models` | string[] | - | Allowlist atualizada de modelos lógicos |
+| `deliveryPolicy` | string \| null | `auto`, `verified`, `official`, `null` | `null` herda a política de entrega do espaço de trabalho. |
 | `expiresAt` | string \| null | datetime RFC3339 | `null` remove a expiração |
 
 ## Observações
@@ -67,7 +68,8 @@ Esta página fornece o esquema OpenAPI e exemplos de requisições para copiar. 
   ],
   "expires_at": "2026-12-31T23:59:59.000Z",
   "last_used_at": "2026-07-08T03:12:45.000Z",
-  "created_at": "2026-07-01T10:00:00.000Z"
+  "created_at": "2026-07-01T10:00:00.000Z",
+  "delivery_policy": null
 }
 ```
 </ResponseExample>
@@ -77,12 +79,13 @@ Esta página fornece o esquema OpenAPI e exemplos de requisições para copiar. 
 <ResponseField name="id" type="string">Identificador da chave de API usado em chamadas subsequentes da API de Gerenciamento.</ResponseField>
 <ResponseField name="name" type="string">Nome de exibição da chave de API.</ResponseField>
 <ResponseField name="key_prefix" type="string">Prefixo de chave não secreto para exibição e suporte.</ResponseField>
-<ResponseField name="status" type="string">Um dos valores `active`, `inactive` ou `revoked`.</ResponseField>
+<ResponseField name="status" type="string">Um dos valores `active`, `inactive`, `suspended` ou `revoked`.</ResponseField>
 <ResponseField name="limit_amount" type="number | null">Limite de gastos em USD como número JSON para exibição. `null` significa ilimitado.</ResponseField>
 <ResponseField name="limit_amount_decimal" type="string | null">Limite de gastos exato em USD como string decimal. `null` significa ilimitado.</ResponseField>
 <ResponseField name="used_amount" type="number">Gasto de uso acumulado em USD como número JSON para exibição.</ResponseField>
 <ResponseField name="used_amount_decimal" type="string">Gasto de uso acumulado exato em USD como string decimal.</ResponseField>
 <ResponseField name="models" type="string[]">Lista de modelos permitidos por chave. Um array vazio significa que não há restrição adicional de modelo no nível da chave.</ResponseField>
+<ResponseField name="delivery_policy" type="string | null">`auto`, `verified`, `official`, `null`. `null` herda a política de entrega do espaço de trabalho.</ResponseField>
 <ResponseField name="expires_at" type="string | null">Carimbo de data/hora ISO em que a chave expira, ou `null` quando não há expiração.</ResponseField>
 <ResponseField name="last_used_at" type="string | null">Carimbo de data/hora ISO do uso mais recente, ou `null` quando nunca foi usada.</ResponseField>
 <ResponseField name="created_at" type="string">Carimbo de data/hora ISO de criação.</ResponseField>

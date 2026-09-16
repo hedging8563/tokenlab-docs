@@ -18,11 +18,11 @@ description: "ينشئ هدف رفع لأصل وسائط World Labs"
   نوع الوسائط: `image` أو `video`.
 </ParamField>
 
-<ParamField body="extension" type="string">
+<ParamField body="extension" type="string | null">
   امتداد اختياري مثل `png` أو `jpg` أو `mp4`.
 </ParamField>
 
-<ParamField body="metadata" type="object">
+<ParamField body="metadata" type="object | null">
   كائن بيانات وصفية اختياري يحفظ مع أصل الوسائط upstream.
 </ParamField>
 
@@ -34,6 +34,14 @@ description: "ينشئ هدف رفع لأصل وسائط World Labs"
 
 <ResponseField name="upload_info.upload_url" type="string">
   URL upstream موقع لرفع الملف الثنائي.
+</ResponseField>
+
+<ResponseField name="upload_info.upload_method" type="string">
+  طريقة HTTP المستخدمة لرفع الملف الثنائي إلى `upload_info.upload_url`، عند إرجاعها.
+</ResponseField>
+
+<ResponseField name="upload_info.required_headers" type="object">
+  الترويسات المطلوب تضمينها مع رفع الملف الثنائي، عند إرجاعها.
 </ResponseField>
 
 <RequestExample>

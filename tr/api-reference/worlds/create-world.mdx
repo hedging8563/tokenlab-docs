@@ -6,12 +6,12 @@ description: "World Labs Marble dünya üretim görevi oluşturur"
 
 World Labs Marble ile keşfedilebilir 3D dünyalar oluşturun. Bu API asenkrondur: oluşturma yanıtları bir görev kimliği ve durum kontrolleri için `poll_url` döndürür.
 
-Desteklenen modeller `marble-1.0`, `marble-1.1` ve `marble-1.1-plus` modelleridir. World Labs `marble-1.0-draft` modelini belgeler, ancak TokenLab bu endpoint içinde draft generation özelliğini henüz sunmaz.
+[Models API](/tr/api-reference/models/list-models) ile şu anda kullanılabilen bir Marble modeli seçin.
 
 ## İstek Gövdesi
 
 <ParamField body="model" type="string" default="marble-1.0">
-  Kullanılacak Marble modeli: `marble-1.0`, `marble-1.1` veya `marble-1.1-plus`.
+  [Models API](/tr/api-reference/models/list-models) ile şu anda kullanılabilen bir Marble modeli seçin.
 </ParamField>
 
 <ParamField body="prompt" type="string">
@@ -55,7 +55,7 @@ Desteklenen modeller `marble-1.0`, `marble-1.1` ve `marble-1.1-plus` modelleridi
 </ParamField>
 
 <ParamField body="permission" type="object">
-  İsteğe bağlı World Labs permission nesnesi.
+  İsteğe bağlı görünürlük ve erişim ayarları: `public`, `allow_id_access`, `allowed_readers` ve `allowed_writers`. `public: true`, herkese açık bir dünya oluşturulmasını ister.
 </ParamField>
 
 ## Yanıt
@@ -94,11 +94,7 @@ Desteklenen modeller `marble-1.0`, `marble-1.1` ve `marble-1.1-plus` modelleridi
 
 ## Fiyatlandırma
 
-World Labs credits üzerinden ücretlendirir. TokenLab istek türü maksimumunu önceden düşer ve tamamlanan operation içinde `cost.total_credits` varsa gerçek credits üzerinden kapatır. Standart Marble istekleri en fazla 1.600 credits kullanır. `marble-1.1-plus` en fazla 3.100 credits kullanır.
-
-## Kapsam
-
-Bu yönetim endpointleri TokenLab sahipliğindeki medya varlıklarını ve tamamlanan world kayıtlarını kapsar. TokenLab hâlâ `marble-1.0-draft` üretimini veya bağımsız pano/depth araçlarını açmaz.
+Güncel fiyatlar için [Pricing API](/tr/api-reference/pricing/get-pricing) kullanın. Faturalanan tutar kullanım kayıtlarında yer alır; döndürülen `cost.total_credits` üretim kullanımını belirtir, para tutarını değil.
 
 <RequestExample>
 ```bash cURL

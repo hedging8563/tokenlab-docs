@@ -5,7 +5,8 @@ description: "Triển khai phản hồi streaming theo thời gian thực"
 
 ## Tổng quan
 
-Streaming chuyển đầu ra theo từng phần. Dùng Responses streaming khi mô hình công bố hợp đồng Responses gốc và có tuyến upstream cùng giao thức; nếu không, dùng Chat Completions hoặc giao thức gốc mà mô hình công bố.
+Streaming trả đầu ra từng phần. Dùng Responses nếu mô hình công bố `openai_responses` trong `accepted_request_formats`; ứng dụng Chat Completions hiện có có thể giữ định dạng.
+
 ## Khuyến nghị: Responses Streaming
 
 <CodeGroup>
@@ -22,42 +23,61 @@ curl https://api.tokenlab.sh/v1/responses \
 ```
 
 ```python Python
+import os
 from openai import OpenAI
 
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
-
-stream = client.responses.create(
-    model="gpt-5.6-terra",
-    input="Write a short poem.",
-    stream=True
-)
-
-for event in stream:
-    if event.type == "response.output_text.delta":
-        print(event.delta, end="", flush=True)
+with OpenAI(
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh/v1",
+    timeout=30.0,
+    max_retries=0,
+) as client:
+    completed = False
+    with client.responses.create(
+        model="gpt-5.6-terra",
+        input="Write a short poem.",
+        stream=True,
+    ) as stream:
+        for event in stream:
+            if event.type == "response.output_text.delta":
+                print(event.delta, end="", flush=True)
+            elif event.type == "response.completed":
+                completed = True
+            elif event.type in {"response.failed", "response.incomplete", "error"}:
+                raise RuntimeError(f"Stream ended with {event.type}")
+    if not completed:
+        raise RuntimeError("Stream closed before response.completed")
 ```
 
 ```javascript JavaScript
 import OpenAI from 'openai';
 
 const client = new OpenAI({
-  apiKey: 'sk-your-api-key',
-  baseURL: 'https://api.tokenlab.sh/v1'
+  apiKey: process.env.TOKENLAB_API_KEY,
+  baseURL: 'https://api.tokenlab.sh/v1',
+  timeout: 30_000,
+  maxRetries: 0,
 });
 
 const stream = await client.responses.create({
   model: 'gpt-5.6-terra',
   input: 'Write a short poem.',
-  stream: true
+  stream: true,
 });
-
-for await (const event of stream) {
-  if (event.type === 'response.output_text.delta') {
-    process.stdout.write(event.delta);
+let completed = false;
+try {
+  for await (const event of stream) {
+    if (event.type === 'response.output_text.delta') {
+      process.stdout.write(event.delta);
+    } else if (event.type === 'response.completed') {
+      completed = true;
+    } else if (['response.failed', 'response.incomplete', 'error'].includes(event.type)) {
+      throw new Error(`Stream ended with ${event.type}`);
+    }
   }
+  if (!completed) throw new Error('Stream closed before response.completed');
+} finally {
+  stream.controller.abort();
 }
 ```
 
@@ -66,26 +86,43 @@ for await (const event of stream) {
 
 ## Ranh giới Streaming Responses và Gemini
 
-Với Responses SSE, TokenLab giữ nguyên tên, thứ tự và trường sự kiện upstream, đồng thời đọc usage và trạng thái kết thúc ngoài luồng mà không đổi wire. Sau sự kiện đầu tiên đã gửi, không thử channel hoặc credential khác.
+Responses SSE giữ tên, thứ tự và trường sự kiện công khai. Ngắt kết nối sau khi có đầu ra là phản hồi chưa hoàn chỉnh và không tự khởi động lại.
 
-Responses WebSocket chỉ nhận sự kiện chính thức `response.create`. Stream là ngầm định; `background` và `response.cancel` không được cung cấp trên transport này, còn background chỉ chạy qua HTTP. Mỗi kết nối xử lý tuần tự, không multiplexing và giới hạn 60 phút.
+Responses WebSocket dùng `response.create` và luôn streaming; không hỗ trợ `background` hay `response.cancel`. Mỗi kết nối xử lý một phản hồi tại một thời điểm, tối đa 60 phút. `generate: false` tạo ID tiếp tục mà không sinh đầu ra hoặc phí mô hình.
 
-Gemini SSE giữ nguyên chunk gốc. Sự kiện chỉ có metadata, chunk trung gian không có `finishReason` và EOF tự nhiên đều hợp lệ; TokenLab không thêm dấu Chat `[DONE]`.
+Gemini SSE trả chunk native. Sự kiện trung gian có thể thiếu `finishReason` và luồng có thể kết thúc tự nhiên mà không có dấu Chat `[DONE]`.
+
 ## Phát trực tuyến Chat Completions
 
 Nếu framework của bạn vẫn yêu cầu các chunk SSE từ `/v1/chat/completions`, cách này cũng hoạt động:
 
 ```python
-stream = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": "Write a short poem"}],
-    stream=True
-)
+import os
+from openai import OpenAI
 
-for chunk in stream:
-    content = chunk.choices[0].delta.content
-    if content:
-        print(content, end="", flush=True)
+with OpenAI(
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh/v1",
+    timeout=30.0,
+    max_retries=0,
+) as client:
+    finish_reason = None
+    with client.chat.completions.create(
+        model="gpt-5.6-terra",
+        messages=[{"role": "user", "content": "Write a short poem."}],
+        stream=True,
+        stream_options={"include_usage": True},
+    ) as stream:
+        for chunk in stream:
+            if not chunk.choices:
+                continue
+            choice = chunk.choices[0]
+            if choice.delta.content:
+                print(choice.delta.content, end="", flush=True)
+            if choice.finish_reason:
+                finish_reason = choice.finish_reason
+    if finish_reason != "stop":
+        raise RuntimeError(f"Stream ended without a complete text answer: {finish_reason}")
 ```
 
 ## Điều kiện kết thúc stream
@@ -98,49 +135,13 @@ Các điều kiện hoàn tất điển hình:
 
 ## Mẫu cho ứng dụng web
 
-```javascript
-async function streamChat(message) {
-  const response = await fetch('https://api.tokenlab.sh/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Bearer sk-your-api-key',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: 'gpt-5.6-terra',
-      messages: [{ role: 'user', content: message }],
-      stream: true
-    })
-  });
-
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-
-    const chunk = decoder.decode(value);
-    const lines = chunk.split('\\n').filter(line => line.startsWith('data: '));
-
-    for (const line of lines) {
-      const data = line.slice(6);
-      if (data === '[DONE]') return;
-      const parsed = JSON.parse(data);
-      const content = parsed.choices?.[0]?.delta?.content;
-      if (content) {
-        document.getElementById('output').textContent += content;
-      }
-    }
-  }
-}
-```
+Chạy phần xử lý luồng SDK trên máy chủ. Trình duyệt gọi backend có xác thực của bạn; khóa TokenLab chỉ nằm trong môi trường máy chủ. Chuyển từng phần văn bản và hủy luồng khi người dùng dừng hoặc ngắt kết nối. Dùng SDK để phân tích SSE: một khối mạng không nhất thiết là một sự kiện hoàn chỉnh.
 
 ## Thực tiễn tốt nhất
 
 <AccordionGroup>
   <Accordion title="Ưu tiên Responses streaming cho các bản dựng mới">
-    Sử dụng `/v1/responses` nếu SDK hoặc ứng dụng của bạn đã hỗ trợ. Giữ lại streaming `/v1/chat/completions` cho các tích hợp cần tương thích.
+    Streaming trả đầu ra từng phần. Dùng Responses nếu mô hình công bố `openai_responses` trong `accepted_request_formats`; ứng dụng Chat Completions hiện có có thể giữ định dạng.
   </Accordion>
 
   <Accordion title="Flush đầu ra tăng dần">
@@ -148,6 +149,6 @@ async function streamChat(message) {
   </Accordion>
 
   <Accordion title="Xử lý ngắt kết nối và thử lại">
-    Xem việc rớt mạng và ngắt kết nối từ upstream là các chế độ lỗi bình thường, và kết nối lại một cách cẩn thận cho các phiên chạy dài.
+    Không đánh dấu luồng bị ngắt là câu trả lời hoàn chỉnh. Giữ phần đầu ra hữu ích; lặp lại yêu cầu có thể tạo kết quả khác và phí bổ sung.
   </Accordion>
 </AccordionGroup>

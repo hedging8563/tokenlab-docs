@@ -8,13 +8,15 @@ Bir `library_type: "aigc_avatar"` materyal grubu oluşturun. Bu uç noktayı; sa
 
 Yeni gerçek kişi materyal grupları, [Görsel doğrulama oturumu oluştur](/tr/api-reference/video/create-visual-validation-session) aracılığıyla oluşturulur ve bu uç nokta ile doğrudan oluşturulamazlar.
 
+`project_name`, kimliği doğrulanmış organizasyon içindeki kaynakları ayırır. Varsayılanı `default` değeridir; ilgili grup ve varlıklarda büyük/küçük harfe duyarlı aynı değeri kullanın. POST/PUT için JSON gövdesinde, GET/DELETE için sorgu parametresi olarak gönderin.
+
 ## Örnek İstek
 
 ```bash
 curl https://api.tokenlab.sh/v1/videos/assets/groups \
   -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"library_type":"aigc_avatar","group_name":"Product references","description":"Reusable product shots"}'
+  -d '{"library_type":"aigc_avatar","group_name":"Product references","description":"Reusable product shots","project_name":"default"}'
 ```
 
 ## Örnek Yanıt
@@ -23,6 +25,7 @@ curl https://api.tokenlab.sh/v1/videos/assets/groups \
 {
   "id": "group-20260720123456-vrt01",
   "object": "seedance.material_asset_group",
+  "project_name": "default",
   "library_type": "aigc_avatar",
   "group_name": "Product references",
   "description": "Reusable product shots",

@@ -6,12 +6,12 @@ description: "Tạo tác vụ sinh thế giới World Labs Marble"
 
 Tạo thế giới 3D có thể khám phá bằng World Labs Marble. Đây là API bất đồng bộ: phản hồi tạo trả về định danh tác vụ và `poll_url` để kiểm tra trạng thái.
 
-Các model được hỗ trợ là `marble-1.0`, `marble-1.1` và `marble-1.1-plus`. World Labs có tài liệu cho `marble-1.0-draft`, nhưng TokenLab hiện chưa mở draft generation trong endpoint này.
+Chọn model Marble hiện có qua [Models API](/vi/api-reference/models/list-models).
 
 ## Nội dung yêu cầu
 
 <ParamField body="model" type="string" default="marble-1.0">
-  Model Marble cần dùng: `marble-1.0`, `marble-1.1` hoặc `marble-1.1-plus`.
+  Chọn model Marble hiện có qua [Models API](/vi/api-reference/models/list-models).
 </ParamField>
 
 <ParamField body="prompt" type="string">
@@ -55,7 +55,7 @@ Các model được hỗ trợ là `marble-1.0`, `marble-1.1` và `marble-1.1-pl
 </ParamField>
 
 <ParamField body="permission" type="object">
-  Đối tượng permission World Labs tùy chọn.
+  Thiết lập hiển thị và truy cập tùy chọn: `public`, `allow_id_access`, `allowed_readers`, `allowed_writers`. `public: true` yêu cầu tạo world có thể xem công khai.
 </ParamField>
 
 ## Phản hồi
@@ -94,11 +94,7 @@ Các model được hỗ trợ là `marble-1.0`, `marble-1.1` và `marble-1.1-pl
 
 ## Giá
 
-World Labs tính phí bằng credits. TokenLab trừ trước mức tối đa theo loại request và quyết toán theo `cost.total_credits` của operation đã hoàn tất khi có. Request Marble tiêu chuẩn tối đa 1.600 credits. `marble-1.1-plus` tối đa 3.100 credits.
-
-## Phạm vi
-
-Các endpoint quản lý này bao phủ media asset thuộc TokenLab và world đã tạo xong. TokenLab vẫn chưa mở tạo `marble-1.0-draft` hoặc công cụ pano/depth độc lập.
+Xem [Pricing API](/vi/api-reference/pricing/get-pricing) để biết giá hiện tại. Số tiền tính phí nằm trong bản ghi sử dụng; `cost.total_credits` được trả về là lượng sử dụng tạo world, không phải số tiền.
 
 <RequestExample>
 ```bash cURL

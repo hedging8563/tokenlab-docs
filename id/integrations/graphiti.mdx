@@ -15,6 +15,12 @@ Graphiti mendukung endpoint `/v1` yang kompatibel dengan OpenAI melalui `OpenAIG
 **Tingkat Dukungan**: Jalur yang kompatibel dengan OpenAI didukung
 </Note>
 
+## Instalasi
+
+```bash
+pip install graphiti-core httpx
+```
+
 ## Lingkungan
 
 ```bash
@@ -36,7 +42,10 @@ llm_config = LLMConfig(
     base_url="https://api.tokenlab.sh/v1",
 )
 
-llm_client = OpenAIGenericClient(config=llm_config)
+llm_client = OpenAIGenericClient(
+    config=llm_config,
+    structured_output_mode="json_object",
+)
 ```
 
 Teruskan `llm_client` ke dalam instance `Graphiti(...)` Anda bersama dengan konfigurasi basis data grafik dan embedder Anda.

@@ -144,8 +144,7 @@ Para novos projetos agênticos, o LangChain recomenda considerar o LangGraph par
 </Note>
 
 ```python
-from langchain.agents import create_openai_tools_agent, AgentExecutor
-from langchain_core.prompts import ChatPromptTemplate
+from langchain.agents import create_agent
 from langchain_core.tools import tool
 
 @tool
@@ -155,17 +154,16 @@ def search(query: str) -> str:
 
 tools = [search]
 
-prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are a helpful assistant with access to tools."),
-    ("human", "{input}"),
-    ("placeholder", "{agent_scratchpad}")
-])
+agent = create_agent(
+    model=llm,
+    tools=tools,
+    system_prompt="You are a helpful assistant with access to tools.",
+)
 
-agent = create_openai_tools_agent(llm, tools, prompt)
-executor = AgentExecutor(agent=agent, tools=tools)
-
-result = executor.invoke({"input": "Search for TokenLab pricing"})
-print(result["output"])
+result = agent.invoke({
+    "messages": [{"role": "user", "content": "Search for TokenLab pricing"}]
+})
+print(result["messages"][-1].content)
 ```
 
 ## Boas práticas

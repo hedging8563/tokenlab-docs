@@ -18,7 +18,7 @@ Instrumentasi OpenAI dari OpenLLMetry melacak panggilan yang dilakukan melalui S
 ## Instalasi
 
 ```bash
-pip install opentelemetry-instrumentation-openai openai
+pip install opentelemetry-instrumentation-openai opentelemetry-sdk openai
 ```
 
 ## Lingkungan
@@ -29,11 +29,20 @@ export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 
 ## Contoh
 
+Contoh mandiri ini menampilkan span di terminal. Jika aplikasi Anda sudah memiliki tracer provider OpenTelemetry, gunakan kembali provider dan exporter yang ada.
+
 ```python
 import os
 
 from openai import OpenAI
+from opentelemetry import trace
 from opentelemetry.instrumentation.openai import OpenAIInstrumentor
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import ConsoleSpanExporter, SimpleSpanProcessor
+
+tracer_provider = TracerProvider()
+tracer_provider.add_span_processor(SimpleSpanProcessor(ConsoleSpanExporter()))
+trace.set_tracer_provider(tracer_provider)
 
 OpenAIInstrumentor().instrument()
 

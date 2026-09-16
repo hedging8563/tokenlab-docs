@@ -36,5 +36,5 @@ curl -X GET "https://api.tokenlab.sh/v1/files/file_abc123/content" \
 
 ## 重要字段
 
-<ResponseField name="body" type="binary|string">文件内容。请根据 `Content-Type` 保存或解析。</ResponseField>
-<ResponseField name="custom_id" type="string">批处理输入和结果之间的对应 ID。</ResponseField>
+<ResponseField name="body" type="binary|string">文件内容。请根据 `Content-Type` 保存或解析；JSONL 应逐行解析。</ResponseField>
+<ResponseField name="custom_id" type="string">批处理输入项和结果之间的对应 ID。</ResponseField>

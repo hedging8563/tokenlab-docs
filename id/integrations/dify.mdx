@@ -1,22 +1,11 @@
 ---
 title: "Dify"
-description: "Integrasikan TokenLab dengan Dify menggunakan penyedia OpenAI dan base URL kustom"
+description: "Integrasikan TokenLab dengan Dify menggunakan penyedia OpenAI-API-compatible dan base URL kustom"
 ---
 
 ## Gambaran Umum
 
-Dify bekerja dengan baik bersama TokenLab melalui alur penyedia model yang kompatibel dengan OpenAI.
-
-Ini adalah jalur integrasi yang berorientasi pada chat-completions. Hal ini tidak boleh dianggap sebagai jaminan bahwa Dify mengekspos Respons atau perilaku WebSocket yang sama seperti integrasi Codex khusus.
-
-Untuk versi Dify saat ini, jalur teraman biasanya adalah:
-- pilih penyedia **OpenAI** bawaan
-- atur API key TokenLab Anda
-- atur base URL kustom ke `https://api.tokenlab.sh/v1`
-
-<Note>
-Beberapa build Dify yang lebih lama mengekspos ini sebagai `OpenAI-API-compatible` alih-alih penyedia `OpenAI` bawaan dengan kolom base URL kustom. Jika UI Dify Anda terlihat berbeda, gunakan alur penyedia kustom yang kompatibel dengan OpenAI yang tersedia di versi tersebut.
-</Note>
+Gunakan plugin penyedia model **OpenAI-API-compatible** untuk menghubungkan Dify ke TokenLab. Atur jenis model ke **LLM**, **Completion mode** ke **Chat**, dan **API Type** ke **Chat Completions API**. Panduan ini menggunakan Chat Completions.
 
 <Note>
 **Tipe**: Framework atau Platform
@@ -45,8 +34,8 @@ Beberapa build Dify yang lebih lama mengekspos ini sebagai `OpenAI-API-compatibl
   <Step title="Buka Model Providers">
     Di Dify, buka **Settings** → **Model Providers**
   </Step>
-  <Step title="Pilih OpenAI">
-    Buka pengaturan penyedia **OpenAI**. Jika versi Dify Anda tidak menawarkan base URL kustom di sini, gunakan opsi penyedia kustom yang kompatibel dengan OpenAI yang diekspos oleh versi tersebut.
+  <Step title="Pilih OpenAI-API-compatible">
+    Buka **OpenAI-API-compatible**. Jika belum tersedia, instal plugin penyedia model tersebut dari Dify Marketplace. Pilih **Add model** untuk memasukkan pengaturan TokenLab.
   </Step>
   <Step title="Masukkan Pengaturan TokenLab">
     Gunakan nilai berikut:
@@ -54,7 +43,10 @@ Beberapa build Dify yang lebih lama mengekspos ini sebagai `OpenAI-API-compatibl
     | Kolom | Nilai |
     |-------|-------|
     | API Key | `sk-your-tokenlab-key` |
-    | API Base URL / Custom Base URL | `https://api.tokenlab.sh/v1` |
+    | Model type | LLM |
+    | Completion mode | Chat |
+    | API Type | Chat Completions API |
+    | API Base URL | `https://api.tokenlab.sh/v1` |
   </Step>
   <Step title="Tambahkan Model">
     Tambahkan model yang ingin Anda gunakan, contohnya:
@@ -70,7 +62,7 @@ Beberapa build Dify yang lebih lama mengekspos ini sebagai `OpenAI-API-compatibl
 
 ### Langkah 3: Uji Koneksi
 
-1. Pilih satu model seperti `gpt-5-mini` atau `gpt-4o`
+1. Pilih model yang sudah Anda tambahkan, seperti `gpt-5.4-mini`.
 2. Kirim prompt uji
 3. Konfirmasikan bahwa Dify menerima respons yang valid
 
@@ -94,16 +86,16 @@ Kemudian atur sebagai model embedding default di pengaturan knowledge base atau 
 ## Praktik Terbaik
 
 <AccordionGroup>
-  <Accordion title="Mulai dengan penyedia OpenAI bawaan">
-    Pada versi Dify yang lebih baru, penyedia OpenAI bawaan dengan base URL kustom biasanya merupakan pengaturan yang paling bersih untuk TokenLab.
+  <Accordion title="Plugin OpenAI sebagai alternatif">
+    Plugin **OpenAI** yang terpisah dapat digunakan untuk model yang didukung katalognya. Atur base URL kustom ke `https://api.tokenlab.sh/v1` dan **API Protocol** ke **Chat Completions**; nilai default-nya bisa berupa Responses. Plugin ini bukan nama lama OpenAI-API-compatible dan tidak menerima setiap ID model kustom.
   </Accordion>
 
   <Accordion title="Gunakan model yang lebih murah untuk iterasi">
     Gunakan `gpt-5.4-mini`, `gemini-3.5-flash`, atau `deepseek-v4-flash` saat melakukan iterasi, kemudian alihkan alur kerja yang lebih berat ke model yang lebih kuat hanya jika diperlukan.
   </Accordion>
 
-  <Accordion title="Ingat bahwa Dify biasanya berorientasi pada chat-completions">
-    Sebagian besar alur Dify menggunakan perilaku chat yang kompatibel dengan OpenAI. Jika Anda memerlukan Respons atau perilaku WebSocket khusus Codex, gunakan integrasi Codex khusus alih-alih Dify.
+  <Accordion title="Pengaturan ini menggunakan Chat Completions">
+    Pertahankan **Completion mode = Chat** dan **API Type = Chat Completions API** untuk pengaturan ini. Responses merupakan opsi API terpisah; panduan ini tidak mengonfigurasi opsi tersebut atau koneksi WebSocket.
   </Accordion>
 </AccordionGroup>
 

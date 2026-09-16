@@ -8,7 +8,7 @@ description: "쿼리와의 관련성에 따라 문서의 순위를 재조정합�
 
 ## 요청 본문
 
-**동기 요청 타임아웃:** 이 비채팅 엔드포인트는 라우팅된 모델이 완료될 때까지 기다립니다. 큰 입력, 긴 오디오, 큰 배치는 일반적인 30s 클라이언트 기본값을 초과할 수 있으므로 HTTP 클라이언트 타임아웃을 최소 `120s` 로 설정하세요.
+큰 입력의 경우 HTTP 클라이언트 타임아웃을 최소 `120s`로 설정하세요. 처리 완료 후 응답합니다.
 
 <ParamField body="model" type="string" required>
   사용할 reranker 모델의 ID입니다 (예: `qwen3-vl-rerank`).
@@ -23,7 +23,7 @@ description: "쿼리와의 관련성에 따라 문서의 순위를 재조정합�
 </ParamField>
 
 <ParamField body="top_n" type="integer">
-  반환할 상위 결과 수입니다. 기본값은 모든 documents입니다. 최소 `1` 이상, `documents.length` 이하여야 합니다. provider가 나중에 더 엄격한 공개 제한을 발표하면 TokenLab은 여기에 문서화하고 적용합니다.
+  반환할 상위 결과 수로 `1`부터 `documents.length`까지입니다. 생략하면 선택한 모델이 반환 수를 결정합니다.
 </ParamField>
 
 <ParamField body="return_documents" type="boolean" default="false">
@@ -37,16 +37,16 @@ description: "쿼리와의 관련성에 따라 문서의 순위를 재조정합�
 
   각 결과에는 다음이 포함됩니다:
   - `index` (integer): 원본 문서 인덱스
-  - `relevance_score` (number): 관련성 점수 (0-1)
+  - `relevance_score` (number): 관련성 점수이며 범위는 선택한 모델에 따라 다릅니다.
   - `document` (string): 원본 텍스트 (`return_documents=true`인 경우)
 </ResponseField>
 
 <ResponseField name="model" type="string">
-  재순위화에 사용된 모델입니다.
+  재순위화에 사용된 모델입니다. 사용 가능한 경우 반환됩니다.
 </ResponseField>
 
 <ResponseField name="usage" type="object">
-  토큰 사용량 통계입니다.
+  토큰 사용량 통계입니다. 사용 가능한 경우 반환됩니다.
 </ResponseField>
 
 <RequestExample>

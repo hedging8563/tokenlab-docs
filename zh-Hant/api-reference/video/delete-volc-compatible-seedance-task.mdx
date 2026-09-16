@@ -6,13 +6,15 @@ description: "在任務仍可取消時取消 Seedance 相容任務。"
 
 ## 概覽
 
-這些介面面向已經使用火山風格 Seedance 任務結構的團隊。鑑權使用 TokenLab Bearer API Key。返回的任務 ID 以 `cgt-` 開頭；請輪詢狀態介面，直到 `status` 變為 `succeeded`、`failed`、`cancelled` 或 `expired`。
+使用 TokenLab Bearer API 金鑰與 `cgt-...` ID 請求取消。取消會盡力執行，僅當任務仍可取消時成功。
 
 另見 [Seedance 2.0 影片模型](/zh-Hant/guides/seedance-2-video) 和 [影片生成](/zh-Hant/guides/video-generation).
 
 ## 回應結構
 
 取消成功時返回 HTTP 200，回應體為空。需要確認最終狀態時，請繼續查詢任務。
+
+任務已完成、失敗、過期或不再可取消時，端點會回傳錯誤。請查詢任務確認狀態；已取消的任務沒有影片結果。
 
 ## 範例
 

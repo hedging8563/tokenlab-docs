@@ -8,10 +8,12 @@ Bir materyal grubunu ve içindeki TokenLab materyal varlıklarını silin. Bu i�
 
 Eğer TokenLab materyal kütüphanesi, mevcut yetkilendirme durumu izin vermediği için silme işlemini tamamlayamazsa, TokenLab nötr bir materyal kütüphanesi hatası döndürür. Silme işleminden sonra, grup ve içindeki varlıklar video oluşturma sürecinde artık kullanılamaz.
 
+`project_name`, kimliği doğrulanmış organizasyon içindeki kaynakları ayırır. Varsayılanı `default` değeridir; ilgili grup ve varlıklarda büyük/küçük harfe duyarlı aynı değeri kullanın. POST/PUT için JSON gövdesinde, GET/DELETE için sorgu parametresi olarak gönderin.
+
 ## Örnek İstek
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01 \
+curl "https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01?project_name=default" \
   -X DELETE \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```

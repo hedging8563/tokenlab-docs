@@ -10,11 +10,15 @@ description: "將 Seedance 素材資產上傳至 TokenLab 素材群組。"
 
 | 類型 | 支援的輸入 |
 |------|-----------------|
-| 圖片 | `jpeg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`；長寬比 `(0.4, 2.5)`；寬度和高度 `(300, 6000)` px；小於 30 MB。 |
-| 影片 | `mp4`, `mov`；`480p`, `720p` 或 `1080p`；2-15 秒；長寬比 `[0.4, 2.5]`；寬度和高度 `[300, 6000]` px；總像素介於 409600 與 2068676 之間；最大 200 MB；24-60 FPS。 |
-| 音訊 | `aac`, `wav`, `mp3`；2-15 秒；最大 15 MB。 |
+| 圖片 | `jpeg`, `jpg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`; ≤30 MiB; 寬度和高度 `[300, 6000]` px; 寬高比 `[0.4, 2.5]`. |
+| 影片 | `mp4`, `mov`; ≤200 MiB. |
+| 音訊 | `aac`, `wav`, `mp3`; ≤15 MiB. |
+
+TokenLab 會檢查來源 URL、媒體類型、檔案大小和可讀取的圖片尺寸。接受匯入不代表素材已就緒：請等待 `ACTIVE`，處理失敗時查看 `error_message`。其他媒體及人臉要求在處理期間驗證。
 
 建立過程為非同步。請輪詢 [取得素材資產](/zh-Hant/api-reference/video/get-material-asset) 直到 `status` 變為 `ACTIVE`。對於真人群組，一個群組對應一個已驗證的人員；若上傳包含多張人臉或與已驗證人員不符的人臉，可能會導致失敗。
+
+`project_name` 用於同一組織內的資源隔離，預設為 `default`。相關素材群組和素材須使用相同且區分大小寫的值；POST/PUT 在 JSON 請求主體中傳入，GET/DELETE 在查詢參數中傳入。
 
 ## 請求範例
 
@@ -22,7 +26,7 @@ description: "將 Seedance 素材資產上傳至 TokenLab 素材群組。"
 curl https://api.tokenlab.sh/v1/videos/assets \
   -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"library_type":"aigc_avatar","group_id":"group-20260720123456-vrt01","asset_url":"https://example.com/reference.png","asset_type":"Image","asset_name":"Front view"}'
+  -d '{"library_type":"aigc_avatar","group_id":"group-20260720123456-vrt01","asset_url":"https://example.com/reference.png","asset_type":"Image","asset_name":"Front view","project_name":"default"}'
 ```
 
 ## 回應範例
@@ -31,6 +35,7 @@ curl https://api.tokenlab.sh/v1/videos/assets \
 {
   "id": "asset-20260720123456-qn7wr",
   "object": "seedance.material_asset",
+  "project_name": "default",
   "group_id": "group-20260720123456-vrt01",
   "library_type": "aigc_avatar",
   "asset_name": "Front view",

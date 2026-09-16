@@ -7,7 +7,9 @@ import VideoModelContracts from "../snippets/generated/video-model-contracts.mdx
 
 視頻生成是異步的。 `POST /v1/videos/generations` 返回一個公共任務身份，通常還會返回一個 `poll_url`；最終視頻會在後續的狀態響應中出現。
 
-當所選 Seedance 模型可使用 TokenLab 素材庫時，圖片 URL 和支援的內嵌 data URL 會在生成前自動準備為可重複使用的 TokenLab 素材。如果準備超過 60 秒，請在回傳的 `auto_material_asset_ids` 變為 `ACTIVE` 後重試。如果所選模型暫不可使用素材庫，一般圖片輸入仍會走常規圖片路徑。
+可在所選模型支援的圖片欄位中傳入公開 HTTP(S) URL 或支援的 data URL。這些輸入沿一般媒體路徑處理，不會自動建立可重用的素材 ID。
+
+明確指定的素材仍在準備時，`POST /v1/videos/generations` 回傳 `409 seedance_material_preparing`，並以 `inactive_asset_ids` 列出相關素材。查詢直到 `ACTIVE`，再用相同素材 ID 重試。若為 `FAILED`，先依 `error_message` 修正或重新匯入。
 
 ## 支援的操作
 
@@ -27,20 +29,20 @@ import VideoModelContracts from "../snippets/generated/video-model-contracts.mdx
 ## 模型發現
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \\
+curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 
-`model` 應使用 TokenLab 顯示的模型 ID，再用 `operation` 和對應媒體輸入選擇操作能力。示例包括 `wan-2.7`、`happyhorse-1.0`、`viduq3`、`viduq3-mix`、`pixverse-v6`、`kling-3.0-video`、`veo3.1`、`seedance-2.0`；不要把供應商的操作名稱當成 TokenLab 模型名。
+`model` 應使用 TokenLab 顯示的模型 ID，再用 `operation` 和對應媒體輸入選擇操作能力。示例包括 `wan-2.7`、`happyhorse-1.0`、`viduq3`、`viduq3-mix`、`pixverse-v6`、`veo3.1`、`seedance-2.0`；不要把供應商的操作名稱當成 TokenLab 模型名。
 
 在依賴於專用字段如 `reference_images`、`kling_elements`、`output_audio`、`duration`、`resolution` 或 `aspect_ratio` 之前，請閱讀所選模型的詳細信息。
 
 ## 創建請求
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/generations \\
-  -H "Authorization: Bearer sk-your-api-key" \\
-  -H "Content-Type: application/json" \\
+curl https://api.tokenlab.sh/v1/videos/generations \
+  -H "Authorization: Bearer sk-your-api-key" \
+  -H "Content-Type: application/json" \
   -d '{
     "model": "veo3.1",
     "operation": "text-to-video",
@@ -55,9 +57,8 @@ curl https://api.tokenlab.sh/v1/videos/generations \\
 ## 輸入和模型特定字段
 
 - Veo 3 系列請求默認為音頻開啟，當 `output_audio` 被省略時。當模型支持切換且您的用戶體驗依賴於聲音時，請明確設置它。
-- `kling_elements` 用於 `kling-3.0-video` 圖像條件請求。在 `prompt` 中引用每個元素為 `@name`；不要將其與 `output_audio=true` 結合使用。
 - 使用 Seedance 2.0 家族的 4K 輸出、Fast/Mini 解析度邊界或多模態參考輸入前，請閱讀 [Seedance 2.0 影片模型指南](/zh-Hant/guides/seedance-2-video)。
-- 對於 `grok-imagine-video`，video-to-video 使用公共的 `.mp4` `video_url`；模型特定的限制如 `duration` 和 `resolution` 必須來自模型說明。
+- `grok-imagine-video` 的 video-to-video 使用 `prompt` 與公開 HTTPS `.mp4` `video_url`；此操作不使用 `duration`、`resolution` 或 `aspect_ratio` 選項。
 
 <VideoModelContracts />
 

@@ -8,10 +8,12 @@ Truy xuất một tài nguyên vật liệu và kiểm tra trạng thái xử l�
 
 Nếu quá trình tạo video trả về lỗi `Seedance material asset not found or not accessible`, hãy xác minh rằng bạn đã truyền đúng `id` của tài nguyên vật liệu này, thay vì `group_id` của vật liệu.
 
+`project_name` tách biệt tài nguyên trong tổ chức đã xác thực. Mặc định là `default`; dùng cùng một giá trị phân biệt chữ hoa, chữ thường cho nhóm và tài nguyên liên quan. Gửi trong nội dung JSON với POST/PUT và tham số truy vấn với GET/DELETE.
+
 ## Ví dụ yêu cầu
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr \
+curl "https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr?project_name=default" \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```
 
@@ -21,6 +23,7 @@ curl https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr \
 {
   "id": "asset-20260720123456-qn7wr",
   "object": "seedance.material_asset",
+  "project_name": "default",
   "group_id": "group-20260720123456-vrt01",
   "library_type": "aigc_avatar",
   "asset_name": "Front view",

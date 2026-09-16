@@ -8,13 +8,15 @@ description: "إنشاء مجموعة مواد للصور الرمزية الا�
 
 يتم إنشاء مجموعات المواد الخاصة بالأشخاص الحقيقيين من خلال [إنشاء جلسة تحقق مرئي](/ar/api-reference/video/create-visual-validation-session) ولا يمكن إنشاؤها مباشرة باستخدام نقطة النهاية هذه.
 
+يعزل `project_name` الموارد داخل المؤسسة المصادق عليها. قيمته الافتراضية `default`؛ استخدم القيمة نفسها مع مراعاة حالة الأحرف للمجموعات والأصول المرتبطة. أرسله في جسم JSON مع POST/PUT وفي معاملات الاستعلام مع GET/DELETE.
+
 ## مثال على الطلب
 
 ```bash
 curl https://api.tokenlab.sh/v1/videos/assets/groups \
   -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"library_type":"aigc_avatar","group_name":"Product references","description":"Reusable product shots"}'
+  -d '{"library_type":"aigc_avatar","group_name":"Product references","description":"Reusable product shots","project_name":"default"}'
 ```
 
 ## مثال على الاستجابة
@@ -23,6 +25,7 @@ curl https://api.tokenlab.sh/v1/videos/assets/groups \
 {
   "id": "group-20260720123456-vrt01",
   "object": "seedance.material_asset_group",
+  "project_name": "default",
   "library_type": "aigc_avatar",
   "group_name": "Product references",
   "description": "Reusable product shots",

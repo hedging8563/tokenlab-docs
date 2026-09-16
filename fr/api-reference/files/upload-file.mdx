@@ -1,7 +1,7 @@
 ---
 title: "Télécharger un fichier"
 openapi: "POST /v1/files"
-description: "Télécharge un fichier d'entrée en lot JSONL pour une création en lot ultérieure."
+description: "Téléverser un fichier de lot, une référence d’image ou un fichier au format Anthropic."
 ---
 
 ## Aperçu
@@ -43,7 +43,6 @@ Utilisez le panneau OpenAPI interactif ci-dessus pour le schéma exact.
 
 - Utilisez `custom_id` pour la réconciliation idempotente en aval.
 - Attendez-vous à ce que `output_file_id` et `error_file_id` ne soient disponibles qu'après que le travailleur finalise le lot.
-- La tarification des lots peut différer de la tarification synchrone car les règles de remise `isBatchRequest=true` s'appliquent.
 ## Entrées de fichiers image
 
 Cette même route `/v1/files` peut aussi téléverser des fichiers image de référence pour `/v1/images/edits`.

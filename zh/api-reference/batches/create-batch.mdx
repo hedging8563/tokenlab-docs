@@ -12,7 +12,7 @@ description: "使用已上传的 JSONL 文件创建批处理任务。"
 - `completion_window` 当前为 `24h`。
 - 输出顺序可能与输入不同，请用每行的 `custom_id` 对应结果。
 - 批处理项内不支持流式传输。
-- 目前支持 `/v1/chat/completions` 和 `/v1/embeddings`，不支持 `/v1/responses`。
+- 支持的批处理项端点为 `/v1/chat/completions` 和 `/v1/embeddings`，不支持 `/v1/responses`。
 
 ## 示例
 

@@ -39,8 +39,8 @@ description: "اقرأ رموز الخطأ، وأعد المحاولة فقط ع
 
 | الرمز | ماذا يعني | ماذا يجب أن تغير |
 | --- | --- | --- |
-| `invalid_api_key` | مفتاح API مفقود أو غير صالح | تحقق من ترويسة Authorization وقيمة المفتاح |
-| `expired_api_key` | المفتاح منتهي الصلاحية أو تم إلغاؤه | أنشئ أو اختر مفتاحًا نشطًا |
+| `invalid_api_key` | مفتاح API مفقود أو غير صالح أو غير نشط أو ملغى | تحقق من ترويسة Authorization وقيمة المفتاح |
+| `expired_api_key` | انتهت صلاحية مفتاح API | أنشئ أو اختر مفتاحًا نشطًا |
 | `insufficient_balance` | رصيد الحساب لا يغطي الطلب | أضف رصيدًا، أو قلل الطلب، أو اختر نموذجًا أقل تكلفة |
 | `quota_exceeded` | وصل مفتاح API إلى حده الخاص | زد حد ذلك المفتاح أو استخدم مفتاحًا مصرحًا به آخر |
 | `model_not_allowed` | المفتاح لا يمكنه استخدام النموذج المطلوب | حدّث قائمة نماذج المفتاح أو اختر نموذجًا مسموحًا به |
@@ -65,43 +65,10 @@ description: "اقرأ رموز الخطأ، وأعد المحاولة فقط ع
 
 بالنسبة لإنشاء الصور والفيديو والموسيقى والنماذج ثلاثية الأبعاد والعوالم، احفظ معرف المهمة (task ID) بمجرد إرجاعه. إذا انتهت مهلة طلب الإنشاء، تحقق من سجل المهمة قبل إرسال طلب إنشاء آخر.
 
-## مثال بلغة Python
-
-```python
-import random
-import time
-from openai import OpenAI, APIConnectionError, APIStatusError, RateLimitError
-
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1",
-)
-
-def chat(messages, model="gpt-5.6-luna", attempts=3):
-    for attempt in range(attempts):
-        try:
-            return client.chat.completions.create(
-                model=model,
-                messages=messages,
-            )
-        except RateLimitError as exc:
-            if attempt == attempts - 1:
-                raise
-            retry_after = exc.response.headers.get("Retry-After")
-            wait = float(retry_after) if retry_after else (2 ** attempt + random.random())
-            time.sleep(wait)
-        except APIStatusError as exc:
-            if exc.status_code < 500 or attempt == attempts - 1:
-                raise
-            time.sleep(2 ** attempt + random.random())
-        except APIConnectionError:
-            if attempt == attempts - 1:
-                raise
-            time.sleep(2 ** attempt + random.random())
-```
-
 ## احتفظ بمعرف الطلب (Request ID)
 
 تتضمن ترويسات الاستجابة معرف طلب (Request ID) للتتبع. احفظه مع نقطة النهاية، والنموذج، والوقت، ومعرف المستخدم أو الوظيفة الخاص بك. بالنسبة للعمليات غير المتزامنة (async)، احفظ أيضًا `task_id` و `billing_transaction_id` عند توفرهما.
 
 عند التواصل مع الدعم، قم بتضمين تلك المعرفات ومثال منقح. لا ترسل أبدًا مفاتيح API، أو رموز الإدارة (management tokens)، أو الوسائط الخاصة، أو الروابط الموقعة، أو المطالبات الخاصة الكاملة.
+
+[من الطلب إلى التحقيق والدعم](/ar/guides/observability-troubleshooting)

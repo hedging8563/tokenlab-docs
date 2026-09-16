@@ -19,7 +19,7 @@ Use `/v1/worlds/generations/{id}` for pending or failed generation tasks. This l
 </ParamField>
 
 <ParamField body="status" type="string">
-  Optional status filter. TokenLab returns completed worlds for `SUCCEEDED`; other statuses belong to the generation task endpoint.
+  Optional filter: `SUCCEEDED`, `PENDING`, `RUNNING`, or `FAILED`. This endpoint lists completed worlds; the other three values return an empty list. Query generation tasks for their progress.
 </ParamField>
 
 <ParamField body="model" type="string">
@@ -56,7 +56,7 @@ Use `/v1/worlds/generations/{id}` for pending or failed generation tasks. This l
   Array of world records.
 </ResponseField>
 
-<ResponseField name="next_page_token" type="string">
+<ResponseField name="next_page_token" type="string | null">
   Token for the next page, or `null`.
 </ResponseField>
 

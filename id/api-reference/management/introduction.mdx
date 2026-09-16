@@ -50,10 +50,11 @@ Jika `startDate` dan `endDate` sama-sama ada, `startDate` harus lebih kecil dari
 
 | Bidang | Tipe | Default / Batas | Catatan |
 |-------|------|-----------------|---------|
-| `name` | string | wajib, bawaan `Default Key`, panjang `1-50` | Nama tampilan, dipangkas di sisi server |
-| `limitAmount` | number \| null | minimum `0`, input maksimum `1000000` | `null` atau dihilangkan = tidak terbatas, `0` = kuota nol. Nilai positif dinormalisasi menjadi batas simpan yang tidak melebihi setara `100000` USD |
+| `name` | string | opsional, bawaan `Default Key`, panjang `1-50` | Nama tampilan, dipangkas di sisi server |
+| `limitAmount` | number \| string \| null | `0–100000` USD | `null` berarti tanpa batas; `0` mencegah pengeluaran. String desimal mendukung hingga 6 angka desimal. Saat membuat kunci, menghilangkan kolom ini berarti tanpa batas. |
 | `limitCurrency` | enum | bawaan `USD` | Hanya USD. Mengirim `CNY` menghasilkan `400 currency_retired`. |
 | `models` | string[] | bawaan `[]` | Daftar izin model opsional |
+| `deliveryPolicy` | string \| null | `auto`, `verified`, `official`, `null` | `null` mewarisi kebijakan pengiriman ruang kerja. |
 | `expiresAt` | string \| null | datetime RFC3339 | `null` berarti tidak kedaluwarsa |
 
 ### PATCH /v1/management/api-keys/{keyId}
@@ -62,9 +63,10 @@ Jika `startDate` dan `endDate` sama-sama ada, `startDate` harus lebih kecil dari
 |-------|------|-----------------|---------|
 | `status` | enum | - | `active`, `inactive`, `revoked` |
 | `name` | string | panjang `1-50` | Nama tampilan yang diperbarui |
-| `limitAmount` | number \| null | minimum `0`, input maksimum `1000000` | `null` = tidak terbatas, `0` = kuota nol. Nilai positif dinormalisasi menjadi batas simpan yang tidak melebihi setara `100000` USD |
-| `limitCurrency` | enum | bawaan `USD` | Hanya USD. Mengirim `CNY` menghasilkan `400 currency_retired`. |
+| `limitAmount` | number \| string \| null | `0–100000` USD | `null` berarti tanpa batas; `0` mencegah pengeluaran. String desimal mendukung hingga 6 angka desimal. |
+| `limitCurrency` | enum | bawaan `USD` | Hanya USD. Mengirim `CNY` menghasilkan `400 currency_retired`. Jika diisi, `limitAmount` juga wajib disertakan. |
 | `models` | string[] | - | Daftar izin model yang diperbarui |
+| `deliveryPolicy` | string \| null | `auto`, `verified`, `official`, `null` | `null` mewarisi kebijakan pengiriman ruang kerja. |
 | `expiresAt` | string \| null | datetime RFC3339 | `null` menghapus masa kedaluwarsa |
 
 Setidaknya satu field PATCH harus diberikan.
@@ -121,10 +123,14 @@ curl "https://api.tokenlab.sh/v1/management/api-keys" \
       "limit_amount_decimal": "500",
       "used_amount": 148.25,
       "used_amount_decimal": "148.25",
-      "models": ["gpt-4o-mini", "claude-3-7-sonnet"],
+      "models": [
+        "gpt-4o-mini",
+        "claude-3-7-sonnet"
+      ],
       "expires_at": "2026-04-30T00:00:00.000Z",
       "last_used_at": "2026-03-27T08:12:45.000Z",
-      "created_at": "2026-03-01T10:00:00.000Z"
+      "created_at": "2026-03-01T10:00:00.000Z",
+      "delivery_policy": null
     }
   ],
   "pagination": {

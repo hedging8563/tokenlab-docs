@@ -29,7 +29,7 @@ https://docs.tokenlab.sh/zh/integrations/opencode
 [OpenCode](https://opencode.ai/docs/)
 
 ```bash
-npm install -g opencode-ai
+npm install -g opencode-ai@1.18.31
 ```
 
 验证安装：
@@ -42,22 +42,13 @@ opencode --version
 
 ### 第 1 步：设置环境变量
 
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
-
-如需永久配置，请添加到 `~/.bashrc` 或 `~/.zshrc`：
-
-```bash
-echo 'export TOKENLAB_API_KEY="sk-your-tokenlab-key"' >> ~/.zshrc
-source ~/.zshrc
-```
+按[快速开始](/zh/quickstart)中 macOS、Linux、WSL 或 Windows PowerShell 的终端步骤设置 `TOKENLAB_API_KEY`，避免把密钥写进命令历史，然后从同一终端启动 OpenCode。长期使用请通过本地密钥管理器提供密钥，不要把明文密钥追加到 shell 配置文件。
 
 ### 第 2 步：配置 OpenCode
 
-OpenCode 当前文档建议通过 `opencode.json` 或 `opencode.jsonc` 配置提供方。对于 TokenLab，请使用自定义提供方，而不是复用内置的 `openai` 提供方：
+以下配置已在 **OpenCode 1.18.31** 核验；其他版本需按其官方文档重新确认。
 
-示例使用仍受支持的 V1 提供商格式，合并到 `~/.config/opencode/opencode.json` 并保留已有提供商和权限。V2 可以读取受支持的 V1 配置，不要在同一提供商内部混入 V2 字段，参见[官方迁移说明](https://opencode.ai/v2/docs/migrate-v1/)。先用 `/models` 检查注册，再用付费测试和 TokenLab 请求记录核对调用。恢复时选择原模型，仅移除本次配置。
+将下面配置保存为独立的 `~/.config/opencode/tokenlab.jsonc`；若设置了 `XDG_CONFIG_HOME`，则使用该目录下的 `opencode/tokenlab.jsonc`。保留常规 `opencode.json` / `opencode.jsonc`、账户、默认模型和权限；只有本次启动通过 `OPENCODE_CONFIG` 选择此文件时才加载它。若该文件或提供商名称已用于其他配置，请另选文件或名称，并同步修改启动命令。
 
 ```jsonc
 {
@@ -79,34 +70,46 @@ OpenCode 当前文档建议通过 `opencode.json` 或 `opencode.jsonc` 配置提
         }
       }
     }
-  },
-  "model": "tokenlab/gpt-5.6-terra"
+  }
 }
 ```
 
 <Note>
-使用 `@ai-sdk/openai-compatible` 以获得 chat-completions 风格的兼容性。如果你明确需要基于 `/v1/responses` 构建的提供方路径，OpenCode 文档建议将 package 切换为 `@ai-sdk/openai`。
+这里使用 `@ai-sdk/openai-compatible` 发送 Chat Completions。请按当前模型详情确认 Chat Completions 及所需工具支持；此示例不能证明其他协议或版本兼容。
 </Note>
+
+可选：使用[可恢复的 OpenCode 配置器](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/skills/tokenlab-api-integration/references/opencode_setup.md)，通过 Python 3.11+ 预览、应用并恢复原文件。TokenLab Skills 插件 **0.1.2** 已包含新脚本；独立安装的 Skill 更新到包含这些脚本的版本后也可使用。已安装插件或独立 Skill 的用户请按 [README 更新说明](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/README.md#update-an-existing-installation)更新，并确认脚本已安装。也可直接完成本页手工配置。
 
 ## 基本用法
 
-**启动交互模式：**
+按快速开始设置密钥后，仅为本次启动加载此文件并显式选择模型。若使用自定义路径或提供商名称，请相应替换。已有 `OPENCODE_CONFIG` 或内联 `OPENCODE_CONFIG_CONTENT` 配置时，保留原设置并使用独立启动环境；项目及托管设置仍可能优先。
 
-```bash
-opencode
+<CodeGroup>
+```bash macOS / Linux / WSL
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode models tokenlab
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode --model tokenlab/gpt-5.6-terra
 ```
 
-**使用 prompt 运行：**
-
-```bash
-opencode run "Explain this codebase"
+```powershell Windows PowerShell
+$tokenlabConfigRoot = if ($env:XDG_CONFIG_HOME) { $env:XDG_CONFIG_HOME } else { Join-Path $HOME '.config' }
+$previousConfig = $env:OPENCODE_CONFIG
+try {
+  $env:OPENCODE_CONFIG = Join-Path $tokenlabConfigRoot 'opencode/tokenlab.jsonc'
+  opencode models tokenlab
+  opencode --model tokenlab/gpt-5.6-terra
+} finally {
+  if ($null -eq $previousConfig) {
+    Remove-Item Env:OPENCODE_CONFIG -ErrorAction SilentlyContinue
+  } else {
+    $env:OPENCODE_CONFIG = $previousConfig
+  }
+}
 ```
+</CodeGroup>
 
-**指定模型：**
+模型列表只能验证本机加载，不能证明密钥有效或线上请求成功。发送提示词会使用 TokenLab 余额，OpenCode 还可能发出标题生成等单独计费的辅助请求。请核对回复及对应[请求记录](https://tokenlab.sh/dashboard/runs?section=requests)。
 
-```bash
-opencode run --model tokenlab/gpt-5.6-terra "Fix the bugs in main.py"
-```
+不加载此文件即可按原配置启动。不要为本教程把 `OPENCODE_CONFIG` 写入 shell 配置文件。撤销手工配置时，仅删除本次新建的独立文件；若原文件已存在，则恢复其备份。
 
 ## 可用模型
 
@@ -123,25 +126,25 @@ opencode run --model tokenlab/gpt-5.6-terra "Fix the bugs in main.py"
 **分析代码：**
 
 ```bash
-opencode run "What does this function do?" < src/utils.ts
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode run --model tokenlab/gpt-5.6-terra "What does this function do?" < src/utils.ts
 ```
 
 **生成代码：**
 
 ```bash
-opencode run "Create a REST API with Express"
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode run --model tokenlab/gpt-5.6-terra "Create a REST API with Express"
 ```
 
 **审查变更：**
 
 ```bash
-git diff | opencode run "Review these changes"
+git diff | OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode run --model tokenlab/gpt-5.6-terra "Review these changes"
 ```
 
 **修复错误：**
 
 ```bash
-opencode run "Fix the TypeScript errors in this project"
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode run --model tokenlab/gpt-5.6-terra "Fix the TypeScript errors in this project"
 ```
 
 ## 交互命令

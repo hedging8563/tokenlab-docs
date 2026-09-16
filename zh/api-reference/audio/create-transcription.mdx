@@ -6,14 +6,14 @@ description: "将音频转录为输入语言"
 
 ## 请求体
 
-该接口会在转录完成后返回。音频较长时，请将 HTTP 客户端超时设为至少 `120s`。
+转录可能直接返回文本，也可能以 HTTP `200`、`id` 和 `status` 返回已接受的异步任务。异步任务请按 `poll_url` 查询，或使用 `/v1/tasks/{id}`。同步处理较长音频时，请将客户端超时设为至少 `120s`。
 
 <ParamField body="file" type="file" required>
-  要转录的音频文件。支持的格式：flac、mp3、mp4、mpeg、mpga、m4a、ogg、wav、webm。
+  要转录的音频文件。支持的格式：flac、mp3、mp4、mpeg、mpga、m4a、ogg、wav、webm。 最大文件大小：25 MB。
 </ParamField>
 
 <ParamField body="model" type="string" default="whisper-1">
-  转录模型 ID，例如 `whisper-1`。
+  转录模型 ID，例如 `whisper-1` 或 `gpt-4o-transcribe`。通过 `GET /v1/models?recommended_for=stt` 获取当前可选模型。
 </ParamField>
 
 <ParamField body="language" type="string">
@@ -25,18 +25,20 @@ description: "将音频转录为输入语言"
 </ParamField>
 
 <ParamField body="response_format" type="string" default="json">
-  输出格式：`json`、`text`、`srt`、`verbose_json`、`vtt`。
+  输出格式。Whisper 支持 `json`、`text`、`srt`、`verbose_json` 和 `vtt`；其他模型支持的范围可能不同，请查询模型详情。
 </ParamField>
 
-<ParamField body="temperature" type="number" default="0">
-  采样温度（0 到 1）。
+<ParamField body="temperature" type="number">
+  采样温度，范围为 0–1，仅适用于支持此参数的模型。
 </ParamField>
 
 <ParamField body="timestamp_granularities" type="array">
-  时间戳粒度：`word` 和/或 `segment`。需要 `verbose_json`。
+  所选模型支持时，可指定 `word` 和/或 `segment`。Whisper 需要 `response_format=verbose_json`。multipart 请求中，多值应重复发送 `timestamp_granularities[]`。
 </ParamField>
 
 ## 响应
+
+以下字段用于 JSON 转录或翻译响应。`text`、`srt` 和 `vtt` 返回原始文本或字幕，而不是 JSON 对象。附加字段取决于模型和输出格式。
 
 <ResponseField name="text" type="string">
   转录后的文本。
@@ -45,7 +47,7 @@ description: "将音频转录为输入语言"
 对于 `verbose_json`：
 
 <ResponseField name="task" type="string">
-  始终为 `transcribe`。
+  返回时表示任务名称，例如 `transcribe`。
 </ResponseField>
 
 <ResponseField name="language" type="string">
@@ -62,6 +64,24 @@ description: "将音频转录为输入语言"
 
 <ResponseField name="words" type="array">
   词级时间戳（如已请求）。
+</ResponseField>
+
+已接受的异步转录任务返回以下字段，而不是转录文本：
+
+<ResponseField name="id" type="string">
+  任务 ID。
+</ResponseField>
+
+<ResponseField name="task_id" type="string">
+  返回时，作为异步任务标识的别名。
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  任务状态：`pending`、`processing`、`completed` 或 `failed`。
+</ResponseField>
+
+<ResponseField name="poll_url" type="string">
+  创建响应提供时，优先使用的轮询 URL。
 </ResponseField>
 
 <RequestExample>
@@ -155,9 +175,18 @@ echo $data['text'];
       "start": 0.0,
       "end": 2.5,
       "text": "Hello, this is a test",
-      "tokens": [...]
+      "tokens": [50364, 2425, 11]
     }
   ]
+}
+```
+
+```json HTTP 200 (async)
+{
+  "id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "task_id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "status": "pending",
+  "poll_url": "/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 }
 ```
 </ResponseExample>
@@ -167,8 +196,11 @@ echo $data['text'];
 需要英文结果时，使用音频翻译接口：
 
 ```python
-response = client.audio.translations.create(
-    model="whisper-1",
-    file=audio_file
-)
+with open("audio.mp3", "rb") as audio_file:
+    response = client.audio.translations.create(
+        model="whisper-1",
+        file=audio_file
+    )
+
+print(response.text)
 ```

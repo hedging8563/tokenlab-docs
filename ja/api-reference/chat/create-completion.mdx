@@ -6,6 +6,10 @@ description: "チャットメッセージの補完を作成します"
 
 ## リクエストボディ
 
+<Note>
+任意パラメーターの対応状況、指定可能な値、既定値は選択したモデルによって異なります。サンプリング、推論、ツールのオプションを設定する前に[モデルの詳細](/ja/api-reference/models/get-model)を確認してください。
+</Note>
+
 <ParamField body="model" type="string" required>
   使用するモデルのID。利用可能なオプションについては [Models](https://tokenlab.sh/ja/models) を参照してください。
 </ParamField>
@@ -14,8 +18,10 @@ description: "チャットメッセージの補完を作成します"
   会話を構成するメッセージの一覧。
 
   各メッセージオブジェクトは次を含みます:
-  - `role` (string): `system`, `user`, または `assistant`
-  - `content` (string | array): メッセージの内容
+  - `role` (string): `system`, `developer`, `user`, `assistant`, `tool`, `function`
+  - `content` (string | array | null): メッセージの内容
+
+  `tool_calls` を含む `assistant` メッセージでは、`content` を省略するか `null` にできます。
 
   `content` が配列の場合、TokenLab は互換モデル向けに構造化されたマルチモーダルブロックをサポートします:
   - text: `{ "type": "text", "text": "..." }`
@@ -23,11 +29,11 @@ description: "チャットメッセージの補完を作成します"
   - 動画: `{ "type": "video_url", "video_url": { "url": "https://..." } }`
   - 音声: `{ "type": "audio_url", "audio_url": { "url": "https://..." } }`
 
-  本番のマルチモーダルトラフィックでは、公開された `https` URL を優先してください。TokenLab はこれらのメディアブロックを、ルーティングされたモデルが要求するプロバイダ固有のリクエスト形式に変換します。
+  マルチモーダル入力には公開アクセス可能な `https` URL を使用してください。対応するメディアの種類は選択したモデルによって異なります。
 </ParamField>
 
-<ParamField body="temperature" type="number" default="1">
-  0〜2 の間のサンプリング温度。値が高いほど出力はよりランダムになります。
+<ParamField body="temperature" type="number">
+  サンプリング温度。対応状況、指定可能な値、既定値は選択したモデルによって異なります。省略するとモデルの既定値を使用します。
 </ParamField>
 
 <ParamField body="max_tokens" type="integer">
@@ -42,20 +48,20 @@ description: "チャットメッセージの補完を作成します"
   ストリーミングのオプション。`include_usage: true` を設定するとストリームチャンクでトークン使用量を受け取れます。
 </ParamField>
 
-<ParamField body="top_p" type="number" default="1">
+<ParamField body="top_p" type="number">
   Nucleus sampling のパラメータ。temperature または top_p のどちらかを変更することを推奨します（両方は推奨されません）。
 </ParamField>
 
-<ParamField body="frequency_penalty" type="number" default="0">
+<ParamField body="frequency_penalty" type="number">
   -2.0 から 2.0 の値。正の値は繰り返しトークンにペナルティを与えます。
 </ParamField>
 
-<ParamField body="presence_penalty" type="number" default="0">
+<ParamField body="presence_penalty" type="number">
   -2.0 から 2.0 の値。正の値は既にテキスト内に存在するトークンにペナルティを与えます。
 </ParamField>
 
 <ParamField body="stop" type="string | array">
-  API がトークン生成を停止する最大 4 つのシーケンス。
+  停止シーケンス、またはそのリスト。対応状況とシーケンス数の上限は選択したモデルによって異なります。
 </ParamField>
 
 <ParamField body="tools" type="array">
@@ -66,8 +72,8 @@ description: "チャットメッセージの補完を作成します"
   モデルがツールをどのように使用するかを制御します。オプション: `auto`, `none`, `required`, または特定のツールオブジェクト。
 </ParamField>
 
-<ParamField body="parallel_tool_calls" type="boolean" default="true">
-  並列での関数呼び出しを有効にするかどうか。false にすると関数を順次呼び出します。
+<ParamField body="parallel_tool_calls" type="boolean">
+  選択したモデルが対応している場合、アシスタントの1ターンで複数のツール呼び出しを許可します。
 </ParamField>
 
 <ParamField body="max_completion_tokens" type="integer">
@@ -75,14 +81,14 @@ description: "チャットメッセージの補完を作成します"
 </ParamField>
 
 <ParamField body="reasoning_effort" type="string">
-  推論対応モデル向けの推論努力レベル。オプション: `low`, `medium`, `high`。
+  対応モデルの推論強度。指定可能な値は選択したモデルによって異なります。
 </ParamField>
 
 <ParamField body="seed" type="integer">
-  決定論的サンプリングのためのランダムシード。
+  対応モデルのサンプリング用シード。同一の出力は保証されません。
 </ParamField>
 
-<ParamField body="n" type="integer" default="1">
+<ParamField body="n" type="integer">
   生成する補完の数 (1-128)。
 </ParamField>
 
@@ -95,11 +101,11 @@ description: "チャットメッセージの補完を作成します"
 </ParamField>
 
 <ParamField body="top_k" type="integer">
-  Top-K サンプリングのパラメータ（Anthropic/Gemini モデル向け）。
+  対応モデル向けの Top-K サンプリングパラメーター。
 </ParamField>
 
 <ParamField body="response_format" type="object">
-  レスポンス形式の仕様。JSON モードには `{"type": "json_object"}` を使用してください。`{"type": "json_schema", "json_schema": {...}}` は選択されたモデルとルーティングされた動作に依存するベストエフォートのパスとして扱われます。
+  レスポンス形式。JSON モードには `{"type": "json_object"}`、JSON Schema には `{"type": "json_schema", "json_schema": {...}}` を使用します。対応状況は選択したモデルによって異なります。
 </ParamField>
 
 <ParamField body="logit_bias" type="object">
@@ -135,7 +141,7 @@ description: "チャットメッセージの補完を作成します"
   各選択肢は次を含みます:
   - `index` (integer): 選択肢のインデックス
   - `message` (object): 生成されたメッセージ
-  - `finish_reason` (string): モデルが停止した理由（`stop`, `length`, `tool_calls`）
+  - `finish_reason` (string): モデルが停止した理由。例：`stop`、`length`、`tool_calls`
 </ResponseField>
 
 <ResponseField name="usage" type="object">
@@ -157,7 +163,6 @@ curl -X POST "https://api.tokenlab.sh/v1/chat/completions" \
       {"role": "system", "content": "You are a helpful assistant."},
       {"role": "user", "content": "Hello!"}
     ],
-    "temperature": 0.7,
     "max_tokens": 1000
   }'
 ```
@@ -176,7 +181,6 @@ response = client.chat.completions.create(
         {"role": "system", "content": "You are a helpful assistant."},
         {"role": "user", "content": "Hello!"}
     ],
-    temperature=0.7,
     max_tokens=1000
 )
 
@@ -197,7 +201,6 @@ const response = await client.chat.completions.create({
     { role: 'system', content: 'You are a helpful assistant.' },
     { role: 'user', content: 'Hello!' }
   ],
-  temperature: 0.7,
   max_tokens: 1000
 });
 
@@ -221,7 +224,6 @@ curl_setopt_array($ch, [
             ['role' => 'system', 'content' => 'You are a helpful assistant.'],
             ['role' => 'user', 'content' => 'Hello!']
         ],
-        'temperature' => 0.7,
         'max_tokens' => 1000
     ])
 ]);

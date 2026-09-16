@@ -6,10 +6,12 @@ description: "Exclui um ativo de material Seedance pertencente à organização 
 
 Exclui um ativo de material. Isso não exclui o grupo de material que o contém. Após a exclusão, o ID do ativo não poderá mais ser usado como `material_asset_id`.
 
+`project_name` isola recursos dentro da organização autenticada. O padrão é `default`; use o mesmo valor, diferenciando maiúsculas e minúsculas, para grupos e ativos relacionados. Envie-o no corpo JSON para POST/PUT e na consulta para GET/DELETE.
+
 ## Exemplo de Requisição
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr \
+curl "https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr?project_name=default" \
   -X DELETE \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```

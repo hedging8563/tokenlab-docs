@@ -81,7 +81,8 @@ Các công việc không được hỗ trợ trả về `400 unsupported_task_ca
 
 | Triệu Chứng | Nguyên Nhân Có Thể | Những gì cần kiểm tra |
 |-------------|--------------------|-----------------------|
-| `async_task_not_found` | Công việc không rõ, đã hết hạn, không thể truy cập bằng khóa API này, hoặc không phải là công việc không đồng bộ công khai | Xác nhận quyền sở hữu khóa API và `task_id` công khai đã lưu |
+| `404 async_task_not_found` | Tác vụ đã hết hạn hoặc không còn khả dụng | Kiểm tra `task_id` và `poll_url` đã lưu |
+| `403 task_not_owned` | Không thể xác nhận tác vụ thuộc không gian làm việc hiện tại | Kiểm tra không gian làm việc hoặc tổ chức gắn với khóa API |
 | Công việc không bao giờ hoàn thành | Khách hàng tiếp tục kiểm tra URL sai hoặc dừng lại trước trạng thái cuối cùng | Sử dụng `poll_url` hoặc `/v1/tasks/{id}` và kiểm tra trạng thái mới nhất |
 | URL truyền thông cuối cùng bị thiếu | Công việc chưa hoàn thành, hoặc công việc upstream đã hoàn thành mà không có đầu ra sử dụng được | Tiếp tục kiểm tra cho đến khi đạt trạng thái cuối cùng, sau đó xử lý đầu ra bị thiếu như thất bại |
 | Người dùng thấy trùng lặp | Đường dẫn thử lại đã tạo một công việc mới sau thời gian chờ hoặc làm mới | Loại bỏ trùng lặp bằng ID công việc của bạn và `task_id` đã lưu |

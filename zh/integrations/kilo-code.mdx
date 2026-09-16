@@ -13,13 +13,15 @@ description: "将 Kilo Code 和 Kilo CLI 连接到 TokenLab"
 在 VS Code 扩展市场安装 **Kilo Code** 的预发布通道，或安装 CLI：
 
 ```bash
-npm install -g @kilocode/cli
+npm install -g @kilocode/cli@7.7.2
 kilo --version
 ```
 
 ## 在界面中配置
 
 打开 **Settings → Providers → Custom provider**：
+
+编辑前先在本地保存当前提供商、模型和连接设置。这些界面选项会改变当前模型选择，使用结束后恢复原值。保留已登录账户与工具权限；未留存可恢复备份时，不要覆盖已有的其他 OpenAI 兼容连接。
 
 | 字段 | 值 |
 |---|---|
@@ -34,18 +36,17 @@ Kilo 会从 TokenLab 的 `/v1/models` 自动发现模型。保存后选择 `toke
 
 ## 配置 CLI
 
-把 API 密钥放在环境变量中，其他配置写入 `~/.config/kilo/kilo.jsonc`：
+按[快速开始](/zh/quickstart)中 macOS、Linux、WSL 或 Windows PowerShell 的终端步骤设置 `TOKENLAB_API_KEY`，避免把密钥写进命令历史，然后从同一终端启动 Kilo。长期使用请通过本地密钥管理器提供密钥，不要把明文密钥追加到 shell 配置文件。
 
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
+启动 Kilo **7.7.2** 前，先备份当前全局配置并检查 `permission.bash`。此版本会为缺少该显式规则的已有配置写入 `bash: "allow"`，即使 `permission["*"]` 已是 `deny`。请在全局文件中显式保留原 shell 规则：例如原通配规则为 `deny`，就在已有 `permission` 对象中合并 `"bash": "deny"`，其他规则保持原样。下方独立提供商文件不能阻止客户端的这项迁移。
+
+将下面配置保存为独立的 `~/.config/kilo/tokenlab.jsonc`；若设置了 `XDG_CONFIG_HOME`，则使用该目录下的 `kilo/tokenlab.jsonc`。保留常规 `kilo.json` / `kilo.jsonc`、账户、默认模型和权限；只有本次启动通过 `KILO_CONFIG` 选择此文件时才加载它。若该文件或提供商名称已用于其他配置，请另选文件或名称，并同步修改启动命令。
 
 ```jsonc
 {
   "$schema": "https://app.kilo.ai/config.json",
-  "model": "openai-compatible/kimi-k3",
   "provider": {
-    "openai-compatible": {
+    "tokenlab": {
       "options": {
         "apiKey": "{env:TOKENLAB_API_KEY}",
         "baseURL": "https://api.tokenlab.sh/v1"
@@ -56,18 +57,46 @@ export TOKENLAB_API_KEY="sk-your-tokenlab-key"
           "tool_call": true,
           "reasoning": true,
           "modalities": {
-            "input": ["text", "image"],
-            "output": ["text"]
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
           },
           "limit": {
             "context": 1048576,
             "output": 131072
           }
         }
-      }
+      },
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "TokenLab"
     }
   }
 }
 ```
 
-重启后运行 `kilo models` 验证。`{env:...}` 仅在受信任的全局或托管配置中解析，不要把真实 Key 写入可能提交到 Git 的项目配置。
+<CodeGroup>
+```bash macOS / Linux / WSL
+KILO_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/kilo/tokenlab.jsonc" kilo models tokenlab
+KILO_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/kilo/tokenlab.jsonc" kilo --model tokenlab/kimi-k3
+```
+
+```powershell Windows PowerShell
+$previous = @{}
+$previous['KILO_CONFIG'] = [Environment]::GetEnvironmentVariable('KILO_CONFIG', 'Process')
+try {
+  $env:KILO_CONFIG = (Join-Path $(if ($env:XDG_CONFIG_HOME) { $env:XDG_CONFIG_HOME } else { Join-Path $HOME '.config' }) 'kilo/tokenlab.jsonc')
+  kilo models tokenlab
+  kilo --model tokenlab/kimi-k3
+} finally {
+  foreach ($name in $previous.Keys) {
+    [Environment]::SetEnvironmentVariable($name, $previous[$name], 'Process')
+  }
+}
+```
+</CodeGroup>
+
+保存设置或列出模型不能证明密钥有效或请求完成。发送提示词会使用 TokenLab 余额；先核对回复及对应[请求记录](https://tokenlab.sh/dashboard/runs?section=requests)，再尝试工具，辅助请求也可能计费。

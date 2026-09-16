@@ -3,6 +3,8 @@ title: "让 Agent 读懂 API 错误"
 description: "直接读取错误码、等待时间和可选模型，不必猜测报错文案"
 ---
 
+本页介绍供应用和编程 Agent 读取的公共 API 错误，不授予工作区请求调查或客服权限。排查自己的工作区请求，请从[请求排错指南](/zh/guides/observability-troubleshooting)开始。
+
 TokenLab 的 OpenAI 兼容错误可能带有结构化提示，Agent 和应用都可以直接读取。判断处理方式时请以 HTTP 状态和 `code` 为准，不要从 `message` 文案里猜原因。
 
 Anthropic Messages 与 Gemini API 保留各自的错误格式。本页字段只适用于 OpenAI 兼容的 Chat Completions 和 Responses 错误。
@@ -129,10 +131,10 @@ Anthropic Messages 与 Gemini API 保留各自的错误格式。本页字段只�
 
 | 值 | API |
 | --- | --- |
-| `chat_completions` | `/v1/chat/completions` |
-| `responses` | `/v1/responses` |
-| `messages` | `/v1/messages` |
-| `gemini` | `/v1beta/models/{model}:generateContent` |
+| `openai_chat_completions` | `/v1/chat/completions` |
+| `openai_responses` | `/v1/responses` |
+| `anthropic_messages` | `/v1/messages` |
+| `gemini_generate_content` | `/v1beta/models/{model}:generateContent` |
 
 这里确认的是 API 格式。具体工具和字段仍可能因模型而异，请以模型页面为准。
 
@@ -141,8 +143,7 @@ Anthropic Messages 与 Gemini API 保留各自的错误格式。本页字段只�
 Models API 可以返回图片、视频等任务的当前候选模型：
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=image" \
-  -H "Authorization: Bearer sk-your-api-key"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=image"
 ```
 
 `recommended_for` 支持 `image`、`video`、`music`、`3d`、`tts`、`stt`、`embedding`、`rerank` 和 `translation`。创建任务时仍要明确传入模型 ID；TokenLab 不会在未告知的情况下替换模型。
@@ -157,28 +158,38 @@ GET https://api.tokenlab.sh/llms.txt
 
 内容包括第一条请求、常用接口、模型筛选方式和错误处理。
 
-## 安全重试示例
+## 读取错误，不自动重发请求
 
-下面的代码只在 API 返回 `did_you_mean` 时修正模型名。如果更换模型会影响质量、价格或数据处理方式，你的产品应当先征得用户同意。
+示例只发送一次请求，保留选定模型并报告结构化排错信息。关闭 SDK 自动重试后，由应用判断能否安全重试。模型建议应交给用户明确选择；已经受理或超时的生成请求不要自动重发。
 
 ```python
-from openai import OpenAI, BadRequestError
+import os
+from openai import OpenAI, APIStatusError
 
-client = OpenAI(
-    api_key="sk-your-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
-
-def chat(messages, model):
+with OpenAI(
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh/v1",
+    timeout=30.0,
+    max_retries=0,
+) as client:
     try:
-        return client.chat.completions.create(model=model, messages=messages)
-    except BadRequestError as exc:
-        error = exc.body.get("error", {}) if isinstance(exc.body, dict) else {}
-        suggested = error.get("did_you_mean")
-        if error.get("code") == "model_not_found" and suggested:
-            return client.chat.completions.create(
-                model=suggested,
-                messages=messages,
-            )
+        response = client.chat.completions.create(
+            model="gpt-5.6-terra",
+            messages=[{"role": "user", "content": "Reply only with OK."}],
+        )
+        print(response.choices[0].message.content)
+    except APIStatusError as exc:
+        body = exc.body if isinstance(exc.body, dict) else {}
+        error = body.get("error", body)
+        if not isinstance(error, dict):
+            error = {}
+        print({
+            "status": exc.status_code,
+            "request_id": exc.request_id,
+            "code": error.get("code"),
+            "hint": error.get("hint"),
+            "suggested_model": error.get("did_you_mean"),
+            "retry_after": exc.response.headers.get("Retry-After") or error.get("retry_after"),
+        })
         raise
 ```

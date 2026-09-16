@@ -9,10 +9,10 @@ description: "Mendapatkan task kompatibilitas Seedance berdasarkan ID task cgt-n
 Gunakan ID `cgt-...` yang dikembalikan oleh create. Lakukan polling setiap beberapa detik selama task berstatus `queued` atau `running`. Berhentilah ketika task berstatus `succeeded`, `failed`, `cancelled`, atau `expired`.
 
 <Warning>
-Jangan gunakan kembali enum task atau struct respons v1 yang terpadu di sini. `/v1/tasks/{id}` menggunakan `pending`, `processing`, `completed`, dan `failed`; endpoint v3 ini menggunakan enum resmi di atas. Dalam objek JSON v3, `duration` adalah string jika ada dan `error` dihilangkan kecuali jika task gagal. Klien Go yang ketat harus mendeklarasikan `Duration` sebagai `string` dengan tag JSON `duration,omitempty`, dan berhenti pada setiap status terminal v3.
+Jangan gunakan kembali enum task atau struct respons v1 yang terpadu di sini. `/v1/tasks/{id}` menggunakan `pending`, `processing`, `completed`, dan `failed`; endpoint v3 ini menggunakan enum resmi di atas. Dalam objek JSON v3, `duration` adalah string jika ada dan `error` bersifat opsional dan berisi detail error jika tersedia. Klien Go yang ketat harus mendeklarasikan `Duration` sebagai `string` dengan tag JSON `duration,omitempty`, dan berhenti pada setiap status terminal v3.
 </Warning>
 
-Lihat juga [Model Video Seedance 2.0](/guides/seedance-2-video) dan [Pembuatan Video](/guides/video-generation).
+Lihat juga [Model Video Seedance 2.0](/id/guides/seedance-2-video) dan [Pembuatan Video](/id/guides/video-generation).
 
 ## Nilai Status
 
@@ -32,7 +32,7 @@ Lihat juga [Model Video Seedance 2.0](/guides/seedance-2-video) dan [Pembuatan V
 - `content.last_frame_url`: hanya ada jika diminta dan tersedia.
 - `usage`: penggunaan token jika tersedia.
 - `created_at` dan `updated_at`: stempel waktu task.
-- `error`: hanya ada jika task gagal; dihilangkan untuk task yang tidak gagal.
+- `error`: Detail error opsional jika tersedia. Periksa `error.code` dan `error.message`; jangan menyimpulkan keberadaan field hanya dari `status`.
 
 Respons tidak pernah menambahkan bidang TokenLab seperti `progress`, `return_last_frame`, `watermark`, `priority`, atau `camera_fixed`.
 

@@ -7,7 +7,7 @@ description: "모델의 기능, 가격 및 API 형식을 가져옵니다"
 ## 경로 매개변수
 
 <ParamField path="model" type="string" required>
-  `gpt-5.4` 또는 `claude-sonnet-4-6`과 같은 모델 ID입니다.
+  `gpt-5.6-terra` 또는 `claude-sonnet-4-6`과 같은 모델 ID입니다.
 </ParamField>
 
 ## 응답
@@ -33,7 +33,7 @@ description: "모델의 기능, 가격 및 API 형식을 가져옵니다"
 ## 예시
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models/gpt-5.4"
+curl "https://api.tokenlab.sh/v1/models/gpt-5.6-terra"
 ```
 
 ```json
@@ -43,8 +43,8 @@ curl "https://api.tokenlab.sh/v1/models/gpt-5.4"
   "owned_by": "openai",
   "tokenlab": {
     "category": "chat",
-    "capabilities": ["text"],
-    "accepted_request_formats": ["responses", "chat_completions"]
+    "capabilities": ["coding", "json-mode", "prompt-cache", "reasoning", "tool-use", "vision"],
+    "accepted_request_formats": ["openai_chat_completions", "openai_responses"]
   }
 }
 ```

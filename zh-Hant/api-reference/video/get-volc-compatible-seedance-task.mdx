@@ -9,10 +9,10 @@ description: "透過 cgt 任務 ID 取得 Seedance 相容性任務。"
 使用建立時回傳的 `cgt-...` ID。當任務狀態為 `queued` 或 `running` 時，請每隔幾秒進行輪詢。當任務狀態變為 `succeeded`、`failed`、`cancelled` 或 `expired` 時停止輪詢。
 
 <Warning>
-請勿在此處重複使用統一的 v1 任務列舉 (enum) 或回應結構。`/v1/tasks/{id}` 使用 `pending`、`processing`、`completed` 和 `failed`；此 v3 端點使用上述官方列舉。在 v3 JSON 物件中，`duration` 若存在則為字串，且除非任務失敗，否則會省略 `error`。嚴謹的 Go 客戶端應將 `Duration` 宣告為 `string` 並加上 JSON 標籤 `duration,omitempty`，並在每個 v3 終止狀態時停止。
+請勿在此處重複使用統一的 v1 任務列舉 (enum) 或回應結構。`/v1/tasks/{id}` 使用 `pending`、`processing`、`completed` 和 `failed`；此 v3 端點使用上述官方列舉。在 v3 JSON 物件中，`duration` 若存在則為字串，`error` 則是選用的錯誤詳情欄位。嚴謹的 Go 客戶端應將 `Duration` 宣告為 `string` 並加上 JSON 標籤 `duration,omitempty`，並在每個 v3 終止狀態時停止。
 </Warning>
 
-請參閱 [Seedance 2.0 影片模型](/guides/seedance-2-video) 與 [影片生成](/guides/video-generation)。
+請參閱 [Seedance 2.0 影片模型](/zh-Hant/guides/seedance-2-video) 與 [影片生成](/zh-Hant/guides/video-generation)。
 
 ## 狀態值
 
@@ -32,7 +32,7 @@ description: "透過 cgt 任務 ID 取得 Seedance 相容性任務。"
 - `content.last_frame_url`: 僅在請求且可用時提供。
 - `usage`: 可用時的 token 使用量。
 - `created_at` 與 `updated_at`: 任務時間戳記。
-- `error`: 僅在任務失敗時出現；非失敗任務將省略此欄位。
+- `error`: 選用的錯誤詳情。有值時查看 `error.code` 和 `error.message`，不要僅依 `status` 推斷此欄位是否存在。
 
 回應中絕不會包含 TokenLab 的欄位，例如 `progress`、`return_last_frame`、`watermark`、`priority` 或 `camera_fixed`。
 

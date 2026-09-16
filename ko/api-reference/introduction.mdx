@@ -15,13 +15,19 @@ https://api.tokenlab.sh
 
 ## 인증
 
-모든 API 엔드포인트는 Bearer 토큰을 사용한 인증이 필요합니다:
+모델 요청에는 TokenLab API 키를 사용합니다. 표준 인증 헤더는 다음과 같습니다:
 
 ```bash
 Authorization: Bearer sk-your-api-key
 ```
 
+`GET /v1/models`, `GET /v1/models/{model}`, `GET /v1/pricing`은 공개되어 키가 필요하지 않습니다. Anthropic Messages는 `x-api-key`도 지원하고, Gemini는 Bearer 외에 `x-goog-api-key` 또는 `?key=`도 지원합니다. `/v1/management/*`에는 관리 토큰(`mt-...`)이 필요합니다.
+
 [대시보드](https://tokenlab.sh/dashboard)에서 API 키를 확인하세요.
+
+<Note>
+생성 요청은 `X-TokenLab-Delivery-Policy: auto | verified | official`을 지원합니다. 헤더, API 키 설정, 워크스페이스 기본값 순으로 우선합니다. `auto`는 TokenLab Verified를 먼저 사용하고 필요하면 Official을 사용하며, 완료한 방식에 따라 과금됩니다. `verified`는 TokenLab 가격을, `official`은 모델 제조사의 공개 가격을 기준으로 하며 실제 요금은 TokenLab 표시 가격을 따릅니다. Realtime은 키 또는 워크스페이스 설정을 사용하고 쿼리 재정의는 지원하지 않습니다. 잘못된 헤더는 `400`, 이용할 수 없는 방식은 `503 delivery_tier_unavailable`과 요청 ID를 반환합니다.
+</Note>
 
 <Warning>
 **인터랙티브 플레이그라운드 안내**: 이 문서 사이트의 플레이그라운드는 데모 전용이며 API 키 입력을 지원하지 않습니다. API를 테스트하려면 다음을 사용하세요:
@@ -56,7 +62,7 @@ Authorization: Bearer sk-your-api-key
 | `/v1/images/generations/{id}` | GET | 태스크 기반 이미지 응답을 위한 이미지 태스크 상태 경로 |
 
 <Info>
-일부 이미지 모델은 결과를 인라인으로 반환하고, 일부는 태스크 기반 응답을 반환하며, 일부는 라우팅된 프로바이더 경로에 따라 두 방식 중 하나로 동작할 수 있습니다. 생성 응답에 `poll_url`이 포함되어 있다면 해당 URL을 그대로 따르세요.
+이미지 모델은 완성 이미지 또는 비동기 작업을 반환할 수 있습니다. 응답에 `poll_url`이 있으면 해당 URL로 작업을 조회하세요.
 </Info>
 
 ### 오디오
@@ -142,7 +148,7 @@ Gemini 엔드포인트는 표준 Bearer 토큰 외에 `?key=` 쿼리 파라미�
 
 ## 응답 형식
 
-모든 응답은 일관된 형식을 따릅니다:
+각 엔드포인트는 해당 API 형식을 유지합니다. 아래 성공 및 오류 예시는 Chat Completions 형식입니다.
 
 ### 성공 응답
 
@@ -152,7 +158,7 @@ Gemini 엔드포인트는 표준 Bearer 토큰 외에 `?key=` 쿼리 파라미�
   "object": "chat.completion",
   "created": 1234567890,
   "model": "gpt-5.6-terra",
-  "choices": [...],
+  "choices": [{"index": 0, "message": {"role": "assistant", "content": "Hello!"}, "finish_reason": "stop"}],
   "usage": {
     "prompt_tokens": 10,
     "completion_tokens": 20,

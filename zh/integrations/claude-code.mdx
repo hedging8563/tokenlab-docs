@@ -41,7 +41,7 @@ irm https://claude.ai/install.ps1 | iex
 如果你明确需要 npm 包，请使用：
 
 ```bash
-npm install -g @anthropic-ai/claude-code
+npm install -g @anthropic-ai/claude-code@2.1.263
 ```
 
 <Warning>
@@ -50,35 +50,39 @@ npm install -g @anthropic-ai/claude-code
 
 ## 配置
 
-### 环境变量
+按[快速开始](/zh/quickstart)中 macOS、Linux、WSL 或 Windows PowerShell 的终端步骤设置 `TOKENLAB_API_KEY`，避免把密钥写进命令历史，然后从同一终端启动 Claude Code。长期使用请通过本地密钥管理器提供密钥，不要把明文密钥追加到 shell 配置文件。
 
-设置以下环境变量：
+这些变量仅用于本次启动，保留已保存的账户、默认模型与权限。正常启动时不附加这些变量，即可继续使用原设置；不要将它们写入 shell 配置文件。
 
-```bash
-export ANTHROPIC_API_KEY="sk-your-tokenlab-key"
-export ANTHROPIC_BASE_URL="https://api.tokenlab.sh"
+此会话方式使用 Claude Code **2.1.263**，通过 `ANTHROPIC_AUTH_TOKEN` 发送 Bearer 认证，Base URL 不带 `/v1`。已有配置文件中的 `env`、凭据助手、云提供商开关或托管策略可能影响认证，请先检查；存在冲突时使用下方配置助手，不要删除账户数据或放宽策略。启动后用 `/status` 核对模型与权限。
+
+<CodeGroup>
+```bash macOS / Linux / WSL
+ANTHROPIC_BASE_URL=https://api.tokenlab.sh ANTHROPIC_AUTH_TOKEN="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" ANTHROPIC_API_KEY= claude --model claude-sonnet-4-6
 ```
 
-将这些添加到你的 shell 配置文件（`~/.bashrc`、`~/.zshrc` 等）中，以便持久生效。
-
-<Note>
-对于 TokenLab，请将 `ANTHROPIC_BASE_URL` 保持为 `https://api.tokenlab.sh`，不要添加 `/v1` 后缀。这与 Claude Code 文档中记录的 Anthropic 风格端点结构以及统一网关模式保持一致。
-</Note>
-
-### 配置文件
-
-或者，创建或编辑 `~/.claude/settings.json`：
-
-备份并合并设置，不覆盖已有账户、权限或无关环境变量。`ANTHROPIC_API_KEY` 发送 `X-Api-Key`，`ANTHROPIC_AUTH_TOKEN` 发送 Bearer token，应明确选择一种认证方式。启动 Claude Code 后用 `/status` 检查当前模型和配置来源，这不能证明付费请求成功。发送简短付费请求后，应核对回复和 TokenLab 请求记录。恢复时仅撤销本次添加的设置。参见[配置优先级](https://code.claude.com/docs/en/settings)。
-
-```json
-{
-  "env": {
-    "ANTHROPIC_API_KEY": "sk-your-tokenlab-key",
-    "ANTHROPIC_BASE_URL": "https://api.tokenlab.sh"
+```powershell Windows PowerShell
+if (-not $env:TOKENLAB_API_KEY) { throw 'Set TOKENLAB_API_KEY first' }
+$previous = @{}
+$previous['ANTHROPIC_BASE_URL'] = [Environment]::GetEnvironmentVariable('ANTHROPIC_BASE_URL', 'Process')
+$previous['ANTHROPIC_AUTH_TOKEN'] = [Environment]::GetEnvironmentVariable('ANTHROPIC_AUTH_TOKEN', 'Process')
+$previous['ANTHROPIC_API_KEY'] = [Environment]::GetEnvironmentVariable('ANTHROPIC_API_KEY', 'Process')
+try {
+  $env:ANTHROPIC_BASE_URL = 'https://api.tokenlab.sh'
+  $env:ANTHROPIC_AUTH_TOKEN = $env:TOKENLAB_API_KEY
+  $env:ANTHROPIC_API_KEY = ''
+  claude --model claude-sonnet-4-6
+} finally {
+  foreach ($name in $previous.Keys) {
+    [Environment]::SetEnvironmentVariable($name, $previous[$name], 'Process')
   }
 }
 ```
+</CodeGroup>
+
+可选：使用[可恢复的 Claude Code 配置器](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/skills/tokenlab-api-integration/references/claude_setup.md)，通过 Python 3.11+ 预览、应用并恢复原文件。TokenLab Skills 插件 **0.1.2** 已包含新脚本；独立安装的 Skill 更新到包含这些脚本的版本后也可使用。已安装插件或独立 Skill 的用户请按 [README 更新说明](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/README.md#update-an-existing-installation)更新，并确认脚本已安装。也可直接完成本页手工配置。
+
+保存设置或列出模型不能证明密钥有效或请求完成。发送提示词会使用 TokenLab 余额；先核对回复及对应[请求记录](https://tokenlab.sh/dashboard/runs?section=requests)，再尝试工具，辅助请求也可能计费。
 
 ## 用法
 
@@ -86,11 +90,10 @@ export ANTHROPIC_BASE_URL="https://api.tokenlab.sh"
 
 ```bash
 # Start an interactive session
-claude
+ANTHROPIC_BASE_URL=https://api.tokenlab.sh ANTHROPIC_AUTH_TOKEN="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" ANTHROPIC_API_KEY= claude --model claude-sonnet-4-6
 
 # Run a single command
-claude "Explain this code" < main.py
-
+ANTHROPIC_BASE_URL=https://api.tokenlab.sh ANTHROPIC_AUTH_TOKEN="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" ANTHROPIC_API_KEY= claude --model claude-sonnet-4-6 "Explain this code" < main.py
 ```
 
 如有需要，可验证安装是否成功：
@@ -105,19 +108,7 @@ claude doctor
 从[模型页](https://tokenlab.sh/zh/models)复制当前 Claude 模型 ID，并通过 `--model` 指定：
 
 ```bash
-claude --model claude-sonnet-4-6 "Review this PR"
-```
-
-也可以在配置中设置默认模型：
-
-```json
-{
-  "env": {
-    "ANTHROPIC_API_KEY": "sk-your-tokenlab-key",
-    "ANTHROPIC_BASE_URL": "https://api.tokenlab.sh"
-  },
-  "model": "claude-sonnet-5"
-}
+ANTHROPIC_BASE_URL=https://api.tokenlab.sh ANTHROPIC_AUTH_TOKEN="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" ANTHROPIC_API_KEY= claude --model claude-sonnet-4-6 "Review this PR"
 ```
 
 ## 扩展思考
@@ -125,7 +116,7 @@ claude --model claude-sonnet-4-6 "Review this PR"
 需要扩展思考时，请从模型页选择支持该能力的 Claude 模型：
 
 ```bash
-claude --model claude-opus-4-6 "Design a microservices architecture for..."
+ANTHROPIC_BASE_URL=https://api.tokenlab.sh ANTHROPIC_AUTH_TOKEN="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" ANTHROPIC_API_KEY= claude --model claude-opus-4-6 "Design a microservices architecture for..."
 ```
 
 ## 故障排查
@@ -139,9 +130,6 @@ claude --model claude-opus-4-6 "Design a microservices architecture for..."
     请确认 TokenLab API 密钥以 `sk-` 开头，并且余额充足。
   </Accordion>
 
-  <Accordion title="网关需要 Authorization bearer token">
-    Claude Code 的网关模式也支持 `ANTHROPIC_AUTH_TOKEN`。对于标准的 TokenLab 配置，请继续使用 `ANTHROPIC_API_KEY`，除非你有意切换了网关认证行为。
-  </Accordion>
 
   <Accordion title="找不到模型">
     请检查模型名称是否正确。请使用 `claude-sonnet-4-6` 这种格式。

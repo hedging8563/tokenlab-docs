@@ -17,7 +17,7 @@ This endpoint returns after the vectors are ready. For large batches, set your H
 </ParamField>
 
 <ParamField body="input" type="string | array" required>
-  Input text to embed. Can be a string or array of strings.
+  Text to embed: a string or an array of strings. Models that support token input also accept `number[]` for one token sequence or `number[][]` for multiple sequences.
 </ParamField>
 
 <ParamField body="encoding_format" type="string" default="float">
@@ -48,7 +48,7 @@ Use `GET /v1/models?recommended_for=embedding` for current models and dimensions
   Each object contains:
   - `object` (string): `embedding`
   - `index` (integer): Index in the input array
-  - `embedding` (array): The embedding vector
+  - `embedding` (array | string): A numeric vector for `float`, or a Base64 string for `base64`.
 </ResponseField>
 
 <ResponseField name="model" type="string">
@@ -129,6 +129,10 @@ print_r(array_slice($data['data'][0]['embedding'], 0, 5));
 ```
 </RequestExample>
 
+<Note>
+The example vector is shortened for readability.
+</Note>
+
 <ResponseExample>
 ```json Response
 {
@@ -137,7 +141,7 @@ print_r(array_slice($data['data'][0]['embedding'], 0, 5));
     {
       "object": "embedding",
       "index": 0,
-      "embedding": [0.0023, -0.0194, 0.0081, ...]
+      "embedding": [0.0023, -0.0194, 0.0081]
     }
   ],
   "model": "text-embedding-3-small",

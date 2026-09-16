@@ -13,7 +13,7 @@ description: "Connect GitHub Copilot CLI to TokenLab with BYOK"
 With Node.js 22 or later, install through npm:
 
 ```bash
-npm install -g @github/copilot
+npm install -g @github/copilot@1.0.85
 ```
 
 On macOS or Linux, you can alternatively use Homebrew:
@@ -28,22 +28,39 @@ Verify the installation:
 copilot --version
 ```
 
-<Note>
-GitHub currently requires an active Copilot plan. Organization-managed accounts also need the Copilot CLI policy enabled.
-</Note>
+
 
 ## Configure TokenLab
 
 Set the provider variables before starting Copilot CLI:
 
-```bash
-export COPILOT_PROVIDER_TYPE="openai"
-export COPILOT_PROVIDER_BASE_URL="https://api.tokenlab.sh/v1"
-export COPILOT_PROVIDER_API_KEY="sk-your-tokenlab-key"
-export COPILOT_MODEL="kimi-k3"
+Use the [Quickstart](/quickstart) terminal instructions for macOS, Linux, WSL, or Windows PowerShell to set `TOKENLAB_API_KEY` without putting the key in command history. Launch Copilot CLI from that terminal. For persistent use, use your local secret manager; do not append a plaintext key to your shell profile.
 
-copilot
+These variables apply only to this launch; your saved account, default model and permission settings stay in place. Launch normally without the variables to use your previous setup. Do not persist them in your shell profile.
+
+<CodeGroup>
+```bash macOS / Linux / WSL
+COPILOT_PROVIDER_TYPE=openai COPILOT_PROVIDER_BASE_URL=https://api.tokenlab.sh/v1 COPILOT_PROVIDER_API_KEY="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" copilot --model kimi-k3
 ```
+
+```powershell Windows PowerShell
+if (-not $env:TOKENLAB_API_KEY) { throw 'Set TOKENLAB_API_KEY first' }
+$previous = @{}
+$previous['COPILOT_PROVIDER_TYPE'] = [Environment]::GetEnvironmentVariable('COPILOT_PROVIDER_TYPE', 'Process')
+$previous['COPILOT_PROVIDER_BASE_URL'] = [Environment]::GetEnvironmentVariable('COPILOT_PROVIDER_BASE_URL', 'Process')
+$previous['COPILOT_PROVIDER_API_KEY'] = [Environment]::GetEnvironmentVariable('COPILOT_PROVIDER_API_KEY', 'Process')
+try {
+  $env:COPILOT_PROVIDER_TYPE = 'openai'
+  $env:COPILOT_PROVIDER_BASE_URL = 'https://api.tokenlab.sh/v1'
+  $env:COPILOT_PROVIDER_API_KEY = $env:TOKENLAB_API_KEY
+  copilot --model kimi-k3
+} finally {
+  foreach ($name in $previous.Keys) {
+    [Environment]::SetEnvironmentVariable($name, $previous[$name], 'Process')
+  }
+}
+```
+</CodeGroup>
 
 | Variable | TokenLab value |
 |---|---|
@@ -66,7 +83,6 @@ You can also inspect provider help or switch the model for the current session:
 
 ```bash
 copilot help providers
-copilot --model kimi-k3
 ```
 
 ## Troubleshooting
@@ -86,3 +102,5 @@ copilot --model kimi-k3
 <Warning>
 Do not commit API keys to shell scripts or dotfiles tracked by Git. Rotate any key that was exposed in terminal history, screenshots, or logs.
 </Warning>
+
+Saving settings or listing models does not verify a key or a completed request. A prompt uses TokenLab balance. Check the reply and its matching [request record](https://tokenlab.sh/dashboard/runs?section=requests) before trying tools; auxiliary requests may also be billed.

@@ -12,7 +12,7 @@ OpenCode は、ターミナルで動作するオープンソースの AI コー�
 [OpenCode](https://opencode.ai/docs/)
 
 ```bash
-npm install -g opencode-ai
+npm install -g opencode-ai@1.18.31
 ```
 
 インストールを確認します:
@@ -25,22 +25,13 @@ opencode --version
 
 ### ステップ 1: 環境変数を設定する
 
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
-
-永続的に設定するには、`~/.bashrc` または `~/.zshrc` に追加します:
-
-```bash
-echo 'export TOKENLAB_API_KEY="sk-your-tokenlab-key"' >> ~/.zshrc
-source ~/.zshrc
-```
+[クイックスタート](/ja/quickstart)の macOS、Linux、WSL、Windows PowerShell 向け手順で、キーをコマンド履歴に残さず `TOKENLAB_API_KEY` を設定し、同じターミナルから OpenCode を起動します。継続して使う場合はローカルのシークレット管理ツールを利用し、平文のキーをシェル設定へ追記しないでください。
 
 ### ステップ 2: OpenCode を設定する
 
-OpenCode の現在のドキュメントでは、`opencode.json` または `opencode.jsonc` を通じてプロバイダーを設定することが推奨されています。TokenLab では、組み込みの `openai` プロバイダーを流用するのではなく、カスタムプロバイダーを使用してください:
+以下の設定は **OpenCode 1.18.31** で確認しています。他のバージョンは、それぞれの公式ドキュメントに沿って確認してください。
 
-この例は対応している V1 形式です。`~/.config/opencode/opencode.json` にマージし、既存のプロバイダーと権限を残します。V2 は対応する V1 設定を読めますが、同一プロバイダー内で形式を混ぜないでください。[公式移行ガイド](https://opencode.ai/v2/docs/migrate-v1/)を参照してください。`/models` で登録を確認し、有料テストを TokenLab の記録と照合します。復元時は元のモデルに戻し、この項目だけを削除します。
+以下を独立した `~/.config/opencode/tokenlab.jsonc` に保存します。`XDG_CONFIG_HOME` が設定されている場合は、そのディレクトリ内の `opencode/tokenlab.jsonc` を使います。通常の `opencode.json` / `opencode.jsonc`、アカウント、既定モデル、権限は変更しません。このファイルは、その起動時に `OPENCODE_CONFIG` で指定した場合のみ読み込まれます。ファイルやプロバイダー名が既に使われている場合は別の名前を選び、起動コマンドも変更してください。
 
 ```jsonc
 {
@@ -62,34 +53,46 @@ OpenCode の現在のドキュメントでは、`opencode.json` または `openc
         }
       }
     }
-  },
-  "model": "tokenlab/gpt-5.6-terra"
+  }
 }
 ```
 
 <Note>
-チャット補完形式との互換性には `@ai-sdk/openai-compatible` を使用してください。`/v1/responses` 上に構築されたプロバイダーパスが特に必要な場合は、OpenCode のプロバイダードキュメントではパッケージを `@ai-sdk/openai` に切り替えることが推奨されています。
+この設定は `@ai-sdk/openai-compatible` で Chat Completions を送信します。現在のモデル情報で Chat Completions と必要なツールの対応を確認してください。この例は他のプロトコルやバージョンの互換性を保証しません。
 </Note>
+
+任意で、Python 3.11+ の[復元可能な OpenCode 設定ヘルパー](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/skills/tokenlab-api-integration/references/opencode_setup.md)を使い、変更のプレビュー、適用、元ファイルの復元を行えます。TokenLab Skills プラグイン **0.1.2** にこれらのスクリプトが含まれます。単体の Skill も、スクリプトを含む版に更新すれば利用できます。既存のプラグインまたは単体 Skill は [README の更新手順](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/README.md#update-an-existing-installation)に従って更新し、スクリプトの存在を確認してください。このページの手動設定だけでも完了できます。
 
 ## 基本的な使い方
 
-**対話モードを開始する:**
+クイックスタートの手順でキーを設定し、この起動に限ってファイルを読み込み、モデルを明示的に選びます。独自のパスやプロバイダー名を使う場合は置き換えてください。既存の `OPENCODE_CONFIG` やインラインの `OPENCODE_CONFIG_CONTENT` は保持し、別の起動環境を使います。プロジェクトや管理設定が優先される場合もあります。
 
-```bash
-opencode
+<CodeGroup>
+```bash macOS / Linux / WSL
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode models tokenlab
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode --model tokenlab/gpt-5.6-terra
 ```
 
-**プロンプトを指定して実行する:**
-
-```bash
-opencode run "Explain this codebase"
+```powershell Windows PowerShell
+$tokenlabConfigRoot = if ($env:XDG_CONFIG_HOME) { $env:XDG_CONFIG_HOME } else { Join-Path $HOME '.config' }
+$previousConfig = $env:OPENCODE_CONFIG
+try {
+  $env:OPENCODE_CONFIG = Join-Path $tokenlabConfigRoot 'opencode/tokenlab.jsonc'
+  opencode models tokenlab
+  opencode --model tokenlab/gpt-5.6-terra
+} finally {
+  if ($null -eq $previousConfig) {
+    Remove-Item Env:OPENCODE_CONFIG -ErrorAction SilentlyContinue
+  } else {
+    $env:OPENCODE_CONFIG = $previousConfig
+  }
+}
 ```
+</CodeGroup>
 
-**モデルを指定する:**
+モデル一覧はローカルの読み込み確認であり、キーの有効性や実際の API 成功を証明しません。プロンプト送信には TokenLab 残高を使い、OpenCode はタイトル生成など別途課金される補助リクエストを送る場合があります。応答と対応する[リクエスト記録](https://tokenlab.sh/dashboard/runs?section=requests)を確認してください。
 
-```bash
-opencode run --model tokenlab/gpt-5.6-terra "Fix the bugs in main.py"
-```
+このファイルを読み込まずに起動すれば通常の設定を使えます。本手順のために `OPENCODE_CONFIG` をシェルの設定ファイルへ保存しないでください。手動設定を戻す際は、新規作成した独立ファイルだけを削除するか、既存ファイルのバックアップを復元します。
 
 ## 利用可能なモデル
 
@@ -106,25 +109,25 @@ opencode run --model tokenlab/gpt-5.6-terra "Fix the bugs in main.py"
 **コードを解析する:**
 
 ```bash
-opencode run "What does this function do?" < src/utils.ts
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode run --model tokenlab/gpt-5.6-terra "What does this function do?" < src/utils.ts
 ```
 
 **コードを生成する:**
 
 ```bash
-opencode run "Create a REST API with Express"
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode run --model tokenlab/gpt-5.6-terra "Create a REST API with Express"
 ```
 
 **変更をレビューする:**
 
 ```bash
-git diff | opencode run "Review these changes"
+git diff | OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode run --model tokenlab/gpt-5.6-terra "Review these changes"
 ```
 
 **エラーを修正する:**
 
 ```bash
-opencode run "Fix the TypeScript errors in this project"
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode run --model tokenlab/gpt-5.6-terra "Fix the TypeScript errors in this project"
 ```
 
 ## 対話コマンド

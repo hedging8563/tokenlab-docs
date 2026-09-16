@@ -13,7 +13,7 @@ description: "创建给定图像的变体"
 **请求超时：** 同步图片请求可能需要较长时间，建议把 HTTP 超时设为至少 `120s`。响应包含 `pending`、`task_id` 或 `poll_url` 时，通过 `poll_url` 查询结果。
 
 <ParamField body="image" type="file" required>
-  用作变体基础的图像。必须是有效的 PNG 文件，小于 50MB，且为正方形。
+  Multipart 源图片。文件和完整请求体均不得超过 50 MiB。支持的格式和尺寸取决于所选模型，其当前详情必须明确列出 `/v1/images/variations`。
 </ParamField>
 
 <ParamField body="model" type="string" required>
@@ -21,14 +21,14 @@ description: "创建给定图像的变体"
 </ParamField>
 
 <ParamField body="n" type="integer" default="1">
-  要生成的图像数量。必须在 1 到 10 之间。
+  要生成的图片数量（1-10，取决于模型）。
 </ParamField>
 
 <ParamField body="size" type="string">
   生成图片的尺寸，支持的取值取决于所选模型。
 </ParamField>
 
-<ParamField body="response_format" type="string" default="url">
+<ParamField body="response_format" type="string">
   返回生成图像的格式。必须是 `url` 或 `b64_json`。
 </ParamField>
 

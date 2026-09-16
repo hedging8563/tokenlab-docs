@@ -8,10 +8,12 @@ description: "删除当前工作区的 Seedance 素材组。"
 
 删除后，该素材组和其中的素材不能再用于视频生成。无法删除时，响应会返回具体错误。
 
+`project_name` 用于同一组织内的资源隔离，默认为 `default`。相关素材组和素材须使用相同且区分大小写的值；POST/PUT 在 JSON 请求体中传入，GET/DELETE 在查询参数中传入。
+
 ## 请求示例
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01 \
+curl "https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01?project_name=default" \
   -X DELETE \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```

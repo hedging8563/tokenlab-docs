@@ -5,7 +5,8 @@ description: "實作即時串流回應"
 
 ## 概覽
 
-串流會逐步交付輸出。只有模型公開 Responses 原生契約且存在同協議 upstream 路徑時，才使用 Responses streaming；否則請使用 Chat Completions 或模型公開的原生協議。
+串流會逐步回傳模型輸出。當所選模型的 `accepted_request_formats` 包含 `openai_responses` 時可用 Responses；既有 Chat Completions 客戶端可以繼續使用原格式。
+
 ## 建議：Responses Streaming
 
 <CodeGroup>
@@ -22,42 +23,61 @@ curl https://api.tokenlab.sh/v1/responses \
 ```
 
 ```python Python
+import os
 from openai import OpenAI
 
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
-
-stream = client.responses.create(
-    model="gpt-5.6-terra",
-    input="Write a short poem.",
-    stream=True
-)
-
-for event in stream:
-    if event.type == "response.output_text.delta":
-        print(event.delta, end="", flush=True)
+with OpenAI(
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh/v1",
+    timeout=30.0,
+    max_retries=0,
+) as client:
+    completed = False
+    with client.responses.create(
+        model="gpt-5.6-terra",
+        input="Write a short poem.",
+        stream=True,
+    ) as stream:
+        for event in stream:
+            if event.type == "response.output_text.delta":
+                print(event.delta, end="", flush=True)
+            elif event.type == "response.completed":
+                completed = True
+            elif event.type in {"response.failed", "response.incomplete", "error"}:
+                raise RuntimeError(f"Stream ended with {event.type}")
+    if not completed:
+        raise RuntimeError("Stream closed before response.completed")
 ```
 
 ```javascript JavaScript
 import OpenAI from 'openai';
 
 const client = new OpenAI({
-  apiKey: 'sk-your-api-key',
-  baseURL: 'https://api.tokenlab.sh/v1'
+  apiKey: process.env.TOKENLAB_API_KEY,
+  baseURL: 'https://api.tokenlab.sh/v1',
+  timeout: 30_000,
+  maxRetries: 0,
 });
 
 const stream = await client.responses.create({
   model: 'gpt-5.6-terra',
   input: 'Write a short poem.',
-  stream: true
+  stream: true,
 });
-
-for await (const event of stream) {
-  if (event.type === 'response.output_text.delta') {
-    process.stdout.write(event.delta);
+let completed = false;
+try {
+  for await (const event of stream) {
+    if (event.type === 'response.output_text.delta') {
+      process.stdout.write(event.delta);
+    } else if (event.type === 'response.completed') {
+      completed = true;
+    } else if (['response.failed', 'response.incomplete', 'error'].includes(event.type)) {
+      throw new Error(`Stream ended with ${event.type}`);
+    }
   }
+  if (!completed) throw new Error('Stream closed before response.completed');
+} finally {
+  stream.controller.abort();
 }
 ```
 
@@ -66,26 +86,43 @@ for await (const event of stream) {
 
 ## Responses 與 Gemini 串流邊界
 
-Responses SSE 會保留 upstream 事件名稱、順序與欄位，只在旁路讀取 usage 與終態，不改寫 wire。第一個事件交付後，絕不再嘗試其他 channel 或 credential。
+Responses SSE 保留公開事件名稱、順序與欄位。收到輸出後若串流中斷，應視為未完成，不會自動重新開始。
 
-Responses WebSocket 只接受官方 `response.create` 事件。stream 是隱含行為；此 transport 不提供 `background` 或 `response.cancel`，background 只透過 HTTP 執行。每個連線採序列處理、不做 multiplexing，最長 60 分鐘。
+Responses WebSocket 使用 `response.create`；串流為隱含行為，不支援 `background` 或 `response.cancel`。每條連線一次處理一個回應，最長 60 分鐘。`generate: false` 可建立可延續的 ID，不產生模型輸出或模型費用。
 
-Gemini SSE 保留原生 chunk。只有 metadata 的事件、沒有 `finishReason` 的中間 chunk，以及自然 EOF 都合法；TokenLab 不會加入 Chat `[DONE]`.
+Gemini SSE 使用原生區塊；中間事件可以沒有 `finishReason`，也可以自然結束而沒有 Chat 的 `[DONE]`。
+
 ## Chat Completions 串流
 
 如果您的框架仍預期從 `/v1/chat/completions` 接收 SSE 區塊，這同樣可行：
 
 ```python
-stream = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": "Write a short poem"}],
-    stream=True
-)
+import os
+from openai import OpenAI
 
-for chunk in stream:
-    content = chunk.choices[0].delta.content
-    if content:
-        print(content, end="", flush=True)
+with OpenAI(
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh/v1",
+    timeout=30.0,
+    max_retries=0,
+) as client:
+    finish_reason = None
+    with client.chat.completions.create(
+        model="gpt-5.6-terra",
+        messages=[{"role": "user", "content": "Write a short poem."}],
+        stream=True,
+        stream_options={"include_usage": True},
+    ) as stream:
+        for chunk in stream:
+            if not chunk.choices:
+                continue
+            choice = chunk.choices[0]
+            if choice.delta.content:
+                print(choice.delta.content, end="", flush=True)
+            if choice.finish_reason:
+                finish_reason = choice.finish_reason
+    if finish_reason != "stop":
+        raise RuntimeError(f"Stream ended without a complete text answer: {finish_reason}")
 ```
 
 ## 串流結束條件
@@ -98,49 +135,13 @@ for chunk in stream:
 
 ## Web App 模式
 
-```javascript
-async function streamChat(message) {
-  const response = await fetch('https://api.tokenlab.sh/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Bearer sk-your-api-key',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: 'gpt-5.6-terra',
-      messages: [{ role: 'user', content: message }],
-      stream: true
-    })
-  });
-
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-
-    const chunk = decoder.decode(value);
-    const lines = chunk.split('\\n').filter(line => line.startsWith('data: '));
-
-    for (const line of lines) {
-      const data = line.slice(6);
-      if (data === '[DONE]') return;
-      const parsed = JSON.parse(data);
-      const content = parsed.choices?.[0]?.delta?.content;
-      if (content) {
-        document.getElementById('output').textContent += content;
-      }
-    }
-  }
-}
-```
+請在伺服器執行 SDK 串流消費者。瀏覽器應呼叫自己的已驗證後端，TokenLab 金鑰只放在伺服器環境。將文字增量轉送至瀏覽器，使用者停止或斷線時取消上游串流。使用 SDK 解析 SSE 事件；一個網路資料塊不一定是完整事件。
 
 ## 最佳實務
 
 <AccordionGroup>
   <Accordion title="新建專案優先使用 Responses streaming">
-    如果您的 SDK 或應用程式已支援，請使用 `/v1/responses`。將 `/v1/chat/completions` streaming 保留給以相容性為導向的整合。
+    串流會逐步回傳模型輸出。當所選模型的 `accepted_request_formats` 包含 `openai_responses` 時可用 Responses；既有 Chat Completions 客戶端可以繼續使用原格式。
   </Accordion>
 
   <Accordion title="逐步刷新輸出">
@@ -148,6 +149,6 @@ async function streamChat(message) {
   </Accordion>
 
   <Accordion title="處理中斷連線與重試">
-    將網路中斷與上游連線中斷視為正常的失敗模式，並在長時間執行的工作階段中謹慎地重新連線。
+    中斷的串流不是完整答案。保留有用的部分輸出；重新送出請求可能產生不同內容與另一筆費用。
   </Accordion>
 </AccordionGroup>

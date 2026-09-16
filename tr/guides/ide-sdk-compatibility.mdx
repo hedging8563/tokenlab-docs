@@ -1,388 +1,82 @@
 ---
-title: "IDE & SDK Uyumluluğu"
-description: "AI kodlama araçları, SDK'lar ve framework'ler için kanıta dayalı uyumluluk rehberi"
+title: "Araç ve SDK uyumluluğu"
+description: "Kodlama araçları, sohbet uygulamaları, SDK’lar ve framework’ler için uygun TokenLab yapılandırmasını bulun"
 ---
 
-## Genel Bakış
-
-TokenLab, yaygın kodlama araçlarının, SDK'ların ve framework'lerin minimum "glue code" (yapıştırıcı kod) ile entegre olabilmesi için birden fazla API formatı sunar.
-
-Bu sayfa, bir pazarlama matrisinden kasıtlı olarak daha dar kapsamlı tutulmuştur:
-
-- **Desteklenen (Supported)**: Somut bir kurulum yolunu belgelediğimiz ve TokenLab'in bu yolun beklediği protokol yapısını sunduğu anlamına gelir.
-- **Güçlü yerel yol (Strong native path)**: Deponun ayrıca o protokol ailesi için doğrudan adaptör veya istek formatı kanıtına sahip olduğu anlamına gelir.
-- **En iyi çaba (Best-effort)**: Entegrasyonun çalışabileceği, ancak yukarı yönlü istemcinin bu özel ağ geçidi iş akışını kararlı bir sözleşme olarak görmediği anlamına gelir.
-
-<Note>
-  Desteklenmeyen alanlar tek tip bir şekilde ele alınmaz. Uyumluluk rotalarında bazı alanlar göz ardı edilir veya normalleştirilir. `/v1/responses` rotasında, desteklenmeyen alanlar, rotanın talep edilen davranışı garanti edemediği durumlarda açık `400` veya `503` hataları döndürebilir.
-</Note>
-
-## Desteklenen API Formatları
-
-| Endpoint | Format | Kullanım Durumu |
-|----------|--------|----------|
-| `/v1/chat/completions` | OpenAI Chat | Evrensel uyumluluk |
-| `/v1/responses` | OpenAI Responses | Durumlu (stateful) konuşmalar |
-| `/v1/messages` | Anthropic Messages | Claude yerel özellikleri |
-| `/v1beta/models/:model:generateContent` | Google Gemini | Gemini yerel özellikleri |
-
-## IDE & CLI Uyumluluğu
-
-### Belgelenmiş Araç Yolları
-
-| Araç | Destek Seviyesi | Format | Notlar |
-|------|---------------|--------|-------|
-| **Cursor** | Sınırlı destek | OpenAI uyumlu | BYOK standart sohbet/editör akışları için çalışır, Tab Completion gibi Cursor tarafından yönetilen özelliklerin yerine geçmez |
-| **Claude Code CLI** | Güçlü yerel yol | Anthropic | Düşünme (thinking) ve `tool_choice` için adaptör kapsamına sahip yerel `/v1/messages` rotası |
-| **Codex CLI** | Model/yol sınırlamalarıyla desteklenir | OpenAI Responses | `/v1/responses` rotasını Codex'e özgü iş akışları için gelişmiş bir yol olarak değerlendirin; yalnızca Responses'a özgü bazı alanlar her modelde ve rotada garanti edilmez |
-| **Gemini CLI** | En iyi çaba / deneysel | Gemini | Özel TokenLab temel URL akışı, resmi bir Gemini CLI entegrasyonu değildir |
-| **OpenCode** | Desteklenir | OpenAI uyumlu | Varsayılan olarak OpenAI uyumlu bir sağlayıcı kullanın; yalnızca açıkça ihtiyaç duyduğunuzda Responses tabanlı bir sağlayıcıya geçin |
-| **OpenHands** | Desteklenir | OpenAI uyumlu | `openai/<model>` ve TokenLab'in `/v1` temel URL'si ile LiteLLM/OpenAI uyumlu yolunu kullanın |
-
-<Note>
-  Diğer OpenAI uyumlu editörler ve ajan araçları genellikle aynı temel URL yapısıyla çalışır; üretim ortamında kullanmadan önce aracın kendi özel sağlayıcı desteğini kontrol edin.
-</Note>
-
-### Yapılandırma Örnekleri
-
-<Tabs>
-  <Tab title="Cursor">
-    ```
-    Base URL: https://api.tokenlab.sh/v1
-    API Key: sk-your-tokenlab-key
-    ```
-    Cursor dahili olarak Anthropic tarzı araç formatını kullanır. TokenLab her ikisini de destekler:
-    - OpenAI formatı: `{ type: "function", function: { name, parameters } }`
-    - Anthropic formatı: `{ name, input_schema }` (type alanı olmadan)
-  </Tab>
-  <Tab title="Claude Code">
-    ```bash
-    export ANTHROPIC_BASE_URL="https://api.tokenlab.sh"
-    export ANTHROPIC_API_KEY="sk-your-tokenlab-key"
-    ```
-  </Tab>
-  <Tab title="OpenCode">
-    ```bash
-    export OPENAI_API_KEY="sk-your-tokenlab-key"
-    export LOCAL_ENDPOINT="https://api.tokenlab.sh/v1"
-    ```
-  </Tab>
-  <Tab title="Aider">
-    ```bash
-    export OPENAI_API_KEY="sk-your-tokenlab-key"
-    export OPENAI_BASE_URL="https://api.tokenlab.sh/v1"
-    aider --model gpt-5.4
-    ```
-  </Tab>
-</Tabs>
-
-## SDK Uyumluluğu
-
-### Belgelenmiş SDK & Framework Yolları
-
-| SDK / Framework | Dil | Destek Seviyesi | Notlar |
-|-----------------|----------|---------------|-------|
-| **OpenAI SDK** | Python/JS/Go | Desteklenen temel yol | `/v1` Chat Completions ve Embeddings için uyumluluk yolu; sağlayıcıya özgü davranışlar için yerel sağlayıcı rotalarını kullanın ve Responses'a özgü alanların her modelde çalıştığını varsaymayın |
-| **Anthropic SDK** | Python/JS | Güçlü yerel yol | Araçlar, düşünme ve istem önbelleğe alma (prompt caching) için doğrudan kanıta sahip yerel Messages rotası |
-| **Vercel AI SDK** | TypeScript | Önerilen entegrasyon modeli | `@ai-sdk/openai-compatible` tercih edin; yalnızca açıkça Responses-native davranış istediğinizde `@ai-sdk/openai` kullanın |
-| **LangChain** | Python/JS | Desteklenen standart yüzeyler | `ChatOpenAI` ve `OpenAIEmbeddings` hedeflenen kapsamdır; satıcıya özgü ekstralar kapsam dışıdır |
-| **LlamaIndex** | Python | `OpenAILike` ile desteklenir | TokenLab gibi üçüncü taraf ağ geçitleri için yerleşik OpenAI sınıflarını değil, `OpenAILike` kullanın |
-| **OpenAI Agents SDK** | Python | Desteklenen chat-completions yolu | `OpenAIChatCompletionsModel` ile `AsyncOpenAI(base_url="https://api.tokenlab.sh/v1")` kullanın; yerel Responses davranışı seçilen modele ve rotaya bağlıdır |
-| **AutoGen** | Python | Desteklenen özel endpoint yolu | `base_url: https://api.tokenlab.sh/v1` ile `OpenAIChatCompletionClient` kullanın |
-| **Semantic Kernel** | .NET | Desteklenen özel endpoint yolu | OpenAI chat completion bağlayıcısı özel endpoint'ini kullanın ve `https://api.tokenlab.sh/v1` adresine yönlendirin |
-| **CrewAI** | Python | Desteklenen özel endpoint yolu | `OPENAI_API_BASE` veya `LLM(base_url=...)` değerini TokenLab'in `/v1` endpoint'ine ayarlayın |
-| **Pydantic AI** | Python | Desteklenen OpenAI uyumlu sağlayıcı yolu | `OpenAIProvider(base_url="https://api.tokenlab.sh/v1")` ile `OpenAIChatModel` kullanın |
-| **DSPy** | Python | Desteklenen özel endpoint yolu | `dspy.LM("openai/<model>", api_base="https://api.tokenlab.sh/v1")` kullanın |
-| **Langflow** | Python / Web | Kapsam sınırlamalarıyla desteklenir | OpenAI bileşeninin **OpenAI API Base** alanını TokenLab'in `/v1` endpoint'i ile kullanın |
-| **Haystack** | Python | Desteklenen özel endpoint yolu | `OpenAIChatGenerator(api_base_url="https://api.tokenlab.sh/v1")` kullanın |
-| **Graphiti** | Python | Desteklenen özel endpoint yolu | TokenLab'in `/v1` endpoint'i ile `OpenAIGenericClient` kullanın |
-| **Dify** | - | Kapsam sınırlamalarıyla desteklenir | OpenAI sağlayıcısı ve chat-completions odaklı akışlar hedeflenen yoldur; Codex'e özgü Responses veya WebSocket davranışı için uygun değildir |
-| **Flowise** | Web / Node | Kapsam sınırlamalarıyla desteklenir | Mümkünse TokenLab sohbet düğümünü veya `https://api.tokenlab.sh/v1` adresine yönlendirilmiş ChatOpenAI uyumlu bir düğüm kullanın |
-| **Mem0** | Python | Desteklenen özel endpoint yolu | OpenAI sağlayıcısını koruyun ve `openai_base_url` değerini TokenLab'in `/v1` endpoint'ine ayarlayın |
-| **Agno** | Python | Desteklenen yol | Mümkünse TokenLab model sarmalayıcısını veya OpenAI uyumlu temel URL yolunu kullanın |
-| **Browser Use** | Python | Desteklenen özel endpoint yolu | TokenLab'in `/v1` endpoint'i ile `ChatOpenAILike` kullanın |
-| **VoltAgent** | TypeScript | Desteklenen özel endpoint yolu | `baseURL: "https://api.tokenlab.sh/v1"` ile yapılandırılmış bir AI SDK OpenAI sağlayıcısı geçirin |
-| **Ragas** | Python | Desteklenen özel endpoint yolu | `llm_factory` içine `AsyncOpenAI(base_url="https://api.tokenlab.sh/v1")` geçirin |
-| **Guardrails** | Python | Desteklenen doğrulama yolu | TokenLab'in `/v1` endpoint'i ile yapılandırılmış bir OpenAI SDK chat completions çağrılabilir nesnesi geçirin |
-| **Prompt flow** | Python / CLI | Desteklenen özel endpoint yolu | `base_url=https://api.tokenlab.sh/v1` ile bir OpenAI bağlantısı oluşturun |
-| **Promptfoo** | CLI / Node | Desteklenen yol | `apiBaseUrl: https://api.tokenlab.sh/v1` ile OpenAI chat veya Responses sağlayıcılarını kullanın |
-| **Portkey Gateway** | Gateway | Desteklenen yol | OpenAI uyumlu sohbet ve Responses trafiği için TokenLab'i yukarı yönlü bir sağlayıcı olarak kullanın |
-| **Helicone** | Gateway / Observability | Desteklenen gözlemlenebilirlik yolu | `Helicone-Target-Url: https://api.tokenlab.sh` ile OpenAI uyumlu istekleri Helicone Gateway üzerinden yönlendirin |
-| **Langfuse** | Observability | Desteklenen izleme yolu | Langfuse OpenAI entegrasyonunu TokenLab'in `/v1` temel URL'si ile yapılandırın |
-| **OpenLIT** | Observability | Desteklenen izleme yolu | TokenLab'in `/v1` temel URL'si ile yapılandırılmış bir OpenAI SDK istemcisini izleyin |
-| **OpenLLMetry** | Observability | Desteklenen izleme yolu | TokenLab'in `/v1` temel URL'si ile OpenAI SDK izlemesini kullanın |
-| **Phoenix** | Observability | Desteklenen izleme yolu | TokenLab'in `/v1` temel URL'si ile yapılandırılmış OpenAI SDK istemcisini otomatik izleyin |
-| **Opik** | Observability | Desteklenen izleme yolu | TokenLab'in `/v1` temel URL'si ile yapılandırılmış bir OpenAI SDK istemcisini sarmalayın |
-| **LangBot** | Bot Platform | Desteklenen sohbet yolu | Mümkünse TokenLab isteyicisini kullanın veya TokenLab'in `/v1` endpoint'i ile OpenAI uyumlu bir isteyici yapılandırın |
-| **Open WebUI** | Web Chat | Desteklenen sohbet uygulaması yolu | TokenLab'i OpenAI uyumlu bir API bağlantısı olarak ekleyin ve model listesini yenileyin |
-| **Chatbox / DeepChat / Jan / LibreChat / Cherry Studio** | Desktop / Web | Desteklenen sohbet uygulaması yolu | Her uygulamanın OpenAI uyumlu özel sağlayıcı akışını kullanın; bu uygulamalar genellikle chat-completions odaklıdır |
-
-## Chat Completions Parametreleri
-
-### Temel Parametreler
-
-| Parametre | Tip | Açıklama |
-|-----------|------|-------------|
-| `model` | string | Model tanımlayıcısı (gerekli) |
-| `messages` | array | Konuşma mesajları (gerekli) |
-| `max_tokens` | integer | Maksimum çıktı token'ı |
-| `temperature` | number | Örnekleme sıcaklığı (0-2) |
-| `top_p` | number | Nucleus örnekleme (0-1) |
-| `stream` | boolean | Akışı etkinleştir |
-
-### Araç Çağırma (Tool Calling)
-
-```json
-{
-  "tools": [
-    {
-      "type": "function",
-      "function": {
-        "name": "get_weather",
-        "description": "Get weather for a location",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "location": { "type": "string" }
-          }
-        },
-        "strict": true
-      }
-    }
-  ],
-  "tool_choice": "auto",
-  "parallel_tool_calls": true
-}
-```
-
-### Araç Seçimi (Tool Choice) Seçenekleri
-
-| Format | Örnek | Açıklama |
-|--------|---------|-------------|
-| String | `"auto"`, `"none"`, `"required"` | Basit seçim |
-| OpenAI Object | `{ "type": "function", "function": { "name": "fn" } }` | Belirli fonksiyonu zorla |
-| Anthropic Object | `{ "type": "tool", "name": "fn", "disable_parallel_tool_use": true }` | Anthropic yerel formatı |
-
-### Gelişmiş Parametreler
-
-| Parametre | Tip | Açıklama |
-|-----------|------|-------------|
-| `stream_options` | object | Yalnızca Chat Completions: Token sayıları için `{ include_usage: true }` |
-| `reasoning_effort` | string | Akıl yürütme özellikli GPT-5 modelleri için `"low"`, `"medium"`, `"high"` |
-| `service_tier` | string | `"auto"` veya `"default"` |
-| `seed` | integer | Deterministik çıktılar |
-| `logprobs` | boolean | Log olasılıklarını döndür |
-| `top_logprobs` | integer | En iyi log olasılıklarının sayısı (0-20) |
-| `logit_bias` | object | Token yanlılık haritası (-100 ila 100) |
-| `frequency_penalty` | number | Tekrar cezası (-2 ila 2) |
-| `presence_penalty` | number | Konu cezası (-2 ila 2) |
-| `stop` | string/array | Durdurma dizileri |
-| `n` | integer | Tamamlama sayısı (1-128) |
-| `user` | string | İzleme için kullanıcı tanımlayıcısı |
-
-### OpenAI Gelişmiş Özellikleri
-
-| Parametre | Tip | Açıklama |
-|-----------|------|-------------|
-| `modalities` | array | Çok modlu (multimodal) için `["text", "audio"]` |
-| `audio` | object | Ses çıkış yapılandırması (ses, format) |
-| `prediction` | object | Daha hızlı tamamlama için tahmin edilen çıktı |
-| `metadata` | object | İzleme için anahtar-değer çiftleri |
-| `store` | boolean | Daha sonra geri almak için sakla |
-
-### Sağlayıcıya Özgü Seçenekler
-
-```json
-{
-  "anthropic_options": {
-    "thinking": {
-      "type": "enabled",
-      "budget_tokens": 10000
-    },
-    "prompt_caching": true
-  },
-  "google_options": {
-    "safety_settings": [...],
-    "google_search": true,
-    "code_execution": true
-  }
-}
-```
-
-## Anthropic Messages Parametreleri
-
-### Temel Parametreler
-
-| Parametre | Tip | Açıklama |
-|-----------|------|-------------|
-| `model` | string | Model tanımlayıcısı |
-| `messages` | array | Konuşma mesajları |
-| `max_tokens` | integer | Maksimum çıktı (128000'e kadar) |
-| `system` | string/array | Sistem istemi |
-| `stream` | boolean | Akışı etkinleştir |
-
-### Araç Çağırma (Tool Calling)
-
-```json
-{
-  "tools": [
-    {
-      "name": "get_weather",
-      "description": "Get weather",
-      "input_schema": {
-        "type": "object",
-        "properties": {
-          "location": { "type": "string" }
-        }
-      }
-    }
-  ],
-  "tool_choice": {
-    "type": "auto",
-    "disable_parallel_tool_use": false
-  }
-}
-```
-
-### Genişletilmiş Düşünme (Extended Thinking)
-
-```json
-{
-  "model": "claude-opus-5",
-  "thinking": {
-    "type": "enabled",
-    "budget_tokens": 10000
-  }
-}
-```
-
-## Responses API Parametreleri
-
-### Temel Parametreler
-
-| Parametre | Tip | Açıklama |
-|-----------|------|-------------|
-| `model` | string | Model tanımlayıcısı |
-| `input` | string/array | Girdi içeriği |
-| `instructions` | string | Sistem talimatları |
-| `max_output_tokens` | integer | Maksimum çıktı token'ı |
-| `previous_response_id` | string | Konuşmayı devam ettir |
-
-### Gelişmiş Parametreler
-
-| Parametre | Tip | Açıklama |
-|-----------|------|-------------|
-| `truncation_strategy` | string | `"auto"` veya `"disabled"` |
-| `include` | array | `["reasoning.encrypted_content"]` |
-| `reasoning_effort` | string | Akıl yürütme modelleri için |
-| `service_tier` | string | Öncelik katmanı |
-
-### Araç Formatı
-
-Hem OpenAI hem de Anthropic araç formatlarını destekler:
-
-```json
-// OpenAI formatı
-{ "type": "function", "name": "fn", "parameters": {...} }
-
-// Anthropic formatı (Cursor uyumluluğu)
-{ "name": "fn", "input_schema": {...} }
-```
-
-## Gemini API Parametreleri
-
-### Temel Parametreler
-
-| Parametre | Tip | Açıklama |
-|-----------|------|-------------|
-| `contents` | array | Konuşma içeriği |
-| `systemInstruction` | object | Sistem istemi |
-| `generationConfig` | object | Üretim ayarları |
-
-### Araçlar
-
-```json
-{
-  "tools": [{
-    "functionDeclarations": [{
-      "name": "search",
-      "description": "Search the web",
-      "parameters": {...}
-    }],
-    "codeExecution": {},
-    "googleSearch": {}
-  }],
-  "toolConfig": {
-    "functionCallingConfig": {
-      "mode": "AUTO"
-    }
-  }
-}
-```
-
-### Güvenlik Ayarları
-
-```json
-{
-  "safetySettings": [
-    {
-      "category": "HARM_CATEGORY_HARASSMENT",
-      "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-    }
-  ]
-}
-```
-
-### Ek Parametreler
-
-| Parametre | Tip | Açıklama |
-|-----------|------|-------------|
-| `cachedContent` | string | Önbelleğe alınmış içerik referansı |
-| `responseMimeType` | string | `"text/plain"` veya `"application/json"` |
-| `responseSchema` | object | Yapılandırılmış çıktı için JSON şeması |
-
-## Akış (Streaming)
-
-Chat Completions ve Responses dahil olmak üzere `stream: true` değerini sunan üretim endpoint'leri, Server-Sent Events (SSE) kullanır:
-
-```bash
-# Chat Completions
-curl https://api.tokenlab.sh/v1/chat/completions \
-  -H "Authorization: Bearer sk-xxx" \
-  -d '{"model": "gpt-5.6-terra", "messages": [...], "stream": true}'
-
-# Chat Completions kullanım takibi
--d '{"...", "stream_options": {"include_usage": true}}'
-```
-
-## Hata Yönetimi
-
-TokenLab, OpenAI uyumlu hata yanıtları döndürür:
-
-```json
-{
-  "error": {
-    "message": "Invalid API key",
-    "type": "invalid_api_key",
-    "code": "invalid_api_key"
-  }
-}
-```
-
-Ayrıntılar için [Hata Yönetimi Rehberi](/guides/error-handling) bölümüne bakın.
-
-## En İyi Uygulamalar
-
-<AccordionGroup>
-  <Accordion title="Bilinmeyen parametreler için passthrough kullanın">
-    Bilinmeyen parametreler, yalnızca seçilen genel rota ve model bunları desteklediğinde iletilir.
-  </Accordion>
-
-  <Accordion title="stream_options.include_usage değerini yalnızca Chat Completions için kullanın">
-    Chat Completions akışı için doğru token sayıları adına `stream_options.include_usage` değerini etkinleştirin. Responses'ın kendi akış sözleşmesi vardır ve bu Chat'e özgü seçeneği sunmaz.
-  </Accordion>
-
-  <Accordion title="Uygun tool_choice formatını kullanın">
-    SDK'nızın beklediği formatla eşleştirin. TokenLab hem OpenAI hem de Anthropic formatlarını kabul eder.
-  </Accordion>
-</AccordionGroup>
+Çoğu araç, API anahtarı ve temel URL değiştirilerek TokenLab’e bağlanabilir. Tam yapılandırma, aracın kullanabildiği API biçimine bağlıdır.
+
+| API biçimi | Temel URL | Yaygın istemciler |
+| --- | --- | --- |
+| Chat Completions (OpenAI uyumlu) | `https://api.tokenlab.sh/v1` | OpenAI SDK’ları, birçok sohbet uygulaması ve framework |
+| OpenAI Responses | `https://api.tokenlab.sh/v1` | Responses istemcileri ve Responses olaylarını kullanan araçlar |
+| Anthropic Messages | `https://api.tokenlab.sh` | Anthropic SDK’ları ve Claude odaklı araçlar |
+| Gemini | `https://api.tokenlab.sh` | Özel sunucu adresine izin veren Gemini REST ve SDK istemcileri |
+
+Seçilen modelin `accepted_request_formats` alanında aynı biçim yer almalıdır. Akış ve araç çağrıları ayrıca modelin yeteneklerine ve istemcinin desteğine bağlıdır. Örnekler için [API biçimleri](/tr/guides/api-formats) sayfasına bakın.
+
+## Uyumluluk etiketleri
+
+| Etiket | Anlamı |
+| --- | --- |
+| **Uyumlu** | Bağlantı verilen sayfadaki TokenLab kurulumu, istemcinin belgelenmiş yapılandırma seçeneklerini kullanır |
+| **Sınırlamalarla uyumlu** | Yapılandırma belirli özellikler veya kimlik doğrulama yöntemleri için geçerlidir; sağlayıcının diğer hizmetleri kendi koşullarını korur |
+
+Bu etiketler, bağlantı verilen sayfadaki yapılandırmayı açıklar. Kullanılabilir özellikler seçilen modele ve istemci sürümüne de bağlıdır.
+
+## Kodlama araçları
+
+| Araç | Durum | API biçimi | Notlar |
+| --- | --- | --- | --- |
+| [Claude Code](/tr/integrations/claude-code) | Uyumlu | Anthropic Messages | `ANTHROPIC_BASE_URL` ve TokenLab API anahtarı kullanır |
+| [Codex CLI](/tr/integrations/codex-cli) | Sınırlamalarla uyumlu | Responses | Responses kullanır; kullanılabilir özellikler seçilen modele bağlıdır |
+| [Cursor](/tr/integrations/cursor) | Sınırlamalarla uyumlu | OpenAI uyumlu | Özel API anahtarı ve URL kabul eden Cursor özellikleri için geçerlidir |
+| [Cline](/tr/integrations/cline) | Uyumlu | OpenAI uyumlu | **OpenAI Compatible** seçeneğini seçip temel URL’yi ve model kimliğini girin |
+| [Kilo Code](/tr/integrations/kilo-code) | Uyumlu | OpenAI uyumlu | Özel sağlayıcı ve model kimliği kullanır |
+| [OpenCode](/tr/integrations/opencode) | Uyumlu | OpenAI uyumlu | `OPENCODE_CONFIG` ile ayrı bir sağlayıcı yapılandırması yükleyin |
+| [OpenHands](/tr/integrations/openhands) | Uyumlu | OpenAI uyumlu | LiteLLM tabanlı arayüz: **Advanced → Custom Model** (`openai/` öneki) ve **Base URL** |
+| [Gemini CLI](/tr/integrations/gemini-cli) | Sınırlamalarla uyumlu | Gemini | `GOOGLE_GEMINI_BASE_URL` değişkenini API anahtarıyla kimlik doğrulamada kullanın; ayrı bir `GEMINI_CLI_HOME` mevcut kurulumu korur |
+
+## Sohbet uygulamaları
+
+| Uygulama | Durum | Notlar |
+| --- | --- | --- |
+| [Chatbox](/tr/integrations/chatbox) | Uyumlu | **OpenAI API Compatible** sağlayıcısı ekleyin |
+| [Cherry Studio](/tr/integrations/cherry-studio) | Uyumlu | Sağlayıcı ekleyip **Verify and Enable** adımını tamamlayın |
+| [DeepChat](/tr/integrations/deepchat) | Uyumlu | Chat Completions için **OpenAI Completions** seçin |
+| [Jan](/tr/integrations/jan) | Uyumlu | OpenAI uyumlu bir hizmet ekleyin |
+| [LibreChat](/tr/integrations/librechat) | Uyumlu | Özel bir OpenAI uyumlu uç nokta yapılandırın |
+| [Open WebUI](/tr/integrations/open-webui) | Uyumlu | OpenAI uyumlu bir bağlantı ekleyip API Type alanını **Chat** olarak seçin |
+
+## SDK’lar ve framework’ler
+
+| İstemci | Durum | Kurulum |
+| --- | --- | --- |
+| [OpenAI SDK](/tr/integrations/openai-sdk) | Uyumlu | `base_url` / `baseURL` değerini `https://api.tokenlab.sh/v1` olarak ayarlayın |
+| [Anthropic SDK](/tr/integrations/anthropic-sdk) | Uyumlu | Temel URL’yi `https://api.tokenlab.sh` olarak ayarlayın |
+| [Vercel AI SDK](/tr/integrations/vercel-ai-sdk) | Uyumlu | Özel bir OpenAI uyumlu sağlayıcı oluşturun |
+| [LangChain](/tr/integrations/langchain) | Uyumlu | `ChatOpenAI` veya `OpenAIEmbeddings` için TokenLab URL’sini yapılandırın |
+| [LlamaIndex](/tr/integrations/llamaindex) | Uyumlu | OpenAI uyumlu istemci seçeneklerini kullanın |
+| [OpenAI Agents SDK](/tr/integrations/openai-agents-sdk) | Sınırlamalarla uyumlu | Kılavuz `OpenAIChatCompletionsModel` kullanır; Responses kullanmadan önce modelin ve SDK’nın özellik desteğini kontrol edin |
+| [AutoGen](/tr/integrations/autogen) | Uyumlu | OpenAI uyumlu bir model istemcisi kullanın |
+| [CrewAI](/tr/integrations/crewai) | Uyumlu | OpenAI uyumlu LLM istemcisini yapılandırın |
+| [PydanticAI](/tr/integrations/pydantic-ai) | Uyumlu | OpenAI uyumlu bir sağlayıcı belirtin |
+
+Diğer framework’ler, gözlemlenebilirlik araçları, ağ geçitleri ve değerlendirme ürünleri Integrations menüsünde listelenir.
+
+## Akış yanıtlarında kullanım bilgisi
+
+Chat Completions akışları `stream_options: { include_usage: true }` seçeneğini kabul eder ve akış kapanmadan önce son bir kullanım parçası ekler. Responses API’sinde `include_usage` bulunmaz; Responses akışları kullanım bilgisini son olayda bildirir.
+
+## Özel API anahtarının yerine geçmediği hizmetler
+
+Bazı ürünler model çağrılarını sağlayıcının barındırdığı özelliklerle birleştirir. TokenLab anahtarı, BYOK ayarlarında sunulan model isteklerini karşılayabilir; ancak diğer aboneliklerin, otomatik tamamlama hizmetlerinin, hesap özelliklerinin veya özel uzantıların yerine geçmez.
+
+Araç güncellemesi yapılandırmayı değiştirirse eski ortam değişkeni örneklerini kopyalamak yerine güncel entegrasyon sayfasını kullanın.
+
+## Bir özelliğe güvenmeden önce
+
+- Aracın gerekli API biçimi için özel temel URL’ye izin verdiğini doğrulayın.
+- Modelin `accepted_request_formats` alanında bu biçimi listelediğini doğrulayın.
+- İş akışınız gerektiriyorsa akışı ve araç çağrılarını deneyin.
+- API anahtarını güvenilir bir cihazda veya sunucuda saklayın.
+- Hata bildirirken istek kimliğini kaydedin.

@@ -17,6 +17,8 @@ description: "設定 Cline 使用 TokenLab 模型"
 
 ## 設定 TokenLab
 
+編輯前先在本機儲存目前供應商、模型與連線設定。這些介面選項會改變目前模型選擇，使用結束後還原原值。保留已登入帳戶與工具權限；未保留可還原備份時，不要覆寫既有的其他 OpenAI 相容連線。
+
 1. 從編輯器擴充套件市集安裝 **Cline**，開啟 Cline 面板。
 2. 點擊齒輪，將 **API Provider** 設為 **OpenAI Compatible**。
 3. 輸入：
@@ -29,8 +31,8 @@ description: "設定 Cline 使用 TokenLab 模型"
 
 4. 點擊 **Verify**。
 
-`kimi-k3` 的可選進階值為：輸入上限 `1048576`、最大輸出 `131072`，並開啟圖片支援及工具 / Computer Use。
-
 ## 驗證
 
 驗證成功後，先要求 Cline 列出工作區檔案且不要修改。若出現 404，請確認 Base URL 以 `/v1` 結尾，且不要加入 `/chat/completions`。模型應寫成 `kimi-k3`，而不是 `kimi/kimi-k3`。
+
+儲存設定或列出模型不能證明金鑰有效或請求完成。傳送提示詞會使用 TokenLab 餘額；先核對回覆及對應[請求記錄](https://tokenlab.sh/dashboard/runs?section=requests)，再嘗試工具，輔助請求也可能計費。

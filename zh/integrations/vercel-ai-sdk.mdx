@@ -31,7 +31,7 @@ console.log(text);
 ## 推荐默认值：OpenAI 兼容提供程序
 
 ```bash
-npm install ai @ai-sdk/openai-compatible
+npm install ai @ai-sdk/openai-compatible zod
 ```
 
 ```typescript
@@ -77,17 +77,18 @@ for await (const textPart of result.textStream) {
 ## 工具调用
 
 ```typescript
-import { generateText, tool } from 'ai';
+import { generateText, stepCountIs, tool } from 'ai';
 import { z } from 'zod';
 import { tokenlab } from './tokenlab';
 
 const result = await generateText({
   model: tokenlab.chatModel('gpt-5.6-terra'),
   prompt: 'What is the weather in San Francisco?',
+  stopWhen: stepCountIs(2),
   tools: {
     weather: tool({
       description: 'Get weather in a location',
-      parameters: z.object({
+      inputSchema: z.object({
         location: z.string(),
       }),
       execute: async ({ location }) => ({

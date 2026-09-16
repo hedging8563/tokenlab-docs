@@ -5,9 +5,7 @@ description: "Cấu hình OpenAI Codex CLI để sử dụng TokenLab API"
 
 ## Tổng quan
 
-OpenAI Codex là một công cụ dòng lệnh (CLI) mã nguồn mở hoạt động như một đại lý lập trình nhẹ, có khả năng đọc, sửa đổi và chạy mã trong terminal. Nó được xây dựng trên các mô hình GPT và được tối ưu hóa cho việc tạo mã.
-
-Đối với TokenLab, Codex CLI có thể sử dụng `/v1/responses`, nhưng bạn nên coi đó là một đường dẫn tương thích nâng cao. Một số tính năng chỉ dành cho Responses không được đảm bảo hoạt động trên mọi mô hình và đường dẫn.
+Codex CLI kết nối TokenLab qua `/v1/responses`. Mô hình được chọn phải có `openai_responses` trong `tokenlab.accepted_request_formats`; tính năng có thể khác nhau theo mô hình.
 
 Nén từ xa của Codex CLI được hỗ trợ tại `POST /v1/responses/compact`. Codex gửi `model` của phiên hiện tại trong `body.model` cho `/compact` và tự động nén, vì vậy model bạn muốn dùng để nén phải có sẵn trên đường dẫn Responses. Không cấu hình `/v1/compact`.
 
@@ -18,7 +16,7 @@ Làm theo [hướng dẫn CLI chính thức](https://learn.chatgpt.com/docs/code
 ## Cài đặt
 
 ```bash
-npm install -g @openai/codex
+npm install -g @openai/codex@0.149.0
 ```
 
 Xác minh cài đặt:
@@ -31,33 +29,11 @@ codex --version
 
 ### Bước 1: Thiết lập API Key
 
-**Tạm thời (phiên hiện tại):**
+Làm theo bước terminal trong [bắt đầu nhanh](/vi/quickstart) cho macOS, Linux, WSL hoặc Windows PowerShell để đặt `TOKENLAB_API_KEY` mà không ghi khóa vào lịch sử lệnh. Mở Codex từ terminal đó. Khi dùng lâu dài, hãy dùng trình quản lý bí mật cục bộ, không thêm khóa dạng văn bản vào hồ sơ shell.
 
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
+### Bước 2: Cấu hình tokenlab.config.toml
 
-**Cấu hình vĩnh viễn:**
-
-Thêm vào `~/.bashrc`, `~/.zshrc`, hoặc `~/.bash_profile`:
-
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
-
-Sau đó nạp lại:
-
-```bash
-source ~/.zshrc  # or source ~/.bashrc
-```
-
-### Bước 2: Cấu hình config.toml
-
-Hợp nhất các thiết lập này vào tệp người dùng `~/.codex/config.toml`; không thay thế toàn bộ tệp. Giữ nguyên các nhà cung cấp, tài khoản, thiết lập sandbox và quy tắc phê duyệt khác. Cấu hình nhà cung cấp và xác thực phải nằm trong cấu hình người dùng, không phải `.codex/config.toml` của dự án. Xem [hướng dẫn cấu hình chính thức](https://learn.chatgpt.com/docs/config-file/config-advanced#custom-model-providers).
-
-Để giữ nhà cung cấp mặc định, từ Codex 0.134.0 hãy lưu ví dụ vào `~/.codex/tokenlab.config.toml` và chạy `codex --profile tokenlab`. Dùng thư mục thật nếu đã đổi `CODEX_HOME`. Không tạo bảng `[profiles.tokenlab]` cũ, ghi đè `auth.json`, đăng xuất hay đổi quyền. Khởi chạy không dùng profile này để khôi phục.
-
-Trong mỗi nhóm lệnh bên dưới, chọn **Hồ sơ TokenLab** khi dùng `tokenlab.config.toml`. Chỉ dùng **TokenLab mặc định** sau khi hợp nhất thiết lập vào `config.toml`. Lệnh `codex` không có tùy chọn dùng cấu hình mặc định, không ghi nhớ hồ sơ đã chọn trong phiên trước.
+Với Codex **0.149.0**, dùng tệp `tokenlab.config.toml` riêng trong `CODEX_HOME` đang hoạt động (thường là `~/.codex`). Chỉ tạo khi tên chưa được dùng, hoặc sao lưu hồ sơ TokenLab hiện có trước khi sửa. `codex --profile tokenlab` nạp hồ sơ rõ ràng mà không thay đổi `config.toml`, `auth.json`, tài khoản hay chính sách quyền. Không dùng bảng cũ `[profiles.tokenlab]`. Khởi chạy không kèm hồ sơ này để quay lại cấu hình thường dùng. Xem [cấu hình hồ sơ chính thức](https://learn.chatgpt.com/docs/config-file/config-advanced#profiles).
 
 ```toml
 model_provider = "tokenlab"
@@ -82,54 +58,32 @@ Tạo tệp cấu hình đã chọn nếu chưa có. Sau khi sửa, bắt đầu
 Codex hiện dùng `wire_api = "responses"`, không phải `chat/completions`. Bỏ `requires_openai_auth` hoặc đặt false để nhà cung cấp dùng `env_key`.
 
 <Note>
-TokenLab chuyển tiếp các trường Responses chưa biết theo best-effort mà không âm thầm hạ cấp yêu cầu sang Chat Completions. Upstream được chọn quyết định trường hoặc tổ hợp có được hỗ trợ hay không.
+Yêu cầu Responses không được chuyển thành Chat Completions. Các trường tùy chọn và tương lai phụ thuộc vào mô hình được chọn.
 </Note>
 
 ## Sử dụng cơ bản
 
 **Bắt đầu chế độ tương tác:**
 
-<CodeGroup>
-```bash Hồ sơ TokenLab
+```bash
 codex --profile tokenlab
 ```
 
-```bash TokenLab mặc định
-codex
-```
-</CodeGroup>
-
 **Lệnh trực tiếp:**
 
-<CodeGroup>
-```bash Hồ sơ TokenLab
+```bash
 codex --profile tokenlab "Fix the bug in main.py line 42"
 ```
 
-```bash TokenLab mặc định
-codex "Fix the bug in main.py line 42"
-```
-</CodeGroup>
-
 **Chỉ định model:**
 
-<CodeGroup>
-```bash Hồ sơ TokenLab
+```bash
 codex --profile tokenlab -m gpt-5.6-sol "Build a REST API server"
 ```
 
-```bash TokenLab mặc định
-codex -m gpt-5.6-sol "Build a REST API server"
-```
-</CodeGroup>
+## Chọn mô hình
 
-## Các model được khuyến nghị
-
-| Mô hình | Phù hợp cho |
-|-------|-------------|
-| `gpt-5.6-sol` | Lựa chọn mặc định tốt nhất cho việc lập trình và suy luận |
-| `gpt-5-mini` | Phương án dự phòng nhanh hơn, rẻ hơn cho quy trình làm việc viết mã |
-| `claude-sonnet-4-6` | Đánh giá mã, viết tài liệu |
+Chọn mô hình hiện có `openai_responses` trong `tokenlab.accepted_request_formats`. So sánh bằng tác vụ của bạn và xem giá hiện tại trên [trang mô hình](https://tokenlab.sh/vi/models).
 
 ## Lệnh tương tác
 
@@ -157,71 +111,41 @@ Khởi động Codex rồi chạy `/status` để kiểm tra mô hình và quy�
 
 Khi sẵn sàng gửi yêu cầu thật, hãy chạy lệnh dưới đây. Lệnh sẽ sử dụng số dư TokenLab. Kiểm tra câu trả lời và bản ghi tương ứng trong [Yêu cầu](https://tokenlab.sh/dashboard/runs?section=requests). Biến đã được đặt hoặc ứng dụng khởi động thành công chưa chứng minh yêu cầu đã thành công.
 
-<CodeGroup>
-```bash Hồ sơ TokenLab
+```bash
 codex --profile tokenlab "Reply only with OK. Do not use tools or modify files."
 ```
-
-```bash TokenLab mặc định
-codex "Reply only with OK. Do not use tools or modify files."
-```
-</CodeGroup>
 
 ## Các trường hợp sử dụng phổ biến
 
 **Đánh giá mã:**
 
-<CodeGroup>
-```bash Hồ sơ TokenLab
+```bash
 git diff | codex --profile tokenlab "Review these code changes"
 ```
 
-```bash TokenLab mặc định
-git diff | codex "Review these code changes"
-```
-</CodeGroup>
-
 **Tạo commit messages:**
 
-<CodeGroup>
-```bash Hồ sơ TokenLab
+```bash
 git diff --staged | codex --profile tokenlab "Generate a commit message for these changes"
 ```
 
-```bash TokenLab mặc định
-git diff --staged | codex "Generate a commit message for these changes"
-```
-</CodeGroup>
-
 **Sửa lỗi:**
 
-<CodeGroup>
-```bash Hồ sơ TokenLab
+```bash
 codex --profile tokenlab "Fix the TypeScript errors in src/components/"
 ```
 
-```bash TokenLab mặc định
-codex "Fix the TypeScript errors in src/components/"
-```
-</CodeGroup>
-
 **Giải thích mã:**
 
-<CodeGroup>
-```bash Hồ sơ TokenLab
+```bash
 cat main.py | codex --profile tokenlab "Explain what this code does"
 ```
-
-```bash TokenLab mặc định
-cat main.py | codex "Explain what this code does"
-```
-</CodeGroup>
 
 ## Xử lý sự cố
 
 <AccordionGroup>
   <Accordion title="Lỗi kết nối">
-    - Xác nhận `base_url` trong config.toml là chính xác `https://api.tokenlab.sh/v1`
+    - Xác nhận `base_url` trong tokenlab.config.toml là chính xác `https://api.tokenlab.sh/v1`
     - Kiểm tra kết nối mạng
     - Đảm bảo không có can nhiễu proxy
   </Accordion>

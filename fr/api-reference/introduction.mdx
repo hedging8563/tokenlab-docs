@@ -15,13 +15,19 @@ https://api.tokenlab.sh
 
 ## Authentification
 
-Tous les points de terminaison API requièrent une authentification via un Bearer token :
+Les requêtes de modèle utilisent une clé API TokenLab. L’en-tête d’authentification standard est :
 
 ```bash
 Authorization: Bearer sk-your-api-key
 ```
 
+`GET /v1/models`, `GET /v1/models/{model}` et `GET /v1/pricing` sont publics et ne nécessitent pas de clé. Anthropic Messages accepte aussi `x-api-key` ; Gemini accepte `x-goog-api-key` ou `?key=` en plus de Bearer. `/v1/management/*` exige un jeton de gestion (`mt-...`).
+
 Récupérez votre clé API depuis le [Dashboard](https://tokenlab.sh/dashboard).
+
+<Note>
+Les requêtes de génération acceptent `X-TokenLab-Delivery-Policy: auto | verified | official`. L’en-tête prime sur le réglage de la clé API, puis sur celui de l’espace de travail. `auto` privilégie TokenLab Verified, puis Official si nécessaire ; la facturation dépend du mode ayant terminé la requête. `verified` utilise les prix TokenLab ; `official` repose sur les prix publics du fabricant, au tarif affiché par TokenLab. Realtime utilise le réglage de la clé ou de l’espace de travail, sans remplacement par paramètre de requête. Un en-tête invalide renvoie `400` ; un mode indisponible renvoie `503 delivery_tier_unavailable` et un identifiant de requête.
+</Note>
 
 <Warning>
 **À propos du Playground interactif** : le playground de ce site de documentation est uniquement à des fins de démonstration et ne permet pas la saisie de clés API. Pour tester l'API, veuillez utiliser :
@@ -56,7 +62,7 @@ Récupérez votre clé API depuis le [Dashboard](https://tokenlab.sh/dashboard).
 | `/v1/images/generations/{id}` | GET | Chemin de statut de tâche pour les réponses d'image basées sur des tâches |
 
 <Info>
-Certains modèles d'image peuvent retourner des résultats inline, d'autres peuvent retourner des réponses basées sur des tâches, et certains peuvent se comporter de l'une ou l'autre manière selon le provider routé. Si la réponse de création inclut `poll_url`, suivez-la exactement.
+Les modèles d’image peuvent renvoyer une image terminée ou une tâche asynchrone. Si la réponse contient `poll_url`, utilisez cette URL pour consulter la tâche.
 </Info>
 
 ### Audio
@@ -142,7 +148,7 @@ Les endpoints Gemini supportent l'authentification par paramètre de requête `?
 
 ## Format des réponses
 
-Toutes les réponses suivent un format cohérent :
+Chaque endpoint conserve son format API. Les exemples de succès et d’erreur ci-dessous utilisent le format Chat Completions.
 
 ### Réponse de succès
 
@@ -152,7 +158,7 @@ Toutes les réponses suivent un format cohérent :
   "object": "chat.completion",
   "created": 1234567890,
   "model": "gpt-5.6-terra",
-  "choices": [...],
+  "choices": [{"index": 0, "message": {"role": "assistant", "content": "Hello!"}, "finish_reason": "stop"}],
   "usage": {
     "prompt_tokens": 10,
     "completion_tokens": 20,

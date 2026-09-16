@@ -37,11 +37,10 @@ Gunakan panel OpenAPI interaktif di atas untuk skema yang tepat.
 
 - Gunakan `custom_id` untuk rekonsiliasi downstream yang idempotent.
 - Harapkan `output_file_id` dan `error_file_id` hanya setelah worker menyelesaikan batch.
-- Harga batch bisa berbeda dari harga sinkron karena aturan diskon `isBatchRequest=true` diterapkan.
 
 ## Filter
 
-- `limit` menerima nilai dari 1 hingga 10000 dan default-nya 10000.
+- Untuk file batch dan referensi gambar, `limit` adalah 1–10000 (default 10000), dengan `after` untuk paginasi. Dalam mode Anthropic Files, nilainya 1–1000 (default 20); gunakan `after_id` atau `before_id`, bukan keduanya.
 - `purpose` dapat berupa `batch`, `batch_output`, `user_data`, atau `vision`.
 - `user_data` dan `vision` mengembalikan file referensi gambar yang dibuat oleh TokenLab jika tersedia.
 
@@ -51,7 +50,10 @@ Gunakan panel OpenAPI interaktif di atas untuk skema yang tepat.
 ```json 200 OK
 {
   "object": "list",
-  "data": [{ "id": "file_abc123", "object": "file", "purpose": "batch" }]
+  "data": [{ "id": "file_abc123", "object": "file", "purpose": "batch" }],
+  "first_id": "file_abc123",
+  "last_id": "file_abc123",
+  "has_more": false
 }
 ```
 </ResponseExample>
@@ -60,3 +62,4 @@ Gunakan panel OpenAPI interaktif di atas untuk skema yang tepat.
 
 <ResponseField name="object" type="string">Tipe object respons.</ResponseField>
 <ResponseField name="data" type="array">Daftar atau payload yang dikembalikan respons ini.</ResponseField>
+<ResponseField name="has_more" type="boolean">Hasil tambahan tersedia jika `has_more` bernilai true.</ResponseField>

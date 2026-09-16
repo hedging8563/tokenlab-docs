@@ -1,40 +1,24 @@
 ---
 title: "OpenHands"
-description: "Configure modelos TokenLab para CLI e fluxos de trabalho headless do OpenHands"
+description: "Conecte o OpenHands ao TokenLab"
 ---
+
 
 ## Visão geral
 
-O OpenHands pode usar o TokenLab através de sua configuração de modelo compatível com LiteLLM/OpenAI, especialmente para CLI e fluxos de trabalho headless onde você fornece o modelo, a chave de API e a URL base.
-
-## Ambiente
-
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
+Esta página se aplica à interface OpenHands com LiteLLM em **Settings → LLM → Advanced**. Escolha **OpenAI**, informe um modelo personalizado com prefixo `openai/`, a chave TokenLab no campo local e a Base URL abaixo. Registre a seleção anterior para restaurá-la depois; mantenha contas e permissões de ferramentas. Consulte a [configuração oficial compatível com OpenAI](https://docs.openhands.dev/openhands/usage/llms/openai-llms). CLI, cloud e instalações pelo código-fonte podem usar outros fluxos; siga sua edição instalada. `make setup-config` não é um comando geral da CLI instalada.
 
 ## Configurações do modelo
 
-Use:
+Salve localmente o provedor, modelo e conexão atuais antes de editar. Esses controles alteram o modelo ativo; restaure os valores anteriores ao terminar. Mantenha as contas conectadas e permissões de ferramentas. Não substitua outra conexão compatível com OpenAI sem uma cópia restaurável.
 
 ```text
-Model: openai/claude-sonnet-5
-API key: sk-your-tokenlab-key
+Custom Model: openai/kimi-k3
 Base URL: https://api.tokenlab.sh/v1
 ```
 
-O prefixo `openai/` indica ao caminho baseado em LiteLLM para usar uma configuração de provedor compatível com OpenAI.
+Salvar ajustes ou listar modelos não verifica a chave nem uma solicitação concluída. Um prompt usa saldo TokenLab. Confira a resposta e seu [registro correspondente](https://tokenlab.sh/dashboard/runs?section=requests) antes de testar ferramentas; solicitações auxiliares também podem ser cobradas.
 
-## Configuração Headless
-
-Se você estiver preparando padrões locais para uso via CLI ou headless, execute o fluxo de configuração do OpenHands e insira:
-
-```bash
-make setup-config
+```text
+Reply only with TOKENLAB_CONNECTION_OK. Do not use tools or modify files.
 ```
-
-Quando solicitado os detalhes do modelo, use o ID do modelo TokenLab com o prefixo `openai/` e a URL base `/v1` do TokenLab.
-
-## Sugestões de modelos
-
-Use `claude-sonnet-5` ou `gpt-5.4` para planejamento de agente de codificação, `gpt-5.4-mini` para loops de rotina mais rápidos e `deepseek-v4-pro` quando desejar um modelo de raciocínio alternativo robusto.

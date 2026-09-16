@@ -12,11 +12,13 @@ description: "Connecter Kilo Code et Kilo CLI à TokenLab"
 Installez le canal préversion de **Kilo Code** dans VS Code ou la CLI :
 
 ```bash
-npm install -g @kilocode/cli
+npm install -g @kilocode/cli@7.7.2
 kilo --version
 ```
 
 Ouvrez **Settings → Providers → Custom provider**.
+
+Sauvegardez localement le fournisseur, le modèle et la connexion avant toute modification. Ces réglages changent le modèle actif ; restaurez les valeurs précédentes après utilisation. Conservez les comptes connectés et les permissions des outils. Ne remplacez pas une autre connexion compatible OpenAI sans sauvegarde restaurable.
 
 | Champ | Valeur |
 |---|---|
@@ -31,18 +33,17 @@ Kilo détecte les modèles via `/v1/models`. Après enregistrement, choisissez `
 
 ## Configuration CLI
 
-Placez la clé dans une variable d'environnement et modifiez le fichier global approuvé `~/.config/kilo/kilo.jsonc` :
+Définissez `TOKENLAB_API_KEY` avec les étapes du [démarrage rapide](/fr/quickstart) pour macOS, Linux, WSL ou Windows PowerShell, sans placer la clé dans l’historique. Lancez Kilo depuis ce terminal. Pour un usage permanent, utilisez un gestionnaire local de secrets plutôt qu’une clé en clair dans le profil du shell.
 
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
+Avant de lancer Kilo **7.7.2**, sauvegardez la configuration globale active et vérifiez `permission.bash`. Cette version ajoute `bash: "allow"` à une configuration existante sans cette règle explicite, même si `permission["*"]` vaut `deny`. Conservez explicitement votre règle shell : si la règle générique actuelle est `deny`, ajoutez `"bash": "deny"` à l’objet `permission` existant sans changer les autres règles. Le fichier fournisseur séparé n’empêche pas cette migration du client.
+
+Enregistrez cette configuration dans un fichier distinct `~/.config/kilo/tokenlab.jsonc`. Si `XDG_CONFIG_HOME` est défini, utilisez `kilo/tokenlab.jsonc` dans ce répertoire. Conservez les fichiers habituels `kilo.json` / `kilo.jsonc`, les comptes, le modèle par défaut et les autorisations. Ce fichier ne se charge que pour un lancement qui le sélectionne avec `KILO_CONFIG`. Si le fichier ou le nom du fournisseur est déjà utilisé, choisissez un autre nom et adaptez les commandes.
 
 ```jsonc
 {
   "$schema": "https://app.kilo.ai/config.json",
-  "model": "openai-compatible/kimi-k3",
   "provider": {
-    "openai-compatible": {
+    "tokenlab": {
       "options": {
         "apiKey": "{env:TOKENLAB_API_KEY}",
         "baseURL": "https://api.tokenlab.sh/v1"
@@ -53,18 +54,46 @@ export TOKENLAB_API_KEY="sk-your-tokenlab-key"
           "tool_call": true,
           "reasoning": true,
           "modalities": {
-            "input": ["text", "image"],
-            "output": ["text"]
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
           },
           "limit": {
             "context": 1048576,
             "output": 131072
           }
         }
-      }
+      },
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "TokenLab"
     }
   }
 }
 ```
 
-Redémarrez Kilo puis exécutez `kilo models`. `{env:...}` n'est résolu que dans une configuration globale ou administrée approuvée. N'écrivez pas la vraie clé dans une configuration de projet susceptible d'être versionnée.
+<CodeGroup>
+```bash macOS / Linux / WSL
+KILO_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/kilo/tokenlab.jsonc" kilo models tokenlab
+KILO_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/kilo/tokenlab.jsonc" kilo --model tokenlab/kimi-k3
+```
+
+```powershell Windows PowerShell
+$previous = @{}
+$previous['KILO_CONFIG'] = [Environment]::GetEnvironmentVariable('KILO_CONFIG', 'Process')
+try {
+  $env:KILO_CONFIG = (Join-Path $(if ($env:XDG_CONFIG_HOME) { $env:XDG_CONFIG_HOME } else { Join-Path $HOME '.config' }) 'kilo/tokenlab.jsonc')
+  kilo models tokenlab
+  kilo --model tokenlab/kimi-k3
+} finally {
+  foreach ($name in $previous.Keys) {
+    [Environment]::SetEnvironmentVariable($name, $previous[$name], 'Process')
+  }
+}
+```
+</CodeGroup>
+
+Enregistrer les réglages ou lister les modèles ne valide ni la clé ni un appel terminé. Un prompt utilise le solde TokenLab. Vérifiez la réponse et son [enregistrement correspondant](https://tokenlab.sh/dashboard/runs?section=requests) avant de tester les outils ; les requêtes auxiliaires peuvent aussi être facturées.

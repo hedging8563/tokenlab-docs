@@ -8,13 +8,15 @@ Crie um grupo de material com `library_type: "aigc_avatar"`. Use este endpoint p
 
 Novos grupos de material de pessoa real são criados através da [Criar sessão de validação visual](/pt/api-reference/video/create-visual-validation-session) e não podem ser criados diretamente com este endpoint.
 
+`project_name` isola recursos dentro da organização autenticada. O padrão é `default`; use o mesmo valor, diferenciando maiúsculas e minúsculas, para grupos e ativos relacionados. Envie-o no corpo JSON para POST/PUT e na consulta para GET/DELETE.
+
 ## Exemplo de Requisição
 
 ```bash
 curl https://api.tokenlab.sh/v1/videos/assets/groups \
   -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"library_type":"aigc_avatar","group_name":"Product references","description":"Reusable product shots"}'
+  -d '{"library_type":"aigc_avatar","group_name":"Product references","description":"Reusable product shots","project_name":"default"}'
 ```
 
 ## Exemplo de Resposta
@@ -23,6 +25,7 @@ curl https://api.tokenlab.sh/v1/videos/assets/groups \
 {
   "id": "group-20260720123456-vrt01",
   "object": "seedance.material_asset_group",
+  "project_name": "default",
   "library_type": "aigc_avatar",
   "group_name": "Product references",
   "description": "Reusable product shots",

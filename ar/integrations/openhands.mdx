@@ -1,48 +1,24 @@
 ---
 title: "OpenHands"
-description: "تكوين نماذج TokenLab لـ OpenHands CLI وسير العمل غير المرئي (headless)"
+description: "ربط OpenHands بـ TokenLab"
 ---
+
 
 ## نظرة عامة
 
-يمكن لـ OpenHands استخدام TokenLab من خلال تكوين النموذج المتوافق مع LiteLLM/OpenAI، خاصةً في سير عمل CLI وسير العمل غير المرئي (headless) حيث تقوم بتوفير النموذج، ومفتاح API، وعنوان URL الأساسي.
-
-<Note>
-**النوع**: وكيل برمجي (Coding Agent)
-
-**المسار الأساسي**: تكوين نموذج متوافق مع OpenAI
-
-**مستوى دعم الموثوقية**: مسار نقطة نهاية مخصص مدعوم
-</Note>
-
-## البيئة
-
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
+هذه الصفحة لواجهة OpenHands التي توفر إعدادات **Settings → LLM → Advanced** المعتمدة على LiteLLM. اختر **OpenAI** وأدخل نموذجًا مخصصًا بالبادئة `openai/` ومفتاح TokenLab في حقل المفتاح المحلي وعنوان Base URL أدناه. سجّل الاختيار السابق وأعده عند الانتهاء، مع الحفاظ على الحسابات وأذونات الأدوات. راجع [الإعداد الرسمي المتوافق مع OpenAI](https://docs.openhands.dev/openhands/usage/llms/openai-llms). تختلف إجراءات إعداد CLI والسحابة ونسخة المصدر؛ اتبع تعليمات إصدارك. `make setup-config` ليس أمرًا عامًا للـ CLI المثبّت.
 
 ## إعدادات النموذج
 
-استخدم:
+احفظ إعدادات المزوّد والنموذج والاتصال الحالية محليًا قبل التعديل. تغيّر هذه الخيارات النموذج النشط؛ استعد القيم السابقة عند الانتهاء. أبقِ الحسابات المسجّلة وأذونات الأدوات كما هي، ولا تستبدل اتصالًا آخر متوافقًا مع OpenAI دون نسخة احتياطية قابلة للاستعادة.
 
 ```text
-Model: openai/claude-sonnet-5
-API key: sk-your-tokenlab-key
+Custom Model: openai/kimi-k3
 Base URL: https://api.tokenlab.sh/v1
 ```
 
-تخبر البادئة `openai/` المسار المدعوم بـ LiteLLM باستخدام تكوين مزود متوافق مع OpenAI.
+حفظ الإعدادات أو عرض النماذج لا يتحقق من صلاحية المفتاح أو اكتمال طلب. تستخدم المطالبة رصيد TokenLab. راجع الرد و[سجل الطلب المطابق](https://tokenlab.sh/dashboard/runs?section=requests) قبل تجربة الأدوات؛ وقد تُحتسب الطلبات المساعدة أيضًا.
 
-## الإعداد غير المرئي (Headless Setup)
-
-إذا كنت تقوم بإعداد الإعدادات الافتراضية المحلية لاستخدام CLI أو الاستخدام غير المرئي، فقم بتشغيل تدفق إعداد OpenHands وأدخل:
-
-```bash
-make setup-config
+```text
+Reply only with TOKENLAB_CONNECTION_OK. Do not use tools or modify files.
 ```
-
-عند مطالبتك بتفاصيل النموذج، استخدم معرف نموذج TokenLab مع البادئة `openai/` وعنوان URL الأساسي `/v1` الخاص بـ TokenLab.
-
-## اقتراحات النماذج
-
-استخدم `claude-sonnet-5` أو `gpt-5.4` لتخطيط وكيل البرمجة، و `gpt-5.4-mini` للحلقات الروتينية الأسرع، و `deepseek-v4-pro` عندما ترغب في الحصول على نموذج استنتاج بديل قوي.

@@ -5,7 +5,7 @@ description: "API key で TokenLab API リクエストを安全に保護しま�
 
 ## APIキー
 
-すべての TokenLab API リクエストには API key が必要です。
+モデルの呼び出しと非公開リソースには API キーが必要です。`GET /v1/models` や `GET /v1/models/{model}` などの公開エンドポイントはキーなしで利用できます。取得に成功してもキーの有効性は確認できません。クイックスタートに沿ってモデルを呼び出してください。一覧のプレフィックスではなく、保存した完全なキーを使用してください。
 
 OpenAI 互換エンドポイントでは、次のように送信します:
 
@@ -51,38 +51,7 @@ Authorization: Bearer mt-your-management-token
 
 ## API Key の使用
 
-<CodeGroup>
-
-```bash cURL
-curl https://api.tokenlab.sh/v1/responses \
-  -H "Authorization: Bearer $TOKENLAB_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "gpt-5.6-terra",
-    "input": "Hello!"
-  }'
-```
-
-```python Python
-import os
-from openai import OpenAI
-
-client = OpenAI(
-    api_key=os.environ.get("TOKENLAB_API_KEY"),
-    base_url="https://api.tokenlab.sh/v1"
-)
-```
-
-```javascript JavaScript
-import OpenAI from 'openai';
-
-const client = new OpenAI({
-  apiKey: process.env.TOKENLAB_API_KEY,
-  baseURL: 'https://api.tokenlab.sh/v1'
-});
-```
-
-</CodeGroup>
+環境変数と最初のリクエストは[クイックスタート](/ja/quickstart)を参照してください。[API 形式](/ja/guides/api-formats)に合う SDK を使い、キーはサーバー側で管理します。
 
 ## API Key の機能
 
@@ -99,32 +68,12 @@ const client = new OpenAI({
 
 すべての TokenLab API key は `sk-` で始まります。
 
-## Anthropic 互換性
-
-`/v1/messages` エンドポイントでは、Anthropic スタイルのヘッダーは想定どおりに動作します:
-
-```bash
-curl https://api.tokenlab.sh/v1/messages \
-  -H "x-api-key: sk-your-api-key" \
-  -H "anthropic-version: 2023-06-01" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "claude-sonnet-5",
-    "max_tokens": 1024,
-    "messages": [{"role": "user", "content": "Hello!"}]
-  }'
-```
-
-<Note>
-`/v1/responses`、`/v1/chat/completions`、`/v1/models`、およびその他のほとんどの TokenLab ルートなどの OpenAI 互換エンドポイントでは、`Authorization: Bearer ...` を使用してください。
-</Note>
-
 ## エラーレスポンス
 
 | ステータスコード | 型 | コード | 説明 |
 |-------------|------|------|-------------|
-| 401 | `invalid_api_key` | `invalid_api_key` | API key が存在しないか無効です |
-| 401 | `expired_api_key` | `expired_api_key` | API key は失効しています |
+| 401 | `invalid_api_key` | `invalid_api_key` | API キーがない、無効、停止中、または失効している |
+| 401 | `expired_api_key` | `expired_api_key` | API キーの有効期限が切れている |
 | 402 | `insufficient_balance` | `insufficient_balance` | アカウント balance が不足しています |
 | 402 | `quota_exceeded` | `quota_exceeded` | API key の使用制限に達しました |
 

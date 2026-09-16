@@ -28,7 +28,7 @@ Use publicly reachable `https` URLs for images, videos, and audio. Some models a
 
 <VideoModelContractNote />
 
-<ParamField body="prompt" type="string" required>
+<ParamField body="prompt" type="string">
   Text description of the video to generate. Required for most public video models.
 </ParamField>
 
@@ -49,7 +49,7 @@ Reference image inputs for models that support dedicated reference conditioning.
 </ParamField>
 
 <ParamField body="material_asset_id" type="string">
-  TokenLab Seedance material asset ID returned by [Create Material Asset](/api-reference/video/create-material-asset) or automatic image preparation. Use it after the asset is `ACTIVE` with Seedance models that can use the TokenLab material library. This field is a generic reference input; to assign first-frame, last-frame, or reference-image semantics explicitly, put `asset://<material_asset_id>` in `start_image`, `end_image`, or `reference_images` instead.
+  TokenLab Seedance material asset ID returned by [Create Material Asset](/api-reference/video/create-material-asset). Use it after the asset is `ACTIVE` with Seedance models that can use the TokenLab material library. This field is a generic reference input; to assign first-frame, last-frame, or reference-image semantics explicitly, put `asset://<material_asset_id>` in `start_image`, `end_image`, or `reference_images` instead.
 </ParamField>
 
 <ParamField body="material_asset_ids" type="array">
@@ -57,7 +57,7 @@ Reference image inputs for models that support dedicated reference conditioning.
 </ParamField>
 
 <Info>
-Seedance can save request images as reusable materials in the current Workspace. These fields also accept TokenLab material URIs such as `asset://asset-YYYYMMDDHHMMSS-xxxxx`. If a material is not ready within 60 seconds, the API returns `409 seedance_material_preparing` with `auto_material_asset_ids`; retry after the materials become `ACTIVE`.
+Ordinary image URLs are passed as image inputs; they do not create reusable material assets. Create reusable assets through the material API, then use their TokenLab IDs or `asset://asset-YYYYMMDDHHMMSS-xxxxx` URIs. If explicit materials return `409 seedance_material_preparing`, check the returned `inactive_asset_ids` and retry after those materials become `ACTIVE`.
 </Info>
 
 
@@ -66,7 +66,7 @@ Seedance can save request images as reusable materials in the current Workspace.
 </ParamField>
 
 <ParamField body="kling_elements" type="array">
-  Kling 3.0 element reference definitions. Only supported by `kling-3.0-video` for image-conditioned requests. Define 1-3 elements; each element has `name`, optional `description`, and `element_input_urls` with 2-4 image URLs. Reference an element in `prompt` as `@name`. Do not combine `kling_elements` with `output_audio=true`; omit `output_audio` or set it to `false` for element-reference requests.
+  Use `kling_elements` only when the selected model’s current public detail lists this field. Provide image inputs and 1–3 elements, each with `name`, optional `description`, and 2–4 `element_input_urls`; reference them as `@name` in `prompt`. Do not combine element references with `output_audio=true`.
 </ParamField>
 
 <ParamField body="video_url" type="string">
@@ -239,6 +239,10 @@ curl -X POST "https://api.tokenlab.sh/v1/videos/generations" \
 
 ## Response
 
+<Note>
+Fields describing results, errors, timestamps, and the model are returned when available for the task.
+</Note>
+
 <ResponseField name="id" type="string">
   Canonical async task identifier. Treat this as the same identity as `task_id` when both are present.
 </ResponseField>
@@ -256,7 +260,7 @@ curl -X POST "https://api.tokenlab.sh/v1/videos/generations" \
 </ResponseField>
 
 <ResponseField name="status" type="string">
-  Initial status: `pending`.
+  Task status: `pending`, `processing`, `completed`, `failed`.
 </ResponseField>
 
 <ResponseField name="created" type="integer">
@@ -279,7 +283,7 @@ curl -X POST "https://api.tokenlab.sh/v1/videos/generations" \
   Multiple video results when the task returns more than one output.
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="error" type="string | object">
   Error message or structured error object when the task fails.
 </ResponseField>
 
@@ -368,38 +372,14 @@ response = requests.post(
         "operation": "image-to-video",
         "image_url": "https://example.com/image.jpg",
         "duration": 6,
-        "aspect_ratio": "16:9"
+        "resolution": "768p"
     }
 )
 ```
 
 ## Kling 3.0 Elements
 
-Use `kling_elements` with `kling-3.0-video` when you need element references. Provide an image-conditioned request (`image_url`, `image_urls`, `start_image`, or `end_image`) and reference each element in the prompt with `@name`. Do not combine `kling_elements` with `output_audio=true`; omit `output_audio` or set it to `false` for element-reference requests.
-
-```python
-response = requests.post("https://api.tokenlab.sh/v1/videos/generations",
-    headers=headers,
-    json={
-        "model": "kling-3.0-video",
-        "prompt": "Place @hero_bag on a studio turntable with soft product lighting.",
-        "operation": "image-to-video",
-        "image_url": "https://example.com/studio-start.png",
-        "duration": 5,
-        "resolution": "720p",
-        "kling_elements": [
-            {
-                "name": "hero_bag",
-                "description": "black leather handbag",
-                "element_input_urls": [
-                    "https://example.com/bag-front.png",
-                    "https://example.com/bag-side.png"
-                ]
-            }
-        ]
-    }
-)
-```
+Use `kling_elements` only when the selected model’s current public detail lists this field. Provide image inputs and 1–3 elements, each with `name`, optional `description`, and 2–4 `element_input_urls`; reference them as `@name` in `prompt`. Do not combine element references with `output_audio=true`.
 
 ## Reference to Video
 
@@ -435,7 +415,6 @@ response = requests.post(
     headers={"Authorization": "Bearer sk-your-api-key"},
     json={
         "model": "viduq2-pro",
-        "prompt": "Smooth transition from day to night",
         "operation": "start-end-to-video",
         "start_image": "https://example.com/day.jpg",
         "end_image": "https://example.com/night.jpg",
@@ -448,7 +427,7 @@ response = requests.post(
 
 ## Video to Video
 
-For `grok-imagine-video` video-to-video, send a public HTTPS `.mp4` URL in `video_url`. TokenLab translates it to xAI's REST `video.url` body. You may set `resolution` to `480p` or `720p`; `duration` and `aspect_ratio` are not accepted for that edit flow.
+For `grok-imagine-video` video-to-video, send a public HTTPS `.mp4` URL in `video_url` and the editing `prompt`. Omit `resolution`, `duration`, and `aspect_ratio` for this operation.
 
 Use `operation=video-to-video` when the model accepts an existing video as the primary input.
 
@@ -460,8 +439,7 @@ response = requests.post(
         "model": "grok-imagine-video",
         "operation": "video-to-video",
         "video_url": "https://example.com/source.mp4",
-        "prompt": "Enhance the clip while preserving the original motion.",
-        "resolution": "720p"
+        "prompt": "Enhance the clip while preserving the original motion."
     }
 )
 ```
@@ -490,11 +468,9 @@ response = requests.post(
 Public video inventory and supported operations change over time. Use the [Models API](/api-reference/models/list-models) to check current support before wiring a model-specific flow:
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \
-  -H "Authorization: Bearer sk-your-api-key"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=video"
 
-curl "https://api.tokenlab.sh/v1/models/veo3.1" \
-  -H "Authorization: Bearer sk-your-api-key"
+curl "https://api.tokenlab.sh/v1/models/veo3.1"
 ```
 
 Read the model detail response before relying on model-specific operations or fields. Operations such as `audio-to-video` and `video-extension` are model-specific; confirm current availability there instead of relying on static examples in this page.

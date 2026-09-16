@@ -22,7 +22,7 @@ OpenCode هو مساعد برمجة AI مفتوح المصدر يعمل داخل
 [OpenCode](https://opencode.ai/docs/)
 
 ```bash
-npm install -g opencode-ai
+npm install -g opencode-ai@1.18.31
 ```
 
 تحقق من التثبيت:
@@ -35,22 +35,13 @@ opencode --version
 
 ### الخطوة 1: تعيين متغيرات البيئة
 
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
-
-للتهيئة الدائمة، أضف إلى `~/.bashrc` أو `~/.zshrc`:
-
-```bash
-echo 'export TOKENLAB_API_KEY="sk-your-tokenlab-key"' >> ~/.zshrc
-source ~/.zshrc
-```
+اتبع خطوات الطرفية في [البدء السريع](/ar/quickstart) لنظام macOS أو Linux أو WSL أو Windows PowerShell لتعيين `TOKENLAB_API_KEY` دون كتابة المفتاح في سجل الأوامر. شغّل OpenCode من الطرفية نفسها. للاستخدام الدائم، استخدم مدير أسرار محليًا ولا تُضف المفتاح كنص صريح إلى ملف إعدادات الصدفة.
 
 ### الخطوة 2: تهيئة OpenCode
 
-توصي وثائق OpenCode الحالية بتهيئة المزوّدين من خلال `opencode.json` أو `opencode.jsonc`. بالنسبة إلى TokenLab، استخدم مزوّدًا مخصصًا بدلًا من تحميل المزوّد المدمج `openai` فوق طاقته:
+تم التحقق من الإعداد أدناه باستخدام **OpenCode 1.18.31**. تحتاج الإصدارات الأخرى إلى تحقق مستقل وفق وثائقها الرسمية.
 
-يستخدم المثال تنسيق V1 المدعوم. ادمجه في `~/.config/opencode/opencode.json` مع إبقاء المزودات والأذونات. يقرأ V2 إعدادات V1 المدعومة، لكن لا تخلط التنسيقين داخل المزود. راجع [دليل الترحيل](https://opencode.ai/v2/docs/migrate-v1/). تحقق عبر `/models` ثم طابق اختبارًا مدفوعًا مع سجل TokenLab. للتراجع اختر النموذج السابق واحذف هذا العنصر فقط.
+احفظ الإعداد في ملف مستقل `~/.config/opencode/tokenlab.jsonc`. إذا كان `XDG_CONFIG_HOME` محددًا، فاستخدم `opencode/tokenlab.jsonc` داخل ذلك المجلد. احتفظ بملفات `opencode.json` / `opencode.jsonc` المعتادة والحسابات والنموذج الافتراضي والأذونات. لا يُحمّل الملف المستقل إلا عند اختياره عبر `OPENCODE_CONFIG` لهذا التشغيل. إذا كان الملف أو اسم المزوّد مستخدمًا، فاختر اسمًا آخر وعدّل الأوامر.
 
 ```jsonc
 {
@@ -72,34 +63,46 @@ source ~/.zshrc
         }
       }
     }
-  },
-  "model": "tokenlab/gpt-5.6-terra"
+  }
 }
 ```
 
 <Note>
-استخدم `@ai-sdk/openai-compatible` للتوافق بأسلوب chat-completions. إذا كنت تحتاج تحديدًا إلى مسار مزوّد مبني على `/v1/responses`، فإن وثائق OpenCode توصي بتبديل الحزمة إلى `@ai-sdk/openai`.
+يرسل هذا الإعداد طلبات Chat Completions عبر `@ai-sdk/openai-compatible`. تحقق من دعم Chat Completions والأدوات المطلوبة في تفاصيل النموذج الحالية. لا يثبت المثال توافق بروتوكولات أو إصدارات أخرى.
 </Note>
+
+اختياريًا، يتيح [مساعد إعداد OpenCode القابل للاستعادة](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/skills/tokenlab-api-integration/references/opencode_setup.md) المعاينة والتطبيق واستعادة الملف الأصلي باستخدام Python 3.11+. تتضمن إضافة TokenLab Skills **0.1.2** هذه السكربتات؛ ويمكن أيضًا استخدام Skill مستقل بعد تحديثه إلى إصدار يحتوي عليها. للإضافة أو Skill المستقل المثبّت مسبقًا، اتبع [تعليمات تحديث README](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/README.md#update-an-existing-installation) وتأكد من وجود السكربت. تظل خطوات الإعداد اليدوي هنا كافية دون المساعد.
 
 ## الاستخدام الأساسي
 
-**ابدأ الوضع التفاعلي:**
+عيّن المفتاح وفق البدء السريع، ثم حمّل الملف واختر النموذج صراحةً لهذا التشغيل فقط. استبدل المسار واسم المزوّد إذا خصصتهما. احتفظ بإعدادات `OPENCODE_CONFIG` أو `OPENCODE_CONFIG_CONTENT` الموجودة واستخدم بيئة تشغيل منفصلة؛ قد تظل إعدادات المشروع أو الإدارة ذات أولوية.
 
-```bash
-opencode
+<CodeGroup>
+```bash macOS / Linux / WSL
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode models tokenlab
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode --model tokenlab/gpt-5.6-terra
 ```
 
-**شغّل مع prompt:**
-
-```bash
-opencode run "Explain this codebase"
+```powershell Windows PowerShell
+$tokenlabConfigRoot = if ($env:XDG_CONFIG_HOME) { $env:XDG_CONFIG_HOME } else { Join-Path $HOME '.config' }
+$previousConfig = $env:OPENCODE_CONFIG
+try {
+  $env:OPENCODE_CONFIG = Join-Path $tokenlabConfigRoot 'opencode/tokenlab.jsonc'
+  opencode models tokenlab
+  opencode --model tokenlab/gpt-5.6-terra
+} finally {
+  if ($null -eq $previousConfig) {
+    Remove-Item Env:OPENCODE_CONFIG -ErrorAction SilentlyContinue
+  } else {
+    $env:OPENCODE_CONFIG = $previousConfig
+  }
+}
 ```
+</CodeGroup>
 
-**حدد النموذج:**
+تتحقق قائمة النماذج من التحميل المحلي، وليس صلاحية المفتاح أو نجاح طلب فعلي. يستخدم إرسال مطالبة رصيد TokenLab، وقد يرسل OpenCode طلبات مساعدة تُحتسب منفصلة، مثل إنشاء عنوان. راجع الرد و[سجلات الطلبات المطابقة](https://tokenlab.sh/dashboard/runs?section=requests).
 
-```bash
-opencode run --model tokenlab/gpt-5.6-terra "Fix the bugs in main.py"
-```
+شغّل دون تحميل هذا الملف لاستخدام إعدادك المعتاد. لا تحفظ `OPENCODE_CONFIG` في ملف إعداد الصدفة من أجل هذا الدليل. للتراجع عن الإعداد اليدوي، احذف الملف المستقل الذي أنشأته فقط، أو استعد نسخته الاحتياطية إذا كان موجودًا سابقًا.
 
 ## النماذج المتاحة
 
@@ -116,25 +119,25 @@ opencode run --model tokenlab/gpt-5.6-terra "Fix the bugs in main.py"
 **تحليل الكود:**
 
 ```bash
-opencode run "What does this function do?" < src/utils.ts
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode run --model tokenlab/gpt-5.6-terra "What does this function do?" < src/utils.ts
 ```
 
 **توليد الكود:**
 
 ```bash
-opencode run "Create a REST API with Express"
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode run --model tokenlab/gpt-5.6-terra "Create a REST API with Express"
 ```
 
 **مراجعة التغييرات:**
 
 ```bash
-git diff | opencode run "Review these changes"
+git diff | OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode run --model tokenlab/gpt-5.6-terra "Review these changes"
 ```
 
 **إصلاح الأخطاء:**
 
 ```bash
-opencode run "Fix the TypeScript errors in this project"
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode run --model tokenlab/gpt-5.6-terra "Fix the TypeScript errors in this project"
 ```
 
 ## الأوامر التفاعلية

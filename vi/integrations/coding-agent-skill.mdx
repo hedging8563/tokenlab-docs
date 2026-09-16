@@ -3,6 +3,12 @@ title: "✨ Skill tích hợp TokenLab API"
 description: "Cài skill tích hợp TokenLab API đang được duy trì và hướng dẫn coding agent khám phá model, đọc chi tiết model và phục hồi từ lỗi API."
 ---
 
+```text
+Đọc trang này và thêm TokenLab Skill vào tác tử hiện tại. Kiểm tra phiên bản và cấu hình đang dùng, giữ nguyên tài khoản, nhà cung cấp, quyền và thiết lập hiện có. Sao lưu tệp và hiển thị thay đổi. Tôi sẽ nhập API key cục bộ; không yêu cầu hoặc hiển thị khóa trong chat. Kiểm tra việc tải cấu hình trước, rồi giải thích mọi thử nghiệm có tính phí trước khi chạy.
+https://docs.tokenlab.sh/vi/integrations/coding-agent-skill
+```
+
+
 <Note>
 Trang này mô tả skill dùng chung `tokenlab-api-integration` đang được duy trì. Bản phân phối chuẩn nằm ở [hedging8563/tokenlab-skills](https://github.com/hedging8563/tokenlab-skills), nơi repository công khai chủ ý chỉ giữ skill này.
 </Note>
@@ -70,11 +76,7 @@ Nếu thấy `tokenlab-api-integration`, cài đặt đã thành công.
 
 ## Quy trình Agent được khuyến nghị
 
-1. Bắt đầu với ví dụ chạy được nhỏ nhất khớp với ngôn ngữ và nhóm API người dùng yêu cầu.
-2. Khi chưa chốt model, gọi `/v1/models` hoặc `https://api.tokenlab.sh/llms.txt` trước khi hard-code model.
-3. Với tác vụ non-chat, gọi `/v1/models?recommended_for=<scene>` trong đó `<scene>` là `image`, `video`, `music`, `3d`, `tts`, `stt`, `embedding`, `rerank` hoặc `translation`.
-4. Trước khi đổi một yêu cầu non-chat bị lỗi, đọc `/v1/models/:model` và căn theo `supported_operations`, `supported_parameters`, `request_endpoint`, `request_endpoint_by_operation`, `request_shape_mode`, `recommended_request`.
-5. Nếu API trả lỗi Agent-First, dùng trường có cấu trúc để sửa yêu cầu và chỉ thử lại khi lỗi retryable.
+Đọc danh sách mô hình hiện tại, rồi đọc `tokenlab.accepted_request_formats` và các trường yêu cầu công khai của mô hình đã chọn. Giữ cùng định dạng cho hội thoại và lệnh gọi công cụ; các trường không tự chuyển đổi giữa định dạng. Không tự đổi mô hình hoặc giao thức khi gặp lỗi.
 
 ## Ví dụ chat tối thiểu
 
@@ -86,12 +88,12 @@ from openai import OpenAI
 
 client = OpenAI(
     api_key=os.environ["TOKENLAB_API_KEY"],
-    base_url="https://api.tokenlab.sh/v1"
+    base_url="https://api.tokenlab.sh/v1",
 )
 
 response = client.chat.completions.create(
-    model="gpt-4o-mini",
-    messages=[{"role": "user", "content": "Hello!"}]
+    model="gpt-5.6-luna",
+    messages=[{"role": "user", "content": "Hello!"}],
 )
 
 print(response.choices[0].message.content)
@@ -114,19 +116,19 @@ python app.py
 curl https://api.tokenlab.sh/llms.txt
 
 # Liệt kê model
-curl "https://api.tokenlab.sh/v1/models" -H "Authorization: Bearer sk-KEY"
-curl "https://api.tokenlab.sh/v1/models?category=image" -H "Authorization: Bearer sk-KEY"
+curl "https://api.tokenlab.sh/v1/models" -H "Authorization: Bearer $TOKENLAB_API_KEY"
+curl "https://api.tokenlab.sh/v1/models?category=image" -H "Authorization: Bearer $TOKENLAB_API_KEY"
 
 # Danh sách đề xuất có xếp hạng cho non-chat
-curl "https://api.tokenlab.sh/v1/models?recommended_for=image" -H "Authorization: Bearer sk-KEY"
-curl "https://api.tokenlab.sh/v1/models?recommended_for=video" -H "Authorization: Bearer sk-KEY"
-curl "https://api.tokenlab.sh/v1/models?recommended_for=translation" -H "Authorization: Bearer sk-KEY"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=image" -H "Authorization: Bearer $TOKENLAB_API_KEY"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=video" -H "Authorization: Bearer $TOKENLAB_API_KEY"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=translation" -H "Authorization: Bearer $TOKENLAB_API_KEY"
 
 # Đọc chi tiết model của một model trước khi thử lại yêu cầu non-chat
-curl "https://api.tokenlab.sh/v1/models/gpt-image-2" -H "Authorization: Bearer sk-KEY"
+curl "https://api.tokenlab.sh/v1/models/gpt-image-2" -H "Authorization: Bearer $TOKENLAB_API_KEY"
 
 # Chi tiết chỉ về giá
-curl "https://api.tokenlab.sh/v1/models/gpt-image-2/pricing" -H "Authorization: Bearer sk-KEY"
+curl "https://api.tokenlab.sh/v1/models/gpt-image-2/pricing" -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```
 
 ## Chọn giao thức native
@@ -141,12 +143,7 @@ Các endpoint là `/v1/chat/completions` cho Chat Completions, `/v1/responses` c
 
 Lỗi bao gồm các trường mà coding agent có thể phân tích mà không cần đọc thủ công tài liệu:
 
-| Lỗi | Trường hữu ích | Hành động của agent |
-|---|---|---|
-| Sai tên model | `did_you_mean`, `suggestions`, `hint` | Thử lại với model đã sửa hoặc một lựa chọn thay thế được gợi ý |
-| Không đủ số dư | `balance_usd`, `estimated_cost_usd`, `suggestions` | Xin xác nhận hoặc chuyển sang model phù hợp chi phí |
-| Giới hạn tốc độ hoặc tạm thời không khả dụng | `retryable`, `retry_after`, `alternatives` | Chờ rồi thử lại hoặc chọn một lựa chọn thay thế được liệt kê |
-| Yêu cầu non-chat không tương thích | `supported_operations`, `supported_parameters`, `request_endpoint`, `request_endpoint_by_operation`, `request_shape_mode`, `recommended_request` | Dựng lại yêu cầu từ chi tiết model và trả về lỗi rõ ràng cho các trường làm thay đổi ý định |
+Ưu tiên trạng thái HTTP và `code` của lỗi. Có thể tham khảo `did_you_mean` khi sai tên, nhưng không đổi mô hình nếu người dùng chưa chọn. Với `429`, tuân theo `Retry-After` hoặc `retry_after` và chỉ thử lại khi lỗi cho phép và đã có lựa chọn rõ ràng. Sửa lỗi xác thực dữ liệu, xác thực tài khoản, số dư hoặc quyền trước. Nếu yêu cầu tạo bị hết thời gian chờ, kiểm tra tác vụ đã tồn tại trước khi gửi lại.
 
 ## Các nhóm API được hỗ trợ
 
@@ -204,21 +201,4 @@ Lỗi bao gồm các trường mà coding agent có thể phân tích mà không
 
 ## Tài nguyên
 
-<CardGroup cols={2}>
-  <Card title="Agent-First API" icon="robot" href="/vi/guides/agent-first-api">
-    Gợi ý lỗi có cấu trúc và hành vi phục hồi
-  </Card>
-  <Card title="Tài liệu API" icon="book" href="https://docs.tokenlab.sh">
-    Thiết lập theo endpoint và API Reference
-  </Card>
-  <Card title="Model" icon="sparkles" href="https://tokenlab.sh/vi/models">
-    Duyệt các model có sẵn
-  </Card>
-  <Card title="llms.txt" icon="file-lines" href="https://api.tokenlab.sh/llms.txt">
-    Tổng quan API đọc được bằng máy cho agents
-  </Card>
-</CardGroup>
-
-<Info>
-Có câu hỏi? Dùng [GitHub Issues](https://github.com/hedging8563/tokenlab-skills/issues) hoặc liên hệ [support@tokenlab.sh](mailto:support@tokenlab.sh).
-</Info>
+Với vấn đề API hoặc tài khoản, dùng [Hỗ trợ trong ứng dụng](https://tokenlab.sh/dashboard/support), xem lại bản xem trước rồi chủ động gửi. Với yêu cầu cụ thể, bắt đầu từ [Yêu cầu](https://tokenlab.sh/dashboard/runs) và [hướng dẫn điều tra](/vi/guides/observability-troubleshooting). Báo lỗi của Skill tại [GitHub Issues](https://github.com/hedging8563/tokenlab-skills/issues).

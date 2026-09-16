@@ -6,12 +6,12 @@ description: "Crea una tarea de generación de mundos de World Labs Marble"
 
 Genera mundos 3D explorables con World Labs Marble. Esta API es asíncrona: las respuestas de creación devuelven una identidad de tarea y una `poll_url` para comprobar el estado.
 
-Los modelos compatibles son `marble-1.0`, `marble-1.1` y `marble-1.1-plus`. World Labs documenta `marble-1.0-draft`, pero TokenLab todavía no expone la generación draft en este endpoint.
+Elige un modelo Marble disponible actualmente mediante la [Models API](/es/api-reference/models/list-models).
 
 ## Cuerpo de la solicitud
 
 <ParamField body="model" type="string" default="marble-1.0">
-  Modelo Marble a usar: `marble-1.0`, `marble-1.1` o `marble-1.1-plus`.
+  Elige un modelo Marble disponible actualmente mediante la [Models API](/es/api-reference/models/list-models).
 </ParamField>
 
 <ParamField body="prompt" type="string">
@@ -55,7 +55,7 @@ Los modelos compatibles son `marble-1.0`, `marble-1.1` y `marble-1.1-plus`. Worl
 </ParamField>
 
 <ParamField body="permission" type="object">
-  Objeto permission de World Labs opcional.
+  Ajustes opcionales de visibilidad y acceso: `public`, `allow_id_access`, `allowed_readers` y `allowed_writers`. `public: true` solicita un mundo visible públicamente.
 </ParamField>
 
 ## Respuesta
@@ -94,11 +94,7 @@ Los modelos compatibles son `marble-1.0`, `marble-1.1` y `marble-1.1-plus`. Worl
 
 ## Precios
 
-World Labs factura en credits. TokenLab descuenta primero el máximo del tipo de solicitud y liquida según `cost.total_credits` de la operation completada cuando está disponible. Las solicitudes Marble estándar llegan hasta 1.600 credits. `marble-1.1-plus` llega hasta 3.100 credits.
-
-## Alcance
-
-Estos endpoints de gestión cubren medios propiedad de TokenLab y Worlds generados completados. TokenLab todavía no expone generación `marble-1.0-draft` ni herramientas pano/depth independientes.
+Consulta la [Pricing API](/es/api-reference/pricing/get-pricing) para ver las tarifas actuales. El importe facturado aparece en tus registros de uso; el valor `cost.total_credits` devuelto indica uso de generación, no un importe monetario.
 
 <RequestExample>
 ```bash cURL

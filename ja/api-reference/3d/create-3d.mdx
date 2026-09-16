@@ -10,6 +10,8 @@ Tripo3Dやその他のプロバイダーを使用して、テキストまたは�
 
 ## リクエストボディ
 
+オプションのフィールドを送信する前に、`GET /v1/models/{model}` でモデルが受け付けるパラメータを確認してください。例では `model` と `prompt` のみを送信します。
+
 <ParamField body="model" type="string" default="tripo-h3.1">
   使用するモデルです。例: `tripo-h3.1` または `tripo-p1.0`。特定の入力タイプや出力形式に依存する前に `GET /v1/models?recommended_for=3d` を確認してください。
 </ParamField>
@@ -26,12 +28,12 @@ Tripo3Dやその他のプロバイダーを使用して、テキストまたは�
   Image-to-3D生成用の画像のURL。
 </ParamField>
 
-<ParamField body="format" type="string" default="glb">
-  出力形式：`glb`、`fbx`、`obj`、または`usdz`。
+<ParamField body="format" type="string">
+  出力形式。対応状況と指定可能な値はモデルによって異なります。
 </ParamField>
 
-<ParamField body="quality" type="string" default="standard">
-  品質レベル：`draft`、`standard`、または`high`。
+<ParamField body="quality" type="string">
+  品質設定。対応状況と指定可能な値はモデルによって異なります。
 </ParamField>
 
 <ParamField body="style" type="string">
@@ -39,7 +41,7 @@ Tripo3Dやその他のプロバイダーを使用して、テキストまたは�
 </ParamField>
 
 <ParamField body="seed" type="integer">
-  再現可能な生成のための整数シード値。範囲は `0` から `4294967295` です。
+  選択したモデルで対応している場合に使用する整数シード。
 </ParamField>
 
 <ParamField body="user" type="string">
@@ -75,9 +77,7 @@ curl -X POST "https://api.tokenlab.sh/v1/3d/generations" \
   -H "Content-Type: application/json" \
   -d '{
     "model": "tripo-h3.1",
-    "prompt": "A detailed medieval castle with towers",
-    "format": "glb",
-    "quality": "high"
+    "prompt": "A detailed medieval castle with towers"
   }'
 ```
 
@@ -89,9 +89,7 @@ response = requests.post(
     headers={"Authorization": "Bearer sk-your-api-key"},
     json={
         "model": "tripo-h3.1",
-        "prompt": "A detailed medieval castle with towers",
-        "format": "glb",
-        "quality": "high"
+        "prompt": "A detailed medieval castle with towers"
     }
 )
 
@@ -108,9 +106,7 @@ const response = await fetch('https://api.tokenlab.sh/v1/3d/generations', {
   },
   body: JSON.stringify({
     model: 'tripo-h3.1',
-    prompt: 'A detailed medieval castle with towers',
-    format: 'glb',
-    quality: 'high'
+    prompt: 'A detailed medieval castle with towers'
   })
 });
 
@@ -132,8 +128,6 @@ func main() {
     payload := map[string]interface{}{
         "model":   "tripo-h3.1",
         "prompt":  "A detailed medieval castle with towers",
-        "format":  "glb",
-        "quality": "high",
     }
     body, _ := json.Marshal(payload)
 
@@ -164,9 +158,7 @@ curl_setopt_array($ch, [
     ],
     CURLOPT_POSTFIELDS => json_encode([
         'model' => 'tripo-h3.1',
-        'prompt' => 'A detailed medieval castle with towers',
-        'format' => 'glb',
-        'quality' => 'high'
+        'prompt' => 'A detailed medieval castle with towers'
     ])
 ]);
 

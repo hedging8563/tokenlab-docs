@@ -9,6 +9,8 @@ O [Cline](https://docs.cline.bot/provider-config/openai-compatible) aceita prove
 
 ## Configurar o TokenLab
 
+Salve localmente o provedor, modelo e conexão atuais antes de editar. Esses controles alteram o modelo ativo; restaure os valores anteriores ao terminar. Mantenha as contas conectadas e permissões de ferramentas. Não substitua outra conexão compatível com OpenAI sem uma cópia restaurável.
+
 1. Instale o **Cline** na loja de extensões e abra o painel.
 2. Clique na engrenagem e selecione **OpenAI Compatible** em **API Provider**.
 3. Preencha:
@@ -21,6 +23,6 @@ O [Cline](https://docs.cline.bot/provider-config/openai-compatible) aceita prove
 
 4. Clique em **Verify**.
 
-Nas opções avançadas, use `1048576` como limite de entrada, `131072` como saída máxima e ative imagens e ferramentas / Computer Use.
-
 Depois da validação, comece com uma tarefa somente leitura. Em caso de 404, confirme que a Base URL termina em `/v1` e não inclui `/chat/completions`. O ID é `kimi-k3`, não `kimi/kimi-k3`.
+
+Salvar ajustes ou listar modelos não verifica a chave nem uma solicitação concluída. Um prompt usa saldo TokenLab. Confira a resposta e seu [registro correspondente](https://tokenlab.sh/dashboard/runs?section=requests) antes de testar ferramentas; solicitações auxiliares também podem ser cobradas.

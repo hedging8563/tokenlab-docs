@@ -18,20 +18,39 @@ description: "اربط GitHub Copilot CLI بـ TokenLab باستخدام BYOK"
 ## التثبيت والتهيئة
 
 ```bash
-npm install -g @github/copilot
+npm install -g @github/copilot@1.0.85
 copilot --version
 ```
 
-يتطلب التثبيت عبر npm إصدار Node.js 22 أو أحدث. يتطلب GitHub حاليًا خطة Copilot نشطة، كما تحتاج الحسابات المُدارة إلى تفعيل سياسة Copilot CLI.
+يتطلب التثبيت عبر npm إصدار Node.js 22 أو أحدث.
 
-```bash
-export COPILOT_PROVIDER_TYPE="openai"
-export COPILOT_PROVIDER_BASE_URL="https://api.tokenlab.sh/v1"
-export COPILOT_PROVIDER_API_KEY="sk-your-tokenlab-key"
-export COPILOT_MODEL="kimi-k3"
+اتبع خطوات الطرفية في [البدء السريع](/ar/quickstart) لنظام macOS أو Linux أو WSL أو Windows PowerShell لتعيين `TOKENLAB_API_KEY` دون كتابة المفتاح في سجل الأوامر. شغّل Copilot CLI من الطرفية نفسها. للاستخدام الدائم، استخدم مدير أسرار محليًا ولا تُضف المفتاح كنص صريح إلى ملف إعدادات الصدفة.
 
-copilot
+تسري هذه المتغيرات على هذا التشغيل فقط؛ تبقى إعدادات الحساب والنموذج الافتراضي والأذونات المحفوظة. شغّل بشكل عادي دون هذه المتغيرات لاستخدام الإعداد السابق. لا تحفظها في ملف إعداد الصدفة.
+
+<CodeGroup>
+```bash macOS / Linux / WSL
+COPILOT_PROVIDER_TYPE=openai COPILOT_PROVIDER_BASE_URL=https://api.tokenlab.sh/v1 COPILOT_PROVIDER_API_KEY="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" copilot --model kimi-k3
 ```
+
+```powershell Windows PowerShell
+if (-not $env:TOKENLAB_API_KEY) { throw 'Set TOKENLAB_API_KEY first' }
+$previous = @{}
+$previous['COPILOT_PROVIDER_TYPE'] = [Environment]::GetEnvironmentVariable('COPILOT_PROVIDER_TYPE', 'Process')
+$previous['COPILOT_PROVIDER_BASE_URL'] = [Environment]::GetEnvironmentVariable('COPILOT_PROVIDER_BASE_URL', 'Process')
+$previous['COPILOT_PROVIDER_API_KEY'] = [Environment]::GetEnvironmentVariable('COPILOT_PROVIDER_API_KEY', 'Process')
+try {
+  $env:COPILOT_PROVIDER_TYPE = 'openai'
+  $env:COPILOT_PROVIDER_BASE_URL = 'https://api.tokenlab.sh/v1'
+  $env:COPILOT_PROVIDER_API_KEY = $env:TOKENLAB_API_KEY
+  copilot --model kimi-k3
+} finally {
+  foreach ($name in $previous.Keys) {
+    [Environment]::SetEnvironmentVariable($name, $previous[$name], 'Process')
+  }
+}
+```
+</CodeGroup>
 
 يجب أن يدعم النموذج البث واستدعاء الأدوات. يدعم `kimi-k3` الأدوات وسياقًا أكبر من 128K الموصى بها من GitHub.
 
@@ -40,3 +59,5 @@ copilot
 <Warning>
 لا تخزّن مفاتيح API في ملفات يتتبعها Git. بدّل أي مفتاح ظهر في سجل الطرفية أو لقطة شاشة أو سجلات التطبيق.
 </Warning>
+
+حفظ الإعدادات أو عرض النماذج لا يتحقق من صلاحية المفتاح أو اكتمال طلب. تستخدم المطالبة رصيد TokenLab. راجع الرد و[سجل الطلب المطابق](https://tokenlab.sh/dashboard/runs?section=requests) قبل تجربة الأدوات؛ وقد تُحتسب الطلبات المساعدة أيضًا.

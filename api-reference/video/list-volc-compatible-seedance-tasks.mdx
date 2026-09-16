@@ -6,20 +6,20 @@ description: "List recent Seedance compatibility tasks for the current organizat
 
 ## Overview
 
-The list endpoint returns recent compatibility tasks for the authenticated organization. Use it for consoles, retries, and customer support views; use the get endpoint when you already know the task ID.
+List recent compatibility tasks in the authenticated Workspace using a TokenLab Bearer API key. Without `filter.task_ids`, results cover recent tasks from the past seven days; supplying exact IDs queries those tasks directly.
 
 See also [Seedance 2.0 Video Models](/guides/seedance-2-video) and [Video Generation](/guides/video-generation).
 
 ## Listing And Filters
 
-- `page_num`: defaults to `1`.
-- `page_size`: defaults to `20`, maximum `500`.
-- `filter.status`: `queued`, `running`, `succeeded`, `failed`, `cancelled`, or `expired`.
-- `filter.task_ids`: repeat the query parameter for multiple exact task IDs; do not comma-join them.
-- `filter.model`: model identifier.
-- `filter.service_tier`: service tier value such as `default`.
+- `page_num`: default `1`, integer from `1` to `500`.
+- `page_size`: default `20`, integer from `1` to `500`.
+- `filter.status`: `queued`, `running`, `succeeded`, `failed`, `cancelled`, `expired`.
+- `filter.task_ids`: Repeat this parameter for multiple exact task IDs; do not join them with commas.
+- `filter.model`: Model identifier.
+- `filter.service_tier`: `default`, `flex`.
 
-The response contains `items` and `total`. Each item uses the same task shape as the get-task endpoint.
+The response contains `items` and `total` for the filtered results. Each item uses the get-task response shape. Use the get endpoint to refresh a known task’s status.
 
 ## Example
 

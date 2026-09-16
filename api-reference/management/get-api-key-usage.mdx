@@ -26,7 +26,7 @@ If both `startDate` and `endDate` are present, `startDate` must be earlier than 
 
 ## Notes
 
-- Monetary fields are USD-only. `CNY` inputs are retired and return `400 currency_retired`.
+- Monetary fields are USD-only.
 
 - The response is paginated.
 - Settled records can include `billing_transaction_id`. Save it with `request_id` when you need to match a charge to a request.
@@ -35,7 +35,7 @@ If both `startDate` and `endDate` are present, `startDate` must be earlier than 
 
 <RequestExample>
 ```bash cURL
-curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page=1&limit=20&scene=video&startDate=2026-03-01&endDate=2026-03-31" \
+curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page=1&limit=20&scene=chat&startDate=2026-07-01&endDate=2026-07-31" \
   -H "Authorization: Bearer mt-your-management-token"
 ```
 </RequestExample>
@@ -64,7 +64,8 @@ This page provides the OpenAPI schema and copyable request examples. Send manage
     ],
     "expires_at": "2026-12-31T23:59:59.000Z",
     "last_used_at": "2026-07-08T03:12:45.000Z",
-    "created_at": "2026-07-01T10:00:00.000Z"
+    "created_at": "2026-07-01T10:00:00.000Z",
+    "delivery_policy": null
   },
   "items": [
     {
@@ -86,7 +87,10 @@ This page provides the OpenAPI schema and copyable request examples. Send manage
       "cache_write_tokens_1h": 0,
       "cost": 0.0012,
       "cost_decimal": "0.0012",
-      "created_at": "2026-07-08T03:15:00.000Z"
+      "created_at": "2026-07-08T03:15:00.000Z",
+      "requested_policy": null,
+      "resolved_tier": null,
+      "charged_price_basis": null
     }
   ],
   "pagination": {
@@ -186,6 +190,9 @@ This page provides the OpenAPI schema and copyable request examples. Send manage
 <ResponseField name="items[].cache_write_tokens_1h" type="number">One-hour cache write token count.</ResponseField>
 <ResponseField name="items[].cost" type="number">Cost in USD as a JSON number for display.</ResponseField>
 <ResponseField name="items[].cost_decimal" type="string">Exact cost in USD as a decimal string.</ResponseField>
+<ResponseField name="items[].requested_policy" type="string | null">`auto`, `verified`, `official`, `null`. Requested delivery policy, when recorded.</ResponseField>
+<ResponseField name="items[].resolved_tier" type="string | null">`verified`, `official`, `null`. Delivery tier used, when recorded.</ResponseField>
+<ResponseField name="items[].charged_price_basis" type="object | null">Applied price and billable quantity, when recorded.</ResponseField>
 <ResponseField name="items[].created_at" type="string">ISO usage row timestamp.</ResponseField>
 <ResponseField name="summary.total_requests" type="number">Total request count.</ResponseField>
 <ResponseField name="summary.total_cost" type="number">Total cost in USD as a JSON number for display.</ResponseField>

@@ -10,13 +10,15 @@ description: "把图片、视频或音频保存为可复用的 Seedance 素材�
 
 | 类型 | 支持的输入 |
 |------|-----------------|
-| 图像 | `jpeg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`；宽高比 `(0.4, 2.5)`；宽度和高度 `(300, 6000)` px；小于 30 MB。 |
-| 视频 | `mp4`, `mov`；`480p`, `720p` 或 `1080p`；2-15 秒；宽高比 `[0.4, 2.5]`；宽度和高度 `[300, 6000]` px；总像素在 409600 到 2068676 之间；最大 200 MB；24-60 FPS。 |
-| 音频 | `aac`, `wav`, `mp3`；2-15 秒；最大 15 MB。 |
+| 图像 | `jpeg`, `jpg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`; ≤30 MiB; 宽度和高度 `[300, 6000]` px; 宽高比 `[0.4, 2.5]`. |
+| 视频 | `mp4`, `mov`; ≤200 MiB. |
+| 音频 | `aac`, `wav`, `mp3`; ≤15 MiB. |
 
-TokenLab 会检查 URL、文件格式和大小。宽高、时长、分辨率与 FPS 还需满足 Seedance 的要求。
+TokenLab 会检查来源 URL、媒体类型、文件大小和可读取的图像尺寸。导入受理不代表素材已就绪：请等待 `ACTIVE`，处理失败时查看 `error_message`。其他媒体及人脸要求在处理期间校验。
 
 素材需要一些时间处理。通过 [获取素材](/zh/api-reference/video/get-material-asset) 查询状态；`status` 变为 `ACTIVE` 后即可使用。真人素材组只对应一位已验证人员，图片中出现多张人脸或人员不一致时会处理失败。
+
+`project_name` 用于同一组织内的资源隔离，默认为 `default`。相关素材组和素材须使用相同且区分大小写的值；POST/PUT 在 JSON 请求体中传入，GET/DELETE 在查询参数中传入。
 
 ## 请求示例
 
@@ -24,7 +26,7 @@ TokenLab 会检查 URL、文件格式和大小。宽高、时长、分辨率与 
 curl https://api.tokenlab.sh/v1/videos/assets \
   -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"library_type":"aigc_avatar","group_id":"group-20260720123456-vrt01","asset_url":"https://example.com/reference.png","asset_type":"Image","asset_name":"Front view"}'
+  -d '{"library_type":"aigc_avatar","group_id":"group-20260720123456-vrt01","asset_url":"https://example.com/reference.png","asset_type":"Image","asset_name":"Front view","project_name":"default"}'
 ```
 
 ## 响应示例
@@ -33,6 +35,7 @@ curl https://api.tokenlab.sh/v1/videos/assets \
 {
   "id": "asset-20260720123456-qn7wr",
   "object": "seedance.material_asset",
+  "project_name": "default",
   "group_id": "group-20260720123456-vrt01",
   "library_type": "aigc_avatar",
   "asset_name": "Front view",

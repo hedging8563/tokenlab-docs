@@ -8,13 +8,15 @@ Tạo một nhóm vật liệu với `library_type: "aigc_avatar"`. Sử dụng 
 
 Các nhóm vật liệu người thật mới được tạo thông qua [Tạo phiên xác thực trực quan](/vi/api-reference/video/create-visual-validation-session) và không thể tạo trực tiếp bằng endpoint này.
 
+`project_name` tách biệt tài nguyên trong tổ chức đã xác thực. Mặc định là `default`; dùng cùng một giá trị phân biệt chữ hoa, chữ thường cho nhóm và tài nguyên liên quan. Gửi trong nội dung JSON với POST/PUT và tham số truy vấn với GET/DELETE.
+
 ## Ví dụ Yêu cầu
 
 ```bash
 curl https://api.tokenlab.sh/v1/videos/assets/groups \
   -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"library_type":"aigc_avatar","group_name":"Product references","description":"Reusable product shots"}'
+  -d '{"library_type":"aigc_avatar","group_name":"Product references","description":"Reusable product shots","project_name":"default"}'
 ```
 
 ## Ví dụ Phản hồi
@@ -23,6 +25,7 @@ curl https://api.tokenlab.sh/v1/videos/assets/groups \
 {
   "id": "group-20260720123456-vrt01",
   "object": "seedance.material_asset_group",
+  "project_name": "default",
   "library_type": "aigc_avatar",
   "group_name": "Product references",
   "description": "Reusable product shots",

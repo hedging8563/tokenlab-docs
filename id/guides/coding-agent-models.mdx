@@ -1,152 +1,20 @@
 ---
 title: "Pemilihan Model Coding Agent"
-description: "Pilih model yang tepat untuk setiap tugas coding — tabel perbandingan, rekomendasi, dan konfigurasi"
+description: "Pilih model berdasarkan tugas, kebutuhan konteks, kecepatan, dan biaya sebenarnya."
 ---
 
-## Perbandingan Model untuk Coding
+Pilih model berdasarkan tugas, kebutuhan konteks, kecepatan, dan biaya sebenarnya.
 
-| Model | Kecepatan | Kualitas Kode | Biaya | Context Window | Terbaik Untuk |
-|-------|-----------|---------------|-------|----------------|---------------|
-| `claude-opus-4-6` | Sedang | Sangat Baik | $$$$ | 200K | Arsitektur, refactoring kompleks |
-| `gpt-5.4` | Sedang | Sangat Baik | $$$$ | 200K | Penalaran kompleks, perencanaan |
-| `claude-sonnet-4-6` | Cepat | Baik Sekali | $$$ | 200K | Coding umum, review |
-| `gemini-3.1-pro-preview` | Cepat | Baik Sekali | $$$ | 1M | Analisis codebase besar |
-| `gpt-5-mini` | Sangat Cepat | Baik | $$ | 128K | Edit cepat, completions |
-| `gemini-3.5-flash` | Sangat Cepat | Baik | $$ | 1M | Iterasi cepat, pencarian |
-| `deepseek-v4-pro` | Sedang | Baik Sekali | $ | 1M | Tugas yang membutuhkan penalaran |
-| `deepseek-v4-flash` | Cepat | Baik | $ | 1M | Pembuatan massal, boilerplate |
+Periksa ID, harga, batas konteks, dan `tokenlab.accepted_request_formats` terbaru pada [halaman model](https://tokenlab.sh/id/models). Nama model saja tidak membuktikan dukungan protokol atau alat.
 
+Bandingkan kandidat dengan keadaan repositori, instruksi, dan alat yang sama. Nilai ketepatan hasil, regresi, perubahan yang tidak perlu, waktu, dan biaya per tugas selesai. Perubahan kecil biasanya memerlukan lebih sedikit konteks daripada refaktor besar.
 
-Untuk kumpulan model coding yang lebih baru, pertimbangkan juga `minimax-m3` untuk kerja agen dengan konteks besar, `kimi-k2.7-code-highspeed` untuk siklus coding cepat, serta `deepseek-v4-pro` / `deepseek-v4-flash`, `glm-5.2`, `step-3.7-flash`, dan `mimo-v2.5-pro` untuk request chat yang kompatibel dengan OpenAI.
+Pilih model secara eksplisit di client. Minta konfirmasi saat mengganti model karena harga, alat, dan hasil dapat berbeda. Ikuti panduan client sambil mempertahankan akun dan izin yang sudah ada.
 
-## Rekomendasi per Tugas
+## Konfigurasi dan panduan terkait
 
-<AccordionGroup>
-  <Accordion title="Pembuatan Kode / Scaffolding">
-    **Rekomendasi**: `claude-sonnet-4-6`, `gemini-3.1-pro-preview`
-
-    Model-model ini menghasilkan kode yang bersih dan terstruktur dengan baik serta konvensi penamaan yang bagus. Untuk scaffolding multi-file yang kompleks, pertimbangkan `claude-opus-4-6`.
-
-    Alternatif hemat: `deepseek-v4-flash` menangani boilerplate dengan baik dengan biaya yang jauh lebih rendah.
-  </Accordion>
-
-  <Accordion title="Review Kode / Refactoring">
-    **Rekomendasi**: `claude-sonnet-4-6`, `deepseek-v4-pro`
-
-    Review kode mendapat manfaat dari kemampuan penalaran. `deepseek-v4-pro` sangat hemat biaya di sini — pendekatan chain-of-thought-nya menangkap masalah yang halus.
-
-    Untuk review yang berfokus pada keamanan: `claude-opus-4-6` atau `gpt-5.4`.
-  </Accordion>
-
-  <Accordion title="Perbaikan Bug / Debugging">
-    **Rekomendasi**: `claude-sonnet-4-6`, `gpt-5-mini`
-
-    Perbaikan bug biasanya memiliki cakupan yang jelas — Anda tahu apa yang rusak. Model tier standar menangani ini dengan baik. Gunakan model premium hanya untuk bug kompleks yang melibatkan banyak file.
-  </Accordion>
-
-  <Accordion title="Desain Arsitektur">
-    **Rekomendasi**: `claude-opus-4-6`, `gpt-5.4`
-
-    Keputusan arsitektur mendapat manfaat dari penalaran terkuat. Biaya premium sepadan karena keputusan ini jarang tetapi berdampak besar.
-  </Accordion>
-
-  <Accordion title="Edit Cepat / Tab Completion">
-    **Rekomendasi**: `gpt-5-mini`, `gemini-3.5-flash`
-
-    Kecepatan sangat penting untuk penggunaan interaktif. Model budget dengan waktu respons cepat memberikan pengalaman terbaik. Jangan buang token premium untuk autocomplete.
-  </Accordion>
-</AccordionGroup>
-
-## Pemilihan Provider TokenLab
-
-TokenLab secara otomatis memilih provider yang tersedia untuk model yang diminta.
-
-### Strategi Pemilihan
-
-| Strategi | Perilaku | Terbaik Untuk |
-|----------|----------|---------------|
-| **PRIORITY** | Menggunakan provider tersedia dengan prioritas tertinggi | Fokus pada keandalan |
-| **COST** | Menggunakan provider tersedia dengan biaya terendah | Fokus pada biaya |
-
-Anda dapat mengatur strategi pilihan Anda di dashboard.
-
-### Coba Ulang Otomatis
-
-Jika provider tidak tersedia atau mengembalikan error, TokenLab secara otomatis mencoba ulang dengan provider lain yang tersedia:
-
-```
-Permintaan: claude-sonnet-4-6
-  → Provider A (utama): error 503
-  → Provider B (coba ulang): ✓ Berhasil
-```
-
-Ini terjadi secara transparan — coding agent Anda melihat respons normal.
-
-### Format API Native
-
-Ketika model yang dipilih mendukung format API native, TokenLab dapat menggunakan format tersebut untuk kompatibilitas yang lebih baik:
-
-| Keluarga Model | Format API | URL Dasar |
-|-------------|------------|----------|
-| Claude | Anthropic Messages | `https://api.tokenlab.sh` |
-| GPT | Respons OpenAI | `https://api.tokenlab.sh/v1` |
-| Gemini | Gemini Native API | `https://api.tokenlab.sh` atau `https://api.tokenlab.sh/v1beta` tergantung jalur klien |
-| DeepSeek | Obrolan OpenAI | `https://api.tokenlab.sh/v1` |
-
-Claude Code adalah jalur Anthropic-native yang kuat. API Gemini-native juga ada, tetapi Gemini CLI sendiri tetap merupakan jalur kompatibilitas best-effort dan tidak boleh dianggap sebagai alur kerja yang stabil untuk jangka panjang.
-
-## Konfigurasi per Tool
-
-<AccordionGroup>
-  <Accordion title="Claude Code">
-    ```bash
-    export ANTHROPIC_API_KEY="sk-your-tokenlab-key"
-    export ANTHROPIC_BASE_URL="https://api.tokenlab.sh"
-    ```
-
-    Pilih model: `claude --model claude-sonnet-4-6`
-
-    [Panduan lengkap →](/integrations/claude-code)
-  </Accordion>
-
-  <Accordion title="Cursor">
-    Di Settings → Models:
-    - API Key: `sk-your-tokenlab-key`
-    - Base URL: `https://api.tokenlab.sh/v1`
-    - Model: `claude-sonnet-4-6` atau `gpt-5-mini`
-
-    [Panduan lengkap →](/integrations/cursor)
-  </Accordion>
-
-  <Accordion title="Codex CLI">
-    ```bash
-    export OPENAI_API_KEY="sk-your-tokenlab-key"
-    export OPENAI_BASE_URL="https://api.tokenlab.sh/v1"
-    ```
-
-    [Panduan lengkap →](/integrations/codex-cli)
-  </Accordion>
-
-  <Accordion title="Gemini CLI">
-    ```bash
-    export GEMINI_API_KEY="sk-your-tokenlab-key"
-    export GOOGLE_GEMINI_BASE_URL="https://api.tokenlab.sh"
-    ```
-
-    Perlakukan integrasi ini sebagai kompatibilitas best-effort, bukan workflow resmi yang stabil.
-
-    [Panduan lengkap →](/integrations/gemini-cli)
-  </Accordion>
-
-  <Accordion title="OpenCode">
-    ```json
-    {
-      "provider": "openai",
-      "apiKey": "sk-your-tokenlab-key",
-      "baseURL": "https://api.tokenlab.sh/v1"
-    }
-    ```
-
-    [Panduan lengkap →](/integrations/opencode)
-  </Accordion>
-</AccordionGroup>
+- [Claude Code](/id/integrations/claude-code)
+- [Codex CLI](/id/integrations/codex-cli)
+- [Cursor](/id/integrations/cursor)
+- [OpenCode](/id/integrations/opencode)
+- [Kendalikan biaya dengan data penggunaan nyata](/id/guides/coding-agent-cost)

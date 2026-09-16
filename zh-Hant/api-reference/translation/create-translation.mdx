@@ -15,8 +15,7 @@ description: "將文字翻譯為目標語言"
 針對 agent workflow，建議先找出目前推薦的翻譯 model：
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=translation" \
-  -H "Authorization: Bearer sk-your-api-key"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=translation"
 ```
 
 接著把選定的 model 明確傳給 `/v1/translations`。
@@ -82,13 +81,7 @@ curl -X POST "https://api.tokenlab.sh/v1/translations" \
 ```
 
 ```python Python
-from openai import OpenAI
 import requests
-
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
 
 response = requests.post(
     "https://api.tokenlab.sh/v1/translations",

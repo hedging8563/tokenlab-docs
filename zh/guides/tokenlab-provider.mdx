@@ -23,18 +23,22 @@ https://docs.tokenlab.sh/zh/guides/tokenlab-provider
 
 ## 安装插件
 
-安装 TokenLab 插件并填入 API 密钥：
+可选：安装已发布的提供商插件 **0.1.0**，通过下文所述的同一 Gateway 环境提供 `TOKENLAB_API_KEY`，并仅为会话选择模型。插件的入门向导会改变默认模型，因此本指南不运行 `openclaw onboard`。保留原插件条目与权限，在发送请求前检查插件加载和模型列表。
+
+检查安装器请求的能力，并按客户端提示确认。不要授予无关权限或改变已有插件的权限。
 
 ```bash
-openclaw plugins install @tokenlabai/openclaw-provider
-openclaw onboard
+openclaw plugins install @tokenlabai/openclaw-provider@0.1.0
+openclaw plugins list
+openclaw models list --provider tokenlab
 ```
 
-安装插件后运行 `openclaw onboard`，在选项中选择 TokenLab，并仅在本机凭据输入框填写密钥。若插件无法在当前 OpenClaw 版本加载，可用下方手动配置，并核对插件兼容性后再试。
+```text
+/model tokenlab/claude-sonnet-5 -s
+/model default -s
+```
 
-插件会读取 TokenLab 当前可用的聊天模型。在 OpenClaw 中，模型名写作 `tokenlab/<model-id>`。
-
-[npm 包](https://www.npmjs.com/package/@tokenlabai/openclaw-provider) · [ClawHub 页面](https://clawhub.ai/tokenlabai/plugins/openclaw-provider) · [源代码](https://github.com/hedging8563/tokenlab-openclaw-provider)
+[npm](https://www.npmjs.com/package/@tokenlabai/openclaw-provider/v/0.1.0) · [GitHub](https://github.com/hedging8563/tokenlab-openclaw-provider)
 
 ## 手动配置
 
@@ -57,6 +61,7 @@ OpenClaw 需要分别使用 Responses、Claude Messages、Gemini 或 MiniMax 格
 ## 前提条件
 
 - 一个自托管的 OpenClaw 实例
+- OpenClaw **2026.9.4** 要求 Node.js `>=24.16.0 <25 || >=26.1.0`（[版本要求](https://github.com/openclaw/openclaw/blob/v2026.9.4/package.json)）。使用其他 OpenClaw 版本时，请核对对应版本的要求。
 - 一枚 TokenLab API 密钥 — [打开 Console](https://tokenlab.sh/dashboard/api?tab=keys)
 
 ## 配置
@@ -69,15 +74,10 @@ OpenClaw 需要分别使用 Responses、Claude Messages、Gemini 或 MiniMax 格
 
 使用运行中 Gateway 对应的 profile、`OPENCLAW_STATE_DIR` 和 `OPENCLAW_CONFIG_PATH`，合并前备份实际配置。将 `TOKENLAB_API_KEY` 放入该实例可信的全局 `.env` 或服务环境；仅在终端 export 或项目 `.env` 中设置，后台 Gateway 可能读不到。参见[环境变量说明](https://docs.openclaw.ai/help/environment)。
 
+先备份当前配置。仅添加 TokenLab 条目，保留已有提供商、账户、默认模型和权限。如果名称已被占用，另选名称并同步修改命令。撤销时仅移除本次添加的条目，或恢复其原备份。
+
 ```json5
 {
-  agents: {
-    defaults: {
-      model: {
-        primary: "tokenlab-claude/claude-sonnet-5"
-      }
-    }
-  },
   models: {
     mode: "merge",
     providers: {
@@ -143,16 +143,11 @@ OpenClaw 需要分别使用 Responses、Claude Messages、Gemini 或 MiniMax 格
 
 OpenClaw 仍使用 `provider/model` 格式引用模型：
 
-```json5
-{
-  agents: {
-    defaults: {
-      model: {
-        primary: "tokenlab-gemini/gemini-3.5-flash"
-      }
-    }
-  }
-}
+在 **OpenClaw 2026.9.4** 中使用 `-s` 仅为当前会话选择模型，保留 `agents.defaults.model`、Agent 默认设置与权限。运行 `/model default -s` 可让本会话恢复使用已配置的默认模型。
+
+```text
+/model tokenlab-claude/claude-sonnet-5 -s
+/model default -s
 ```
 
 ### 模型示例

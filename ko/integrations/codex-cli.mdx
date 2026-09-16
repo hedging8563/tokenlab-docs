@@ -5,9 +5,7 @@ description: "OpenAI Codex CLI를 TokenLab API와 사용하도록 구성"
 
 ## 개요
 
-OpenAI Codex는 터미널에서 코드를 읽고 수정하며 실행할 수 있는 경량의 코딩 에이전트인 오픈 소스 커맨드라인 도구(CLI)입니다. 이는 GPT 모델 기반으로 구축되었으며 코드 생성에 최적화되어 있습니다.
-
-TokenLab의 경우 Codex CLI는 `/v1/responses`를 사용할 수 있지만, 이를 고급 호환성 경로로 취급해야 합니다. 일부 Responses 전용 기능은 모든 모델 및 라우트에서 보장되지 않습니다.
+Codex CLI는 `/v1/responses`로 TokenLab에 연결합니다. 선택한 모델의 `tokenlab.accepted_request_formats`에 `openai_responses`가 포함되어야 하며 기능은 모델마다 다를 수 있습니다.
 
 Codex CLI 원격 압축은 `POST /v1/responses/compact`에서 지원됩니다. Codex는 `/compact` 및 자동 압축 시 현재 세션의 `model`을 `body.model`로 보내므로, 압축에 사용할 모델이 Responses 경로에서 사용 가능해야 합니다. `/v1/compact`는 설정하지 마세요.
 
@@ -18,7 +16,7 @@ macOS, Linux, Windows는 [공식 CLI 설치 안내](https://learn.chatgpt.com/do
 ## 설치
 
 ```bash
-npm install -g @openai/codex
+npm install -g @openai/codex@0.149.0
 ```
 
 설치 확인:
@@ -31,33 +29,11 @@ codex --version
 
 ### 1단계: API 키 설정
 
-**임시(현재 세션):**
+[빠른 시작](/ko/quickstart)의 macOS, Linux, WSL 또는 Windows PowerShell 절차로 키를 명령 기록에 남기지 않고 `TOKENLAB_API_KEY`를 설정한 뒤 같은 터미널에서 Codex를 실행하세요. 계속 사용하려면 로컬 비밀 관리 도구를 이용하고 셸 프로필에 평문 키를 추가하지 마세요.
 
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
+### 2단계: tokenlab.config.toml 구성
 
-**영구 구성:**
-
-`~/.bashrc`, `~/.zshrc`, 또는 `~/.bash_profile`에 추가:
-
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
-
-그런 다음 다시 로드:
-
-```bash
-source ~/.zshrc  # or source ~/.bashrc
-```
-
-### 2단계: config.toml 구성
-
-다음 설정을 사용자 수준의 `~/.codex/config.toml`에 병합하고 파일 전체를 덮어쓰지 마세요. 다른 제공자, 계정, 샌드박스 설정 및 승인 규칙은 유지하세요. 제공자와 인증 설정은 프로젝트의 `.codex/config.toml`이 아닌 사용자 설정에 넣어야 합니다. [공식 설정 안내](https://learn.chatgpt.com/docs/config-file/config-advanced#custom-model-providers)를 참고하세요.
-
-기존 기본 제공자를 유지하려면 Codex 0.134.0 이상에서 아래 내용을 `~/.codex/tokenlab.config.toml`에 저장하고 `codex --profile tokenlab`으로 시작하세요. 사용자 지정 `CODEX_HOME`이 있으면 해당 디렉터리를 사용합니다. 이전 `[profiles.tokenlab]` 형식, `auth.json` 덮어쓰기, 로그아웃, 승인 설정 변경은 필요 없습니다. 복구하려면 이 profile 없이 시작하세요.
-
-아래 각 명령 그룹에서 `tokenlab.config.toml`을 사용한다면 **TokenLab 프로필**을 선택하세요. **TokenLab 기본 설정**은 설정을 `config.toml`에 병합한 경우에만 사용하세요. `codex`만 실행하면 기본 설정이 사용되며 이전 세션에서 선택한 프로필은 이어지지 않습니다.
+Codex **0.149.0**에서는 활성 `CODEX_HOME`(보통 `~/.codex`)에 별도 `tokenlab.config.toml`을 사용하세요. 이름이 비어 있을 때만 만들고, 기존 TokenLab 프로필을 편집한다면 먼저 백업하세요. `codex --profile tokenlab`로 명시적으로 로드하므로 `config.toml`, `auth.json`, 계정과 권한 정책을 변경하지 않습니다. 예전 `[profiles.tokenlab]` 테이블은 사용하지 마세요. 이 프로필 없이 시작하면 원래 구성으로 돌아갑니다. [공식 프로필 구성](https://learn.chatgpt.com/docs/config-file/config-advanced#profiles)을 참고하세요.
 
 ```toml
 model_provider = "tokenlab"
@@ -82,54 +58,32 @@ websocket_connect_timeout_ms = 15000
 현재 Codex는 `wire_api = "responses"`를 사용합니다. `chat/completions`를 설정하지 마세요. `env_key`가 사용되도록 이 제공자의 `requires_openai_auth`는 생략하거나 false로 둡니다.
 
 <Note>
-TokenLab는 알 수 없는 Responses 필드를 best-effort로 전달하며 요청을 Chat Completions로 조용히 다운그레이드하지 않습니다. 필드나 조합의 지원 여부는 선택된 upstream이 결정합니다.
+Responses 요청은 Chat Completions로 변환되지 않습니다. 선택적 필드와 향후 필드 지원은 선택한 모델에 따라 달라집니다.
 </Note>
 
 ## 기본 사용법
 
 **대화형 모드 시작:**
 
-<CodeGroup>
-```bash TokenLab 프로필
+```bash
 codex --profile tokenlab
 ```
 
-```bash TokenLab 기본 설정
-codex
-```
-</CodeGroup>
-
 **직접 명령:**
 
-<CodeGroup>
-```bash TokenLab 프로필
+```bash
 codex --profile tokenlab "Fix the bug in main.py line 42"
 ```
 
-```bash TokenLab 기본 설정
-codex "Fix the bug in main.py line 42"
-```
-</CodeGroup>
-
 **모델 지정:**
 
-<CodeGroup>
-```bash TokenLab 프로필
+```bash
 codex --profile tokenlab -m gpt-5.6-sol "Build a REST API server"
 ```
 
-```bash TokenLab 기본 설정
-codex -m gpt-5.6-sol "Build a REST API server"
-```
-</CodeGroup>
+## 모델 선택
 
-## 권장 모델
-
-| 모델 | 용도 |
-|-------|----------|
-| `gpt-5.6-sol` | 코딩 및 추론에 가장 적합한 기본 선택 |
-| `gpt-5-mini` | 코딩 워크플로우를 위한 더 빠르고 저렴한 대체 |
-| `claude-sonnet-4-6` | 코드 리뷰, 문서화 |
+현재 `tokenlab.accepted_request_formats`에 `openai_responses`가 포함된 모델을 선택하세요. 자신의 코딩 작업으로 비교하고 [모델 페이지](https://tokenlab.sh/ko/models)에서 현재 가격을 확인하세요.
 
 ## 대화형 명령
 
@@ -157,71 +111,41 @@ Codex를 시작한 뒤 `/status`를 실행하여 현재 모델과 권한을 확�
 
 실제 요청을 보낼 준비가 되면 아래 명령을 실행하세요. TokenLab 잔액을 사용합니다. 응답과 [요청 기록](https://tokenlab.sh/dashboard/runs?section=requests)의 해당 항목을 확인하세요. 환경 변수 확인이나 클라이언트 시작 성공만으로 요청 성공을 확인할 수는 없습니다.
 
-<CodeGroup>
-```bash TokenLab 프로필
+```bash
 codex --profile tokenlab "Reply only with OK. Do not use tools or modify files."
 ```
-
-```bash TokenLab 기본 설정
-codex "Reply only with OK. Do not use tools or modify files."
-```
-</CodeGroup>
 
 ## 일반 사용 사례
 
 **코드 리뷰:**
 
-<CodeGroup>
-```bash TokenLab 프로필
+```bash
 git diff | codex --profile tokenlab "Review these code changes"
 ```
 
-```bash TokenLab 기본 설정
-git diff | codex "Review these code changes"
-```
-</CodeGroup>
-
 **커밋 메시지 생성:**
 
-<CodeGroup>
-```bash TokenLab 프로필
+```bash
 git diff --staged | codex --profile tokenlab "Generate a commit message for these changes"
 ```
 
-```bash TokenLab 기본 설정
-git diff --staged | codex "Generate a commit message for these changes"
-```
-</CodeGroup>
-
 **오류 수정:**
 
-<CodeGroup>
-```bash TokenLab 프로필
+```bash
 codex --profile tokenlab "Fix the TypeScript errors in src/components/"
 ```
 
-```bash TokenLab 기본 설정
-codex "Fix the TypeScript errors in src/components/"
-```
-</CodeGroup>
-
 **코드 설명:**
 
-<CodeGroup>
-```bash TokenLab 프로필
+```bash
 cat main.py | codex --profile tokenlab "Explain what this code does"
 ```
-
-```bash TokenLab 기본 설정
-cat main.py | codex "Explain what this code does"
-```
-</CodeGroup>
 
 ## 문제 해결
 
 <AccordionGroup>
   <Accordion title="연결 오류">
-    - `config.toml`의 `base_url`이 정확히 `https://api.tokenlab.sh/v1`인지 확인하세요
+    - `tokenlab.config.toml`의 `base_url`이 정확히 `https://api.tokenlab.sh/v1`인지 확인하세요
     - 네트워크 연결 상태를 확인하세요
     - 프록시 간섭이 없는지 확인하세요
   </Accordion>

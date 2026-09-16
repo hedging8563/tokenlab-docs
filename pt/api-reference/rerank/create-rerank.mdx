@@ -8,7 +8,7 @@ Reordene documentos usando modelos de similaridade semântica. Útil para melhor
 
 ## Corpo da Requisição
 
-**Timeout de solicitações síncronas:** este endpoint não-chat aguarda o modelo roteado terminar. Entradas grandes, áudios longos ou lotes grandes podem exceder os padrões comuns de 30s dos clientes, então configure o timeout do seu cliente HTTP para pelo menos `120s`.
+Para entradas grandes, configure o timeout do cliente HTTP para pelo menos `120s`. A resposta chega após o processamento.
 
 <ParamField body="model" type="string" required>
   ID do modelo de reranker a ser usado (ex: `qwen3-vl-rerank`).
@@ -23,7 +23,7 @@ Reordene documentos usando modelos de similaridade semântica. Útil para melhor
 </ParamField>
 
 <ParamField body="top_n" type="integer">
-  Número de resultados principais a retornar. O padrão é retornar todos os documentos. Deve ser pelo menos `1` e não pode ser maior que `documents.length`. Atualmente a TokenLab não aplica um limite público inferior específico de provedor; se esse limite mudar, esta página será atualizada antes da aplicação.
+  Número dos melhores resultados, de `1` até `documents.length`. Se omitido, o modelo selecionado determina a quantidade.
 </ParamField>
 
 <ParamField body="return_documents" type="boolean" default="false">
@@ -37,16 +37,16 @@ Reordene documentos usando modelos de similaridade semântica. Útil para melhor
 
   Cada resultado contém:
   - `index` (integer): Índice original do documento
-  - `relevance_score` (number): Pontuação de relevância (0-1)
+  - `relevance_score` (number): Pontuação de relevância. O intervalo depende do modelo selecionado.
   - `document` (string): Texto original (se `return_documents=true`)
 </ResponseField>
 
 <ResponseField name="model" type="string">
-  O modelo usado para a reordenação.
+  O modelo usado para a reordenação. Retornado quando disponível.
 </ResponseField>
 
 <ResponseField name="usage" type="object">
-  Estatísticas de uso de tokens.
+  Estatísticas de uso de tokens. Retornado quando disponível.
 </ResponseField>
 
 <RequestExample>

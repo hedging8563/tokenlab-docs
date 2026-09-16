@@ -6,6 +6,10 @@ description: "ينشئ استكمالًا لرسالة المحادثة"
 
 ## جسم الطلب
 
+<Note>
+يعتمد دعم المعلمات الاختيارية والقيم المقبولة والقيم الافتراضية على النموذج المختار. راجع [تفاصيل النموذج](/ar/api-reference/models/get-model) قبل ضبط خيارات أخذ العينات أو الاستدلال أو الأدوات.
+</Note>
+
 <ParamField body="model" type="string" required>
   معرف النموذج المستخدم. راجع [Models](https://tokenlab.sh/ar/models) للاطلاع على الخيارات المتاحة.
 </ParamField>
@@ -14,8 +18,10 @@ description: "ينشئ استكمالًا لرسالة المحادثة"
   قائمة بالرسائل التي تشكل المحادثة.
 
   يحتوي كل كائن رسالة على:
-  - `role` (string): `system`, `user`, أو `assistant`
-  - `content` (string | array): محتوى الرسالة
+  - `role` (string): `system`, `developer`, `user`, `assistant`, `tool`, `function`
+  - `content` (string | array | null): محتوى الرسالة
+
+  في رسالة `assistant` التي تحتوي على `tool_calls`، يمكن حذف `content` أو تعيينه إلى `null`.
 
   عندما تكون `content` مصفوفة، يدعم TokenLab كتلًا مُهيكلة متعددة الوسائط للنماذج المتوافقة:
   - text: `{ "type": "text", "text": "..." }`
@@ -23,11 +29,11 @@ description: "ينشئ استكمالًا لرسالة المحادثة"
   - video: `{ "type": "video_url", "video_url": { "url": "https://..." } }`
   - audio: `{ "type": "audio_url", "audio_url": { "url": "https://..." } }`
 
-  لحركة المرور متعددة الوسائط في الإنتاج، يُفضّل استخدام روابط `https` عامة. سيقوم TokenLab بترجمة هذه الكتل الوسائطية إلى شكل الطلب الخاص بمزود الخدمة المطلوب للنموذج الفيزيائي الموجه.
+  للإدخال متعدد الوسائط، استخدم روابط `https` متاحة للعامة. تعتمد أنواع الوسائط المدعومة على النموذج المختار.
 </ParamField>
 
-<ParamField body="temperature" type="number" default="1">
-  درجة حرارة العينة بين 0 و2. القيم الأعلى تجعل المخرجات أكثر عشوائية.
+<ParamField body="temperature" type="number">
+  درجة حرارة أخذ العينات. يعتمد الدعم والقيم المسموح بها والقيمة الافتراضية على النموذج المختار. احذف هذا الحقل لاستخدام القيمة الافتراضية للنموذج.
 </ParamField>
 
 <ParamField body="max_tokens" type="integer">
@@ -35,27 +41,27 @@ description: "ينشئ استكمالًا لرسالة المحادثة"
 </ParamField>
 
 <ParamField body="stream" type="boolean" default="false">
-  If true، سيتم إرسال دلتا الرسائل الجزئية كأحداث SSE.
+  إذا كانت القيمة `true`، سيتم إرسال دلتا الرسائل الجزئية كأحداث SSE.
 </ParamField>
 
 <ParamField body="stream_options" type="object">
   خيارات البث. اضبط `include_usage: true` لتلقي استخدام التوكنات في أجزاء البث.
 </ParamField>
 
-<ParamField body="top_p" type="number" default="1">
+<ParamField body="top_p" type="number">
   معامل Nucleus sampling. نوصي بتغيير هذا أو temperature، وليس كليهما.
 </ParamField>
 
-<ParamField body="frequency_penalty" type="number" default="0">
+<ParamField body="frequency_penalty" type="number">
   رقم بين -2.0 و2.0. القيم الإيجابية تعاقب التوكنات المكررة.
 </ParamField>
 
-<ParamField body="presence_penalty" type="number" default="0">
+<ParamField body="presence_penalty" type="number">
   رقم بين -2.0 و2.0. القيم الإيجابية تعاقب التوكنات الموجودة بالفعل في النص.
 </ParamField>
 
 <ParamField body="stop" type="string | array">
-  حتى 4 تسلسلات تتوقف عندها الـ API عن توليد التوكنات.
+  تسلسل إيقاف أو قائمة تسلسلات. يعتمد الدعم والحد الأقصى لعدد التسلسلات على النموذج المختار.
 </ParamField>
 
 <ParamField body="tools" type="array">
@@ -66,8 +72,8 @@ description: "ينشئ استكمالًا لرسالة المحادثة"
   يتحكم في كيفية استخدام النموذج للأدوات. الخيارات: `auto`, `none`, `required`, أو كائن أداة محدد.
 </ParamField>
 
-<ParamField body="parallel_tool_calls" type="boolean" default="true">
-  ما إذا كان سيتم تمكين استدعاء الدوال المتوازي. اضبط على false لاستدعاء الدوال بشكل متسلسل.
+<ParamField body="parallel_tool_calls" type="boolean">
+  السماح باستدعاءات متعددة للأدوات في دور واحد للمساعد، إذا كان النموذج المختار يدعم ذلك.
 </ParamField>
 
 <ParamField body="max_completion_tokens" type="integer">
@@ -75,14 +81,14 @@ description: "ينشئ استكمالًا لرسالة المحادثة"
 </ParamField>
 
 <ParamField body="reasoning_effort" type="string">
-  مستوى جهد الاستدلال للنماذج الممكّنة للتفكير. الخيارات: `low`, `medium`, `high`.
+  جهد الاستدلال للنماذج التي تدعمه. تعتمد القيم المقبولة على النموذج المختار.
 </ParamField>
 
 <ParamField body="seed" type="integer">
-  بذرة عشوائية للعينة الحتمية.
+  بذرة أخذ العينات للنماذج التي تدعمها. لا يُضمن الحصول على مخرجات متطابقة.
 </ParamField>
 
-<ParamField body="n" type="integer" default="1">
+<ParamField body="n" type="integer">
   عدد الاستكمالات المراد توليدها (1-128).
 </ParamField>
 
@@ -95,11 +101,11 @@ description: "ينشئ استكمالًا لرسالة المحادثة"
 </ParamField>
 
 <ParamField body="top_k" type="integer">
-  معامل أخذ العينات Top-K (لنماذج Anthropic/Gemini).
+  أخذ العينات Top-K للنماذج التي تدعمه.
 </ParamField>
 
 <ParamField body="response_format" type="object">
-  مواصفات تنسيق الاستجابة. استخدم `{"type": "json_object"}` لوضع JSON. اعتبر `{"type": "json_schema", "json_schema": {...}}` كطريق بذل أقصى جهد يعتمد على النموذج المختار والسلوك الموجَّه.
+  تنسيق الاستجابة. استخدم `{"type": "json_object"}` لوضع JSON أو `{"type": "json_schema", "json_schema": {...}}` لمخطط JSON. يعتمد الدعم على النموذج المختار.
 </ParamField>
 
 <ParamField body="logit_bias" type="object">
@@ -135,7 +141,7 @@ description: "ينشئ استكمالًا لرسالة المحادثة"
   يحتوي كل خيار على:
   - `index` (integer): مؤشر الخيار
   - `message` (object): الرسالة المولدة
-  - `finish_reason` (string): سبب توقف النموذج (`stop`, `length`, `tool_calls`)
+  - `finish_reason` (string): سبب توقف النموذج، مثل `stop` أو `length` أو `tool_calls`
 </ResponseField>
 
 <ResponseField name="usage" type="object">
@@ -157,7 +163,6 @@ curl -X POST "https://api.tokenlab.sh/v1/chat/completions" \
       {"role": "system", "content": "You are a helpful assistant."},
       {"role": "user", "content": "Hello!"}
     ],
-    "temperature": 0.7,
     "max_tokens": 1000
   }'
 ```
@@ -176,7 +181,6 @@ response = client.chat.completions.create(
         {"role": "system", "content": "You are a helpful assistant."},
         {"role": "user", "content": "Hello!"}
     ],
-    temperature=0.7,
     max_tokens=1000
 )
 
@@ -197,7 +201,6 @@ const response = await client.chat.completions.create({
     { role: 'system', content: 'You are a helpful assistant.' },
     { role: 'user', content: 'Hello!' }
   ],
-  temperature: 0.7,
   max_tokens: 1000
 });
 
@@ -221,7 +224,6 @@ curl_setopt_array($ch, [
             ['role' => 'system', 'content' => 'You are a helpful assistant.'],
             ['role' => 'user', 'content' => 'Hello!']
         ],
-        'temperature' => 0.7,
         'max_tokens' => 1000
     ])
 ]);

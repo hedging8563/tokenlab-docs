@@ -56,6 +56,8 @@ Start with `catalog` if you only want better model selection. Use `core` when th
 
 ## Add the server
 
+Back up the active configuration. Add only the TokenLab entry and preserve existing providers, accounts, default-model selection and permissions. If the name is already used, choose another name and update the commands. To undo setup, remove only your added entry or restore its previous backup.
+
 <Tabs>
   <Tab title="Claude Code">
     Add the public catalog for your user account:
@@ -65,7 +67,7 @@ Start with `catalog` if you only want better model selection. Use `core` when th
       --env TOKENLAB_MCP_TOOL_PROFILE=catalog \
       --scope user \
       tokenlab -- \
-      npx -y @tokenlabai/mcp-server
+      npx -y @tokenlabai/mcp-server@0.6.19
     ```
 
     To use paid tools, replace the profile environment variable with `TOKENLAB_API_KEY` and store the key through your normal secret-management method. Use `--scope local` for one project. Never commit a real key in a shared `.mcp.json`.
@@ -76,7 +78,7 @@ Start with `catalog` if you only want better model selection. Use `core` when th
     codex mcp add \
       --env TOKENLAB_MCP_TOOL_PROFILE=catalog \
       tokenlab -- \
-      npx -y @tokenlabai/mcp-server
+      npx -y @tokenlabai/mcp-server@0.6.19
     ```
 
     For paid tools, configure `TOKENLAB_API_KEY` in the server environment.
@@ -90,7 +92,7 @@ Start with `catalog` if you only want better model selection. Use `core` when th
       "mcpServers": {
         "tokenlab": {
           "command": "npx",
-          "args": ["-y", "@tokenlabai/mcp-server"],
+          "args": ["-y", "@tokenlabai/mcp-server@0.6.19"],
           "env": {
             "TOKENLAB_MCP_TOOL_PROFILE": "catalog"
           }
@@ -109,7 +111,7 @@ Start with `catalog` if you only want better model selection. Use `core` when th
         "tokenlab": {
           "type": "stdio",
           "command": "npx",
-          "args": ["-y", "@tokenlabai/mcp-server"],
+          "args": ["-y", "@tokenlabai/mcp-server@0.6.19"],
           "env": {
             "TOKENLAB_MCP_TOOL_PROFILE": "catalog"
           }
@@ -127,7 +129,7 @@ Start with `catalog` if you only want better model selection. Use `core` when th
       "mcpServers": {
         "tokenlab": {
           "command": "npx",
-          "args": ["-y", "@tokenlabai/mcp-server"],
+          "args": ["-y", "@tokenlabai/mcp-server@0.6.19"],
           "env": {
             "TOKENLAB_MCP_TOOL_PROFILE": "catalog"
           }
@@ -143,14 +145,9 @@ Start with `catalog` if you only want better model selection. Use `core` when th
     | Field | Value |
     | --- | --- |
     | Command | `npx` |
-    | Arguments | `-y`, `@tokenlabai/mcp-server` |
+    | Arguments | `-y`, `@tokenlabai/mcp-server@0.6.19` |
     | Environment | `TOKENLAB_MCP_TOOL_PROFILE=catalog` |
 
-    Cline can add the package with:
-
-    ```bash
-    cline mcp add tokenlab --yes -- npx -y @tokenlabai/mcp-server
-    ```
   </Tab>
 </Tabs>
 
@@ -220,7 +217,7 @@ Use the defaults unless your client or deployment has a specific requirement.
 
 <AccordionGroup>
   <Accordion title="The client cannot start the server">
-    Run `node --version`, `npx --version`, and `npx -y @tokenlabai/mcp-server` in a terminal. A successful stdio server waits silently for MCP messages; press **Ctrl+C** after confirming it starts.
+    Run `node --version`, `npx --version`, and `npx -y @tokenlabai/mcp-server@0.6.19` in a terminal. A successful stdio server waits silently for MCP messages; press **Ctrl+C** after confirming it starts.
   </Accordion>
 
   <Accordion title="The server is connected but no tools appear">

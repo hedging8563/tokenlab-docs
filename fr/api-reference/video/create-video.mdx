@@ -30,7 +30,7 @@ En production, privilégiez des URLs `https` publiques pour les images, vidéos 
 
 <VideoModelContractNote />
 
-<ParamField body="prompt" type="string" required>
+<ParamField body="prompt" type="string">
   Description textuelle de la vidéo à générer. Ce champ est requis pour la plupart des modèles publics.
 </ParamField>
 
@@ -51,7 +51,7 @@ En production, privilégiez des URLs `https` publiques pour les images, vidéos 
 </ParamField>
 
 <ParamField body="material_asset_id" type="string">
-  ID de matériau Seedance TokenLab renvoyé par [Créer un matériau](/fr/api-reference/video/create-material-asset) ou par la préparation automatique d’image. Utilisez-le après le statut `ACTIVE` avec les modèles Seedance qui peuvent utiliser la bibliothèque de matériaux TokenLab.
+  ID de matériau Seedance TokenLab renvoyé par [Créer un matériau](/fr/api-reference/video/create-material-asset). Utilisez-le après le statut `ACTIVE` avec les modèles Seedance qui peuvent utiliser la bibliothèque de matériaux TokenLab.
 </ParamField>
 
 <ParamField body="material_asset_ids" type="array">
@@ -59,7 +59,7 @@ En production, privilégiez des URLs `https` publiques pour les images, vidéos 
 </ParamField>
 
 <Info>
-Lorsque le modèle Seedance sélectionné peut utiliser la bibliothèque de matériaux TokenLab, TokenLab prépare les champs image (`image`, `image_url`, `image_urls`, `reference_images`, `start_image`, `end_image`) comme matériaux réutilisables avant la génération. Si la préparation n’est pas terminée en 60 secondes, l’API renvoie `409 seedance_material_preparing` avec `auto_material_asset_ids`; réessayez lorsque ces matériaux sont `ACTIVE`. Si le modèle sélectionné ne peut pas utiliser la bibliothèque, les images ordinaires continuent sur le chemin image habituel et les ID de matériaux explicites échouent de façon sûre avec une erreur de disponibilité des matériaux.
+Les URL d’images ordinaires servent d’entrées et ne créent pas automatiquement de matériaux réutilisables. Créez-les via l’API de matériaux, puis utilisez leurs ID TokenLab ou URI `asset://asset-YYYYMMDDHHMMSS-xxxxx`. Si des matériaux explicites renvoient `409 seedance_material_preparing`, vérifiez les `inactive_asset_ids` et réessayez après leur passage à `ACTIVE`.
 </Info>
 
 
@@ -68,7 +68,7 @@ Lorsque le modèle Seedance sélectionné peut utiliser la bibliothèque de mat�
 </ParamField>
 
 <ParamField body="kling_elements" type="array">
-  Définitions de références d’éléments Kling 3.0. Pris en charge uniquement avec `kling-3.0-video` pour les requêtes conditionnées par image. Définissez 1 à 3 éléments ; chaque élément contient `name`, un `description` optionnel et `element_input_urls` avec 2 à 4 URL d’images. Référencez un élément dans `prompt` avec `@name`. Ne combinez pas `kling_elements` avec `output_audio=true` ; omettez `output_audio` ou définissez-le sur `false` pour les requêtes avec références d’éléments.
+  Utilisez `kling_elements` uniquement si les détails publics actuels du modèle mentionnent ce champ. Fournissez des images et 1 à 3 éléments avec `name`, une `description` facultative et 2 à 4 `element_input_urls`, référencés par `@name` dans `prompt`. Ne combinez pas ces éléments avec `output_audio=true`.
 </ParamField>
 
 <ParamField body="video_url" type="string">
@@ -241,6 +241,10 @@ curl -X POST "https://api.tokenlab.sh/v1/videos/generations" \
 
 ## Réponse
 
+<Note>
+Les champs de résultat, d’erreur, d’horodatage et de modèle sont renvoyés lorsqu’ils sont disponibles pour la tâche.
+</Note>
+
 <ResponseField name="id" type="string">
   Identifiant canonique de tâche asynchrone. Lorsque `id` et `task_id` sont tous les deux présents, considérez-les comme la même tâche.
 </ResponseField>
@@ -258,7 +262,7 @@ curl -X POST "https://api.tokenlab.sh/v1/videos/generations" \
 </ResponseField>
 
 <ResponseField name="status" type="string">
-  Statut initial : `pending`.
+  Statut de la tâche : `pending`, `processing`, `completed`, `failed`.
 </ResponseField>
 
 <ResponseField name="created" type="integer">
@@ -267,6 +271,18 @@ curl -X POST "https://api.tokenlab.sh/v1/videos/generations" \
 
 <ResponseField name="model" type="string">
   Modèle utilisé.
+</ResponseField>
+
+<ResponseField name="video" type="object">
+  Charge utile d'une seule vidéo avec `url`, `duration`, `width` et `height` lorsque disponible.
+</ResponseField>
+
+<ResponseField name="videos" type="array">
+  Plusieurs charges utiles vidéo lorsque la tâche de génération renvoie plus d'une sortie.
+</ResponseField>
+
+<ResponseField name="error" type="string | object">
+  Message d'erreur (en cas d'échec).
 </ResponseField>
 
 <RequestExample>
@@ -309,38 +325,14 @@ response = requests.post(
         "operation": "image-to-video",
         "image_url": "https://example.com/image.jpg",
         "duration": 6,
-        "aspect_ratio": "16:9"
+        "resolution": "768p"
     }
 )
 ```
 
 ## Éléments Kling 3.0
 
-Utilisez `kling_elements` avec `kling-3.0-video` lorsque vous avez besoin de références d’éléments. Fournissez une requête conditionnée par image (`image_url`, `image_urls`, `start_image` ou `end_image`) et référencez chaque élément dans le prompt avec `@name`. Ne combinez pas `kling_elements` avec `output_audio=true` ; omettez `output_audio` ou définissez-le sur `false` pour les requêtes avec références d’éléments.
-
-```python
-response = requests.post("https://api.tokenlab.sh/v1/videos/generations",
-    headers=headers,
-    json={
-        "model": "kling-3.0-video",
-        "prompt": "Place @hero_bag on a studio turntable with soft product lighting.",
-        "operation": "image-to-video",
-        "image_url": "https://example.com/studio-start.png",
-        "duration": 5,
-        "resolution": "720p",
-        "kling_elements": [
-            {
-                "name": "hero_bag",
-                "description": "black leather handbag",
-                "element_input_urls": [
-                    "https://example.com/bag-front.png",
-                    "https://example.com/bag-side.png"
-                ]
-            }
-        ]
-    }
-)
-```
+Utilisez `kling_elements` uniquement si les détails publics actuels du modèle mentionnent ce champ. Fournissez des images et 1 à 3 éléments avec `name`, une `description` facultative et 2 à 4 `element_input_urls`, référencés par `@name` dans `prompt`. Ne combinez pas ces éléments avec `output_audio=true`.
 
 ## Référence vers vidéo
 
@@ -376,7 +368,6 @@ response = requests.post(
     headers={"Authorization": "Bearer sk-your-api-key"},
     json={
         "model": "viduq2-pro",
-        "prompt": "Smooth transition from day to night",
         "operation": "start-end-to-video",
         "start_image": "https://example.com/day.jpg",
         "end_image": "https://example.com/night.jpg",
@@ -389,7 +380,7 @@ response = requests.post(
 
 ## Vidéo vers vidéo
 
-Pour le video-to-video de `grok-imagine-video`, envoyez une URL `.mp4` HTTPS publique dans `video_url`. TokenLab la traduit vers le corps REST xAI `video.url`. Vous pouvez définir `resolution` sur `480p` ou `720p`; `duration` et `aspect_ratio` ne sont pas acceptés pour ce flux d’édition.
+Pour le video-to-video de `grok-imagine-video`, envoyez une URL `.mp4` HTTPS publique dans `video_url`.  Vous pouvez définir `resolution` sur `480p` ou `720p`; `duration` et `aspect_ratio` ne sont pas acceptés pour ce flux d’édition.
 
 Si un modèle accepte une vidéo existante comme entrée principale, utilisez `operation=video-to-video`.
 
@@ -401,8 +392,7 @@ response = requests.post(
         "model": "grok-imagine-video",
         "operation": "video-to-video",
         "video_url": "https://example.com/source.mp4",
-        "prompt": "Enhance the clip while preserving the original motion.",
-        "resolution": "720p"
+        "prompt": "Enhance the clip while preserving the original motion."
     }
 )
 ```
@@ -431,11 +421,9 @@ response = requests.post(
 L’inventaire vidéo public et les opérations prises en charge évoluent dans le temps. Utilisez la [Models API](/fr/api-reference/models/list-models) comme référence actuelle avant d’implémenter un flux propre à un modèle :
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \
-  -H "Authorization: Bearer sk-your-api-key"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=video"
 
-curl "https://api.tokenlab.sh/v1/models/veo3.1" \
-  -H "Authorization: Bearer sk-your-api-key"
+curl "https://api.tokenlab.sh/v1/models/veo3.1"
 ```
 
 Lisez la réponse de détail du modèle avant de dépendre d’opérations ou de champs propres au modèle. Les opérations comme `audio-to-video` et `video-extension` sont propres à certains modèles ; confirmez leur disponibilité actuelle à cet endroit plutôt que de vous appuyer sur les exemples statiques de cette page.

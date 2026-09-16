@@ -10,7 +10,7 @@ La instrumentación de OpenAI de OpenLLMetry rastrea las llamadas realizadas a t
 ## Instalación
 
 ```bash
-pip install opentelemetry-instrumentation-openai openai
+pip install opentelemetry-instrumentation-openai opentelemetry-sdk openai
 ```
 
 ## Entorno
@@ -21,11 +21,20 @@ export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 
 ## Ejemplo
 
+Este ejemplo independiente muestra los spans en el terminal. Si tu aplicación ya tiene un tracer provider de OpenTelemetry, reutiliza ese provider y su exporter.
+
 ```python
 import os
 
 from openai import OpenAI
+from opentelemetry import trace
 from opentelemetry.instrumentation.openai import OpenAIInstrumentor
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import ConsoleSpanExporter, SimpleSpanProcessor
+
+tracer_provider = TracerProvider()
+tracer_provider.add_span_processor(SimpleSpanProcessor(ConsoleSpanExporter()))
+trace.set_tracer_provider(tracer_provider)
 
 OpenAIInstrumentor().instrument()
 

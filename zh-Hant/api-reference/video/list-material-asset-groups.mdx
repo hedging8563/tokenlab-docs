@@ -6,12 +6,14 @@ description: "列出當前組織擁有的 Seedance 素材群組。"
 
 列出經身份驗證的組織所擁有的素材群組。透過 `library_type` 和 `status` 進行篩選，以區分虛擬人像（virtual-avatar）群組與真人（real-person）群組。
 
-上傳素材時請使用回傳的 `group_id`。在影片生成過程中，請勿將 `group_id` 作為 `material_asset_id` 傳遞；生成作業需要的是素材資源的 `id`。
+上傳素材時請使用回傳的 `id`。在影片生成過程中，請勿將 `group_id` 作為 `material_asset_id` 傳遞；生成作業需要的是素材資源的 `id`。
+
+`project_name` 用於同一組織內的資源隔離，預設為 `default`。相關素材群組和素材須使用相同且區分大小寫的值；POST/PUT 在 JSON 請求主體中傳入，GET/DELETE 在查詢參數中傳入。
 
 ## 請求範例
 
 ```bash
-curl "https://api.tokenlab.sh/v1/videos/assets/groups?library_type=aigc_avatar&page_size=20" \
+curl "https://api.tokenlab.sh/v1/videos/assets/groups?library_type=aigc_avatar&page_size=20&project_name=default" \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```
 
@@ -23,6 +25,7 @@ curl "https://api.tokenlab.sh/v1/videos/assets/groups?library_type=aigc_avatar&p
     {
       "id": "group-20260720123456-vrt01",
       "object": "seedance.material_asset_group",
+      "project_name": "default",
       "library_type": "aigc_avatar",
       "group_name": "Product references",
       "status": "ACTIVE",

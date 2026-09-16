@@ -16,8 +16,8 @@ Base URL untuk Anthropic SDK: `https://api.tokenlab.sh` (tanpa sufiks `/v1`)
 
 ## Header Permintaan
 
-<ParamField header="x-api-key" type="string" required>
-  TokenLab API key Anda. Alternatif untuk token Bearer.
+<ParamField header="x-api-key" type="string">
+  API key TokenLab Anda. Kirim melalui `x-api-key` atau `Authorization: Bearer <API_KEY>`.
 </ParamField>
 
 <ParamField header="anthropic-version" type="string" required>
@@ -26,8 +26,12 @@ Base URL untuk Anthropic SDK: `https://api.tokenlab.sh` (tanpa sufiks `/v1`)
 
 ## Body Permintaan
 
+<Note>
+Parameter opsional yang didukung, nilai yang diizinkan, dan nilai default bergantung pada model yang dipilih. Periksa [detail model](/id/api-reference/models/get-model) sebelum menetapkan opsi sampling, penalaran, atau alat.
+</Note>
+
 <ParamField body="model" type="string" required>
-  ID model Claude (misalnya, `claude-sonnet-4-6` atau `claude-opus-4-6`).
+  ID model yang mendukung format `anthropic_messages`. Periksa [detail model](/id/api-reference/models/get-model) untuk kemampuan saat ini.
 </ParamField>
 
 <ParamField body="messages" type="array" required>
@@ -38,12 +42,12 @@ Base URL untuk Anthropic SDK: `https://api.tokenlab.sh` (tanpa sufiks `/v1`)
   Jumlah token maksimum yang akan dihasilkan.
 </ParamField>
 
-<ParamField body="system" type="string">
-  Prompt sistem (terpisah dari array messages).
+<ParamField body="system" type="string | array">
+  Prompt sistem berupa string atau array blok konten, terpisah dari array `messages`.
 </ParamField>
 
-<ParamField body="temperature" type="number" default="1">
-  Temperature sampling (0-1).
+<ParamField body="temperature" type="number">
+  Temperatur sampling. Dukungan, nilai yang diizinkan, dan nilai default bergantung pada model yang dipilih. Hilangkan kolom ini untuk menggunakan default model.
 </ParamField>
 
 <ParamField body="stream" type="boolean" default="false">
@@ -51,10 +55,7 @@ Base URL untuk Anthropic SDK: `https://api.tokenlab.sh` (tanpa sufiks `/v1`)
 </ParamField>
 
 <ParamField body="thinking" type="object">
-  Konfigurasi extended thinking (Claude Opus 4.5).
-
-  - `type` (string): `"enabled"` untuk mengaktifkan
-  - `budget_tokens` (integer): Anggaran token untuk thinking
+  Konfigurasi thinking native. Mode, anggaran, dan kombinasi dengan parameter lain yang didukung bergantung pada model yang dipilih.
 </ParamField>
 
 <ParamField body="tools" type="array">
@@ -62,7 +63,7 @@ Base URL untuk Anthropic SDK: `https://api.tokenlab.sh` (tanpa sufiks `/v1`)
 </ParamField>
 
 <ParamField body="tool_choice" type="object">
-  Bagaimana model harus menggunakan tools. Opsi: `auto`, `any`, `tool` (tool tertentu).
+  Objek pilihan alat native, misalnya `{"type":"auto"}`. Jenis yang didukung bergantung pada model yang dipilih.
 </ParamField>
 
 <ParamField body="top_p" type="number">
@@ -96,7 +97,7 @@ Base URL untuk Anthropic SDK: `https://api.tokenlab.sh` (tanpa sufiks `/v1`)
 </ResponseField>
 
 <ResponseField name="content" type="array">
-  Array blok konten (text, thinking, tool_use).
+  Array blok konten, seperti `text`, `thinking`, atau `tool_use`.
 </ResponseField>
 
 <ResponseField name="model" type="string">
@@ -104,7 +105,7 @@ Base URL untuk Anthropic SDK: `https://api.tokenlab.sh` (tanpa sufiks `/v1`)
 </ResponseField>
 
 <ResponseField name="stop_reason" type="string">
-  Alasan generation berhenti (`end_turn`, `max_tokens`, `tool_use`).
+  Alasan pembuatan konten berhenti, seperti `end_turn`, `max_tokens`, `stop_sequence`, atau `tool_use`.
 </ResponseField>
 
 <ResponseField name="usage" type="object">
@@ -315,9 +316,19 @@ Untuk model Claude dengan dukungan visi, letakkan gambar di dalam `messages[].co
 
 ## Contoh Extended Thinking
 
+Atur `TOKENLAB_THINKING_MODEL` ke model yang mendukung thinking manual dengan `type: "enabled"` dan `budget_tokens`. Sesuaikan kedua anggaran token dengan batas model tersebut. Model lain mungkin memerlukan konfigurasi thinking yang berbeda.
+
 ```python
+import os
+from anthropic import Anthropic
+
+client = Anthropic(
+    api_key="sk-your-api-key",
+    base_url="https://api.tokenlab.sh"
+)
+
 message = client.messages.create(
-    model="claude-opus-5",
+    model=os.environ["TOKENLAB_THINKING_MODEL"],
     max_tokens=16000,
     thinking={
         "type": "enabled",

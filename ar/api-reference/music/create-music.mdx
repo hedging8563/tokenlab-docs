@@ -9,11 +9,11 @@ description: "إنشاء مهمة توليد موسيقى باستخدام Suno"
 ## جسم الطلب
 
 <ParamField body="model" type="string" default="suno_music">
-  النموذج المستخدم: `suno_music` لتوليد الموسيقى، و `suno_lyrics` للكلمات فقط.
+  معرّف نموذج الموسيقى، مثل `suno-music`. للكلمات فقط، اختر نموذجًا تتضمن عملياته العامة الحالية `lyrics`.
 </ParamField>
 
 <ParamField body="prompt" type="string">
-  وصف الموسيقى. مطلوب لطلبات music و lyrics و upload-cover و upload-extend؛ ويمكن حذفه مع add-instrumental.
+  وصف الموسيقى أو النص البديل. مطلوب للموسيقى والكلمات وupload-cover وupload-extend وreplace-section؛ واختياري مع add-instrumental وفصل المسارات.
 </ParamField>
 
 <ParamField body="title" type="string">
@@ -29,11 +29,11 @@ description: "إنشاء مهمة توليد موسيقى باستخدام Suno"
 </ParamField>
 
 <ParamField body="action" type="string">
-  نوع التوليد: `MUSIC` (افتراضي) أو `LYRICS`.
+  قيمة اختيارية `MUSIC` أو `LYRICS`. اختر نموذجًا يدعم العملية العامة المقابلة؛ لا يضيف هذا الحقل توليد الكلمات إلى نموذج مخصص للموسيقى فقط.
 </ParamField>
 
 <ParamField body="mv" type="string">
-  إصدار نموذج Suno الرسمي. مطلوب لتوليد الموسيقى (عند حذف `action` أو استخدام `MUSIC`)؛ اتركه في طلبات الكلمات فقط. القيم المدعومة: `chirp-v3-5`, `chirp-v4`, `chirp-v4-5`, `chirp-v4.5`, `chirp-v4-5plus`, `chirp-v4.5plus`, `chirp-v4-5all`, `chirp-v4.5all`, `chirp-v5`, `chirp-v5-5`, `chirp-v5.5`.
+  محدد إصدار Suno. مطلوب للتوليد وupload-cover وupload-extend وadd-instrumental والاستبدال من `audio_url`. احذفه لطلبات الكلمات والاستبدال من `task_id` + `audio_id` وفصل المسارات. القيم المقبولة: `chirp-v3-5`, `chirp-v4`, `chirp-v4-5`, `chirp-v4.5`, `chirp-v4-5plus`, `chirp-v4.5plus`, `chirp-v4-5all`, `chirp-v4.5all`, `chirp-v5`, `chirp-v5-5`, `chirp-v5.5`.
 </ParamField>
 
 <ParamField body="make_instrumental" type="boolean">
@@ -45,7 +45,35 @@ description: "إنشاء مهمة توليد موسيقى باستخدام Suno"
 </ParamField>
 
 <ParamField body="audio_operation" type="string">
-  وضع الصوت المرفوع: `upload-cover` أو `upload-extend` أو `add-instrumental`. يتطلب `upload-extend` الحقل `continue_at`؛ ويتطلب `add-instrumental` الحقول `audio_url` و `title` و `tags` و `negative_tags`.
+  عملية الصوت: `upload-cover`, `upload-extend`, `add-instrumental`, `replace-section`, `vocal-separate`, `multi-stem-separation`, `advanced-split`.
+
+  تتطلب `vocal-separate` و`multi-stem-separation` و`advanced-split` الحقلين `task_id` + `audio_id`؛ وتتطلب `advanced-split` أيضًا `stem_name`. تتطلب `upload-extend` قيمة `continue_at` أكبر من 0. وتتطلب `add-instrumental` الحقول `audio_url` و`title` و`tags` و`negative_tags`.
+
+  تتطلب `replace-section` الحقول `prompt` و`tags` و`title` و`infill_start_s` و`infill_end_s` و`full_lyrics`. اختر مصدرًا واحدًا فقط: `task_id` + `audio_id`، أو `audio_url` + `mv`. يجب أن تتراوح فترة الاستبدال بين 6 و60 ثانية.
+</ParamField>
+
+<ParamField body="task_id" type="string">
+  معرّف مهمة مصدر تملكها مؤسستك، لاستبدال الصوت المولّد أو فصل المسارات.
+</ParamField>
+
+<ParamField body="audio_id" type="string">
+  معرّف الصوت الوارد في نتيجة مهمة المصدر. مطلوب مع `task_id` لاستبدال الصوت المولّد وفصل المسارات.
+</ParamField>
+
+<ParamField body="infill_start_s" type="number">
+  بداية الاستبدال بالثواني، لا تقل عن 0. مطلوبة لـ `replace-section`.
+</ParamField>
+
+<ParamField body="infill_end_s" type="number">
+  نهاية الاستبدال بالثواني. مطلوبة لـ `replace-section`، ويجب أن تأتي بعد `infill_start_s` بفترة من 6 إلى 60 ثانية.
+</ParamField>
+
+<ParamField body="full_lyrics" type="string">
+  الكلمات الكاملة للأغنية الناتجة. مطلوبة لـ `replace-section`.
+</ParamField>
+
+<ParamField body="stem_name" type="string">
+  اسم المسار. مطلوب لـ `advanced-split`.
 </ParamField>
 
 <ParamField body="continue_clip_id" type="string">
@@ -53,8 +81,12 @@ description: "إنشاء مهمة توليد موسيقى باستخدام Suno"
 </ParamField>
 
 <ParamField body="continue_at" type="number">
-  الطابع الزمني بالثواني الذي يبدأ منه الامتداد. مطلوب عندما تكون `audio_operation` هي `upload-extend`.
+  موضع المتابعة بالثواني. مطلوب وأكبر من 0 مع `upload-extend`.
 </ParamField>
+
+<Note>
+الحد الأقصى لـ `prompt` هو 5000 حرف، ولكل من `tags` و`negative_tags` هو 1000 حرف. تعتمد العمليات والمعلمات المدعومة على تفاصيل النموذج الحالية.
+</Note>
 
 ## الاستجابة
 
@@ -63,7 +95,7 @@ description: "إنشاء مهمة توليد موسيقى باستخدام Suno"
 </ResponseField>
 
 <ResponseField name="task_id" type="string">
-  الاسم البديل لمعرّف المهمة غير المتزامنة عندما يعيده المهايئ.
+  اسم بديل لمعرّف المهمة غير المتزامنة نفسه، عند إرجاعه.
 </ResponseField>
 
 <ResponseField name="poll_url" type="string">
@@ -75,7 +107,7 @@ description: "إنشاء مهمة توليد موسيقى باستخدام Suno"
 </ResponseField>
 
 <ResponseField name="created" type="integer">
-  طابع Unix الزمني لوقت إنشاء المهمة.
+  طابع Unix الزمني لإنشاء المهمة، عند إرجاعه.
 </ResponseField>
 
 <RequestExample>
@@ -84,7 +116,7 @@ curl -X POST "https://api.tokenlab.sh/v1/music/generations" \
   -H "Authorization: Bearer sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "suno_music",
+    "model": "suno-music",
     "mv": "chirp-v4",
     "prompt": "An upbeat electronic dance track with heavy bass",
     "title": "Night Drive",
@@ -99,7 +131,7 @@ response = requests.post(
     "https://api.tokenlab.sh/v1/music/generations",
     headers={"Authorization": "Bearer sk-your-api-key"},
     json={
-        "model": "suno_music",
+        "model": "suno-music",
         "mv": "chirp-v4",
         "prompt": "An upbeat electronic dance track with heavy bass",
         "title": "Night Drive",
@@ -107,8 +139,11 @@ response = requests.post(
     }
 )
 
-task_id = response.json()["id"]
-print(f"Task ID: {task_id}")
+response.raise_for_status()
+task = response.json()
+task_id = task["id"]
+poll_url = task.get("poll_url") or f"/v1/tasks/{task_id}"
+print(f"Task ID: {task_id}; poll URL: {poll_url}")
 ```
 
 ```javascript JavaScript
@@ -119,7 +154,7 @@ const response = await fetch('https://api.tokenlab.sh/v1/music/generations', {
     'Content-Type': 'application/json'
   },
   body: JSON.stringify({
-    model: 'suno_music',
+    model: 'suno-music',
     mv: 'chirp-v4',
     prompt: 'An upbeat electronic dance track with heavy bass',
     title: 'Night Drive',
@@ -127,8 +162,10 @@ const response = await fetch('https://api.tokenlab.sh/v1/music/generations', {
   })
 });
 
+if (!response.ok) throw new Error(await response.text());
 const data = await response.json();
-console.log(`Task ID: ${data.id}`);
+const pollUrl = data.poll_url || `/v1/tasks/${data.id}`;
+console.log(`Task ID: ${data.id}; poll URL: ${pollUrl}`);
 ```
 
 ```go Go
@@ -143,7 +180,7 @@ import (
 
 func main() {
     payload := map[string]interface{}{
-        "model":  "suno_music",
+        "model":  "suno-music",
         "mv":     "chirp-v4",
         "prompt": "An upbeat electronic dance track with heavy bass",
         "title":  "Night Drive",
@@ -177,7 +214,7 @@ curl_setopt_array($ch, [
         'Authorization: Bearer sk-your-api-key'
     ],
     CURLOPT_POSTFIELDS => json_encode([
-        'model' => 'suno_music',
+        'model' => 'suno-music',
         'mv' => 'chirp-v4',
         'prompt' => 'An upbeat electronic dance track with heavy bass',
         'title' => 'Night Drive',
@@ -200,8 +237,7 @@ echo "Task ID: " . $data['id'];
   "task_id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "poll_url": "/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "status": "pending",
-  "created": 1706000000,
-  "model": "suno_music"
+  "model": "suno-music"
 }
 ```
 </ResponseExample>

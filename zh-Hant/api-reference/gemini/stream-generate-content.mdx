@@ -4,7 +4,8 @@ openapi: "POST /v1beta/models/{model}:streamGenerateContent"
 description: "使用 Google Gemini API 格式串流生成內容"
 ---
 
-Gemini `generateContent` 的原生 SSE 串流版本。TokenLab 會保留 upstream 事件、順序與欄位；只有 metadata 的事件、沒有 `finishReason` 的中間 chunk，以及自然 EOF 都是合法情況。不會加入 Chat Completions 的 `[DONE]`，也不會回落 Chat。
+Gemini `generateContent` 的 SSE 版本。事件可能只有 metadata，也可能是沒有 `finishReason` 的中間內容。串流在自然 EOF 時結束，不附加 `[DONE]` 標記。
+
 ## 路徑參數
 
 <ParamField path="model" type="string" required>
@@ -19,9 +20,9 @@ Gemini `generateContent` 的原生 SSE 串流版本。TokenLab 會保留 upstrea
 
 ## 請求主體
 
-與 [生成內容](/api-reference/gemini/generate-content) 相同。
+與 [生成內容](/zh-Hant/api-reference/gemini/generate-content) 相同。
 
-`generationConfig.candidateCount`、工具組合與未來欄位都會原樣交給 upstream；TokenLab 不設定自己的串流限制。
+`generationConfig.candidateCount`、工具、媒體類型及其他可選欄位是否可用，以所選模型為準。
 
 ## 回應
 
@@ -29,7 +30,7 @@ Gemini `generateContent` 的原生 SSE 串流版本。TokenLab 會保留 upstrea
 
 <RequestExample>
 ```bash cURL
-curl -X POST "https://api.tokenlab.sh/v1beta/models/gemini-2.5-pro:streamGenerateContent?key=sk-your-api-key" \
+curl -N -X POST "https://api.tokenlab.sh/v1beta/models/gemini-2.5-pro:streamGenerateContent?key=sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
     "contents": [
@@ -53,7 +54,10 @@ model = genai.GenerativeModel("gemini-2.5-pro")
 response = model.generate_content("Tell me a story", stream=True)
 
 for chunk in response:
-    print(chunk.text, end="")
+    for candidate in chunk.candidates:
+        for part in candidate.content.parts:
+            if part.text:
+                print(part.text, end="")
 ```
 
 ```javascript JavaScript
@@ -74,7 +78,7 @@ const decoder = new TextDecoder();
 while (true) {
   const { done, value } = await reader.read();
   if (done) break;
-  console.log(decoder.decode(value));
+  console.log(decoder.decode(value, { stream: true }));
 }
 ```
 

@@ -9,18 +9,22 @@ description: "OpenAI, Responses, Anthropic 및 Gemini 호환 경로를 사용하
 
 ## 권장: 플러그인 설치
 
-일반적인 OpenClaw 에이전트 실행에는 TokenLab 프로바이더 플러그인을 설치하세요.
+선택 사항: 게시된 제공자 플러그인 **0.1.0**을 설치하세요. 아래에 설명된 Gateway 환경으로 `TOKENLAB_API_KEY`를 전달하고 세션에만 모델을 선택하세요. 온보딩 마법사는 기본 모델을 변경하므로 이 가이드에서는 `openclaw onboard`를 실행하지 않습니다. 기존 플러그인과 권한을 유지하고 요청 전에 플러그인 로드와 모델 목록을 확인하세요.
+
+설치 프로그램이 요청하는 기능을 검토하고 클라이언트의 확인 안내를 따르세요. 관련 없는 권한을 부여하거나 기존 플러그인의 권한을 바꾸지 마세요.
 
 ```bash
-openclaw plugins install @tokenlabai/openclaw-provider
-openclaw onboard
+openclaw plugins install @tokenlabai/openclaw-provider@0.1.0
+openclaw plugins list
+openclaw models list --provider tokenlab
 ```
 
-설치 후 `openclaw onboard`에서 TokenLab을 선택하고 로컬 자격 증명 입력란에만 키를 넣으세요. 플러그인이 로드되지 않으면 아래 수동 설정을 사용하고 버전 호환성을 확인합니다.
+```text
+/model tokenlab/claude-sonnet-5 -s
+/model default -s
+```
 
-플러그인은 TokenLab의 실시간 채팅 모델 카탈로그를 가져오며, 오프라인 검색을 위한 18개의 폴백 모델도 유지합니다. 모델은 `tokenlab/<model-id>` 형식을 사용합니다.
-
-[npm 패키지](https://www.npmjs.com/package/@tokenlabai/openclaw-provider) · [ClawHub 목록](https://clawhub.ai/tokenlabai/plugins/openclaw-provider) · [소스 코드](https://github.com/hedging8563/tokenlab-openclaw-provider)
+[npm](https://www.npmjs.com/package/@tokenlabai/openclaw-provider/v/0.1.0) · [GitHub](https://github.com/hedging8563/tokenlab-openclaw-provider)
 
 ## 수동 프로바이더 구성
 
@@ -45,6 +49,7 @@ openclaw onboard
 ## 사전 요구사항
 
 - self-hosted OpenClaw 인스턴스
+- OpenClaw **2026.9.4**에는 Node.js `>=24.16.0 <25 || >=26.1.0`이 필요합니다([버전 요구 사항](https://github.com/openclaw/openclaw/blob/v2026.9.4/package.json)). 다른 OpenClaw 릴리스는 해당 릴리스의 요구 사항을 확인하세요.
 - TokenLab API Key — [Get one here](https://tokenlab.sh/dashboard/api?tab=keys)
 
 ## 구성
@@ -57,15 +62,10 @@ OpenClaw 구성 파일을 편집하세요:
 
 실행 중인 Gateway와 같은 profile, `OPENCLAW_STATE_DIR`, `OPENCLAW_CONFIG_PATH`를 사용하고 설정을 백업하세요. `TOKENLAB_API_KEY`는 해당 인스턴스의 신뢰할 수 있는 전역 `.env`나 서비스 환경에 둡니다. 터미널 export나 프로젝트 `.env`만으로는 백그라운드에 전달되지 않을 수 있습니다. [환경 안내](https://docs.openclaw.ai/help/environment)를 참고하세요.
 
+활성 구성을 백업하세요. TokenLab 항목만 추가하고 기존 제공자, 계정, 기본 모델 선택과 권한을 유지하세요. 이름이 이미 사용 중이면 다른 이름을 선택하고 명령도 바꾸세요. 되돌릴 때는 추가한 항목만 제거하거나 이전 백업을 복원하세요.
+
 ```json5
 {
-  agents: {
-    defaults: {
-      model: {
-        primary: "tokenlab-claude/claude-sonnet-5"
-      }
-    }
-  },
   models: {
     mode: "merge",
     providers: {
@@ -131,16 +131,11 @@ OpenClaw 구성 파일을 편집하세요:
 
 OpenClaw은 여전히 `provider/model` 형식으로 모델을 참조합니다:
 
-```json5
-{
-  agents: {
-    defaults: {
-      model: {
-        primary: "tokenlab-gemini/gemini-3.5-flash"
-      }
-    }
-  }
-}
+**OpenClaw 2026.9.4**에서는 `-s`로 현재 세션에만 모델을 선택하세요. `agents.defaults.model`, 에이전트 기본값과 권한을 유지하세요. `/model default -s`로 이 세션을 구성된 기본 모델로 되돌릴 수 있습니다.
+
+```text
+/model tokenlab-claude/claude-sonnet-5 -s
+/model default -s
 ```
 
 ### 모델 예시

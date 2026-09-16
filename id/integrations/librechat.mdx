@@ -17,34 +17,39 @@ LibreChat bekerja dengan baik bersama TokenLab melalui endpoint kustom yang komp
 
 ## Lingkungan
 
+Tambahkan variabel ini ke file `.env` di direktori utama proyek LibreChat Anda:
+
 ```bash
 TOKENLAB_API_KEY=sk-your-tokenlab-key
 ```
 
 ## Contoh Endpoint
 
-Tambahkan TokenLab ke konfigurasi endpoint LibreChat Anda:
+Jika belum ada, buat `librechat.yaml` dari `librechat.example.yaml` di direktori utama proyek LibreChat. Pertahankan kolom wajib `version` dan konfigurasi yang sudah ada, lalu tambahkan entri ini ke `endpoints.custom`:
 
 ```yaml
-customEndpoints:
-  - name: 'TokenLab'
-    apiKey: '${TOKENLAB_API_KEY}'
-    baseURL: 'https://api.tokenlab.sh/v1'
-    models:
-      default:
-        - 'gpt-5.5'
-        - 'gpt-5.6-terra'
-        - 'gpt-5.6-luna'
-        - 'claude-opus-4-8'
-        - 'claude-sonnet-5'
-        - 'gemini-3.5-flash'
-        - 'deepseek-v4-pro'
-        - 'deepseek-v4-flash'
-      fetch: true
-    titleConvo: true
-    titleModel: 'gpt-5.6-luna'
-    modelDisplayLabel: 'TokenLab'
+endpoints:
+  custom:
+    - name: 'TokenLab'
+      apiKey: '${TOKENLAB_API_KEY}'
+      baseURL: 'https://api.tokenlab.sh/v1'
+      models:
+        default:
+          - 'gpt-5.5'
+          - 'gpt-5.6-terra'
+          - 'gpt-5.6-luna'
+          - 'claude-opus-4-8'
+          - 'claude-sonnet-5'
+          - 'gemini-3.5-flash'
+          - 'deepseek-v4-pro'
+          - 'deepseek-v4-flash'
+        fetch: true
+      titleConvo: true
+      titleModel: 'gpt-5.6-luna'
+      modelDisplayLabel: 'TokenLab'
 ```
+
+Jika menggunakan Docker, pasang file ini sebagai `/app/librechat.yaml` di container API. Mulai ulang instance LibreChat yang sama, lalu pilih TokenLab. Lihat [panduan konfigurasi LibreChat](https://www.librechat.ai/docs/configuration/librechat_yaml).
 
 ## Catatan
 

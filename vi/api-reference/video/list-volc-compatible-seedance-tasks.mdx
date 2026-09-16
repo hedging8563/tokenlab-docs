@@ -6,17 +6,29 @@ description: "Liệt kê tác vụ tương thích Seedance gần đây trong t�
 
 ## Tổng quan
 
-Các endpoint này dành cho nhóm đã dùng cấu trúc tác vụ Seedance kiểu Volc. Xác thực bằng TokenLab Bearer API key. ID tác vụ trả về bắt đầu bằng `cgt-`; hãy polling trạng thái cho đến khi `status` là `succeeded`, `failed`, `cancelled` hoặc `expired`.
+Liệt kê tác vụ tương thích gần đây trong Workspace đã xác thực bằng TokenLab Bearer API key. Không có `filter.task_ids` thì truy vấn bảy ngày gần nhất; cung cấp ID chính xác sẽ truy vấn trực tiếp các tác vụ đó.
 
 Xem thêm [Mô hình video Seedance 2.0](/vi/guides/seedance-2-video) và [Tạo video](/vi/guides/video-generation).
 
 ## Dạng phản hồi
 
-Phản hồi danh sách trả về `items` và `total`. Hỗ trợ bộ lọc `filter.status`, `filter.task_ids`, `filter.model`, `filter.service_tier`, cùng `page_num` và `page_size` để phân trang.
+- `page_num`: mặc định `1`, số nguyên từ `1` đến `500`.
+- `page_size`: mặc định `20`, số nguyên từ `1` đến `500`.
+- `filter.status`: `queued`, `running`, `succeeded`, `failed`, `cancelled`, `expired`.
+- `filter.task_ids`: Lặp lại tham số để gửi nhiều ID tác vụ chính xác. Không nối bằng dấu phẩy.
+- `filter.model`: Định danh mô hình.
+- `filter.service_tier`: `default`, `flex`.
+
+Phản hồi chứa `items` và `total` cho kết quả đã lọc. Mỗi phần tử dùng cấu trúc phản hồi lấy tác vụ. Dùng endpoint lấy tác vụ để cập nhật trạng thái của tác vụ đã biết.
 
 ## Ví dụ
 
 ```bash
 curl "https://api.tokenlab.sh/api/v3/contents/generations/tasks?page_num=1&page_size=20&filter.status=succeeded" \
+  -H "Authorization: Bearer $TOKENLAB_API_KEY"
+```
+
+```bash
+curl "https://api.tokenlab.sh/api/v3/contents/generations/tasks?filter.task_ids=cgt-20260102030405-a1b2c" \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```

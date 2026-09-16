@@ -7,7 +7,7 @@ description: "Mendapatkan kapabilitas, harga, dan format API sebuah model"
 ## Parameter Path
 
 <ParamField path="model" type="string" required>
-  ID Model, seperti `gpt-5.4` atau `claude-sonnet-4-6`.
+  ID Model, seperti `gpt-5.6-terra` atau `claude-sonnet-4-6`.
 </ParamField>
 
 ## Respons
@@ -33,7 +33,7 @@ Beberapa model media juga menyertakan status rekomendasi dan waktu pembaruan. Re
 ## Contoh
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models/gpt-5.4"
+curl "https://api.tokenlab.sh/v1/models/gpt-5.6-terra"
 ```
 
 ```json
@@ -43,8 +43,8 @@ curl "https://api.tokenlab.sh/v1/models/gpt-5.4"
   "owned_by": "openai",
   "tokenlab": {
     "category": "chat",
-    "capabilities": ["text"],
-    "accepted_request_formats": ["responses", "chat_completions"]
+    "capabilities": ["coding", "json-mode", "prompt-cache", "reasoning", "tool-use", "vision"],
+    "accepted_request_formats": ["openai_chat_completions", "openai_responses"]
   }
 }
 ```

@@ -1,20 +1,11 @@
 ---
 title: "Dify"
-description: "Integrate TokenLab with Dify using the OpenAI provider and a custom base URL"
+description: "Integrate TokenLab with Dify using the OpenAI-API-compatible provider and a custom base URL"
 ---
 
 ## Overview
 
-Dify can use TokenLab through its OpenAI model settings. This configuration is for Chat Completions; it does not add Responses or WebSocket features to Dify.
-
-In current Dify versions:
-- choose the built-in **OpenAI** provider
-- set your TokenLab API key
-- set a custom base URL of `https://api.tokenlab.sh/v1`
-
-<Note>
-Some older Dify versions call this `OpenAI-API-compatible`. If the labels in your UI differ, choose the custom OpenAI-compatible model settings.
-</Note>
+Use the **OpenAI-API-compatible** model-provider plugin to connect Dify to TokenLab. Set the model type to **LLM**, **Completion mode** to **Chat**, and **API Type** to **Chat Completions API**. This guide uses Chat Completions.
 
 
 ## Prerequisites
@@ -36,8 +27,8 @@ Some older Dify versions call this `OpenAI-API-compatible`. If the labels in you
   <Step title="Open Model Providers">
     In Dify, go to **Settings** → **Model Providers**
   </Step>
-  <Step title="Select OpenAI">
-    Open the **OpenAI** provider settings. If your Dify version does not offer a custom base URL here, use the OpenAI-compatible custom provider option exposed by that version instead.
+  <Step title="Select OpenAI-API-compatible">
+    Open **OpenAI-API-compatible**. If it is missing, install that model-provider plugin from the Dify Marketplace. Choose **Add model** to enter the TokenLab settings.
   </Step>
   <Step title="Enter TokenLab Settings">
     Use these values:
@@ -45,7 +36,10 @@ Some older Dify versions call this `OpenAI-API-compatible`. If the labels in you
     | Field | Value |
     |-------|-------|
     | API Key | `sk-your-tokenlab-key` |
-    | API Base URL / Custom Base URL | `https://api.tokenlab.sh/v1` |
+    | Model type | LLM |
+    | Completion mode | Chat |
+    | API Type | Chat Completions API |
+    | API Base URL | `https://api.tokenlab.sh/v1` |
   </Step>
   <Step title="Add Models">
     Add the models you want to use, for example:
@@ -61,7 +55,7 @@ Some older Dify versions call this `OpenAI-API-compatible`. If the labels in you
 
 ### Step 3: Test Connection
 
-1. Pick one model such as `gpt-5-mini` or `gpt-4o`
+1. Select a model you added, such as `gpt-5.4-mini`.
 2. Send a test prompt
 3. Confirm Dify receives a valid response
 
@@ -80,8 +74,8 @@ Copy current chat and embedding model IDs from the [Models page](https://tokenla
 ## Best Practices
 
 <AccordionGroup>
-  <Accordion title="Use the built-in OpenAI settings when available">
-    In newer Dify versions, set a custom base URL on the built-in OpenAI model settings.
+  <Accordion title="OpenAI plugin alternative">
+    The separate **OpenAI** plugin can be used for models supported by its catalog. Set its custom base URL to `https://api.tokenlab.sh/v1` and **API Protocol** to **Chat Completions**; its default may be Responses. It is not an older name for OpenAI-API-compatible, and it does not accept every custom model ID.
   </Accordion>
 
   <Accordion title="Compare models with your own Dify app">
@@ -89,7 +83,7 @@ Copy current chat and embedding model IDs from the [Models page](https://tokenla
   </Accordion>
 
   <Accordion title="This setup uses Chat Completions">
-    Responses and WebSocket features are not added by the OpenAI-compatible Dify configuration.
+    Keep **Completion mode = Chat** and **API Type = Chat Completions API** for this setup. Responses is a separate API option; this guide does not configure it or WebSocket connections.
   </Accordion>
 </AccordionGroup>
 

@@ -5,7 +5,7 @@ description: "Validieren Sie TokenLab-Modellausgaben mit Guardrails"
 
 ## Übersicht
 
-Guardrails kann jeden aufrufbaren Code (Callable) umschließen, der mit seiner LLM-API-Schnittstelle kompatibel ist. Konfigurieren Sie für TokenLab das OpenAI SDK mit der Basis-URL von TokenLab und übergeben Sie das Chat-Completions-Callable an Ihren Guard.
+Konfiguriere das OpenAI SDK mit der TokenLab Base URL, fordere JSON an und validiere den zurückgegebenen Text mit `Guard.parse`.
 
 <Note>
 **Typ**: Validierungs- und Framework für strukturierte Ausgaben
@@ -14,6 +14,12 @@ Guardrails kann jeden aufrufbaren Code (Callable) umschließen, der mit seiner L
 
 **Support-Status**: Unterstützter OpenAI-kompatibler Pfad
 </Note>
+
+## Installation
+
+```bash
+pip install guardrails-ai openai
+```
 
 ## Umgebung
 
@@ -43,11 +49,17 @@ client = OpenAI(
     base_url="https://api.tokenlab.sh/v1",
 )
 
-raw_output, validated_output, *rest = guard(
-    llm_api=client.chat.completions.create,
+response = client.chat.completions.create(
     model="claude-sonnet-5",
-    messages=[{"role": "user", "content": "What kind of pet should I get?"}],
+    response_format={"type": "json_object"},
+    messages=[{
+        "role": "user",
+        "content": "Suggest a pet. Return only JSON with string fields pet_type and name.",
+    }],
 )
+
+outcome = guard.parse(response.choices[0].message.content)
+print(outcome.validated_output)
 ```
 
 ## Hinweise zu Endpunkten

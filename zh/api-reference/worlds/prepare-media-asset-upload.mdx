@@ -18,11 +18,11 @@ description: "获取 World 图片或视频素材的上传地址"
   媒体类型：`image` 或 `video`。
 </ParamField>
 
-<ParamField body="extension" type="string">
+<ParamField body="extension" type="string | null">
   可选扩展名，例如 `png`、`jpg` 或 `mp4`。
 </ParamField>
 
-<ParamField body="metadata" type="object">
+<ParamField body="metadata" type="object | null">
   与素材一起保存的自定义信息。
 </ParamField>
 
@@ -34,6 +34,14 @@ description: "获取 World 图片或视频素材的上传地址"
 
 <ResponseField name="upload_info.upload_url" type="string">
   用于上传文件的签名 URL。
+</ResponseField>
+
+<ResponseField name="upload_info.upload_method" type="string">
+  上传二进制文件到 `upload_info.upload_url` 时使用的 HTTP 方法（如有返回）。
+</ResponseField>
+
+<ResponseField name="upload_info.required_headers" type="object">
+  上传二进制文件时需要附带的请求头（如有返回）。
 </ResponseField>
 
 <RequestExample>

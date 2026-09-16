@@ -1,14 +1,18 @@
 ---
 title: "Créer une tâche (Compatible Volc)"
 openapi: "POST /api/v3/contents/generations/tasks"
-description: "Créer une tâche Seedance 2.0 avec l'API compatible Volc."
+description: "Créer une tâche Seedance avec l'API compatible Volc."
 ---
 
 ## Aperçu
 
 Les clients Seedance existants de style Volc peuvent utiliser TokenLab en modifiant l'adresse API et la clé.
 
-Voir aussi [Modèles vidéo Seedance 2.0](/guides/seedance-2-video) et [Génération de vidéo](/guides/video-generation).
+<Note>
+Les exemples utilisent Seedance 2.0. Ce point de terminaison prend aussi en charge Seedance 2.5, avec les différences ci-dessous. Les exemples d’URI de matériaux TokenLab réutilisables sur cette page concernent Seedance 2.0.
+</Note>
+
+Voir aussi [Modèles vidéo Seedance 2.0](/fr/guides/seedance-2-video) et [Génération de vidéo](/fr/guides/video-generation).
 
 ## Authentification et points de terminaison
 
@@ -24,14 +28,23 @@ Voir aussi [Modèles vidéo Seedance 2.0](/guides/seedance-2-video) et [Généra
 - `role: "reference_image"`, `reference_video` et `reference_audio` sont utilisés comme références.
 - `image_url.url` accepte une URL d'image publique ou un URI de matériel tel que `asset://asset-YYYYMMDDHHMMSS-xxxxx`. Le `role` détermine si ce matériel est une première image, une dernière image ou une image de référence.
 - Ne mélangez pas les entrées de première/dernière image avec des médias de référence dans une même requête.
-- Le corps de la requête n'accepte que les champs pris en charge par ce format. Les champs de premier niveau `material_asset_id`, `material_asset_ids` et `priority` sont rejetés. Insérez plutôt un URI de matériel TokenLab dans `image_url.url`.
+- Les champs racine `material_asset_id` et `material_asset_ids` sont rejetés. Placez l’URI du matériau TokenLab dans `image_url.url`. `priority` est pris en charge uniquement pour Seedance 2.5.
 
 ## Notes sur les paramètres
 
+`duration` est un nombre entier de secondes ; `-1` sélectionne la durée automatique. Les valeurs par défaut et les limites varient selon le modèle :
+
+| Paramètre | Seedance 2.0 | Seedance 2.5 |
+|---|---|---|
+| `duration` | `4`–`15` / `-1` (par défaut: `5`) | `4`–`30` / `-1` (par défaut: `-1`) |
+| `resolution` | `480p`, `720p`, `1080p` (par défaut: `720p`) | `480p`, `720p` (par défaut: `720p`) |
+| `generate_audio` | `boolean` (par défaut: `false`) | `boolean` (par défaut: `true`) |
+| `priority` | Non pris en charge | `integer`: `0`–`9` |
+| `seed` | `integer`: `-1`–`4294967295` (par défaut: `-1`) | Non pris en charge |
+
+Pour Seedance 2.5, les requêtes avec première image, première/dernière image, extension vidéo et vidéo vers vidéo exigent `ratio: "adaptive"`. La conversion vidéo vers vidéo exige aussi `duration: -1`. `output_format` accepte `mp4` ou `mov` uniquement pour Seedance 2.5.
+
 - `ratio` accepte `16:9`, `4:3`, `1:1`, `3:4`, `9:16`, `21:9` ou `adaptive`.
-- `duration` est la durée de la vidéo en secondes, incluant les valeurs de durée automatique prises en charge par le modèle.
-- `resolution` accepte `480p`, `720p` ou `1080p`.
-- `generate_audio` est défini par défaut sur `false` ; réglez-le sur `true` lorsqu'un audio synchronisé est requis.
 - `watermark`, `return_last_frame`, `seed`, `execution_expires_after` et `safety_identifier` sont acceptés lorsqu'ils sont valides pour le modèle sélectionné.
 - `callback_url` peut pointer vers un point de terminaison HTTP(S) public.
 
@@ -39,13 +52,13 @@ Voir aussi [Modèles vidéo Seedance 2.0](/guides/seedance-2-video) et [Généra
 
 Lorsque `callback_url` est présent, TokenLab envoie une requête HTTP `POST` lorsque le statut de la tâche change. Les statuts de rappel sont `queued`, `running`, `succeeded`, `failed` et `expired`. Le corps JSON correspond à la réponse de get-task.
 
-Une réponse `2xx` confirme la livraison. Pour `succeeded` et `failed`, une livraison qui n'aboutit pas dans les cinq secondes est réessayée jusqu'à trois fois, conformément au comportement officiel. Le rappel ne contient que l'en-tête de contenu JSON standard et aucun en-tête de livraison spécifique à TokenLab. Les redirections ne sont pas suivies et les cibles réseau privées ou réservées sont rejetées.
+Une réponse `2xx` confirme la livraison. Pour `succeeded` et `failed`, une livraison qui n'aboutit pas dans les cinq secondes est réessayée jusqu'à trois fois. Le rappel ne contient que l'en-tête de contenu JSON standard et aucun en-tête de livraison spécifique à TokenLab. Les redirections ne sont pas suivies et les cibles réseau privées ou réservées sont rejetées.
 
 Enregistrez l'ID de la tâche. Si un rappel n'est pas livré, vous pouvez toujours récupérer le résultat avec le point de terminaison get-task.
 
 ## Préparation des images
 
-Lorsque `content[]` contient des URL d'images, TokenLab les prépare en tant que matériel réutilisable lorsque cela est requis par le modèle Seedance sélectionné. Si la préparation n'est pas terminée dans les 60 secondes, la requête de création renvoie une erreur de préparation de matériel réessayable au lieu de soumettre une tâche vidéo incomplète.
+Les URL d’images HTTP(S) publiques et les URL data prises en charge sont utilisées telles quelles, sans enregistrement automatique comme matériaux réutilisables. Les références explicites `asset://asset-...` utilisent des matériaux TokenLab existants. La propriété et la disponibilité sont vérifiées avant la génération. Si un matériau est encore en préparation, attendez qu’il soit prêt puis réessayez. En cas d’échec, consultez `error.code` et `error.message`.
 
 Pour les matériaux existants, utilisez l'ID public `asset-YYYYMMDDHHMMSS-xxxxx` plutôt qu'un ID d'actif original renvoyé par un autre système. TokenLab vérifie la propriété du matériel avant la génération.
 
@@ -64,7 +77,7 @@ La réponse de création ne contient que l'ID de la tâche. Enregistrez-le afin 
 Envoyez une `Idempotency-Key` unique avec les requêtes de création. Si la connexion se ferme avant que la réponse n'arrive, réessayez avec la même clé API, la même clé d'idempotence et le même corps de requête :
 
 - Si la tâche originale a été créée, TokenLab renvoie le même ID `cgt-...` et ajoute `Idempotency-Replayed: true`.
-- Si la requête originale est toujours en cours d'enregistrement, TokenLab renvoie `409 IdempotencyRequestInProgress` avec `Retry-After` ; réessayez avec la même clé et le même corps après ce délai.
+- Si la requête originale est encore en cours d’enregistrement, TokenLab renvoie `409 IdempotencyRequestInProgress`. Réessayez plus tard avec la même clé et le même corps.
 - La réutilisation de la clé avec un corps différent renvoie `409 IdempotencyConflict` et ne crée jamais de seconde tâche.
 
 L'idempotence s'applique au chemin de création REST v3 officiel. Elle ne modifie pas la forme de la réponse JSON et n'est pas déduite de `X-Request-ID` ou de corps de requête identiques sans clé.
@@ -111,4 +124,4 @@ Pour les matériaux existants, placez chaque URI dans l'élément `content[]` of
 
 ## Étape suivante
 
-Utilisez l'ID `cgt-...` renvoyé avec [Obtenir une tâche (Compatible Volc)](/api-reference/video/get-volc-compatible-seedance-task) jusqu'à ce que la tâche atteigne un statut terminal.
+Utilisez l'ID `cgt-...` renvoyé avec [Obtenir une tâche (Compatible Volc)](/fr/api-reference/video/get-volc-compatible-seedance-task) jusqu'à ce que la tâche atteigne un statut terminal.

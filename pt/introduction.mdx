@@ -5,108 +5,23 @@ description: "Acesse centenas de modelos de IA através de uma API unificada"
 
 ## O que é TokenLab?
 
-TokenLab é uma plataforma de agregação de APIs de IA que oferece acesso unificado a **centenas de modelos de IA** de fornecedores como OpenAI, Anthropic, Google, DeepSeek, Moonshot, MiniMax e outros.
-
-<CardGroup cols={2}>
-  <Card title="Nativo + compatível" icon="plug">
-    Use rotas nativas Anthropic/Gemini quando o comportamento do provedor importar, ou rotas /v1 compatíveis com OpenAI para ferramentas existentes no estilo OpenAI.
-  </Card>
-  <Card title="Formatos nativos" icon="shuffle">
-    Chame endpoints no estilo OpenAI, Anthropic, Gemini e Responses a partir de uma única plataforma.
-  </Card>
-  <Card title="Pague conforme usar" icon="coins">
-    Sem assinaturas. Pague apenas pelo que realmente usar.
-  </Card>
-  <Card title="Alta disponibilidade" icon="shield-check">
-    Roteamento inteligente, failover e suporte multicanal melhoram a confiabilidade.
-  </Card>
-</CardGroup>
+O TokenLab conecta sua aplicação ou ferramenta de programação a modelos de IA com uma chave API e saldo compartilhado. Escolha um modelo e um formato API compatível; as solicitações são cobradas pelo preço publicado.
 
 ## Capacidades Suportadas
 
-O catálogo público muda ao longo do tempo. Verifique a disponibilidade atual com `/v1/models`, `recommended_for` ou a página de modelos; os exemplos abaixo usam IDs públicos atuais.
+Consulte o [catálogo de modelos](https://tokenlab.sh/pt/models) para IDs, disponibilidade, formatos e preços atuais.
 
-| Capacidade | Descrição | Modelos de exemplo |
-|---|---|---|
-| Chat e raciocínio | Geração de texto, planejamento, ferramentas | `gpt-5.4`, `claude-sonnet-4-6` |
-| Visão e multimodal | Compreensão de imagens e chat multimodal | `gpt-4o`, `claude-sonnet-4-6`, `gemini-3.5-flash` |
-| Geração e edição de imagens | Texto para imagem e edição de imagens | `gpt-image-2`, `flux-pro` |
-| Geração de vídeo | Texto/imagem/referência para vídeo e controle de movimento | `veo3.1`, `wan-2.7`, `kling-3.0-video`, `happyhorse-1.0` |
-| Áudio e Realtime WebSocket | TTS, transcrição, tradução de áudio e sessões WebSocket em tempo real | `gpt-4o-mini-tts`, `whisper-1`, `gpt-realtime` |
-| Embeddings e rerank | Vetorização de texto e reordenação | `text-embedding-3-small`, `qwen3-vl-rerank` |
-| Tradução | Tradução de texto e tradução de fala via WebSocket | `doubao-seed-translation`, `gpt-realtime-translate` |
-| Música e 3D | Geração de música e assets 3D | `suno-music`, `tripo-h3.1` |
-| Worlds | Geração de worlds, polling de status e media assets | Verifique disponibilidade com `/v1/worlds/generations` e Models API |
-
-## Escolha o formato da requisição
-
-Comece pela rota que corresponde ao comportamento necessário. Use rotas nativas Anthropic/Gemini para recursos nativos do provedor; use /v1/chat/completions compatível com OpenAI ao migrar código de chat no estilo OpenAI.
-
-<CodeGroup>
-
-```bash cURL
-curl https://api.tokenlab.sh/v1/chat/completions \
-  -H "Authorization: Bearer sk-your-api-key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "gpt-5.6-terra",
-    "messages": [
-      {"role": "user", "content": "Explain what TokenLab does in one sentence."}
-    ]
-  }'
-```
-
-```python Python
-from openai import OpenAI
-
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
-
-response = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": "Explain what TokenLab does in one sentence."}]
-)
-
-print(response.choices[0].message.content)
-```
-
-```javascript JavaScript
-import OpenAI from 'openai';
-
-const client = new OpenAI({
-  apiKey: 'sk-your-api-key',
-  baseURL: 'https://api.tokenlab.sh/v1'
-});
-
-const response = await client.chat.completions.create({
-  model: 'gpt-5.6-terra',
-  messages: [{ role: 'user', content: 'Explain what TokenLab does in one sentence.' }],
-});
-
-console.log(response.choices[0].message.content);
-```
-
-<Note>
-Use `POST /v1/responses` apenas quando você explicitamente precisar do comportamento específico do Responses. Não é o caminho de compatibilidade padrão para todos os modelos.
-</Note>
-
-</CodeGroup>
-
-## Principais Recursos
-
-<CardGroup cols={2}>
-  <Card title="Múltiplos formatos de API" icon="layers" href="/guides/api-formats">
-    Use formatos nativos OpenAI, Anthropic, Gemini ou Responses com uma única conta.
-  </Card>
-  <Card title="Erros orientados a agentes" icon="wand-magic-sparkles" href="/guides/agent-first-api">
-    Dicas estruturadas ajudam agentes de codificação a autocorrigirem-se mais rapidamente.
-  </Card>
-  <Card title="Cobertura de integração" icon="toolbox" href="/guides/ide-sdk-compatibility">
-    Conecte IDEs, SDKs, frameworks e apps de chat com menos mudanças específicas por provedor.
-  </Card>
-</CardGroup>
+| Capacidade | Descrição |
+|---|---|
+| Chat e raciocínio | Geração de texto, planejamento, ferramentas |
+| Visão e multimodal | Compreensão de imagens e chat multimodal |
+| Geração e edição de imagens | Texto para imagem e edição de imagens |
+| Geração de vídeo | Texto/imagem/referência para vídeo e controle de movimento |
+| Áudio e Realtime WebSocket | TTS, transcrição, tradução de áudio e sessões WebSocket em tempo real |
+| Embeddings e rerank | Vetorização de texto e reordenação |
+| Tradução | Tradução de texto e tradução de fala via WebSocket |
+| Música e 3D | Geração de música e assets 3D |
+| Worlds | Geração de worlds, polling de status e media assets |
 
 ## Próximos Passos
 

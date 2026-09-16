@@ -18,6 +18,10 @@ description: "使用建立端點回傳的 `poll_url` 來取得任何非同步任
 
 ## 回應
 
+<Note>
+結果、錯誤、時間戳記與模型欄位僅在任務提供時回傳。
+</Note>
+
 <ResponseField name="id" type="string">
   標準的非同步任務識別碼。
 </ResponseField>
@@ -62,7 +66,7 @@ description: "使用建立端點回傳的 `poll_url` 來取得任何非同步任
   存在多於一個輸出時的多個影片載荷。
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="error" type="string | object">
   任務失敗時的錯誤訊息。
 </ResponseField>
 
@@ -80,7 +84,7 @@ description: "使用建立端點回傳的 `poll_url` 來取得任何非同步任
 
 ## 錯誤行為
 
-如果任務不再存在、已過期，或無法再從公開任務記錄中查詢到，TokenLab 會回傳：
+已過期或不可用的公開任務可能回傳 `404 async_task_not_found`。無法確認目前 API 金鑰對任務的歸屬權限時，回傳 `403 task_not_owned`。
 
 ```json
 {

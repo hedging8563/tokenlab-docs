@@ -81,7 +81,8 @@ Tugas yang tidak didukung mengembalikan `400 unsupported_task_cancel`. Tugas yan
 
 | Gejala | Penyebab yang mungkin | Apa yang harus diperiksa |
 |--------|-----------------------|--------------------------|
-| `async_task_not_found` | Tugas tidak dikenal, kedaluwarsa, tidak dapat diakses dengan kunci API ini, atau bukan tugas asinkron publik | Konfirmasi kepemilikan kunci API dan `task_id` publik yang disimpan |
+| `404 async_task_not_found` | Tugas telah kedaluwarsa atau tidak lagi tersedia | Periksa `task_id` dan `poll_url` yang disimpan |
+| `403 task_not_owned` | Kepemilikan tugas oleh ruang kerja saat ini tidak dapat dipastikan | Periksa ruang kerja atau organisasi yang terkait dengan kunci API |
 | Tugas tidak pernah tampak selesai | Klien terus polling URL yang salah atau berhenti sebelum status terminal | Gunakan `poll_url` atau `/v1/tasks/{id}` dan periksa status terbaru |
 | URL media akhir hilang | Tugas tidak selesai, atau pekerjaan upstream selesai tanpa output yang dapat digunakan | Terus polling hingga terminal, lalu tangani output yang hilang sebagai gagal |
 | Pengguna melihat duplikat | Jalur pengulangan membuat tugas baru setelah timeout atau penyegaran | Hapus duplikat berdasarkan ID pekerjaan Anda sendiri dan `task_id` yang disimpan |

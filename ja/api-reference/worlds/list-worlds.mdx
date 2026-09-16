@@ -19,7 +19,7 @@ TokenLab で作成された完了済み World Labs Marble world を一覧しま�
 </ParamField>
 
 <ParamField body="status" type="string">
-  任意のステータスフィルター。TokenLab は `SUCCEEDED` で完了済み world を返します。他のステータスは生成タスクエンドポイントで確認します。
+  任意のフィルターは `SUCCEEDED`、`PENDING`、`RUNNING`、`FAILED` です。このエンドポイントは完了済みワールドを返し、後者 3 つでは空の一覧を返します。進捗は生成タスクで確認してください。
 </ParamField>
 
 <ParamField body="model" type="string">
@@ -56,7 +56,7 @@ TokenLab で作成された完了済み World Labs Marble world を一覧しま�
   World レコードの配列。
 </ResponseField>
 
-<ResponseField name="next_page_token" type="string">
+<ResponseField name="next_page_token" type="string | null">
   次ページのトークン、または `null`。
 </ResponseField>
 

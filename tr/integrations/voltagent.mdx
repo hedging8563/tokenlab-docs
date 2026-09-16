@@ -15,6 +15,12 @@ VoltAgent, AI SDK dil modellerini doğrudan kabul eder. OpenAI uyumlu bir AI SDK
 **Destek Güveni**: Desteklenen OpenAI uyumlu yol
 </Note>
 
+## Kurulum
+
+```bash
+npm install @voltagent/core@2 ai@6 @ai-sdk/openai@3 zod
+```
+
 ## Ortam
 
 ```bash
@@ -35,7 +41,7 @@ const tokenlab = createOpenAI({
 const agent = new Agent({
   name: "tokenlab-agent",
   instructions: "Answer concisely.",
-  model: tokenlab("claude-sonnet-5"),
+  model: tokenlab.chat("claude-sonnet-5"),
 });
 ```
 

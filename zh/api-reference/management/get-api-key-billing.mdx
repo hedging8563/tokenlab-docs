@@ -12,15 +12,17 @@ playground: simple
 
 ## 注意事项
 
-- 金额字段仅支持 USD。`CNY` 输入已停用，并会返回 `400 currency_retired`。
+- 金额字段仅支持 USD。
 
 - 不包含工作区充值和发票记录。
 
 ## 示例
 
+支持与[密钥用量](/zh/api-reference/management/get-api-key-usage)相同的模型、模型厂商、场景和日期筛选；返回汇总，不分页。
+
 <RequestExample>
 ```bash cURL
-curl -X GET "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/billing?startDate=2026-01-01&endDate=2026-01-31" \
+curl -X GET "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/billing?startDate=2026-07-01&endDate=2026-07-31" \
   -H "Authorization: Bearer mt-your-management-token"
 ```
 </RequestExample>
@@ -45,7 +47,8 @@ curl -X GET "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/bil
     ],
     "expires_at": "2026-12-31T23:59:59.000Z",
     "last_used_at": "2026-07-08T03:12:45.000Z",
-    "created_at": "2026-07-01T10:00:00.000Z"
+    "created_at": "2026-07-01T10:00:00.000Z",
+    "delivery_policy": null
   },
   "summary": {
     "total_requests": 1,

@@ -9,7 +9,7 @@ Seedance 素材可以反复用于视频生成，不必每次重新导入。商�
 
 | 想复用的内容 | 怎么做 |
 | --- | --- |
-| 只用一次的图片 | 在视频请求中直接传入 URL；兼容的 Seedance 模型会自动准备 |
+| 只用一次的图片 | 在支持的图片字段中传入 URL；这不会创建可复用素材 ID |
 | 复用虚拟人、商品或风格 | 创建 `aigc_avatar` 组，创建素材，等待 `ACTIVE`，再使用素材 ID |
 | 复用真人 | 完成视觉验证，取得 `GroupId`，在该组中创建素材，等待 `ACTIVE`，再使用素材 ID |
 | 迁移火山素材客户端 | 保留 Action 字段，使用[素材 Action（火山兼容）](/zh/api-reference/video/volc-compatible-material-actions) |
@@ -23,13 +23,15 @@ Seedance 素材可以反复用于视频生成，不必每次重新导入。商�
 | 虚拟人像素材组 | `library_type: "aigc_avatar"` | 用于虚拟人像、产品、风格及其他无需真人验证的可复用引用。 |
 | 真人素材组 | `library_type: "liveness_face"` | 通过真人验证创建。一个组代表一个已验证的真人。 |
 
-`group_id` 只用来整理素材，生成视频时要传素材本身的 `id`。如果返回 `Seedance material asset not found or not accessible`，请确认 ID 没有填错、素材仍然存在、属于当前账户，并且状态为 `ACTIVE`。
+`group_id` 只用来整理素材，生成视频时要传素材本身的 `id`。如果返回 `Seedance material asset not found or not accessible`，请确认 ID 没有填错、素材仍然存在、属于当前组织，并且状态为 `ACTIVE`。
 
-## 自动图片素材
+## 图片 URL 与可复用素材
 
-所选 Seedance 模型支持素材库时，可以在 `image`、`image_url`、`image_urls`、`reference_images`、`start_image` 或 `end_image` 中直接传入图片 URL 或支持的内联 data URL。TokenLab 会把图片保存到当前账户的默认素材组，并保留它是首帧、尾帧还是参考图。
+可以在所选模型支持的图片字段中传入公网 HTTP(S) URL 或支持的 data URL。这些输入按普通媒体路径处理，不会自动创建可复用的素材 ID。
 
-素材在 60 秒内变为 `ACTIVE` 时，视频会继续生成。仍在准备时，API 返回 `409 seedance_material_preparing` 和 `auto_material_asset_ids`。等这些素材变为 `ACTIVE` 后，用 `material_asset_id` 或 `material_asset_ids` 重新提交。已经存在的素材 ID 不会重复导入。
+需要复用时，先通过素材 API 创建素材，等待 `ACTIVE`，再使用 `material_asset_id`、`material_asset_ids` 或支持的媒体字段中的 `asset://<id>`。保留首帧、尾帧或参考图的原本用途。
+
+显式指定的素材仍在准备时，`POST /v1/videos/generations` 返回 `409 seedance_material_preparing`，并通过 `inactive_asset_ids` 列出相关素材。查询这些素材直到 `ACTIVE`，再用相同素材 ID 重试。如果素材为 `FAILED`，先根据 `error_message` 修正或重新导入。
 
 ## 真人验证
 
@@ -42,6 +44,8 @@ Seedance 素材可以反复用于视频生成，不必每次重新导入。商�
 5. 保存 `GroupId`；创建 `liveness_face` 素材时将其作为 `group_id`。
 
 `BytedToken` 的有效期为 30 分钟。两次 Action 请求必须使用相同的 `ProjectName`。认证使用 `Authorization: Bearer <TOKENLAB_API_KEY>`，不接受火山引擎 AK/SK 签名。
+
+创建后立即打开返回的 `H5Link`。Token 的有效期不代表在这段时间内任意时刻都能首次打开验证页面。
 
 也可以在 [Seedance 素材](https://tokenlab.sh/dashboard/seedance-assets) 页面检查请求、回调、素材组和验证记录。正式功能仍应直接调用 API。
 
@@ -57,13 +61,15 @@ Seedance 素材可以反复用于视频生成，不必每次重新导入。商�
 
 使用[创建素材](/zh/api-reference/video/create-material-asset)导入一个可从互联网访问的 URL。
 
-`aigc_avatar` 可以省略 `group_id`，TokenLab 会使用当前账户的默认组。`liveness_face` 必须传入 `group_id`，并且这个 ID 必须来自[视觉验证结果](/zh/api-reference/video/get-visual-validation-result)。
+`aigc_avatar` 可以省略 `group_id`，TokenLab 会使用当前组织的默认组。`liveness_face` 必须传入 `group_id`，并且这个 ID 必须来自[视觉验证结果](/zh/api-reference/video/get-visual-validation-result)。
 
 | 类型 | 支持的输入 |
 |------|-----------------|
-| 图像 | `jpeg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`；宽高比 `(0.4, 2.5)`；宽和高 `(300, 6000)` px；小于 30 MB。 |
-| 视频 | `mp4`, `mov`；`480p`, `720p` 或 `1080p`；2-15 秒；宽高比 `[0.4, 2.5]`；宽和高 `[300, 6000]` px；总像素在 409600 到 2068676 之间；最大 200 MB；24-60 FPS。 |
-| 音频 | `aac`, `wav`, `mp3`；2-15 秒；最大 15 MB。 |
+| 图像 | `jpeg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`; ≤ 30 MiB; 宽和高 [300, 6000] px; 宽高比 [0.4, 2.5] |
+| 视频 | `mp4`, `mov`; ≤ 200 MiB |
+| 音频 | `aac`, `wav`, `mp3`; ≤ 15 MiB |
+
+上表是文件导入限制。导入请求成功不代表媒体或真人验证已经通过。等待素材变为 `ACTIVE`；如果变为 `FAILED`，根据 `error_message` 修正源文件后再导入。
 
 TokenLab 会检查 URL、媒体格式和文件大小。宽高、比例、时长、分辨率、总像素和 FPS 是否合格，还取决于所选模型。
 
@@ -71,7 +77,7 @@ TokenLab 会检查 URL、媒体格式和文件大小。宽高、比例、时长�
 
 `asset_url` 只是素材的导入地址。TokenLab 会返回素材 `id`，以后生成视频请使用这个 ID。
 
-素材 ID 类似 `asset-20260720123456-qn7wr`，素材组 ID 类似 `group-20260720123456-vrt01`。素材会保留在当前账户中，直到你删除素材或整个素材组。
+素材 ID 类似 `asset-20260720123456-qn7wr`，素材组 ID 类似 `group-20260720123456-vrt01`。素材会保留在当前组织中，直到你删除素材或整个素材组。
 
 一个真人素材组只对应一个人。上传内容会与已经验证的人脸比对；出现多张脸或人物不一致时可能失败。建议准备一张正面全身照和一张清晰的正脸特写。
 
@@ -81,7 +87,7 @@ TokenLab 会检查 URL、媒体格式和文件大小。宽高、比例、时长�
 
 ## REST 还是火山 Action
 
-新接入使用 snake_case 的 `/v1/videos/assets*` REST API。已有火山客户端可以保留 PascalCase 请求体，改用[火山兼容素材 Action](/zh/api-reference/video/volc-compatible-material-actions)。两种 API 访问的是当前账户与 `ProjectName` 下的同一份素材。
+新接入使用 snake_case 的 `/v1/videos/assets*` REST API。已有火山客户端可以保留 PascalCase 请求体，改用[火山兼容素材 Action](/zh/api-reference/video/volc-compatible-material-actions)。两种 API 访问的是当前组织与 `ProjectName` 下的同一份素材。
 
 ## API 示例
 

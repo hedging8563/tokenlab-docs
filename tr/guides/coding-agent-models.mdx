@@ -1,137 +1,20 @@
 ---
 title: "Coding Agent Model Seçimi"
-description: "Her kodlama görevi için doğru modeli seçin — karşılaştırma tablosu, öneriler ve yapılandırma"
+description: "Modelleri göreve, gereken bağlama, hıza ve gerçek maliyete göre seçin."
 ---
 
-## Kodlama İçin Model Karşılaştırması
+Modelleri göreve, gereken bağlama, hıza ve gerçek maliyete göre seçin.
 
-| Model | Hız | Kod kalitesi | Maliyet | Bağlam penceresi | En iyi kullanım |
-|-------|-----|-------------|---------|-------------------|----------------|
-| `claude-opus-4-6` | Orta | Mükemmel | $$$$ | 200K | Mimari, karmaşık refactoring |
-| `gpt-5.4` | Orta | Mükemmel | $$$$ | 200K | Karmaşık muhakeme, planlama |
-| `claude-sonnet-4-6` | Hızlı | Çok iyi | $$$ | 200K | Genel kodlama, incelemeler |
-| `gemini-3.1-pro-preview` | Hızlı | Çok iyi | $$$ | 1M | Büyük kod tabanı analizi |
-| `gpt-5-mini` | Çok hızlı | İyi | $$ | 128K | Hızlı düzenlemeler, tamamlama |
-| `gemini-3.5-flash` | Çok hızlı | İyi | $$ | 1M | Hızlı iterasyon, arama |
-| `deepseek-v4-pro` | Orta | Çok iyi | $ | 1M | Muhakeme yoğun görevler |
-| `deepseek-v4-flash` | Hızlı | İyi | $ | 1M | Toplu üretim, şablon kod |
+Güncel kimlikleri, fiyatları, bağlam sınırlarını ve `tokenlab.accepted_request_formats` değerlerini [model sayfasından](https://tokenlab.sh/tr/models) kontrol edin. Model adı tek başına protokol veya araç desteğini kanıtlamaz.
 
+Adayları aynı depo durumu, talimatlar ve araçlarla karşılaştırın. Doğru sonuçları, gerilemeleri, gereksiz değişiklikleri, süreyi ve tamamlanan görev başına maliyeti değerlendirin. Küçük düzenlemeler büyük yeniden yapılandırmalardan daha az bağlam gerektirebilir.
 
-Daha yeni kod odakli havuz icin genis baglamli ajan calismalarinda `minimax-m3`, hizli kod dongulerinde `kimi-k2.7-code-highspeed` ve OpenAI Chat uyumlu yonlendirme icin `deepseek-v4-pro` / `deepseek-v4-flash`, `glm-5.2`, `step-3.7-flash`, `mimo-v2.5-pro` modellerini de dusunun.
+Modeli istemcide açıkça seçin. Fiyat, araçlar ve çıktı değişebileceği için model değişikliklerini onaylatın. Mevcut hesapları ve izinleri koruyarak ilgili istemci kılavuzunu izleyin.
 
-## Göreve Göre Öneriler
+## Kurulum ve ilgili kılavuzlar
 
-<AccordionGroup>
-  <Accordion title="Kod üretimi / Scaffolding">
-    **Önerilen**: `claude-sonnet-4-6`, `gemini-3.1-pro-preview`
-
-    Temiz, iyi yapılandırılmış kod. Karmaşık çoklu dosya scaffolding: `claude-opus-4-6`.
-
-    Bütçe alternatifi: `deepseek-v4-flash` şablon kodu düşük maliyetle işler.
-  </Accordion>
-
-  <Accordion title="Kod incelemesi / Refactoring">
-    **Önerilen**: `claude-sonnet-4-6`, `deepseek-v4-pro`
-
-    `deepseek-v4-pro` özellikle maliyet etkin — chain-of-thought yaklaşımı ince sorunları yakalar.
-  </Accordion>
-
-  <Accordion title="Hata düzeltme / Hata ayıklama">
-    **Önerilen**: `claude-sonnet-4-6`, `gpt-5-mini`
-
-    Hata düzeltme genellikle net bir kapsama sahiptir. Standart modeller yeterlidir.
-  </Accordion>
-
-  <Accordion title="Mimari tasarım">
-    **Önerilen**: `claude-opus-4-6`, `gpt-5.4`
-
-    Mimari kararlar en güçlü muhakemeden faydalanır. Nadir ama yüksek etkili.
-  </Accordion>
-
-  <Accordion title="Hızlı düzenlemeler / Tab tamamlama">
-    **Önerilen**: `gpt-5-mini`, `gemini-3.5-flash`
-
-    Etkileşimli kullanımda hız kritiktir.
-  </Accordion>
-</AccordionGroup>
-
-## TokenLab Sağlayıcı Seçimi
-
-### Seçim Stratejileri
-
-| Strateji | Davranış | En iyi kullanım |
-|----------|---------|----------------|
-| **PRIORITY** | En yüksek öncelikli mevcut sağlayıcıyı kullanır | Güvenilirlik |
-| **COST** | En düşük maliyetli mevcut sağlayıcıyı kullanır | Maliyet optimizasyonu |
-
-### Otomatik Yeniden Deneme
-
-```
-İstek: claude-sonnet-4-6
-  → Sağlayıcı A (birincil): 503 hatası
-  → Sağlayıcı B (yeniden deneme): ✓ Başarılı
-```
-
-### Yerel API Biçimleri
-
-Seçilen model yerel bir API biçimini desteklediğinde, TokenLab uyumluluğu artırmak için bu biçimi kullanabilir:
-
-| Model Ailesi | API Biçimi | Temel URL |
-|-------------|------------|----------|
-| Claude | Anthropic Mesajları | `https://api.tokenlab.sh` |
-| GPT | OpenAI Yanıtları | `https://api.tokenlab.sh/v1` |
-| Gemini | Gemini Yerel API | `https://api.tokenlab.sh` veya `https://api.tokenlab.sh/v1beta` istemci yoluna bağlı olarak |
-| DeepSeek | OpenAI Sohbet | `https://api.tokenlab.sh/v1` |
-
-Claude Code güçlü bir Anthropic-native yoldur. Gemini-native API’ler de vardır, ancak Gemini CLI’nin kendisi hâlâ best-effort bir uyumluluk yoludur ve uzun vadeli olarak kararlı bir iş akışı gibi sunulmamalıdır.
-
-## Araç Başına Yapılandırma
-
-<AccordionGroup>
-  <Accordion title="Claude Code">
-    ```bash
-    export ANTHROPIC_API_KEY="sk-your-tokenlab-key"
-    export ANTHROPIC_BASE_URL="https://api.tokenlab.sh"
-    ```
-    Model seçimi: `claude --model claude-sonnet-4-6`
-
-    [Tam rehber →](/tr/integrations/claude-code)
-  </Accordion>
-
-  <Accordion title="Cursor">
-    Settings → Models:
-    - API Key: `sk-your-tokenlab-key`
-    - Base URL: `https://api.tokenlab.sh/v1`
-
-    [Tam rehber →](/tr/integrations/cursor)
-  </Accordion>
-
-  <Accordion title="Codex CLI">
-    ```bash
-    export OPENAI_API_KEY="sk-your-tokenlab-key"
-    export OPENAI_BASE_URL="https://api.tokenlab.sh/v1"
-    ```
-    [Tam rehber →](/tr/integrations/codex-cli)
-  </Accordion>
-
-  <Accordion title="Gemini CLI">
-    ```bash
-    export GEMINI_API_KEY="sk-your-tokenlab-key"
-    export GOOGLE_GEMINI_BASE_URL="https://api.tokenlab.sh"
-    ```
-
-    Bu yolu resmi Gemini CLI entegrasyonu değil, best-effort uyumluluk yolu olarak değerlendirin.
-    [Tam rehber →](/tr/integrations/gemini-cli)
-  </Accordion>
-
-  <Accordion title="OpenCode">
-    ```json
-    {
-      "provider": "openai",
-      "apiKey": "sk-your-tokenlab-key",
-      "baseURL": "https://api.tokenlab.sh/v1"
-    }
-    ```
-    [Tam rehber →](/tr/integrations/opencode)
-  </Accordion>
-</AccordionGroup>
+- [Claude Code](/tr/integrations/claude-code)
+- [Codex CLI](/tr/integrations/codex-cli)
+- [Cursor](/tr/integrations/cursor)
+- [OpenCode](/tr/integrations/opencode)
+- [Gerçek kullanım verileriyle maliyetleri kontrol edin](/tr/guides/coding-agent-cost)

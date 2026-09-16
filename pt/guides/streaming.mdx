@@ -5,7 +5,8 @@ description: "Implemente respostas de streaming em tempo real"
 
 ## Visão geral
 
-O streaming entrega a saída de forma incremental. Use Responses streaming quando o modelo anunciar um contrato Responses nativo e houver uma rota upstream do mesmo protocolo; caso contrário, use Chat Completions ou o protocolo nativo publicado pelo modelo.
+Streaming entrega a saída aos poucos. Use Responses se o modelo declarar `openai_responses` em `accepted_request_formats`; clientes existentes de Chat Completions podem manter o formato.
+
 ## Recomendado: Responses Streaming
 
 <CodeGroup>
@@ -22,42 +23,61 @@ curl https://api.tokenlab.sh/v1/responses \
 ```
 
 ```python Python
+import os
 from openai import OpenAI
 
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
-
-stream = client.responses.create(
-    model="gpt-5.6-terra",
-    input="Write a short poem.",
-    stream=True
-)
-
-for event in stream:
-    if event.type == "response.output_text.delta":
-        print(event.delta, end="", flush=True)
+with OpenAI(
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh/v1",
+    timeout=30.0,
+    max_retries=0,
+) as client:
+    completed = False
+    with client.responses.create(
+        model="gpt-5.6-terra",
+        input="Write a short poem.",
+        stream=True,
+    ) as stream:
+        for event in stream:
+            if event.type == "response.output_text.delta":
+                print(event.delta, end="", flush=True)
+            elif event.type == "response.completed":
+                completed = True
+            elif event.type in {"response.failed", "response.incomplete", "error"}:
+                raise RuntimeError(f"Stream ended with {event.type}")
+    if not completed:
+        raise RuntimeError("Stream closed before response.completed")
 ```
 
 ```javascript JavaScript
 import OpenAI from 'openai';
 
 const client = new OpenAI({
-  apiKey: 'sk-your-api-key',
-  baseURL: 'https://api.tokenlab.sh/v1'
+  apiKey: process.env.TOKENLAB_API_KEY,
+  baseURL: 'https://api.tokenlab.sh/v1',
+  timeout: 30_000,
+  maxRetries: 0,
 });
 
 const stream = await client.responses.create({
   model: 'gpt-5.6-terra',
   input: 'Write a short poem.',
-  stream: true
+  stream: true,
 });
-
-for await (const event of stream) {
-  if (event.type === 'response.output_text.delta') {
-    process.stdout.write(event.delta);
+let completed = false;
+try {
+  for await (const event of stream) {
+    if (event.type === 'response.output_text.delta') {
+      process.stdout.write(event.delta);
+    } else if (event.type === 'response.completed') {
+      completed = true;
+    } else if (['response.failed', 'response.incomplete', 'error'].includes(event.type)) {
+      throw new Error(`Stream ended with ${event.type}`);
+    }
   }
+  if (!completed) throw new Error('Stream closed before response.completed');
+} finally {
+  stream.controller.abort();
 }
 ```
 
@@ -66,26 +86,43 @@ for await (const event of stream) {
 
 ## Limites de streaming de Responses e Gemini
 
-No Responses SSE, o TokenLab preserva nomes, ordem e campos dos eventos upstream e lê usage e estado terminal fora da banda, sem alterar o wire. Depois do primeiro evento entregue, não tenta outro canal ou credential.
+Responses SSE preserva nomes, ordem e campos públicos dos eventos. Uma interrupção após receber conteúdo deixa a resposta incompleta, sem reinício automático.
 
-Responses WebSocket aceita apenas eventos oficiais `response.create`. Stream é implícito; `background` e `response.cancel` não são oferecidos nesse transporte, e background funciona somente por HTTP. Cada conexão é serial, sem multiplexing, e limitada a 60 minutos.
+Responses WebSocket usa `response.create` e sempre transmite em streaming; não aceita `background` nem `response.cancel`. Cada conexão processa uma resposta por vez e dura até 60 minutos. `generate: false` cria um ID de continuação sem saída ou cobrança do modelo.
 
-Gemini SSE preserva chunks nativos. Eventos apenas com metadados, chunks intermediários sem `finishReason` e EOF natural são válidos; o TokenLab não adiciona marcador Chat `[DONE]`.
+Gemini SSE retorna chunks nativos. Eventos intermediários podem omitir `finishReason` e o fluxo pode terminar sem o marcador Chat `[DONE]`.
+
 ## Streaming de Chat Completions
 
 Se o seu framework ainda espera chunks SSE de `/v1/chat/completions`, isso também funciona:
 
 ```python
-stream = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": "Write a short poem"}],
-    stream=True
-)
+import os
+from openai import OpenAI
 
-for chunk in stream:
-    content = chunk.choices[0].delta.content
-    if content:
-        print(content, end="", flush=True)
+with OpenAI(
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh/v1",
+    timeout=30.0,
+    max_retries=0,
+) as client:
+    finish_reason = None
+    with client.chat.completions.create(
+        model="gpt-5.6-terra",
+        messages=[{"role": "user", "content": "Write a short poem."}],
+        stream=True,
+        stream_options={"include_usage": True},
+    ) as stream:
+        for chunk in stream:
+            if not chunk.choices:
+                continue
+            choice = chunk.choices[0]
+            if choice.delta.content:
+                print(choice.delta.content, end="", flush=True)
+            if choice.finish_reason:
+                finish_reason = choice.finish_reason
+    if finish_reason != "stop":
+        raise RuntimeError(f"Stream ended without a complete text answer: {finish_reason}")
 ```
 
 ## Condições de término do stream
@@ -98,49 +135,13 @@ Condições típicas de conclusão:
 
 ## Padrão para aplicação web
 
-```javascript
-async function streamChat(message) {
-  const response = await fetch('https://api.tokenlab.sh/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Bearer sk-your-api-key',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: 'gpt-5.6-terra',
-      messages: [{ role: 'user', content: message }],
-      stream: true
-    })
-  });
-
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-
-    const chunk = decoder.decode(value);
-    const lines = chunk.split('\\n').filter(line => line.startsWith('data: '));
-
-    for (const line of lines) {
-      const data = line.slice(6);
-      if (data === '[DONE]') return;
-      const parsed = JSON.parse(data);
-      const content = parsed.choices?.[0]?.delta?.content;
-      if (content) {
-        document.getElementById('output').textContent += content;
-      }
-    }
-  }
-}
-```
+Processe o fluxo do SDK no servidor. O navegador deve chamar seu próprio backend autenticado; mantenha a chave TokenLab no ambiente do servidor. Encaminhe os trechos de texto e cancele o fluxo quando o usuário parar ou desconectar. Use o SDK para interpretar SSE: um bloco de rede não corresponde necessariamente a um evento completo.
 
 ## Boas práticas
 
 <AccordionGroup>
   <Accordion title="Prefira Responses streaming em novas implementações">
-    Use `/v1/responses` se o seu SDK ou app já oferecer suporte a ele. Mantenha o streaming de `/v1/chat/completions` para integrações orientadas por compatibilidade.
+    Streaming entrega a saída aos poucos. Use Responses se o modelo declarar `openai_responses` em `accepted_request_formats`; clientes existentes de Chat Completions podem manter o formato.
   </Accordion>
 
   <Accordion title="Descarregue a saída incrementalmente">
@@ -148,6 +149,6 @@ async function streamChat(message) {
   </Accordion>
 
   <Accordion title="Trate desconexões e novas tentativas">
-    Considere quedas de rede e desconexões upstream como modos normais de falha e reconecte com cuidado em sessões de longa duração.
+    Não marque um fluxo interrompido como resposta completa. Preserve saídas parciais úteis; repetir a solicitação pode gerar outro resultado e nova cobrança.
   </Accordion>
 </AccordionGroup>

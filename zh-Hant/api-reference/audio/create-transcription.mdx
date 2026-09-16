@@ -6,14 +6,14 @@ description: "將音訊轉錄為輸入語言"
 
 ## 請求主體
 
-**同步請求逾時：** 這個非聊天端點會等待路由到的模型完成處理。大型輸入、長音訊或大量批次可能超過常見的 30s 用戶端預設逾時，因此請將 HTTP 用戶端逾時設定為至少 `120s`。
+轉錄可能直接回傳文字，也可能以 HTTP `200`、`id` 和 `status` 回傳已接受的非同步任務。非同步任務請依 `poll_url` 查詢，或使用 `/v1/tasks/{id}`。同步處理較長音訊時，請將用戶端逾時設為至少 `120s`。
 
 <ParamField body="file" type="file" required>
-  要轉錄的音訊檔案。支援格式：flac、mp3、mp4、mpeg、mpga、m4a、ogg、wav、webm。
+  要轉錄的音訊檔案。支援格式：flac、mp3、mp4、mpeg、mpga、m4a、ogg、wav、webm。 檔案大小上限：25 MB。
 </ParamField>
 
 <ParamField body="model" type="string" default="whisper-1">
-  要使用的模型。目前僅支援 `whisper-1`。
+  轉錄模型 ID，例如 `whisper-1` 或 `gpt-4o-transcribe`。透過 `GET /v1/models?recommended_for=stt` 取得目前可選模型。
 </ParamField>
 
 <ParamField body="language" type="string">
@@ -25,18 +25,20 @@ description: "將音訊轉錄為輸入語言"
 </ParamField>
 
 <ParamField body="response_format" type="string" default="json">
-  輸出格式：`json`、`text`、`srt`、`verbose_json`、`vtt`。
+  輸出格式。Whisper 支援 `json`、`text`、`srt`、`verbose_json` 和 `vtt`；其他模型支援的範圍可能不同，請查詢模型詳情。
 </ParamField>
 
-<ParamField body="temperature" type="number" default="0">
-  取樣溫度（0 到 1）。
+<ParamField body="temperature" type="number">
+  取樣溫度，範圍為 0–1，僅適用於支援此參數的模型。
 </ParamField>
 
 <ParamField body="timestamp_granularities" type="array">
-  時間戳記粒度：`word` 和／或 `segment`。需要 `verbose_json`。
+  所選模型支援時，可指定 `word` 和／或 `segment`。Whisper 需要 `response_format=verbose_json`。multipart 請求中，多值應重複傳送 `timestamp_granularities[]`。
 </ParamField>
 
 ## 回應
+
+以下欄位用於 JSON 轉錄或翻譯回應。`text`、`srt` 和 `vtt` 回傳原始文字或字幕，而不是 JSON 物件。附加欄位取決於模型和輸出格式。
 
 <ResponseField name="text" type="string">
   轉錄後的文字。
@@ -45,7 +47,7 @@ description: "將音訊轉錄為輸入語言"
 對於 `verbose_json`：
 
 <ResponseField name="task" type="string">
-  一律為 `transcribe`。
+  回傳時表示任務名稱，例如 `transcribe`。
 </ResponseField>
 
 <ResponseField name="language" type="string">
@@ -62,6 +64,24 @@ description: "將音訊轉錄為輸入語言"
 
 <ResponseField name="words" type="array">
   詞級時間戳記（若有請求）。
+</ResponseField>
+
+已接受的非同步轉錄任務回傳以下欄位，而非轉錄文字：
+
+<ResponseField name="id" type="string">
+  任務 ID。
+</ResponseField>
+
+<ResponseField name="task_id" type="string">
+  可用時返回的非同步任務 ID 別名。
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  任務狀態：`pending`、`processing`、`completed` 或 `failed`。
+</ResponseField>
+
+<ResponseField name="poll_url" type="string">
+  建立回應提供時，優先使用的輪詢 URL。
 </ResponseField>
 
 <RequestExample>
@@ -155,9 +175,18 @@ echo $data['text'];
       "start": 0.0,
       "end": 2.5,
       "text": "Hello, this is a test",
-      "tokens": [...]
+      "tokens": [50364, 2425, 11]
     }
   ]
+}
+```
+
+```json HTTP 200 (async)
+{
+  "id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "task_id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "status": "pending",
+  "poll_url": "/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 }
 ```
 </ResponseExample>
@@ -167,8 +196,11 @@ echo $data['text'];
 若要將音訊翻譯為英文，請使用 translations endpoint：
 
 ```python
-response = client.audio.translations.create(
-    model="whisper-1",
-    file=audio_file
-)
+with open("audio.mp3", "rb") as audio_file:
+    response = client.audio.translations.create(
+        model="whisper-1",
+        file=audio_file
+    )
+
+print(response.text)
 ```

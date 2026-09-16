@@ -5,7 +5,7 @@ description: "أمّن طلبات TokenLab API الخاصة بك باستخدا�
 
 ## مفاتيح API
 
-تتطلب جميع طلبات TokenLab API مفتاح API.
+تتطلب استدعاءات النماذج والموارد الخاصة مفتاح API. تعمل نقاط الاكتشاف العامة مثل `GET /v1/models` و`GET /v1/models/{model}` دون مفتاح. نجاح استعلام الاكتشاف لا يؤكد صلاحية المفتاح؛ اتبع دليل البدء السريع لإرسال طلب إلى نموذج. استخدم المفتاح الكامل المحفوظ، لا البادئة الظاهرة في القائمة.
 
 بالنسبة إلى نقاط النهاية المتوافقة مع OpenAI، أرسله بالشكل التالي:
 
@@ -51,38 +51,7 @@ Authorization: Bearer mt-your-management-token
 
 ## استخدام مفاتيح API
 
-<CodeGroup>
-
-```bash cURL
-curl https://api.tokenlab.sh/v1/responses \
-  -H "Authorization: Bearer $TOKENLAB_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "gpt-5.6-terra",
-    "input": "Hello!"
-  }'
-```
-
-```python Python
-import os
-from openai import OpenAI
-
-client = OpenAI(
-    api_key=os.environ.get("TOKENLAB_API_KEY"),
-    base_url="https://api.tokenlab.sh/v1"
-)
-```
-
-```javascript JavaScript
-import OpenAI from 'openai';
-
-const client = new OpenAI({
-  apiKey: process.env.TOKENLAB_API_KEY,
-  baseURL: 'https://api.tokenlab.sh/v1'
-});
-```
-
-</CodeGroup>
+راجع [البدء السريع](/ar/quickstart) لمتغيرات البيئة وطلب أول كامل. استخدم SDK المناسب [لصيغة API](/ar/guides/api-formats) المختارة واحتفظ بالمفاتيح على الخادم.
 
 ## ميزات مفتاح API
 
@@ -99,32 +68,12 @@ const client = new OpenAI({
 
 تبدأ جميع مفاتيح TokenLab API بـ `sk-`.
 
-## التوافق مع Anthropic
-
-بالنسبة إلى نقطة النهاية `/v1/messages`، يعمل ترويس Anthropic كما هو متوقع:
-
-```bash
-curl https://api.tokenlab.sh/v1/messages \
-  -H "x-api-key: sk-your-api-key" \
-  -H "anthropic-version: 2023-06-01" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "claude-sonnet-5",
-    "max_tokens": 1024,
-    "messages": [{"role": "user", "content": "Hello!"}]
-  }'
-```
-
-<Note>
-استخدم `Authorization: Bearer ...` لنقاط النهاية المتوافقة مع OpenAI مثل `/v1/responses` و`/v1/chat/completions` و`/v1/models` ومعظم مسارات TokenLab الأخرى.
-</Note>
-
 ## استجابات الأخطاء
 
 | رمز الحالة | النوع | الرمز | الوصف |
 |-------------|------|------|-------------|
-| 401 | `invalid_api_key` | `invalid_api_key` | مفتاح API مفقود أو غير صالح |
-| 401 | `expired_api_key` | `expired_api_key` | تم إلغاء مفتاح API |
+| 401 | `invalid_api_key` | `invalid_api_key` | مفتاح API مفقود أو غير صالح أو غير نشط أو ملغى |
+| 401 | `expired_api_key` | `expired_api_key` | انتهت صلاحية مفتاح API |
 | 402 | `insufficient_balance` | `insufficient_balance` | رصيد الحساب غير كافٍ |
 | 402 | `quota_exceeded` | `quota_exceeded` | تم الوصول إلى حد استخدام مفتاح API |
 

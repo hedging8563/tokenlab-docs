@@ -1,6 +1,6 @@
 ---
 title: "Zhipu AI (GLM)"
-description: "GLM-4, GLM-4.5, GLM-4.6 series"
+description: "Zhipu AI (GLM) models available through TokenLab"
 ---
 
 ## Overview
@@ -25,10 +25,11 @@ TokenLab provides access to Zhipu AI (GLM) models. Total: **7 models** available
 This example uses one model's declared request format. Other models on this page may accept different formats.
 
 ```python
+import os
 from anthropic import Anthropic
 
 client = Anthropic(
-    api_key="sk-your-tokenlab-key",
+    api_key=os.environ["TOKENLAB_API_KEY"],
     base_url="https://api.tokenlab.sh"
 )
 

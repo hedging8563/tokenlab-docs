@@ -14,6 +14,8 @@ Public 3D operations are inferred from the request shape: prompt-only requests r
 
 ## Request Body
 
+Before sending optional fields, check `GET /v1/models/{model}` for the model’s accepted parameters. The example uses only `model` and `prompt`.
+
 <ParamField body="model" type="string" default="tripo-h3.1">
   Model to use, for example `tripo-h3.1` or `tripo-p1.0`. Query `GET /v1/models?recommended_for=3d` before relying on a specific input type or output format.
 </ParamField>
@@ -30,12 +32,12 @@ Public 3D operations are inferred from the request shape: prompt-only requests r
   URL of image for image-to-3D generation.
 </ParamField>
 
-<ParamField body="format" type="string" default="glb">
-  Output format: `glb`, `fbx`, `obj`, or `usdz`.
+<ParamField body="format" type="string">
+  Output format; support and allowed values depend on the selected model.
 </ParamField>
 
-<ParamField body="quality" type="string" default="standard">
-  Quality level: `draft`, `standard`, or `high`.
+<ParamField body="quality" type="string">
+  Quality setting; support and allowed values depend on the selected model.
 </ParamField>
 
 <ParamField body="style" type="string">
@@ -43,7 +45,7 @@ Public 3D operations are inferred from the request shape: prompt-only requests r
 </ParamField>
 
 <ParamField body="seed" type="integer">
-  Integer seed for reproducible generation. Must be between `0` and `4294967295`.
+  Integer seed, when supported by the selected model.
 </ParamField>
 
 <ParamField body="user" type="string">
@@ -79,9 +81,7 @@ curl -X POST "https://api.tokenlab.sh/v1/3d/generations" \
   -H "Content-Type: application/json" \
   -d '{
     "model": "tripo-h3.1",
-    "prompt": "A detailed medieval castle with towers",
-    "format": "glb",
-    "quality": "high"
+    "prompt": "A detailed medieval castle with towers"
   }'
 ```
 
@@ -93,9 +93,7 @@ response = requests.post(
     headers={"Authorization": "Bearer sk-your-api-key"},
     json={
         "model": "tripo-h3.1",
-        "prompt": "A detailed medieval castle with towers",
-        "format": "glb",
-        "quality": "high"
+        "prompt": "A detailed medieval castle with towers"
     }
 )
 
@@ -112,9 +110,7 @@ const response = await fetch('https://api.tokenlab.sh/v1/3d/generations', {
   },
   body: JSON.stringify({
     model: 'tripo-h3.1',
-    prompt: 'A detailed medieval castle with towers',
-    format: 'glb',
-    quality: 'high'
+    prompt: 'A detailed medieval castle with towers'
   })
 });
 
@@ -136,8 +132,6 @@ func main() {
     payload := map[string]interface{}{
         "model":   "tripo-h3.1",
         "prompt":  "A detailed medieval castle with towers",
-        "format":  "glb",
-        "quality": "high",
     }
     body, _ := json.Marshal(payload)
 
@@ -168,9 +162,7 @@ curl_setopt_array($ch, [
     ],
     CURLOPT_POSTFIELDS => json_encode([
         'model' => 'tripo-h3.1',
-        'prompt' => 'A detailed medieval castle with towers',
-        'format' => 'glb',
-        'quality' => 'high'
+        'prompt' => 'A detailed medieval castle with towers'
     ])
 ]);
 

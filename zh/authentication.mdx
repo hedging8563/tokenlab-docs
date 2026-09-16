@@ -5,7 +5,7 @@ description: "用 API 密钥验证 TokenLab API 请求"
 
 ## API 密钥
 
-所有 TokenLab API 请求都需要 API 密钥。
+模型调用和私有资源需要 API 密钥。`GET /v1/models`、`GET /v1/models/{model}` 等公开发现接口无需密钥；查询成功不能验证密钥是否可用，请按快速开始发送一次模型请求。请使用已经保存的完整密钥，列表中的前缀不能用于认证。
 
 对于兼容 OpenAI 的端点，请按如下方式发送：
 
@@ -51,38 +51,7 @@ Authorization: Bearer mt-your-management-token
 
 ## 使用 API 密钥
 
-<CodeGroup>
-
-```bash cURL
-curl https://api.tokenlab.sh/v1/responses \
-  -H "Authorization: Bearer $TOKENLAB_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "gpt-5.6-terra",
-    "input": "Hello!"
-  }'
-```
-
-```python Python
-import os
-from openai import OpenAI
-
-client = OpenAI(
-    api_key=os.environ.get("TOKENLAB_API_KEY"),
-    base_url="https://api.tokenlab.sh/v1"
-)
-```
-
-```javascript JavaScript
-import OpenAI from 'openai';
-
-const client = new OpenAI({
-  apiKey: process.env.TOKENLAB_API_KEY,
-  baseURL: 'https://api.tokenlab.sh/v1'
-});
-```
-
-</CodeGroup>
+环境变量和完整的首次请求见[快速开始](/zh/quickstart)。按所选 [API 格式](/zh/guides/api-formats)使用对应 SDK，密钥只保留在服务端。
 
 ## 设置用量上限
 
@@ -97,31 +66,11 @@ const client = new OpenAI({
 
 所有 TokenLab API 密钥都以 `sk-` 开头。
 
-## Anthropic 兼容性
-
-对于 `/v1/messages` 端点，Anthropic 风格的请求头可按预期工作：
-
-```bash
-curl https://api.tokenlab.sh/v1/messages \
-  -H "x-api-key: sk-your-api-key" \
-  -H "anthropic-version: 2023-06-01" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "claude-sonnet-5",
-    "max_tokens": 1024,
-    "messages": [{"role": "user", "content": "Hello!"}]
-  }'
-```
-
-<Note>
-OpenAI 兼容接口（包括 `/v1/responses`、`/v1/chat/completions` 和 `/v1/models`）使用 `Authorization: Bearer ...`。
-</Note>
-
 ## 错误响应
 
 | 状态码 | 类型 | 代码 | 描述 |
 |-------------|------|------|-------------|
-| 401 | `invalid_api_key` | `invalid_api_key` | 缺少或无效的 API 密钥 |
+| 401 | `invalid_api_key` | `invalid_api_key` | API 密钥缺失、无效、已停用或撤销 |
 | 401 | `expired_api_key` | `expired_api_key` | API 密钥已过期 |
 | 402 | `insufficient_balance` | `insufficient_balance` | 账户余额不足 |
 | 402 | `quota_exceeded` | `quota_exceeded` | 已达到 API 密钥用量上限 |

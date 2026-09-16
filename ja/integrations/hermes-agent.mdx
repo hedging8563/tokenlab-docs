@@ -13,6 +13,8 @@ description: "Hermes Agent を TokenLab に接続"
 
 `HERMES_HOME` が設定されていればそのディレクトリ、なければ `~/.hermes`（Windows：`%USERPROFILE%\.hermes`）を使います。`config.yaml` をバックアップし、他の設定を残して以下をマージします。Chat Completions とツール呼び出しに対応する現在のモデルを選んでください。
 
+使用中の設定をバックアップしてください。TokenLab の項目だけを追加し、既存のプロバイダー、アカウント、既定モデル、権限を維持します。名前が使用済みなら別名を選び、コマンドも合わせて変更します。戻す際は追加項目だけを削除するか、以前のバックアップを復元してください。
+
 ```yaml
 providers:
   tokenlab:
@@ -20,16 +22,17 @@ providers:
     key_env: TOKENLAB_API_KEY
     transport: chat_completions
     default_model: gpt-5.6-luna
-model:
-  provider: custom:tokenlab
-  default: gpt-5.6-luna
 ```
 
 [API キー](https://tokenlab.sh/dashboard/api?tab=keys)でキーを作成し、Hermes ディレクトリの `.env` または起動プロセスの環境に `TOKENLAB_API_KEY` として保存します。会話やプロバイダー YAML にキーを貼り付けないでください。
 
 ## 設定確認と最初のリクエスト
 
-`hermes config get model.provider` と `hermes config get model.default` で `custom:tokenlab` と選択モデルを確認します。その後、新しいセッションを開始します。既存セッションには以前のモデルが残る場合があります。設定確認だけでは認証やモデル呼び出しの成功を証明できません。
+`hermes config get providers.tokenlab.api` で追加項目を確認します。表示値は `https://api.tokenlab.sh/v1` です。既存の `model` セクションは維持し、以下のプロバイダーとモデルを明示して新しいセッションを開始します。これらのオプションなしで起動すると従来の既定設定を使用します。この確認はキーの有効性を検証しません。
+
+```bash
+hermes chat --provider custom:tokenlab --model gpt-5.6-luna
+```
 
 TokenLab 残高を使用する準備ができたら短いテキストを送り、応答と[リクエスト記録](https://tokenlab.sh/dashboard/runs?section=requests)を照合します。その後、読み取り専用のツール作業を試します。補助モデルや任意ツールには別のプロバイダーやキーが必要な場合があります。
 

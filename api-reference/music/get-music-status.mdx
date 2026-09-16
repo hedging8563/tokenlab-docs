@@ -9,7 +9,7 @@ Poll this endpoint to check the status of your music generation task.
 <Info>
 If the create response includes `poll_url`, call that URL directly. `id` and `task_id` identify the same task; you can also use `/v1/tasks/{id}`.
 
-If the task no longer exists or is no longer available in the public task record, TokenLab returns `async_task_not_found` with the message `Task not found or no longer available.`
+An expired or unavailable public task can return `404 async_task_not_found`. If task ownership cannot be established for the current API key, the response is `403 task_not_owned`.
 </Info>
 
 ## Path Parameters
@@ -25,7 +25,7 @@ If the task no longer exists or is no longer available in the public task record
 </ResponseField>
 
 <ResponseField name="task_id" type="string">
-  Async task identifier alias when provided.
+  Alias of the same asynchronous task ID, when returned.
 </ResponseField>
 
 <ResponseField name="poll_url" type="string">
@@ -38,6 +38,16 @@ If the task no longer exists or is no longer available in the public task record
 
 <ResponseField name="progress" type="integer">
   Optional progress value. Returned only when a real progress value is available; use `status` to determine completion.
+</ResponseField>
+
+Result fields depend on the operation. Music may return `audio_url` and `audio_id`; lyrics-only tasks return `lyrics`; separation can return multiple files in `data`. `video_url`, title, progress, and other metadata are optional. Check `status` for completion and read the fields actually returned.
+
+<ResponseField name="audio_id" type="string">
+  Optional source audio ID, usable with this task's ID in supported follow-up operations.
+</ResponseField>
+
+<ResponseField name="data" type="array">
+  Optional output array, including separated audio files with `audio_url` or `url`.
 </ResponseField>
 
 <ResponseField name="audio_url" type="string">
@@ -56,13 +66,13 @@ If the task no longer exists or is no longer available in the public task record
   Generated or provided lyrics.
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="error" type="string | object">
   Error message (when failed).
 </ResponseField>
 
 <RequestExample>
 ```bash cURL
-curl "https://api.tokenlab.sh/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" \
+curl --fail-with-body "https://api.tokenlab.sh/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 
@@ -78,13 +88,14 @@ while True:
         f"https://api.tokenlab.sh{poll_url}",
         headers={"Authorization": "Bearer sk-your-api-key"}
     )
+    response.raise_for_status()
     result = response.json()
 
     if result["status"] == "completed":
-        print(f"Audio URL: {result['audio_url']}")
+        print(result)
         break
     elif result["status"] == "failed":
-        print(f"Error: {result['error']}")
+        print(result.get("error", "Task failed"))
         break
 
     time.sleep(5)  # Poll every 5 seconds
@@ -101,18 +112,23 @@ async function pollForMusic() {
       { headers: { 'Authorization': 'Bearer sk-your-api-key' } }
     );
 
+    if (!response.ok) throw new Error(await response.text());
     const result = await response.json();
 
     if (result.status === 'completed') {
-      console.log(`Audio URL: ${result.audio_url}`);
-      return result.audio_url;
+      console.log(result);
+      return result;
     } else if (result.status === 'failed') {
-      throw new Error(result.error);
+      throw new Error(typeof result.error === 'string'
+        ? result.error
+        : JSON.stringify(result.error ?? result));
     }
 
     await new Promise(r => setTimeout(r, 5000));
   }
 }
+
+await pollForMusic();
 ```
 
 ```go Go
@@ -121,6 +137,8 @@ package main
 import (
     "encoding/json"
     "fmt"
+    "io"
+    "log"
     "net/http"
     "time"
 )
@@ -130,22 +148,36 @@ func main() {
     pollURL := fmt.Sprintf("https://api.tokenlab.sh/v1/tasks/%s", taskID)
 
     for {
-        req, _ := http.NewRequest("GET",
+        req, err := http.NewRequest("GET",
             pollURL, nil)
+        if err != nil {
+            log.Fatal(err)
+        }
         req.Header.Set("Authorization", "Bearer sk-your-api-key")
 
         client := &http.Client{}
-        resp, _ := client.Do(req)
+        resp, err := client.Do(req)
+        if err != nil {
+            log.Fatal(err)
+        }
+        if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+            body, _ := io.ReadAll(resp.Body)
+            resp.Body.Close()
+            log.Fatalf("HTTP %d: %s", resp.StatusCode, body)
+        }
 
         var result map[string]interface{}
-        json.NewDecoder(resp.Body).Decode(&result)
+        err = json.NewDecoder(resp.Body).Decode(&result)
         resp.Body.Close()
+        if err != nil {
+            log.Fatal(err)
+        }
 
         if result["status"] == "completed" {
-            fmt.Printf("Audio URL: %s\n", result["audio_url"])
+            fmt.Println(result)
             break
         } else if result["status"] == "failed" {
-            fmt.Printf("Error: %s\n", result["error"])
+            fmt.Println(result)
             break
         }
 
@@ -170,15 +202,24 @@ while (true) {
     ]);
 
     $response = curl_exec($ch);
+    $httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
     curl_close($ch);
 
-    $result = json_decode($response, true);
+    if ($response === false) {
+        throw new RuntimeException($curlError);
+    }
+    if ($httpStatus < 200 || $httpStatus >= 300) {
+        throw new RuntimeException("HTTP {$httpStatus}: {$response}");
+    }
+
+    $result = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
 
     if ($result['status'] === 'completed') {
-        echo "Audio URL: {$result['audio_url']}\n";
+        echo json_encode($result, JSON_UNESCAPED_SLASHES) . "\n";
         break;
     } elseif ($result['status'] === 'failed') {
-        echo "Error: {$result['error']}\n";
+        echo json_encode($result, JSON_UNESCAPED_SLASHES) . "\n";
         break;
     }
 
@@ -195,9 +236,9 @@ while (true) {
   "poll_url": "/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "status": "completed",
   "audio_url": "https://cdn.example.com/music/abc123.mp3",
-  "video_url": "https://cdn.example.com/music/abc123.mp4",
   "title": "Night Drive",
-  "lyrics": "[Verse 1]\nDriving through the night..."
+  "lyrics": "[Verse 1]\nDriving through the night...",
+  "audio_id": "audio_abc123"
 }
 ```
 </ResponseExample>

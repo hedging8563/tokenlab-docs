@@ -6,12 +6,12 @@ description: "Erstellt eine World Labs Marble-Weltgenerierungsaufgabe"
 
 Erzeugen Sie erkundbare 3D-Welten mit World Labs Marble. Diese API ist asynchron: Create-Responses geben eine Task-Identität und eine `poll_url` für Statusabfragen zurück.
 
-Unterstützte Modelle sind `marble-1.0`, `marble-1.1` und `marble-1.1-plus`. World Labs dokumentiert `marble-1.0-draft`, aber TokenLab stellt draft generation in diesem Endpoint derzeit nicht bereit.
+Wählen Sie ein aktuell verfügbares Marble-Modell über die [Models API](/de/api-reference/models/list-models).
 
 ## Request-Body
 
 <ParamField body="model" type="string" default="marble-1.0">
-  Zu verwendendes Marble-Modell: `marble-1.0`, `marble-1.1` oder `marble-1.1-plus`.
+  Wählen Sie ein aktuell verfügbares Marble-Modell über die [Models API](/de/api-reference/models/list-models).
 </ParamField>
 
 <ParamField body="prompt" type="string">
@@ -55,7 +55,7 @@ Unterstützte Modelle sind `marble-1.0`, `marble-1.1` und `marble-1.1-plus`. Wor
 </ParamField>
 
 <ParamField body="permission" type="object">
-  Optionales World Labs permission-Objekt.
+  Optionale Sichtbarkeits- und Zugriffsregeln: `public`, `allow_id_access`, `allowed_readers` und `allowed_writers`. `public: true` fordert eine öffentlich sichtbare Welt an.
 </ParamField>
 
 ## Antwort
@@ -94,11 +94,7 @@ Unterstützte Modelle sind `marble-1.0`, `marble-1.1` und `marble-1.1-plus`. Wor
 
 ## Preise
 
-World Labs rechnet in credits ab. TokenLab zieht zunächst das Maximum des Request-Typs ab und rechnet anhand von `cost.total_credits` der abgeschlossenen operation ab, sofern verfügbar. Standard-Marble-Requests benötigen bis zu 1.600 credits. `marble-1.1-plus` benötigt bis zu 3.100 credits.
-
-## Umfang
-
-Diese Management-Endpunkte decken TokenLab-eigene Medien-Assets und abgeschlossene generierte Worlds ab. TokenLab stellt weiterhin keine `marble-1.0-draft`-Generierung und keine eigenständigen pano/depth-Tools bereit.
+Aktuelle Preise finden Sie in der [Pricing API](/de/api-reference/pricing/get-pricing). Der endgültige Rechnungsbetrag steht in Ihren Nutzungsdaten. Ein zurückgegebenes `cost.total_credits` beschreibt Generierungsverbrauch, keinen Währungsbetrag.
 
 <RequestExample>
 ```bash cURL

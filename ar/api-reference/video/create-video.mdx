@@ -30,7 +30,7 @@ import VideoModelContractNote from "../../snippets/generated/video-model-contrac
 
 <VideoModelContractNote />
 
-<ParamField body="prompt" type="string" required>
+<ParamField body="prompt" type="string">
   وصف نصي للفيديو المطلوب توليده. هذا الحقل مطلوب لمعظم نماذج الفيديو العامة.
 </ParamField>
 
@@ -51,7 +51,7 @@ import VideoModelContractNote from "../../snippets/generated/video-model-contrac
 </ParamField>
 
 <ParamField body="material_asset_id" type="string">
-  معرف مادة Seedance من TokenLab المعاد من [إنشاء مادة](/ar/api-reference/video/create-material-asset) أو من تجهيز الصور التلقائي. استخدمه بعد أن تصبح المادة `ACTIVE` مع نماذج Seedance التي يمكنها استخدام مكتبة مواد TokenLab.
+  معرف مادة Seedance من TokenLab المعاد من [إنشاء مادة](/ar/api-reference/video/create-material-asset). استخدمه بعد أن تصبح المادة `ACTIVE` مع نماذج Seedance التي يمكنها استخدام مكتبة مواد TokenLab.
 </ParamField>
 
 <ParamField body="material_asset_ids" type="array">
@@ -59,7 +59,7 @@ import VideoModelContractNote from "../../snippets/generated/video-model-contrac
 </ParamField>
 
 <Info>
-عندما يستطيع نموذج Seedance المحدد استخدام مكتبة مواد TokenLab، يجهز TokenLab حقول الصور (`image` و`image_url` و`image_urls` و`reference_images` و`start_image` و`end_image`) كمواد قابلة لإعادة الاستخدام قبل التوليد. إذا لم يكتمل التجهيز خلال 60 ثانية، تعيد الواجهة `409 seedance_material_preparing` مع `auto_material_asset_ids`؛ أعد المحاولة بعد أن تصبح هذه المواد `ACTIVE`. إذا لم يستطع النموذج المحدد استخدام مكتبة المواد، تستمر مدخلات الصور العادية عبر مسار الصور المعتاد وتفشل معرفات المواد الصريحة بأمان مع خطأ قابل لإعادة المحاولة يخص توفر المادة.
+تُستخدم روابط الصور العادية كمدخلات ولا تنشئ مواد قابلة لإعادة الاستخدام تلقائيًا. أنشئ المواد عبر واجهة المواد ثم استخدم معرفات TokenLab أو روابط `asset://asset-YYYYMMDDHHMMSS-xxxxx`. إذا أعادت المواد المحددة `409 seedance_material_preparing`، فتحقق من `inactive_asset_ids` وأعد المحاولة بعد أن تصبح المواد `ACTIVE`.
 </Info>
 
 
@@ -68,7 +68,7 @@ import VideoModelContractNote from "../../snippets/generated/video-model-contrac
 </ParamField>
 
 <ParamField body="kling_elements" type="array">
-  تعريفات مراجع العناصر في Kling 3.0. هذه الميزة مدعومة فقط مع `kling-3.0-video` للطلبات المشروطة بصورة. عرّف 1-3 عناصر؛ يحتوي كل عنصر على `name` و `description` اختياري و `element_input_urls` بعدد 2-4 روابط صور. استخدم `@name` داخل `prompt` للإشارة إلى العنصر. لا تجمع `kling_elements` مع `output_audio=true`؛ احذف `output_audio` أو اجعله `false` عند استخدام مراجع العناصر.
+  استخدم `kling_elements` فقط إذا أدرجته التفاصيل العامة الحالية للنموذج. أرسل صورًا و1–3 عناصر، لكل منها `name` و`description` اختياري و2–4 روابط `element_input_urls`، وأشر إليها بصيغة `@name` في `prompt`. لا تجمعها مع `output_audio=true`.
 </ParamField>
 
 <ParamField body="video_url" type="string">
@@ -240,6 +240,10 @@ curl -X POST "https://api.tokenlab.sh/v1/videos/generations" \
 
 ## الاستجابة
 
+<Note>
+تُعاد حقول النتائج والأخطاء والطوابع الزمنية والنموذج عند توفرها للمهمة.
+</Note>
+
 <ResponseField name="id" type="string">
   المعرّف المعياري للمهمة غير المتزامنة. عندما يظهر كلٌّ من `id` و`task_id`، فاعتبرهما نفس المهمة.
 </ResponseField>
@@ -257,7 +261,7 @@ curl -X POST "https://api.tokenlab.sh/v1/videos/generations" \
 </ResponseField>
 
 <ResponseField name="status" type="string">
-  الحالة الأولية: `pending`.
+  حالة المهمة: `pending`, `processing`, `completed`, `failed`.
 </ResponseField>
 
 <ResponseField name="created" type="integer">
@@ -266,6 +270,18 @@ curl -X POST "https://api.tokenlab.sh/v1/videos/generations" \
 
 <ResponseField name="model" type="string">
   النموذج المستخدم.
+</ResponseField>
+
+<ResponseField name="video" type="object">
+  حمولة فيديو مفردة تحتوي على الحقول `url`, `duration`, `width`, و `height` عندما تتوفر.
+</ResponseField>
+
+<ResponseField name="videos" type="array">
+  حمولات فيديو متعددة عندما تعيد مهمة التوليد أكثر من مخرج واحد.
+</ResponseField>
+
+<ResponseField name="error" type="string | object">
+  رسالة الخطأ (إذا فشلت).
 </ResponseField>
 
 <RequestExample>
@@ -308,38 +324,14 @@ response = requests.post(
         "operation": "image-to-video",
         "image_url": "https://example.com/image.jpg",
         "duration": 6,
-        "aspect_ratio": "16:9"
+        "resolution": "768p"
     }
 )
 ```
 
 ## عناصر Kling 3.0
 
-استخدم `kling_elements` مع `kling-3.0-video` عندما تحتاج إلى مراجع عناصر. يجب أن يحتوي الطلب على شرط صورة (`image_url` أو `image_urls` أو `start_image` أو `end_image`) وأن تشير إلى كل عنصر في `prompt` باستخدام `@name`. لا تجمع `kling_elements` مع `output_audio=true`؛ احذف `output_audio` أو اجعله `false` عند استخدام مراجع العناصر.
-
-```python
-response = requests.post("https://api.tokenlab.sh/v1/videos/generations",
-    headers=headers,
-    json={
-        "model": "kling-3.0-video",
-        "prompt": "Place @hero_bag on a studio turntable with soft product lighting.",
-        "operation": "image-to-video",
-        "image_url": "https://example.com/studio-start.png",
-        "duration": 5,
-        "resolution": "720p",
-        "kling_elements": [
-            {
-                "name": "hero_bag",
-                "description": "black leather handbag",
-                "element_input_urls": [
-                    "https://example.com/bag-front.png",
-                    "https://example.com/bag-side.png"
-                ]
-            }
-        ]
-    }
-)
-```
+استخدم `kling_elements` فقط إذا أدرجته التفاصيل العامة الحالية للنموذج. أرسل صورًا و1–3 عناصر، لكل منها `name` و`description` اختياري و2–4 روابط `element_input_urls`، وأشر إليها بصيغة `@name` في `prompt`. لا تجمعها مع `output_audio=true`.
 
 ## من مرجع إلى فيديو
 
@@ -375,7 +367,6 @@ response = requests.post(
     headers={"Authorization": "Bearer sk-your-api-key"},
     json={
         "model": "viduq2-pro",
-        "prompt": "Smooth transition from day to night",
         "operation": "start-end-to-video",
         "start_image": "https://example.com/day.jpg",
         "end_image": "https://example.com/night.jpg",
@@ -388,7 +379,7 @@ response = requests.post(
 
 ## من فيديو إلى فيديو
 
-في video-to-video مع `grok-imagine-video`، أرسل رابط HTTPS عام بصيغة `.mp4` في `video_url`. يحوله TokenLab إلى جسم REST الخاص بـ xAI بصيغة `video.url`. يمكنك ضبط `resolution` على `480p` أو `720p`؛ ولا يقبل مسار التحرير هذا `duration` أو `aspect_ratio`.
+في video-to-video مع `grok-imagine-video`، أرسل رابط HTTPS عام بصيغة `.mp4` في `video_url`.  يمكنك ضبط `resolution` على `480p` أو `720p`؛ ولا يقبل مسار التحرير هذا `duration` أو `aspect_ratio`.
 
 إذا كان النموذج يقبل فيديو موجودًا كمدخل رئيسي، فاستخدم `operation=video-to-video`.
 
@@ -400,8 +391,7 @@ response = requests.post(
         "model": "grok-imagine-video",
         "operation": "video-to-video",
         "video_url": "https://example.com/source.mp4",
-        "prompt": "Enhance the clip while preserving the original motion.",
-        "resolution": "720p"
+        "prompt": "Enhance the clip while preserving the original motion."
     }
 )
 ```
@@ -430,11 +420,9 @@ response = requests.post(
 يتغير مخزون نماذج الفيديو العامة والعمليات المدعومة مع الوقت. استخدم [واجهة Models API](/ar/api-reference/models/list-models) كمرجع حالي قبل ربط أي تدفق خاص بنموذج معين:
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \
-  -H "Authorization: Bearer sk-your-api-key"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=video"
 
-curl "https://api.tokenlab.sh/v1/models/veo3.1" \
-  -H "Authorization: Bearer sk-your-api-key"
+curl "https://api.tokenlab.sh/v1/models/veo3.1"
 ```
 
 اقرأ استجابة تفاصيل النموذج قبل الاعتماد على عمليات أو حقول خاصة بالنموذج. العمليات مثل `audio-to-video` و `video-extension` خاصة بكل نموذج؛ تحقق من توفرها الحالي هناك بدل الاعتماد على أمثلة ثابتة في هذه الصفحة.

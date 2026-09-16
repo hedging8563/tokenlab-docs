@@ -1,243 +1,107 @@
 ---
-title: "✨ 多格式 API"
-description: "使用單一 API 金鑰同時支援 OpenAI、Anthropic 或 Gemini 格式"
+title: "API 格式"
+description: "選擇 Chat Completions、Responses、Messages 或 Gemini"
 ---
 
-## 概覽
+一把 TokenLab API Key 可用於四種 API 格式。優先保留應用程式現有的格式，並在模型頁或 `GET /v1/models/{model}` 檢查 `tokenlab.accepted_request_formats`；並非每個模型都支援四種格式。
 
-TokenLab 以一組 API 金鑰提供四個協議介面：Chat Completions、Responses、Anthropic Messages 與 Gemini 原生協議。只有模型公開該格式且存在同協議 upstream 路徑時，原生入口才可用；原生入口絕不回落 Chat Completions。只有 Chat 入口可以單向編譯至相容的目標協議。
+## Chat Completions
 
-<CardGroup cols={2}>
-  <Card title="OpenAI 格式" icon="plug">
-    `/v1/chat/completions`
-    標準格式，最高相容性
-  </Card>
-  <Card title="Responses" icon="bolt">
-    `/v1/responses`
-    原生 Responses 生命週期與事件
-  </Card>
-  <Card title="Anthropic 格式" icon="message">
-    `/v1/messages`
-    延伸思考，Claude 原生功能
-  </Card>
-  <Card title="Gemini 格式" icon="sparkles">
-    `/v1beta/models/:model:generateContent`
-    整合 Google 生態系
-  </Card>
-</CardGroup>
+`POST /v1/chat/completions` · `openai_chat_completions`
 
-## 為何使用多格式？
-
-| 優勢 | 說明 |
-|---------|-------------|
-| **協議原生 SDK** | 原生 SDK 僅適用於公開該格式的模型；Chat 仍是覆蓋最廣的可攜入口 |
-| **原生功能** | 存取格式專屬的能力 |
-| **原生優先遷移** | 行為重要時保留供應商原生路由；已有 OpenAI 風格客戶端使用 `/v1` 相容路徑 |
-| **單一計費** | 一個帳戶、一組 API 金鑰，支援所有格式 |
-
-## 格式比較
-
-| 功能 | OpenAI | Anthropic | Gemini |
-|---------|--------|-----------|--------|
-| **Endpoint** | `/v1/chat/completions` | `/v1/messages` | `/v1beta/models/:model:generateContent` |
-| **認證標頭** | `Authorization: Bearer` | `x-api-key` | `Authorization: Bearer` |
-| **System Prompt** | 位於 messages 陣列中 | 分開的 `system` 欄位 | 位於 `systemInstruction` 中 |
-| **延伸思考** | ❌ | ✅ | ❌ |
-| **串流** | ✅ SSE | ✅ SSE | ✅ SSE |
-| **工具呼叫** | ✅ | ✅ | ✅ |
-| **Vision** | ✅ | ✅ | ✅ |
-
-## OpenAI 格式
-
-這是面向已有 OpenAI SDK 整合、可移植聊天或 embeddings 的相容路由。需要 Claude 或 Gemini 原生行為時，請使用下面的 Anthropic 或 Gemini 格式。
+適合既有 OpenAI 相容聊天客戶端、訊息歷史、串流和模型支援的函式呼叫。其他格式的專用欄位不保證可用。
 
 ```python
+import os
 from openai import OpenAI
 
 client = OpenAI(
-    api_key="sk-your-tokenlab-key",
-    base_url="https://api.tokenlab.sh/v1"
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh/v1",
 )
 
-# Portable chat works across many models
 response = client.chat.completions.create(
-    model="claude-sonnet-5",  # Claude via OpenAI format
-    messages=[
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": "Hello!"}
-    ]
+    model="gpt-5.6-luna",
+    messages=[{"role": "user", "content": "Hello!"}],
 )
+
+print(response.choices[0].message.content)
 ```
 
-**適用情境：**
-- 一般用途
-- 既有 OpenAI SDK 整合
-- 最高相容性
+## Responses
 
-## Anthropic 格式
+`POST /v1/responses` · `openai_responses`
 
-Anthropic 原生 Messages API。若要使用 Claude 特有功能（例如延伸思考），需使用此格式。
+僅在模型的 `accepted_request_formats` 包含 `openai_responses` 時使用。Responses 提供建立、讀取、壓縮、刪除、串流、WebSocket 建立與延續，以及受支援模型的背景回應。刪除已儲存回應不會取消進行中的回應。
 
 ```python
+import os
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh/v1",
+)
+
+response = client.responses.create(
+    model="gpt-5.6-terra",
+    input="Explain why the sky is blue in two sentences.",
+)
+
+print(response.output_text)
+```
+
+## Anthropic Messages
+
+`POST /v1/messages` · `anthropic_messages`
+
+Anthropic SDK 的 base URL 使用 TokenLab 主機，不加 `/v1`。Claude 的工具呼叫、thinking 區塊和提示快取欄位應保留在 Messages 格式中。
+
+```python
+import os
 from anthropic import Anthropic
 
 client = Anthropic(
-    api_key="sk-your-tokenlab-key",
-    base_url="https://api.tokenlab.sh"  # No /v1 suffix!
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh",
 )
 
 message = client.messages.create(
     model="claude-sonnet-5",
-    max_tokens=1024,
-    system="You are a helpful assistant.",  # Separate system field
-    messages=[
-        {"role": "user", "content": "Hello!"}
-    ]
-)
-```
-
-### 延伸思考（Claude Opus 4.6）
-
-僅在 Anthropic 格式中提供：
-
-```python
-message = client.messages.create(
-    model="claude-opus-5",
-    max_tokens=16000,
-    thinking={
-        "type": "enabled",
-        "budget_tokens": 10000
-    },
-    messages=[{"role": "user", "content": "Solve this complex problem..."}]
+    max_tokens=512,
+    messages=[{"role": "user", "content": "Hello!"}],
 )
 
-# Access thinking process
-for block in message.content:
-    if block.type == "thinking":
-        print(f"Thinking: {block.thinking}")
-    elif block.type == "text":
-        print(f"Answer: {block.text}")
+print(message.content[0].text)
 ```
 
-**適用情境：**
-- Claude 特有功能
-- 延伸思考模式
-- 使用原生 Anthropic SDK 的用戶
+## Gemini
 
-## Gemini 格式
+`POST /v1beta/models/:model:generateContent` · `gemini_generate_content`
 
-原生 Google Gemini API 格式，便於整合 Google 生態系。
+適合既有 Gemini `contents`、parts、檔案、快取和工具。支援 ProtoJSON lowerCamelCase 與原始 snake_case 欄位名稱，但不要在同一請求中同時傳送同一欄位的兩種拼寫。
 
 ```bash
 curl "https://api.tokenlab.sh/v1beta/models/gemini-3.5-flash:generateContent" \
-  -H "Authorization: Bearer sk-your-tokenlab-key" \
+  -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "contents": [{
-      "parts": [{"text": "Hello!"}]
-    }],
-    "systemInstruction": {
-      "parts": [{"text": "You are a helpful assistant."}]
-    }
+    "contents": [{"parts": [{"text": "Hello!"}]}]
   }'
 ```
 
-### 串流
+## 保持對話格式一致
 
-```bash
-curl "https://api.tokenlab.sh/v1beta/models/gemini-3.5-flash:streamGenerateContent?alt=sse" \
-  -H "Authorization: Bearer sk-your-tokenlab-key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "contents": [{"parts": [{"text": "Write a story"}]}]
-  }'
-```
+四種格式對對話狀態和工具結果的表示不同。完整對話應使用同一格式；遷移歷史時，先在應用程式中轉換並驗證。
 
-**適用情境：**
-- Google Cloud 整合
-- 既有 Gemini SDK 程式碼
-- 原生 Gemini 功能
+## 未知欄位
 
-**Gemini Files 和 Cache：** 原生 Gemini 路徑支援 `/upload/v1beta/files`、`/v1beta/files`、`/v1beta/files:register` 和 `/v1beta/cachedContents`。Files 使用相容 Gemini File API 的上游渠道；顯式 Cache 資源也可以走 Vertex AI 渠道。透過 TokenLab 建立的資源會綁定到同一個上游渠道/key，後續 `generateContent` 會沿用該綁定。
+傳送成功或欄位被轉交不代表模型支援它。只依賴所選模型明確列出的功能，並處理不支援欄位的錯誤。
 
-## 工具相容邊界
+## 相關文件
 
-只有 Chat 入口可在目標能完整表達工具閉環時單向編譯函式工具。供應商原生工具必須保留在對應的原生路徑上：
-
-- OpenAI Responses 託管和原生工具，例如 `tool_search`、`web_search`、`file_search`、`code_interpreter`、MCP、shell/apply_patch 和 computer-use 工具，需要 `/v1/responses`。
-- Anthropic server/native 工具，例如 `web_search_*`、`web_fetch_*`、`code_execution_*`、`tool_search_*`、bash、computer-use 和 text-editor 工具，需要 `/v1/messages`。
-- Gemini 內建工具，例如 `googleSearch`、`codeExecution`、`urlContext`、`computerUse` 以及類似的 `tools` 欄位，需要 `/v1beta`。
-
-TokenLab 不會將原生協議請求降級成 Chat Completions。未知欄位與工具組合會 best-effort 透傳，由選中的 upstream 決定是否支援。
-
-## 選擇合適的格式
-
-```mermaid
-graph TD
-    A[Which format?] --> B{Need Claude extended thinking?}
-    B -->|Yes| C[Use Anthropic Format]
-    B -->|No| D{Existing codebase?}
-    D -->|OpenAI SDK| E[Use OpenAI Format]
-    D -->|Anthropic SDK| C
-    D -->|Gemini SDK| F[Use Gemini Format]
-    D -->|新專案| G{需要供應商原生行為？}
-    G -->|Yes| H[Use native Anthropic or Gemini Format]
-    G -->|No| E
-```
-
-## 遷移指南
-
-### 從 OpenAI 官方 API 遷移
-
-```python
-# Before (OpenAI)
-client = OpenAI(api_key="sk-openai-key")
-
-# After (TokenLab)
-client = OpenAI(
-    api_key="sk-tokenlab-key",
-    base_url="https://api.tokenlab.sh/v1"  # Add this line
-)
-# That's it! Same code works
-```
-
-### 從 Anthropic 官方 API 遷移
-
-```python
-# Before (Anthropic)
-client = Anthropic(api_key="sk-ant-key")
-
-# After (TokenLab)
-client = Anthropic(
-    api_key="sk-tokenlab-key",
-    base_url="https://api.tokenlab.sh"  # Add this line (no /v1!)
-)
-```
-
-### 從 Google AI Studio 遷移
-
-```python
-# Before (Google)
-import google.generativeai as genai
-genai.configure(api_key="google-api-key")
-
-# After (TokenLab) - Use REST API
-import requests
-
-response = requests.post(
-    "https://api.tokenlab.sh/v1beta/models/gemini-3.5-flash:generateContent",
-    headers={"Authorization": "Bearer sk-tokenlab-key"},
-    json={"contents": [{"parts": [{"text": "Hello"}]}]}
-)
-```
-
-
-## 可攜式 Chat 相容性
-
-當單一客戶端需要存取由不同 upstream 協議承載的模型時，請使用 `/v1/chat/completions`。可攜式 Chat 請求只有在能完整表達時，才可單向編譯成 Responses、Messages 或 Gemini。Responses、Messages 與 Gemini 原生請求絕不轉成 Chat；模型名或供應商名不代表原生協議一定可用。
-
-## Responses 與 Gemini 邊界
-
-目前 Responses 介面包含建立、壓縮、讀取、刪除與 SSE；background 僅透過 HTTP 執行。WebSocket 只接受 `response.create`，stream 為隱含行為，且不提供 `background` 或 `response.cancel`。刪除不是取消。
-
-Gemini 的 ProtoJSON lowerCamelCase 與原始 proto snake_case 名稱都是官方拼法，混合請求也會原樣保留。目前介面包含 model list/get、`generateContent`、`streamGenerateContent`、`countTokens`、`embedContent` 與 `batchEmbedContents`，不包含 Interactions 或 Live。未知欄位會 best-effort 透傳，由 upstream 決定是否支援。
+- [Chat Completions](/zh-Hant/api-reference/chat/create-completion)
+- [Responses](/zh-Hant/api-reference/responses/create-response)
+- [Messages](/zh-Hant/api-reference/messages/create-message)
+- [Gemini](/zh-Hant/api-reference/gemini/generate-content)
+- [SDK](/zh-Hant/guides/sdks)

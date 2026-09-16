@@ -10,8 +10,7 @@ TokenLab هو الأسهل في التكامل عبر مطابقة الـ SDK م
 - أدوات **Gemini / Google AI** الرسمية لأشكال الطلبات الأصلية الخاصة بـ Gemini
 - حِزم **OpenAI SDKs** الرسمية للمسارات المتوافقة مع OpenAI `/v1` واستخدام بأسلوب Responses
 
-استخدم صفحات التكامل لمعرفة حدود الدعم. في مجموعة التوثيق هذه، تعني "موصى به" أو "مدعوم" أن هناك مسار إعداد موثقًا؛ ولا يعني ذلك تلقائيًا أن كل مساعد إطار عمل أو ميزة خاصة بالمزوّد قد خضعت لاختبارات تراجعية شاملة من البداية إلى النهاية في هذا المستودع.
-
+راجع صفحة التكامل المناسبة لإعداد العميل ومعرفة حدود النموذج. ستجد طلبًا أول كاملًا في [البدء السريع](/ar/quickstart).
 ## SDKs الموصى بها
 
 <CardGroup cols={2}>
@@ -43,7 +42,7 @@ client = OpenAI(
 
 response = client.responses.create(
     model="gpt-5.6-terra",
-    input="Explain TokenLab in one sentence."
+    input="Reply with: Connected to TokenLab."
 )
 
 print(response.output_text)

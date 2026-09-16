@@ -7,7 +7,9 @@ import VideoModelContracts from "../snippets/generated/video-model-contracts.mdx
 
 Generasi video bersifat asinkron. `POST /v1/videos/generations` mengembalikan identitas tugas publik dan biasanya `poll_url`; video akhir muncul pada respons status selanjutnya.
 
-Jika model Seedance yang dipilih dapat menggunakan pustaka material TokenLab, URL gambar dan data URL inline yang didukung disiapkan sebagai material TokenLab yang dapat digunakan ulang sebelum generasi. Jika persiapan lebih dari 60 detik, coba lagi setelah `auto_material_asset_ids` yang dikembalikan menjadi `ACTIVE`. Jika model yang dipilih tidak dapat menggunakan pustaka material, input gambar biasa tetap berjalan melalui jalur gambar normal.
+Kirim URL HTTP(S) publik atau data URL yang didukung pada field gambar model pilihan. Input ini mengikuti pemrosesan media biasa dan tidak otomatis membuat ID material yang dapat digunakan kembali.
+
+Jika material yang disebutkan secara eksplisit masih dipersiapkan, `POST /v1/videos/generations` mengembalikan `409 seedance_material_preparing` beserta `inactive_asset_ids`. Periksa aset hingga `ACTIVE`, lalu ulangi dengan ID yang sama. Jika `FAILED`, periksa `error_message` dan perbaiki atau impor ulang terlebih dahulu.
 
 ## Operasi yang Didukung
 
@@ -27,20 +29,20 @@ Gunakan `operation` eksplisit dalam produksi. TokenLab dapat menyimpulkan bebera
 ## Penemuan Model
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \\
+curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 
-Gunakan ID model yang ditampilkan TokenLab di `model`, lalu pilih varian fitur melalui `operation` dan input media yang sesuai. Contoh: `wan-2.7`, `happyhorse-1.0`, `viduq3`, `viduq3-mix`, `pixverse-v6`, `kling-3.0-video`, `veo3.1`, dan `seedance-2.0`; jangan gunakan sufiks khusus operasi sebagai nama model TokenLab.
+Gunakan ID model yang ditampilkan TokenLab di `model`, lalu pilih varian fitur melalui `operation` dan input media yang sesuai. Contoh: `wan-2.7`, `happyhorse-1.0`, `viduq3`, `viduq3-mix`, `pixverse-v6`, `veo3.1`, dan `seedance-2.0`; jangan gunakan sufiks khusus operasi sebagai nama model TokenLab.
 
 Baca detail model yang dipilih sebelum bergantung pada bidang khusus seperti `reference_images`, `kling_elements`, `output_audio`, `duration`, `resolution`, atau `aspect_ratio`.
 
 ## Buat Permintaan
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/generations \\
-  -H "Authorization: Bearer sk-your-api-key" \\
-  -H "Content-Type: application/json" \\
+curl https://api.tokenlab.sh/v1/videos/generations \
+  -H "Authorization: Bearer sk-your-api-key" \
+  -H "Content-Type: application/json" \
   -d '{
     "model": "veo3.1",
     "operation": "text-to-video",
@@ -55,9 +57,8 @@ Untuk input media produksi, lebih baik gunakan URL publik `https` daripada URL i
 ## Input Dan Bidang Spesifik Model
 
 - Permintaan keluarga Veo 3 secara default mengaktifkan audio ketika `output_audio` dihilangkan. Atur secara eksplisit ketika model mendukung toggle dan UX Anda bergantung pada suara.
-- `kling_elements` digunakan untuk permintaan yang dikondisikan oleh gambar `kling-3.0-video`. Referensikan setiap elemen dalam `prompt` sebagai `@name`; jangan menggabungkannya dengan `output_audio=true`.
 - Untuk keluarga Seedance 2.0, baca [panduan model video Seedance 2.0](/id/guides/seedance-2-video) sebelum memakai output 4K, batas resolusi Fast/Mini, atau input referensi multimodal.
-- Untuk `grok-imagine-video`, video-to-video menggunakan `.mp4` `video_url` publik; batasan spesifik model seperti `duration` dan `resolution` harus berasal dari kontrak model.
+- Untuk video-to-video dengan `grok-imagine-video`, kirim `prompt` dan URL HTTPS publik `.mp4` sebagai `video_url`. Operasi ini tidak menggunakan pilihan `duration`, `resolution`, atau `aspect_ratio`.
 
 <VideoModelContracts />
 

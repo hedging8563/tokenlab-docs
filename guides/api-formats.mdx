@@ -19,10 +19,11 @@ Check `tokenlab.accepted_request_formats` on the model page or in `GET /v1/model
 Chat Completions is the easiest choice for existing OpenAI-compatible clients and portable chat features.
 
 ```python
+import os
 from openai import OpenAI
 
 client = OpenAI(
-    api_key="sk-your-tokenlab-key",
+    api_key=os.environ["TOKENLAB_API_KEY"],
     base_url="https://api.tokenlab.sh/v1",
 )
 
@@ -39,19 +40,19 @@ Use this format for:
 - existing OpenAI-compatible chat integrations
 - standard message history and streaming
 - function calling supported by the selected model
-- embeddings through `/v1/embeddings`
 
 Fields unique to another API format are not guaranteed to work here.
 
 ## Responses
 
-Use Responses only when the selected model lists `responses` in `accepted_request_formats`.
+Use Responses only when the selected model lists `openai_responses` in `accepted_request_formats`.
 
 ```python
+import os
 from openai import OpenAI
 
 client = OpenAI(
-    api_key="sk-your-tokenlab-key",
+    api_key=os.environ["TOKENLAB_API_KEY"],
     base_url="https://api.tokenlab.sh/v1",
 )
 
@@ -70,10 +71,11 @@ The Responses API supports create, retrieve, compact, delete, streaming, WebSock
 Use the Anthropic SDK with the TokenLab host, without adding `/v1` to the base URL.
 
 ```python
+import os
 from anthropic import Anthropic
 
 client = Anthropic(
-    api_key="sk-your-tokenlab-key",
+    api_key=os.environ["TOKENLAB_API_KEY"],
     base_url="https://api.tokenlab.sh",
 )
 
@@ -94,7 +96,7 @@ Gemini requests use the TokenLab host and the Gemini REST path.
 
 ```bash
 curl "https://api.tokenlab.sh/v1beta/models/gemini-3.5-flash:generateContent" \
-  -H "Authorization: Bearer sk-your-tokenlab-key" \
+  -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "contents": [{"parts": [{"text": "Hello!"}]}]

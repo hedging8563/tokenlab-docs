@@ -14,10 +14,11 @@ Create an API key in the Workspace associated with the management token. The ful
 
 | Field | Type | Default / Limits | Notes |
 |-------|------|------------------|-------|
-| `name` | string | required, default `Default Key`, length `1-50` | Display name, trimmed server-side |
-| `limitAmount` | number \| null | min `0`, max `100000` | `null` or omitted means unlimited; `0` prevents spend |
+| `name` | string | optional, default `Default Key`, length `1-50` | Display name, trimmed server-side |
+| `limitAmount` | number \| string \| null | `0–100000` USD | `null` means unlimited; `0` prevents spend. Decimal strings support up to 6 decimal places. Omitting this field when creating a key means unlimited. |
 | `limitCurrency` | enum | default `USD` | USD only. Sending `CNY` returns `400 currency_retired`. |
 | `models` | string[] | default `[]` | Optional model allowlist |
+| `deliveryPolicy` | string \| null | `auto`, `verified`, `official`, `null` | `null` inherits the Workspace delivery policy. |
 | `expiresAt` | string \| null | RFC3339 datetime | `null` means no expiry |
 
 ## Notes
@@ -67,7 +68,8 @@ This page provides the OpenAPI schema and copyable request examples. Send manage
   ],
   "expires_at": "2026-12-31T23:59:59.000Z",
   "last_used_at": null,
-  "created_at": "2026-07-08T03:00:00.000Z"
+  "created_at": "2026-07-08T03:00:00.000Z",
+  "delivery_policy": null
 }
 ```
 </ResponseExample>
@@ -78,12 +80,13 @@ This page provides the OpenAPI schema and copyable request examples. Send manage
 <ResponseField name="id" type="string">API key identifier used in follow-up Management API calls.</ResponseField>
 <ResponseField name="name" type="string">Display name for the API key.</ResponseField>
 <ResponseField name="key_prefix" type="string">Non-secret key prefix for display and support.</ResponseField>
-<ResponseField name="status" type="string">One of `active`, `inactive`, or `revoked`.</ResponseField>
+<ResponseField name="status" type="string">One of `active`, `inactive`, `suspended`, or `revoked`.</ResponseField>
 <ResponseField name="limit_amount" type="number | null">Spending cap in USD as a JSON number for display. `null` means unlimited.</ResponseField>
 <ResponseField name="limit_amount_decimal" type="string | null">Exact spending cap in USD as a decimal string. `null` means unlimited.</ResponseField>
 <ResponseField name="used_amount" type="number">Accumulated usage in USD as a JSON number for display.</ResponseField>
 <ResponseField name="used_amount_decimal" type="string">Exact accumulated usage in USD as a decimal string.</ResponseField>
 <ResponseField name="models" type="string[]">Per-key model allowlist. Empty array means no additional key-level model restriction.</ResponseField>
+<ResponseField name="delivery_policy" type="string | null">`auto`, `verified`, `official`, `null`. `null` inherits the Workspace delivery policy.</ResponseField>
 <ResponseField name="expires_at" type="string | null">ISO timestamp when the key expires, or `null` for no expiry.</ResponseField>
 <ResponseField name="last_used_at" type="string | null">ISO timestamp for the most recent use, or `null` when unused.</ResponseField>
 <ResponseField name="created_at" type="string">ISO creation timestamp.</ResponseField>

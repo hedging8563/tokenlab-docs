@@ -13,6 +13,8 @@ Le [guide officiel](https://hermes-agent.nousresearch.com/docs/getting-started/i
 
 Utilisez le dossier `HERMES_HOME` s’il est défini, sinon `~/.hermes` (Windows : `%USERPROFILE%\.hermes`). Sauvegardez `config.yaml` puis fusionnez les entrées suivantes sans remplacer les autres paramètres. Choisissez un modèle actuel prenant en charge Chat Completions et les outils.
 
+Sauvegardez la configuration active. Ajoutez uniquement l’entrée TokenLab et conservez les fournisseurs, comptes, modèle par défaut et permissions existants. Si le nom est déjà utilisé, choisissez-en un autre et adaptez les commandes. Pour annuler, retirez uniquement votre entrée ou restaurez sa sauvegarde précédente.
+
 ```yaml
 providers:
   tokenlab:
@@ -20,16 +22,17 @@ providers:
     key_env: TOKENLAB_API_KEY
     transport: chat_completions
     default_model: gpt-5.6-luna
-model:
-  provider: custom:tokenlab
-  default: gpt-5.6-luna
 ```
 
 Créez une clé dans [Clés API](https://tokenlab.sh/dashboard/api?tab=keys). Enregistrez-la localement sous `TOKENLAB_API_KEY` dans le `.env` du dossier Hermes ou dans l’environnement du processus de lancement. Ne la collez ni dans une conversation ni dans le YAML du fournisseur.
 
 ## Vérifier puis envoyer une requête
 
-Exécutez `hermes config get model.provider` et `hermes config get model.default` pour vérifier `custom:tokenlab` et le modèle choisi. Ouvrez une nouvelle session ; une session existante peut garder son ancien modèle. Cette vérification ne valide ni la clé ni un appel au modèle.
+Vérifiez le fournisseur avec `hermes config get providers.tokenlab.api` ; la valeur attendue est `https://api.tokenlab.sh/v1`. Conservez la section `model` existante. Ouvrez une nouvelle session avec le fournisseur et le modèle explicites ci-dessous ; sans ces options, votre sélection par défaut reste utilisée. Cette inspection ne valide pas la clé.
+
+```bash
+hermes chat --provider custom:tokenlab --model gpt-5.6-luna
+```
 
 Quand vous souhaitez utiliser votre solde TokenLab, envoyez un court message et vérifiez la réponse et la [requête correspondante](https://tokenlab.sh/dashboard/runs?section=requests). Essayez ensuite une tâche avec outil en lecture seule. Les modèles auxiliaires et outils facultatifs peuvent avoir leurs propres fournisseurs ou clés.
 

@@ -5,8 +5,14 @@ description: "使用 Guardrails 验证 TokenLab 模型输出"
 
 ## 概述
 
-用 TokenLab Base URL 配置 OpenAI SDK，再把 Chat Completions 方法交给 Guardrails 校验输出。
+用 TokenLab Base URL 配置 OpenAI SDK，请求 JSON，再将返回文本交给 `Guard.parse` 校验。
 
+
+## 安装
+
+```bash
+pip install guardrails-ai openai
+```
 
 ## 环境
 
@@ -36,11 +42,17 @@ client = OpenAI(
     base_url="https://api.tokenlab.sh/v1",
 )
 
-raw_output, validated_output, *rest = guard(
-    llm_api=client.chat.completions.create,
+response = client.chat.completions.create(
     model="claude-sonnet-5",
-    messages=[{"role": "user", "content": "What kind of pet should I get?"}],
+    response_format={"type": "json_object"},
+    messages=[{
+        "role": "user",
+        "content": "Suggest a pet. Return only JSON with string fields pet_type and name.",
+    }],
 )
+
+outcome = guard.parse(response.choices[0].message.content)
+print(outcome.validated_output)
 ```
 
 ## 端点说明

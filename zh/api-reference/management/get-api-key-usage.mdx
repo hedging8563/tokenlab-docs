@@ -26,7 +26,7 @@ playground: simple
 
 ## 说明
 
-- 金额字段仅支持 USD。`CNY` 输入已停用，并会返回 `400 currency_retired`。
+- 金额字段仅支持 USD。
 
 - 响应是分页的。
 - 完成结算的记录会带有 `billing_transaction_id`，可与 `request_id` 一起保存。
@@ -35,7 +35,7 @@ playground: simple
 
 <RequestExample>
 ```bash cURL
-curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page=1&limit=20&scene=video&startDate=2026-03-01&endDate=2026-03-31" \
+curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page=1&limit=20&scene=chat&startDate=2026-07-01&endDate=2026-07-31" \
   -H "Authorization: Bearer mt-your-management-token"
 ```
 </RequestExample>
@@ -60,7 +60,8 @@ curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page
     ],
     "expires_at": "2026-12-31T23:59:59.000Z",
     "last_used_at": "2026-07-08T03:12:45.000Z",
-    "created_at": "2026-07-01T10:00:00.000Z"
+    "created_at": "2026-07-01T10:00:00.000Z",
+    "delivery_policy": null
   },
   "items": [
     {
@@ -82,7 +83,10 @@ curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page
       "cache_write_tokens_1h": 0,
       "cost": 0.0012,
       "cost_decimal": "0.0012",
-      "created_at": "2026-07-08T03:15:00.000Z"
+      "created_at": "2026-07-08T03:15:00.000Z",
+      "requested_policy": null,
+      "resolved_tier": null,
+      "charged_price_basis": null
     }
   ],
   "pagination": {
@@ -182,6 +186,9 @@ curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page
 <ResponseField name="items[].cache_write_tokens_1h" type="number">1 小时缓存写入 token 数。</ResponseField>
 <ResponseField name="items[].cost" type="number">以 JSON 数字返回的 USD 费用，用于展示。</ResponseField>
 <ResponseField name="items[].cost_decimal" type="string">以十进制字符串返回的 USD 精确费用。</ResponseField>
+<ResponseField name="items[].requested_policy" type="string | null">`auto`, `verified`, `official`, `null`. 请求的交付策略；未记录时为 `null`。</ResponseField>
+<ResponseField name="items[].resolved_tier" type="string | null">`verified`, `official`, `null`. 实际使用的交付档位；未记录时为 `null`。</ResponseField>
+<ResponseField name="items[].charged_price_basis" type="object | null">实际采用的价格和计费用量；未记录时为 `null`。</ResponseField>
 <ResponseField name="items[].created_at" type="string">用量明细的 ISO 时间戳。</ResponseField>
 <ResponseField name="summary.total_requests" type="number">请求总数。</ResponseField>
 <ResponseField name="summary.total_cost" type="number">以 JSON 数字返回的 USD 总费用，用于展示。</ResponseField>

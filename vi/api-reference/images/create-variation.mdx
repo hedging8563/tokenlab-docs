@@ -13,7 +13,7 @@ Endpoint này được giữ lại cho client tạo biến thể legacy tương 
 **Timeout cho yêu cầu đồng bộ:** một số nhà cung cấp hình ảnh được định tuyến sẽ trả ảnh cuối cùng inline và chờ quá trình tạo hoàn tất. Yêu cầu độ phân giải cao hoặc chất lượng cao có thể mất gần một phút hoặc lâu hơn, vì vậy hãy đặt timeout của HTTP client ít nhất là `120s`. Nếu phản hồi tạo có `status: "pending"`, `task_id`, hoặc `poll_url`, hãy theo `poll_url` được trả về để polling.
 
 <ParamField body="image" type="file" required>
-  Hình ảnh dùng làm cơ sở cho biến thể. Phải là file PNG hợp lệ, nhỏ hơn 50MB và có tỷ lệ vuông.
+  Ảnh nguồn multipart. File và toàn bộ nội dung yêu cầu đều không được vượt quá 50 MiB. Định dạng và kích thước phụ thuộc vào model; chi tiết model hiện tại phải liệt kê rõ `/v1/images/variations`.
 </ParamField>
 
 <ParamField body="model" type="string" required>
@@ -21,14 +21,14 @@ Endpoint này được giữ lại cho client tạo biến thể legacy tương 
 </ParamField>
 
 <ParamField body="n" type="integer" default="1">
-  Số lượng hình ảnh cần tạo. Phải từ 1 đến 10.
+  Số lượng hình ảnh cần tạo (1-10, tùy theo model).
 </ParamField>
 
 <ParamField body="size" type="string">
   Kích thước ảnh được tạo cho các route legacy tương thích biến thể. Giá trị hỗ trợ phụ thuộc vào model đã chọn.
 </ParamField>
 
-<ParamField body="response_format" type="string" default="url">
+<ParamField body="response_format" type="string">
   Định dạng trả về của hình ảnh được tạo. Phải là `url` hoặc `b64_json`.
 </ParamField>
 

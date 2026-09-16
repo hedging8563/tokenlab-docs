@@ -19,13 +19,15 @@ Flowise 빌드에 **TokenLab** 채팅 모델 노드가 포함되어 있는 경�
 
 ## OpenAI 호환 대체 방법
 
-TokenLab 노드를 아직 사용할 수 없는 경우, 다음 설정을 사용하여 OpenAI 호환 채팅 모델 노드를 사용하십시오.
+사용 중인 빌드에 TokenLab 노드가 없다면 **Chat Models** → **OpenAI Custom Model**을 추가합니다. **Connect Credential**에서 TokenLab 키로 **OpenAI API** 자격 증명을 만듭니다. **Model Name**과 **Additional Parameters** → **Base Path**를 다음과 같이 설정합니다.
 
 | 필드 | 값 |
 |-------|-------|
-| Base URL | `https://api.tokenlab.sh/v1` |
+| Base Path | `https://api.tokenlab.sh/v1` |
 | API Key | `sk-your-tokenlab-key` |
-| Model | `gpt-5.4-mini` |
+| Model Name | `gpt-5.4-mini` |
+
+노드를 체인, 에이전트 또는 워크플로에 연결하고 테스트 프롬프트를 보냅니다.
 
 ## 권장 모델
 

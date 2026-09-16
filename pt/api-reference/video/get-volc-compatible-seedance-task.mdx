@@ -9,10 +9,10 @@ description: "Obtenha uma tarefa de compatibilidade Seedance pelo seu ID de tare
 Use o ID `cgt-...` retornado pela criação. Faça polling a cada poucos segundos enquanto a tarefa estiver como `queued` ou `running`. Pare quando a tarefa estiver como `succeeded`, `failed`, `cancelled` ou `expired`.
 
 <Warning>
-Não reutilize o enum de tarefa unificado v1 ou a struct de resposta aqui. `/v1/tasks/{id}` usa `pending`, `processing`, `completed` e `failed`; este endpoint v3 usa o enum oficial acima. No objeto JSON v3, `duration` é uma string quando presente e `error` é omitido a menos que a tarefa tenha falhado. Um cliente Go rigoroso deve declarar `Duration` como `string` com a tag JSON `duration,omitempty` e parar em cada status terminal da v3.
+Não reutilize o enum de tarefa unificado v1 ou a struct de resposta aqui. `/v1/tasks/{id}` usa `pending`, `processing`, `completed` e `failed`; este endpoint v3 usa o enum oficial acima. No objeto JSON v3, `duration` é uma string quando presente e `error` é opcional e contém os detalhes de erro disponíveis. Um cliente Go rigoroso deve declarar `Duration` como `string` com a tag JSON `duration,omitempty` e parar em cada status terminal da v3.
 </Warning>
 
-Veja também [Modelos de Vídeo Seedance 2.0](/guides/seedance-2-video) e [Geração de Vídeo](/guides/video-generation).
+Veja também [Modelos de Vídeo Seedance 2.0](/pt/guides/seedance-2-video) e [Geração de Vídeo](/pt/guides/video-generation).
 
 ## Valores de Status
 
@@ -32,7 +32,7 @@ Veja também [Modelos de Vídeo Seedance 2.0](/guides/seedance-2-video) e [Gera�
 - `content.last_frame_url`: presente apenas quando solicitado e disponível.
 - `usage`: uso de tokens quando disponível.
 - `created_at` e `updated_at`: timestamps da tarefa.
-- `error`: presente apenas quando a tarefa falhou; omitido para tarefas que não falharam.
+- `error`: Detalhes de erro opcionais, quando disponíveis. Consulte `error.code` e `error.message`; não deduza a presença do campo apenas pelo `status`.
 
 A resposta nunca adiciona campos do TokenLab como `progress`, `return_last_frame`, `watermark`, `priority` ou `camera_fixed`.
 

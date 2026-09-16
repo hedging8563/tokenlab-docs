@@ -8,13 +8,26 @@ description: "Use TokenLab through Prompt flow OpenAI connections"
 Prompt flow's OpenAI connection supports a custom `base_url`. Set it to TokenLab's `/v1` endpoint and use TokenLab model IDs in your flow.
 
 
-## Create A Connection
+## Installation
 
 ```bash
-pf connection create \
-  --file ./my_chatbot/openai.yaml \
-  --set api_key=sk-your-tokenlab-key base_url=https://api.tokenlab.sh/v1 \
-  --name open_ai_connection
+pip install promptflow promptflow-tools
+```
+
+## Create A Connection
+
+Save the connection below as `openai.yaml`. The command prompts for the API key locally. In an OpenAI flow node, put the TokenLab model ID in `inputs.model`; `deployment_name` is for Azure OpenAI.
+
+```yaml
+$schema: https://azuremlschemas.azureedge.net/promptflow/latest/OpenAIConnection.schema.json
+name: open_ai_connection
+type: open_ai
+base_url: https://api.tokenlab.sh/v1
+api_key: "<user-input>"
+```
+
+```bash
+pf connection create --file openai.yaml
 ```
 
 ## Flow Notes
@@ -22,11 +35,18 @@ pf connection create \
 In your `flow.dag.yaml`, keep the connection name aligned with the command above:
 
 ```yaml
-connection: open_ai_connection
-deployment_name: claude-sonnet-5
+nodes:
+  - name: chat
+    type: llm
+    source:
+      type: code
+      path: chat.jinja2
+    inputs:
+      model: claude-sonnet-5
+    api: chat
+    connection: open_ai_connection
 ```
 
-Some Prompt flow templates call this value `deployment_name` because the same templates also support Azure OpenAI deployments. With TokenLab, use the TokenLab model ID.
 
 ## Endpoint Notes
 

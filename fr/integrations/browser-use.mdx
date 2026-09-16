@@ -25,6 +25,8 @@ llm = ChatOpenAILike(
     model="claude-sonnet-5",
     api_key=os.environ["TOKENLAB_API_KEY"],
     base_url="https://api.tokenlab.sh/v1",
+    add_schema_to_system_prompt=True,
+    dont_force_structured_output=True,
 )
 
 agent = Agent(

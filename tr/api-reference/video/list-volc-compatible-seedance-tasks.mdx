@@ -6,17 +6,29 @@ description: "Geçerli organizasyondaki son Seedance uyumlu görevleri listeler.
 
 ## Genel bakış
 
-Bu endpoint’ler, Volc tarzı Seedance görev şeklini zaten kullanan ekipler içindir. Kimlik doğrulama TokenLab Bearer API key ile yapılır. Dönen görev ID’si `cgt-` ile başlar; `status` `succeeded`, `failed`, `cancelled` veya `expired` olana kadar durumu sorgulayın.
+TokenLab Bearer API anahtarıyla kimliği doğrulanan Workspace’in son uyumlu görevlerini listeleyin. `filter.task_ids` olmadan son yedi gün sorgulanır; kesin ID’ler verilirse ilgili görevler doğrudan sorgulanır.
 
 Ayrıca bkz. [Seedance 2.0 Video Modelleri](/tr/guides/seedance-2-video) ve [Video Oluşturma](/tr/guides/video-generation).
 
 ## Yanıt şekli
 
-Liste yanıtı `items` ve `total` döndürür. Desteklenen filtreler `filter.status`, `filter.task_ids`, `filter.model` ve `filter.service_tier`; sayfalama için `page_num` ve `page_size` kullanılır.
+- `page_num`: varsayılan `1`, `1`–`500` arasında tam sayı.
+- `page_size`: varsayılan `20`, `1`–`500` arasında tam sayı.
+- `filter.status`: `queued`, `running`, `succeeded`, `failed`, `cancelled`, `expired`.
+- `filter.task_ids`: Birden fazla kesin görev ID’si için parametreyi tekrarlayın. Virgülle birleştirmeyin.
+- `filter.model`: Model tanımlayıcısı.
+- `filter.service_tier`: `default`, `flex`.
+
+Yanıt, filtrelenmiş sonuçlar için `items` ve `total` içerir. Her öğe görev alma yanıtıyla aynı yapıdadır. Bilinen bir görevin durumunu yenilemek için görev alma endpoint’ini kullanın.
 
 ## Örnek
 
 ```bash
 curl "https://api.tokenlab.sh/api/v3/contents/generations/tasks?page_num=1&page_size=20&filter.status=succeeded" \
+  -H "Authorization: Bearer $TOKENLAB_API_KEY"
+```
+
+```bash
+curl "https://api.tokenlab.sh/api/v3/contents/generations/tasks?filter.task_ids=cgt-20260102030405-a1b2c" \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```

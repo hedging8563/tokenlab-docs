@@ -18,20 +18,39 @@ description: "Kết nối GitHub Copilot CLI với TokenLab bằng BYOK"
 ## Cài đặt và cấu hình
 
 ```bash
-npm install -g @github/copilot
+npm install -g @github/copilot@1.0.85
 copilot --version
 ```
 
-Cài đặt qua npm yêu cầu Node.js 22 trở lên. GitHub hiện yêu cầu gói Copilot đang hoạt động; tài khoản do tổ chức quản lý cũng cần bật chính sách Copilot CLI.
+Cài đặt qua npm yêu cầu Node.js 22 trở lên.
 
-```bash
-export COPILOT_PROVIDER_TYPE="openai"
-export COPILOT_PROVIDER_BASE_URL="https://api.tokenlab.sh/v1"
-export COPILOT_PROVIDER_API_KEY="sk-your-tokenlab-key"
-export COPILOT_MODEL="kimi-k3"
+Làm theo bước terminal trong [bắt đầu nhanh](/vi/quickstart) cho macOS, Linux, WSL hoặc Windows PowerShell để đặt `TOKENLAB_API_KEY` mà không ghi khóa vào lịch sử lệnh. Mở Copilot CLI từ terminal đó. Khi dùng lâu dài, hãy dùng trình quản lý bí mật cục bộ, không thêm khóa dạng văn bản vào hồ sơ shell.
 
-copilot
+Các biến này chỉ áp dụng cho lần khởi chạy này; tài khoản, mô hình mặc định và quyền đã lưu vẫn giữ nguyên. Khởi chạy bình thường không kèm các biến để dùng cấu hình trước đó. Không lưu chúng vào hồ sơ shell.
+
+<CodeGroup>
+```bash macOS / Linux / WSL
+COPILOT_PROVIDER_TYPE=openai COPILOT_PROVIDER_BASE_URL=https://api.tokenlab.sh/v1 COPILOT_PROVIDER_API_KEY="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" copilot --model kimi-k3
 ```
+
+```powershell Windows PowerShell
+if (-not $env:TOKENLAB_API_KEY) { throw 'Set TOKENLAB_API_KEY first' }
+$previous = @{}
+$previous['COPILOT_PROVIDER_TYPE'] = [Environment]::GetEnvironmentVariable('COPILOT_PROVIDER_TYPE', 'Process')
+$previous['COPILOT_PROVIDER_BASE_URL'] = [Environment]::GetEnvironmentVariable('COPILOT_PROVIDER_BASE_URL', 'Process')
+$previous['COPILOT_PROVIDER_API_KEY'] = [Environment]::GetEnvironmentVariable('COPILOT_PROVIDER_API_KEY', 'Process')
+try {
+  $env:COPILOT_PROVIDER_TYPE = 'openai'
+  $env:COPILOT_PROVIDER_BASE_URL = 'https://api.tokenlab.sh/v1'
+  $env:COPILOT_PROVIDER_API_KEY = $env:TOKENLAB_API_KEY
+  copilot --model kimi-k3
+} finally {
+  foreach ($name in $previous.Keys) {
+    [Environment]::SetEnvironmentVariable($name, $previous[$name], 'Process')
+  }
+}
+```
+</CodeGroup>
 
 Mô hình phải hỗ trợ streaming và gọi công cụ. `kimi-k3` hỗ trợ công cụ và có ngữ cảnh lớn hơn mức 128K GitHub khuyến nghị.
 
@@ -40,3 +59,5 @@ Hãy bắt đầu bằng tác vụ chỉ đọc, không sửa tệp. Nếu khôn
 <Warning>
 Không lưu API Key trong tệp được Git theo dõi. Hãy xoay mọi Key đã xuất hiện trong lịch sử terminal, ảnh chụp hoặc log.
 </Warning>
+
+Lưu thiết lập hoặc liệt kê mô hình không xác nhận khóa hợp lệ hay yêu cầu đã hoàn tất. Prompt dùng số dư TokenLab. Kiểm tra phản hồi và [bản ghi tương ứng](https://tokenlab.sh/dashboard/runs?section=requests) trước khi thử công cụ; yêu cầu phụ cũng có thể được tính phí.

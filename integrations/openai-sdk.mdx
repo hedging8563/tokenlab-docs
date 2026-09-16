@@ -83,7 +83,7 @@ func main() {
 ```python Python
 response = client.chat.completions.create(
     model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": "Explain what TokenLab does in one sentence."}]
+    messages=[{"role": "user", "content": "Reply with: Connected to TokenLab."}]
 )
 
 print(response.choices[0].message.content)
@@ -92,7 +92,7 @@ print(response.choices[0].message.content)
 ```javascript JavaScript
 const response = await client.chat.completions.create({
   model: 'gpt-5.6-terra',
-  messages: [{ role: 'user', content: 'Explain what TokenLab does in one sentence.' }],
+  messages: [{ role: 'user', content: 'Reply with: Connected to TokenLab.' }],
 });
 
 console.log(response.choices[0].message.content);
@@ -105,7 +105,7 @@ curl https://api.tokenlab.sh/v1/chat/completions \
   -d '{
     "model": "gpt-5.6-terra",
     "messages": [
-      {"role": "user", "content": "Explain what TokenLab does in one sentence."}
+      {"role": "user", "content": "Reply with: Connected to TokenLab."}
     ]
   }'
 ```

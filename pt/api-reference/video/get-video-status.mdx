@@ -13,10 +13,14 @@ description: "Recupera o status e o resultado de uma tarefa de geração de víd
 <Info>
 Se uma resposta de criação retornar `poll_url`, chame exatamente essa URL. Quando ela apontar para `/v1/tasks/{id}`, trate isso como o endpoint canônico e fixo de status.
 
-Se a tarefa não existir mais ou não estiver mais disponível no registro público da tarefa, o TokenLab retorna `async_task_not_found` com a mensagem `Task not found or no longer available.`
+Uma tarefa pública expirada ou indisponível pode retornar `404 async_task_not_found`. Se não for possível confirmar a titularidade para a chave API atual, a resposta será `403 task_not_owned`.
 </Info>
 
 ## Resposta
+
+<Note>
+Campos de resultado, erro, timestamps e modelo são retornados quando disponíveis para a tarefa.
+</Note>
 
 <ResponseField name="id" type="string">
   Identificador canônico da tarefa assíncrona.
@@ -54,7 +58,7 @@ Se a tarefa não existir mais ou não estiver mais disponível no registro públ
   Múltiplos objetos de vídeo quando a tarefa de geração retornar mais de uma saída.
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="error" type="string | object">
   Mensagem de erro (em caso de falha).
 </ResponseField>
 
@@ -88,6 +92,7 @@ while True:
         headers={"Authorization": "Bearer sk-your-api-key"}
     )
 
+    response.raise_for_status()
     data = response.json()
     print(f"Status: {data['status']}")
 
@@ -111,6 +116,7 @@ async function pollForVideo() {
       { headers: { 'Authorization': 'Bearer sk-your-api-key' } }
     );
 
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${await response.text()}`);
     const data = await response.json();
     console.log(`Status: ${data.status}`);
 
@@ -145,7 +151,9 @@ func main() {
         req.Header.Set("Authorization", "Bearer sk-your-api-key")
 
         client := &http.Client{}
-        resp, _ := client.Do(req)
+        resp, err := client.Do(req)
+        if err != nil { panic(err) }
+        if resp.StatusCode >= 400 { panic(fmt.Sprintf("HTTP %d", resp.StatusCode)) }
 
         var result map[string]interface{}
         json.NewDecoder(resp.Body).Decode(&result)
@@ -181,7 +189,11 @@ while (true) {
     ]);
 
     $response = curl_exec($ch);
+    $httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
+    if ($response === false || $httpStatus >= 400) {
+        throw new RuntimeException("HTTP request failed: {$httpStatus}");
+    }
 
     $data = json_decode($response, true);
     echo "Status: {$data['status']}\n";
@@ -260,6 +272,7 @@ while (true) {
 - Trate o status `failed` de forma adequada
 
 ```python
+import requests
 import time
 
 def wait_for_video(task_id, max_wait=600, interval=5):
@@ -271,6 +284,7 @@ def wait_for_video(task_id, max_wait=600, interval=5):
             f"https://api.tokenlab.sh/v1/tasks/{task_id}",
             headers={"Authorization": "Bearer sk-your-api-key"}
         )
+        response.raise_for_status()
         data = response.json()
 
         if data["status"] == "completed":

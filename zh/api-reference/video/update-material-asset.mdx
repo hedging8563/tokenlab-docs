@@ -6,6 +6,8 @@ description: "更新当前工作区的 Seedance 素材。"
 
 可修改素材名称或元数据。需要更换文件或素材类型时，请创建新素材。
 
+`project_name` 用于同一组织内的资源隔离，默认为 `default`。相关素材组和素材须使用相同且区分大小写的值；POST/PUT 在 JSON 请求体中传入，GET/DELETE 在查询参数中传入。
+
 ## 请求示例
 
 ```bash
@@ -13,7 +15,7 @@ curl https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr \
   -X PUT \
   -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"asset_name":"Front view approved","metadata":{"approved_by":"creative-team"}}'
+  -d '{"asset_name":"Front view approved","metadata":{"approved_by":"creative-team"},"project_name":"default"}'
 ```
 
 ## 响应示例
@@ -22,14 +24,15 @@ curl https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr \
 {
   "id": "asset-20260720123456-qn7wr",
   "object": "seedance.material_asset",
+  "project_name": "default",
   "group_id": "group-20260720123456-vrt01",
   "library_type": "aigc_avatar",
   "asset_name": "Front view approved",
   "asset_type": "Image",
-  "status": "PROCESSING",
-  "ready": false,
+  "status": "ACTIVE",
+  "ready": true,
   "error_message": null,
-  "metadata": null,
+  "metadata": {"approved_by": "creative-team"},
   "created_at": 1782998400000
 }
 ```

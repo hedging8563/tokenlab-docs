@@ -27,13 +27,15 @@ Wenn Ihr Flowise-Build einen **TokenLab**-Chatmodell-Knoten enthält:
 
 ## OpenAI-kompatibler Fallback
 
-Wenn der TokenLab-Knoten noch nicht verfügbar ist, verwenden Sie einen OpenAI-kompatiblen Chatmodell-Knoten mit folgenden Einstellungen:
+Wenn Ihr Build keinen TokenLab-Knoten enthält, fügen Sie **Chat Models** → **OpenAI Custom Model** hinzu. Erstellen Sie unter **Connect Credential** einen **OpenAI API**-Zugang mit Ihrem TokenLab-Schlüssel. Setzen Sie **Model Name** und **Additional Parameters** → **Base Path** wie folgt:
 
 | Feld | Wert |
 |-------|-------|
-| Base URL | `https://api.tokenlab.sh/v1` |
+| Base Path | `https://api.tokenlab.sh/v1` |
 | API Key | `sk-your-tokenlab-key` |
-| Model | `gpt-5.4-mini` |
+| Model Name | `gpt-5.4-mini` |
+
+Verbinden Sie den Knoten mit Ihrer Chain, Ihrem Agenten oder Workflow und senden Sie einen Test-Prompt.
 
 ## Empfohlene Modelle
 

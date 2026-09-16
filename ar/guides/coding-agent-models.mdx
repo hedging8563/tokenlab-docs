@@ -1,152 +1,20 @@
 ---
 title: "اختيار نماذج Coding Agent"
-description: "اختر النموذج المناسب لكل مهمة برمجية — جدول مقارنة، توصيات، وإعداد"
+description: "اختر النماذج وفق المهمة والسياق المطلوب والسرعة والتكلفة الفعلية."
 ---
 
-## مقارنة النماذج للبرمجة
+اختر النماذج وفق المهمة والسياق المطلوب والسرعة والتكلفة الفعلية.
 
-| النموذج | السرعة | جودة الكود | التكلفة | نافذة السياق | الأفضل لـ |
-|---------|--------|-----------|---------|--------------|-----------|
-| `claude-opus-4-6` | متوسط | ممتاز | $$$$ | 200K | المعمارية، إعادة الهيكلة المعقدة |
-| `gpt-5.4` | متوسط | ممتاز | $$$$ | 200K | الاستدلال المعقد، التخطيط |
-| `claude-sonnet-4-6` | سريع | جيد جدًا | $$$ | 200K | البرمجة العامة، المراجعات |
-| `gemini-3.1-pro-preview` | سريع | جيد جدًا | $$$ | 1M | تحليل قواعد الكود الكبيرة |
-| `gpt-5-mini` | سريع جدًا | جيد | $$ | 128K | التعديلات السريعة، الإكمال |
-| `gemini-3.5-flash` | سريع جدًا | جيد | $$ | 1M | التكرار السريع، البحث |
-| `deepseek-v4-pro` | متوسط | جيد جدًا | $ | 1M | المهام الثقيلة استدلاليًا |
-| `deepseek-v4-flash` | سريع | جيد | $ | 1M | التوليد الكمي، الكود النمطي |
+راجع المعرّفات والأسعار وحدود السياق و`tokenlab.accepted_request_formats` في [صفحة النماذج](https://tokenlab.sh/ar/models). لا يثبت اسم النموذج وحده دعمه لبروتوكول أو أدوات معينة.
 
+قارن النماذج على الحالة نفسها للمستودع وبالتعليمات والأدوات نفسها. قيّم صحة النتيجة والتراجعات والتغييرات غير الضرورية والوقت والتكلفة لكل مهمة مكتملة. قد يكفي سياق أصغر لتعديل بسيط مقارنة بإعادة هيكلة واسعة.
 
-للنماذج الأحدث الموجهة إلى البرمجة، ضع في الاعتبار أيضًا `minimax-m3` لعمل الوكلاء ذي السياق الطويل، و`kimi-k2.7-code-highspeed` لدورات البرمجة السريعة، و`deepseek-v4-pro` / `deepseek-v4-flash` و`glm-5.2` و`step-3.7-flash` و`mimo-v2.5-pro` لطلبات OpenAI Chat المتوافقة.
+اختر النموذج صراحة في العميل. اطلب تأكيدًا قبل تغييره لأن السعر والأدوات والمخرجات قد تختلف. اتبع دليل العميل مع الحفاظ على الحسابات والصلاحيات الموجودة.
 
-## توصيات حسب المهمة
+## الإعداد والأدلة ذات الصلة
 
-<AccordionGroup>
-  <Accordion title="توليد الكود / السقالات">
-    **الموصى به**: `claude-sonnet-4-6`، `gemini-3.1-pro-preview`
-
-    هذه النماذج تنتج كودًا نظيفًا وجيد البنية مع اصطلاحات تسمية جيدة. للسقالات المعقدة متعددة الملفات، فكر في `claude-opus-4-6`.
-
-    البديل الاقتصادي: `deepseek-v4-flash` يتعامل مع الكود النمطي بشكل جيد بجزء من التكلفة.
-  </Accordion>
-
-  <Accordion title="مراجعة الكود / إعادة الهيكلة">
-    **الموصى به**: `claude-sonnet-4-6`، `deepseek-v4-pro`
-
-    مراجعة الكود تستفيد من قدرة الاستدلال. `deepseek-v4-pro` فعّال من حيث التكلفة هنا — نهجه في التفكير المتسلسل يكتشف المشكلات الدقيقة.
-
-    للمراجعات المركزة على الأمان: `claude-opus-4-6` أو `gpt-5.4`.
-  </Accordion>
-
-  <Accordion title="إصلاح الأخطاء / التصحيح">
-    **الموصى به**: `claude-sonnet-4-6`، `gpt-5-mini`
-
-    إصلاح الأخطاء عادةً محدد النطاق — تعرف ما هو المعطوب. النماذج القياسية تتعامل مع هذا بشكل جيد. استخدم النماذج المتميزة فقط للأخطاء المعقدة متعددة الملفات.
-  </Accordion>
-
-  <Accordion title="تصميم المعمارية">
-    **الموصى به**: `claude-opus-4-6`، `gpt-5.4`
-
-    قرارات المعمارية تستفيد من أقوى استدلال. يستحق التكلفة المتميزة لأن هذه القرارات نادرة لكن عالية التأثير.
-  </Accordion>
-
-  <Accordion title="التعديلات السريعة / الإكمال التلقائي">
-    **الموصى به**: `gpt-5-mini`، `gemini-3.5-flash`
-
-    السرعة حاسمة للاستخدام التفاعلي. النماذج الاقتصادية ذات أوقات الاستجابة السريعة توفر أفضل تجربة. لا تهدر tokens متميزة على الإكمال التلقائي.
-  </Accordion>
-</AccordionGroup>
-
-## اختيار المزوّد في TokenLab
-
-تختار TokenLab تلقائيًا مزودًا متاحًا للنموذج المطلوب.
-
-### استراتيجيات الاختيار
-
-| الاستراتيجية | السلوك | الأفضل لـ |
-|-------------|--------|-----------|
-| **PRIORITY** | استخدام المزود المتاح الأعلى أولوية | التركيز على الموثوقية |
-| **COST** | استخدام المزود المتاح الأقل تكلفة | التركيز على التكلفة |
-
-يمكنك تعيين استراتيجيتك المفضلة في لوحة التحكم.
-
-### إعادة المحاولة تلقائيًا
-
-إذا كان مزود غير متاح أو أعاد خطأ، تُعيد TokenLab المحاولة تلقائيًا مع مزود آخر متاح:
-
-```
-طلب: claude-sonnet-4-6
-  → المزود A (أساسي): خطأ 503
-  → المزود B (إعادة المحاولة): ✓ نجاح
-```
-
-يحدث هذا بشفافية — Coding Agent الخاص بك يرى استجابة طبيعية.
-
-### تنسيقات API الأصلية
-
-عندما يدعم النموذج المحدد تنسيق API أصليًا، يمكن لـ TokenLab استخدام ذلك التنسيق لتحقيق توافق أفضل:
-
-| عائلة النموذج | تنسيق API | عنوان URL الأساسي |
-|-------------|------------|----------|
-| Claude | Anthropic Messages | `https://api.tokenlab.sh` |
-| GPT | استجابات OpenAI | `https://api.tokenlab.sh/v1` |
-| Gemini | واجهة Gemini الأصلية للـ API | `https://api.tokenlab.sh` أو `https://api.tokenlab.sh/v1beta` بحسب مسار العميل |
-| DeepSeek | دردشة OpenAI | `https://api.tokenlab.sh/v1` |
-
-يمثل Claude Code مسارًا قويًا من نوع Anthropic-native. توجد أيضًا واجهات Gemini-native، لكن Gemini CLI نفسه ما يزال مسار توافق best-effort ولا ينبغي اعتباره سير عمل مستقرًا على المدى الطويل.
-
-## الإعداد لكل أداة
-
-<AccordionGroup>
-  <Accordion title="Claude Code">
-    ```bash
-    export ANTHROPIC_API_KEY="sk-your-tokenlab-key"
-    export ANTHROPIC_BASE_URL="https://api.tokenlab.sh"
-    ```
-
-    اختيار النموذج: `claude --model claude-sonnet-4-6`
-
-    [الدليل الكامل ←](/integrations/claude-code)
-  </Accordion>
-
-  <Accordion title="Cursor">
-    في Settings → Models:
-    - API Key: `sk-your-tokenlab-key`
-    - Base URL: `https://api.tokenlab.sh/v1`
-    - Model: `claude-sonnet-4-6` أو `gpt-5-mini`
-
-    [الدليل الكامل ←](/integrations/cursor)
-  </Accordion>
-
-  <Accordion title="Codex CLI">
-    ```bash
-    export OPENAI_API_KEY="sk-your-tokenlab-key"
-    export OPENAI_BASE_URL="https://api.tokenlab.sh/v1"
-    ```
-
-    [الدليل الكامل ←](/integrations/codex-cli)
-  </Accordion>
-
-  <Accordion title="Gemini CLI">
-    ```bash
-    export GEMINI_API_KEY="sk-your-tokenlab-key"
-    export GOOGLE_GEMINI_BASE_URL="https://api.tokenlab.sh"
-    ```
-
-    اعتبر هذا المسار توافقًا من نوع best-effort، وليس تكاملاً رسميًا مع Gemini CLI.
-
-    [الدليل الكامل ←](/integrations/gemini-cli)
-  </Accordion>
-
-  <Accordion title="OpenCode">
-    ```json
-    {
-      "provider": "openai",
-      "apiKey": "sk-your-tokenlab-key",
-      "baseURL": "https://api.tokenlab.sh/v1"
-    }
-    ```
-
-    [الدليل الكامل ←](/integrations/opencode)
-  </Accordion>
-</AccordionGroup>
+- [Claude Code](/ar/integrations/claude-code)
+- [Codex CLI](/ar/integrations/codex-cli)
+- [Cursor](/ar/integrations/cursor)
+- [OpenCode](/ar/integrations/opencode)
+- [ضبط التكاليف اعتمادًا على بيانات الاستخدام الفعلية](/ar/guides/coding-agent-cost)

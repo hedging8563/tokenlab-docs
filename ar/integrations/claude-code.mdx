@@ -34,7 +34,7 @@ irm https://claude.ai/install.ps1 | iex
 إذا كنت تحتاج تحديدًا إلى حزمة npm، فاستخدم:
 
 ```bash
-npm install -g @anthropic-ai/claude-code
+npm install -g @anthropic-ai/claude-code@2.1.263
 ```
 
 <Warning>
@@ -43,35 +43,39 @@ npm install -g @anthropic-ai/claude-code
 
 ## التهيئة
 
-### متغيرات البيئة
+اتبع خطوات الطرفية في [البدء السريع](/ar/quickstart) لنظام macOS أو Linux أو WSL أو Windows PowerShell لتعيين `TOKENLAB_API_KEY` دون كتابة المفتاح في سجل الأوامر. شغّل Claude Code من الطرفية نفسها. للاستخدام الدائم، استخدم مدير أسرار محليًا ولا تُضف المفتاح كنص صريح إلى ملف إعدادات الصدفة.
 
-عيّن متغيرات البيئة التالية:
+تسري هذه المتغيرات على هذا التشغيل فقط؛ تبقى إعدادات الحساب والنموذج الافتراضي والأذونات المحفوظة. شغّل بشكل عادي دون هذه المتغيرات لاستخدام الإعداد السابق. لا تحفظها في ملف إعداد الصدفة.
 
-```bash
-export ANTHROPIC_API_KEY="sk-your-tokenlab-key"
-export ANTHROPIC_BASE_URL="https://api.tokenlab.sh"
+يستخدم هذا المسار Claude Code **2.1.263** ومصادقة Bearer عبر `ANTHROPIC_AUTH_TOKEN`. اترك Base URL دون `/v1`. قد تؤثر قيم `env` المحفوظة ومساعدات الاعتماد وخيارات مزوّد السحابة والسياسات المُدارة في المصادقة؛ افحصها قبل التشغيل. عند التعارض، استخدم المساعد أدناه بدل حذف بيانات الحساب أو تخفيف السياسات. تحقق من النموذج والأذونات عبر `/status`.
+
+<CodeGroup>
+```bash macOS / Linux / WSL
+ANTHROPIC_BASE_URL=https://api.tokenlab.sh ANTHROPIC_AUTH_TOKEN="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" ANTHROPIC_API_KEY= claude --model claude-sonnet-4-6
 ```
 
-أضف هذه المتغيرات إلى ملف إعدادات shell الخاص بك (`~/.bashrc` و`~/.zshrc` وما إلى ذلك) لضمان الاستمرارية.
-
-<Note>
-بالنسبة إلى TokenLab، أبقِ `ANTHROPIC_BASE_URL` على `https://api.tokenlab.sh` دون اللاحقة `/v1`. يتوافق هذا مع بنية endpoint بأسلوب Anthropic ونمط البوابة الموحدة الموثّق بواسطة Claude Code.
-</Note>
-
-### ملف التهيئة
-
-بدلًا من ذلك، أنشئ أو عدّل `~/.claude/settings.json`:
-
-انسخ الإعدادات احتياطيًا وادمجها دون استبدال الحسابات أو الأذونات. يرسل `ANTHROPIC_API_KEY` ترويسة `X-Api-Key`، ويرسل `ANTHROPIC_AUTH_TOKEN` رمز Bearer. اختر طريقة مصادقة محددة. يعرض `/status` النموذج ومصدر الإعدادات ولا يثبت نجاح طلب مدفوع. بعد اختبار قصير طابق الرد مع سجل TokenLab. للاستعادة تراجع عن إضافاتك فقط. راجع [الأولوية](https://code.claude.com/docs/en/settings).
-
-```json
-{
-  "env": {
-    "ANTHROPIC_API_KEY": "sk-your-tokenlab-key",
-    "ANTHROPIC_BASE_URL": "https://api.tokenlab.sh"
+```powershell Windows PowerShell
+if (-not $env:TOKENLAB_API_KEY) { throw 'Set TOKENLAB_API_KEY first' }
+$previous = @{}
+$previous['ANTHROPIC_BASE_URL'] = [Environment]::GetEnvironmentVariable('ANTHROPIC_BASE_URL', 'Process')
+$previous['ANTHROPIC_AUTH_TOKEN'] = [Environment]::GetEnvironmentVariable('ANTHROPIC_AUTH_TOKEN', 'Process')
+$previous['ANTHROPIC_API_KEY'] = [Environment]::GetEnvironmentVariable('ANTHROPIC_API_KEY', 'Process')
+try {
+  $env:ANTHROPIC_BASE_URL = 'https://api.tokenlab.sh'
+  $env:ANTHROPIC_AUTH_TOKEN = $env:TOKENLAB_API_KEY
+  $env:ANTHROPIC_API_KEY = ''
+  claude --model claude-sonnet-4-6
+} finally {
+  foreach ($name in $previous.Keys) {
+    [Environment]::SetEnvironmentVariable($name, $previous[$name], 'Process')
   }
 }
 ```
+</CodeGroup>
+
+اختياريًا، يتيح [مساعد إعداد Claude Code القابل للاستعادة](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/skills/tokenlab-api-integration/references/claude_setup.md) المعاينة والتطبيق واستعادة الملف الأصلي باستخدام Python 3.11+. تتضمن إضافة TokenLab Skills **0.1.2** هذه السكربتات؛ ويمكن أيضًا استخدام Skill مستقل بعد تحديثه إلى إصدار يحتوي عليها. للإضافة أو Skill المستقل المثبّت مسبقًا، اتبع [تعليمات تحديث README](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/README.md#update-an-existing-installation) وتأكد من وجود السكربت. تظل خطوات الإعداد اليدوي هنا كافية دون المساعد.
+
+حفظ الإعدادات أو عرض النماذج لا يتحقق من صلاحية المفتاح أو اكتمال طلب. تستخدم المطالبة رصيد TokenLab. راجع الرد و[سجل الطلب المطابق](https://tokenlab.sh/dashboard/runs?section=requests) قبل تجربة الأدوات؛ وقد تُحتسب الطلبات المساعدة أيضًا.
 
 ## الاستخدام
 
@@ -79,11 +83,10 @@ export ANTHROPIC_BASE_URL="https://api.tokenlab.sh"
 
 ```bash
 # Start an interactive session
-claude
+ANTHROPIC_BASE_URL=https://api.tokenlab.sh ANTHROPIC_AUTH_TOKEN="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" ANTHROPIC_API_KEY= claude --model claude-sonnet-4-6
 
 # Run a single command
-claude "Explain this code" < main.py
-
+ANTHROPIC_BASE_URL=https://api.tokenlab.sh ANTHROPIC_AUTH_TOKEN="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" ANTHROPIC_API_KEY= claude --model claude-sonnet-4-6 "Explain this code" < main.py
 ```
 
 تحقق من التثبيت عند الحاجة:
@@ -108,19 +111,7 @@ claude doctor
 حدّد نموذجًا باستخدام الخيار `--model`:
 
 ```bash
-claude --model claude-sonnet-4-6 "Review this PR"
-```
-
-أو عيّن نموذجًا افتراضيًا في إعداداتك:
-
-```json
-{
-  "env": {
-    "ANTHROPIC_API_KEY": "sk-your-tokenlab-key",
-    "ANTHROPIC_BASE_URL": "https://api.tokenlab.sh"
-  },
-  "model": "claude-sonnet-5"
-}
+ANTHROPIC_BASE_URL=https://api.tokenlab.sh ANTHROPIC_AUTH_TOKEN="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" ANTHROPIC_API_KEY= claude --model claude-sonnet-4-6 "Review this PR"
 ```
 
 ## التفكير الموسّع
@@ -128,7 +119,7 @@ claude --model claude-sonnet-4-6 "Review this PR"
 لمهام الاستدلال المعقّدة، استخدم النماذج التي تدعم التفكير الموسّع:
 
 ```bash
-claude --model claude-opus-4-6 "Design a microservices architecture for..."
+ANTHROPIC_BASE_URL=https://api.tokenlab.sh ANTHROPIC_AUTH_TOKEN="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" ANTHROPIC_API_KEY= claude --model claude-opus-4-6 "Design a microservices architecture for..."
 ```
 
 ## استكشاف الأخطاء وإصلاحها
@@ -142,9 +133,6 @@ claude --model claude-opus-4-6 "Design a microservices architecture for..."
     تأكد من أن مفتاح API الخاص بـ TokenLab يبدأ بـ `sk-` وأن لديه رصيدًا كافيًا.
   </Accordion>
 
-  <Accordion title="تتطلب البوابة Authorization bearer token">
-    يدعم وضع البوابة في Claude Code أيضًا `ANTHROPIC_AUTH_TOKEN`. استمر في استخدام `ANTHROPIC_API_KEY` لإعداد TokenLab القياسي ما لم تكن قد غيّرت سلوك مصادقة البوابة عمدًا.
-  </Accordion>
 
   <Accordion title="لم يتم العثور على النموذج">
     تحقّق من صحة اسم النموذج. استخدم التنسيق `claude-sonnet-4-6`.

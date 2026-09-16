@@ -1,6 +1,6 @@
 ---
 title: "DeepSeek"
-description: "DeepSeek R1, V3 reasoning and chat models"
+description: "DeepSeek models available through TokenLab"
 ---
 
 ## Overview
@@ -22,10 +22,11 @@ TokenLab provides access to DeepSeek models. Total: **4 models** available.
 This example uses one model's declared request format. Other models on this page may accept different formats.
 
 ```python
+import os
 from anthropic import Anthropic
 
 client = Anthropic(
-    api_key="sk-your-tokenlab-key",
+    api_key=os.environ["TOKENLAB_API_KEY"],
     base_url="https://api.tokenlab.sh"
 )
 

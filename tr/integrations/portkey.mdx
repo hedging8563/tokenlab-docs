@@ -5,7 +5,7 @@ description: "Portkey Gateway'de upstream sağlayıcı olarak TokenLab kullanın
 
 ## Genel Bakış
 
-Portkey Gateway, istekleri upstream sağlayıcı olarak TokenLab'e yönlendirebilir. En güvenli varsayılan seçenek OpenAI uyumlu sohbet tamamlama (chat completions) işlemleridir; Portkey sürümünüz TokenLab için bu yolu desteklediğinde Responses özelliğini kullanın.
+TokenLab’i Portkey’de OpenAI uyumlu özel bir host olarak yapılandırın. Responses’ı yalnızca Portkey sürümünüz özel bir Responses uç noktasını destekliyorsa kullanın.
 
 <Note>
 **Tür**: AI Gateway
@@ -19,19 +19,22 @@ Portkey Gateway, istekleri upstream sağlayıcı olarak TokenLab'e yönlendirebi
 
 | Alan | Değer |
 |-------|-------|
-| Provider | `tokenlab` |
-| Base URL | `https://api.tokenlab.sh/v1` |
+| Provider | `openai` |
+| Custom Host | `https://api.tokenlab.sh/v1` |
 | API key | `sk-your-tokenlab-key` |
-| Varsayılan model | `gpt-5.4-mini` |
+| Model | Şu anda kullanılabilen bir TokenLab model kimliği |
 
 ## Sohbet Tamamlama (Chat Completions)
 
 OpenAI uyumlu sohbet istekleri için TokenLab kullanın:
 
+Bu örnek, çalışan ve kendi sunucunuzda barındırılan bir Portkey Gateway gerektirir. Gateway URL’sini dağıtımınızın URL’siyle değiştirin. Portkey Cloud için Portkey API anahtarınızı ayrıca `x-portkey-api-key` başlığında gönderin. [Portkey yapılandırma kılavuzuna](https://portkey.ai/docs/api-reference/inference-api/headers) bakın.
+
 ```bash
 curl https://your-portkey-gateway.example/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -H "x-portkey-provider: tokenlab" \
+  -H "x-portkey-provider: openai" \
+  -H "x-portkey-custom-host: https://api.tokenlab.sh/v1" \
   -H "Authorization: Bearer sk-your-tokenlab-key" \
   -d '{
     "model": "gpt-5.6-luna",
@@ -41,8 +44,8 @@ curl https://your-portkey-gateway.example/v1/chat/completions \
 
 ## Responses
 
-Eğer Portkey yapınız TokenLab Responses yönlendirmesi yapıyorsa, `/v1/responses` ile `gpt-5.5`, `gpt-5.4` veya `gpt-5.4-mini` kullanın.
+Portkey sürümünüz özel bir Responses URL’sini destekliyorsa [modeller sayfasından](https://tokenlab.sh/tr/models) şu anda kullanılabilen ve Responses destekleyen bir model seçip `/v1/responses` kullanın.
 
 ## Yerel Uç Nokta (Native Endpoint) Notu
 
-TokenLab ayrıca Anthropic Messages ve Gemini uyumlu uç noktaları doğrudan sunar. Bunların Portkey üzerinden kullanılıp kullanılamayacağı, dağıtılan sürümünüzdeki Portkey sağlayıcı ve uç nokta desteğine bağlıdır.
+Anthropic Messages ve Gemini, yalnızca Portkey sürümünüz bu biçimler için özel URL’leri destekliyorsa Portkey üzerinden kullanılabilir.

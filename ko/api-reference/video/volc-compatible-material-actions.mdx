@@ -4,7 +4,7 @@ openapi: "POST /api/v3"
 description: "10개의 Volcengine 호환 소재 및 소재 그룹 Action 레퍼런스입니다."
 ---
 
-기존 Volcengine 소재 클라이언트는 Action 이름, `Version=2024-01-01`, PascalCase JSON, 필터, 정렬, 페이지네이션, `ResponseMetadata + Result` envelope을 유지할 수 있습니다. TokenLab에서는 엔드포인트와 인증 방식만 바꿉니다.
+이 엔드포인트는 아래 소재 Action과 필드를 지원하며 TokenLab Bearer 인증과 `ResponseMetadata + Result` 형식을 사용합니다.
 
 ## 엔드포인트 및 인증
 
@@ -23,7 +23,7 @@ Content-Type: application/json
 | Action | 목표 | JSON |
 | --- | --- | --- |
 | `CreateAssetGroup` | 일반 소재 그룹 생성 | `Name`; `Description`; `GroupType: "AIGC"`; `ProjectName` |
-| `ListAssetGroups` | 프로젝트의 그룹 목록 조회 | `Filter`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
+| `ListAssetGroups` | 프로젝트의 그룹 목록 조회 | `Filter.GroupIds`; `Filter.GroupType`; `Filter.Name`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
 | `GetAssetGroup` | 그룹 하나 조회 | `Id`; `ProjectName` |
 | `UpdateAssetGroup` | 그룹 이름 또는 설명 변경 | `Id`; `Name`; `Description`; `ProjectName` |
 | `DeleteAssetGroup` | 그룹과 내부 소재 삭제 | `Id`; `ProjectName` |
@@ -57,12 +57,14 @@ curl 'https://api.tokenlab.sh/?Action=CreateAssetGroup&Version=2024-01-01' \
 | Action | 목표 | JSON |
 | --- | --- | --- |
 | `CreateAsset` | 공개 이미지, 비디오 또는 오디오 URL 하나 가져오기 | `GroupId`; `URL`; `Name`; `AssetType`; `ProjectName` |
-| `ListAssets` | 프로젝트의 소재 목록 조회 | `Filter`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
+| `ListAssets` | 프로젝트의 소재 목록 조회 | `Filter.GroupIds`; `Filter.GroupType`; `Filter.Statuses`; `Filter.Name`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
 | `GetAsset` | 소재와 임시 URL 조회 | `Id`; `ProjectName` |
 | `UpdateAsset` | 소재 이름 변경 | `Id`; `Name`; `ProjectName` |
 | `DeleteAsset` | 소재 하나 삭제 | `Id`; `ProjectName` |
 
 `AssetType`은 `Image`, `Video`, `Audio`를 지원합니다. 대상 그룹이 일반 `AIGC` 소재인지 인증된 `LivenessFace` 소재인지 결정합니다.
+
+TokenLab 소재 ID를 사용하세요. `CreateAsset`은 처리 완료 전에 `Result.Id`를 반환합니다. `Result.Status`가 `Active` 또는 `Failed`가 될 때까지 `GetAsset`을 폴링하세요. `ListAssets`는 `SortBy: "GroupId"`도 지원합니다.
 
 ### 소재 생성
 
@@ -119,7 +121,7 @@ curl 'https://api.tokenlab.sh/?Action=CreateAsset&Version=2024-01-01' \
 }
 ```
 
-`InvalidCredential`, `InvalidVersion`, `InvalidParameter`, `NotFound`, `Conflict`, `MethodNotAllowed`, `InternalError`.
+`InvalidCredential`, `InvalidVersion`, `InvalidParameter`, `NotFound`, `Conflict`, `OperationDenied`, `MethodNotAllowed`, `InternalError`.
 
 ## REST 대안
 

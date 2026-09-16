@@ -38,7 +38,6 @@ curl -X GET "https://api.tokenlab.sh/v1/files/file_abc123/content" \
 
 - 冪等性のある下流の調整には`custom_id`を使用してください。
 - ワーカーがバッチを最終化した後にのみ`output_file_id`と`error_file_id`を期待してください。
-- バッチの価格は、`isBatchRequest=true`の割引ルールが適用されるため、同期価格とは異なる場合があります。
 
 ## コンテンツタイプ
 
@@ -55,5 +54,5 @@ curl -X GET "https://api.tokenlab.sh/v1/files/file_abc123/content" \
 
 ## 重要フィールド
 
-<ResponseField name="body" type="binary|string">生のレスポンス body です。JSON として解析せず直接保存してください。</ResponseField>
-<ResponseField name="custom_id" type="string">後続呼び出しとサポート調査に使う識別子です。</ResponseField>
+<ResponseField name="body" type="binary|string">ファイルの内容です。`Content-Type` に従って保存または解析し、JSONL は 1 行ずつ解析してください。</ResponseField>
+<ResponseField name="custom_id" type="string">バッチ入力項目と結果を対応付ける ID です。</ResponseField>

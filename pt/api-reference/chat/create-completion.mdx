@@ -6,6 +6,10 @@ description: "Cria uma conclusão para a mensagem de chat"
 
 ## Corpo da Requisição
 
+<Note>
+Os parâmetros opcionais compatíveis, os valores permitidos e os valores padrão dependem do modelo selecionado. Consulte os [detalhes do modelo](/pt/api-reference/models/get-model) antes de configurar opções de amostragem, raciocínio ou ferramentas.
+</Note>
+
 <ParamField body="model" type="string" required>
   ID do modelo a ser usado. Veja [Models](https://tokenlab.sh/pt/models) para opções disponíveis.
 </ParamField>
@@ -14,8 +18,10 @@ description: "Cria uma conclusão para a mensagem de chat"
   Uma lista de mensagens que compõem a conversa.
 
   Cada objeto de mensagem contém:
-  - `role` (string): `system`, `user` ou `assistant`
-  - `content` (string | array): O conteúdo da mensagem
+  - `role` (string): `system`, `developer`, `user`, `assistant`, `tool`, `function`
+  - `content` (string | array | null): O conteúdo da mensagem
+
+  Em uma mensagem `assistant` com `tool_calls`, `content` pode ser omitido ou definido como `null`.
 
   Quando `content` é um array, a TokenLab dá suporte a blocos multimodais estruturados para modelos compatíveis:
   - text: `{ "type": "text", "text": "..." }`
@@ -23,11 +29,11 @@ description: "Cria uma conclusão para a mensagem de chat"
   - video: `{ "type": "video_url", "video_url": { "url": "https://..." } }`
   - audio: `{ "type": "audio_url", "audio_url": { "url": "https://..." } }`
 
-  Para tráfego multimodal de produção, prefira URLs públicas `https`. TokenLab irá traduzir esses blocos de mídia para a forma de requisição específica do provedor exigida pelo modelo físico roteado.
+  Para entradas multimodais, use URLs `https` acessíveis publicamente. Os tipos de mídia compatíveis dependem do modelo selecionado.
 </ParamField>
 
-<ParamField body="temperature" type="number" default="1">
-  Temperatura de amostragem entre 0 e 2. Valores mais altos tornam a saída mais aleatória.
+<ParamField body="temperature" type="number">
+  Temperatura de amostragem. O suporte, os valores permitidos e o valor padrão dependem do modelo selecionado. Omita este campo para usar o padrão do modelo.
 </ParamField>
 
 <ParamField body="max_tokens" type="integer">
@@ -42,20 +48,20 @@ description: "Cria uma conclusão para a mensagem de chat"
   Opções para streaming. Defina `include_usage: true` para receber uso de tokens em chunks do stream.
 </ParamField>
 
-<ParamField body="top_p" type="number" default="1">
+<ParamField body="top_p" type="number">
   Parâmetro de amostragem Nucleus. Recomendamos alterar este ou `temperature`, não ambos.
 </ParamField>
 
-<ParamField body="frequency_penalty" type="number" default="0">
+<ParamField body="frequency_penalty" type="number">
   Número entre -2.0 e 2.0. Valores positivos penalizam tokens repetidos.
 </ParamField>
 
-<ParamField body="presence_penalty" type="number" default="0">
+<ParamField body="presence_penalty" type="number">
   Número entre -2.0 e 2.0. Valores positivos penalizam tokens já presentes no texto.
 </ParamField>
 
 <ParamField body="stop" type="string | array">
-  Até 4 sequências nas quais a API irá parar de gerar tokens.
+  Sequência de parada ou lista de sequências. O suporte e o limite de sequências dependem do modelo selecionado.
 </ParamField>
 
 <ParamField body="tools" type="array">
@@ -66,8 +72,8 @@ description: "Cria uma conclusão para a mensagem de chat"
   Controla como o modelo usa ferramentas. Opções: `auto`, `none`, `required`, ou um objeto de ferramenta específico.
 </ParamField>
 
-<ParamField body="parallel_tool_calls" type="boolean" default="true">
-  Se deve habilitar chamadas de função em paralelo. Defina como `false` para chamar funções sequencialmente.
+<ParamField body="parallel_tool_calls" type="boolean">
+  Permite várias chamadas de ferramentas em um mesmo turno do assistente, se o modelo selecionado oferecer suporte.
 </ParamField>
 
 <ParamField body="max_completion_tokens" type="integer">
@@ -75,14 +81,14 @@ description: "Cria uma conclusão para a mensagem de chat"
 </ParamField>
 
 <ParamField body="reasoning_effort" type="string">
-  Esforço de raciocínio para modelos com suporte a raciocínio. Opções: `low`, `medium`, `high`.
+  Esforço de raciocínio para modelos compatíveis. Os valores permitidos dependem do modelo selecionado.
 </ParamField>
 
 <ParamField body="seed" type="integer">
-  Semente aleatória para amostragem determinística.
+  Semente de amostragem para modelos compatíveis. Uma saída idêntica não é garantida.
 </ParamField>
 
-<ParamField body="n" type="integer" default="1">
+<ParamField body="n" type="integer">
   Número de conclusões a gerar (1-128).
 </ParamField>
 
@@ -95,11 +101,11 @@ description: "Cria uma conclusão para a mensagem de chat"
 </ParamField>
 
 <ParamField body="top_k" type="integer">
-  Parâmetro de amostragem Top-K (para modelos Anthropic/Gemini).
+  Amostragem Top-K para modelos compatíveis.
 </ParamField>
 
 <ParamField body="response_format" type="object">
-  Especificação do formato de resposta. Use `{"type": "json_object"}` para o modo JSON. Trate `{"type": "json_schema", "json_schema": {...}}` como um caminho de melhor esforço que depende do modelo selecionado e do comportamento roteado.
+  Formato de resposta. Use `{"type": "json_object"}` para o modo JSON ou `{"type": "json_schema", "json_schema": {...}}` para um esquema JSON. O suporte depende do modelo selecionado.
 </ParamField>
 
 <ParamField body="logit_bias" type="object">
@@ -135,7 +141,7 @@ description: "Cria uma conclusão para a mensagem de chat"
   Cada opção contém:
   - `index` (integer): Índice da escolha
   - `message` (object): A mensagem gerada
-  - `finish_reason` (string): Por que o modelo parou (`stop`, `length`, `tool_calls`)
+  - `finish_reason` (string): Motivo pelo qual o modelo parou, por exemplo `stop`, `length` ou `tool_calls`
 </ResponseField>
 
 <ResponseField name="usage" type="object">
@@ -157,7 +163,6 @@ curl -X POST "https://api.tokenlab.sh/v1/chat/completions" \
       {"role": "system", "content": "You are a helpful assistant."},
       {"role": "user", "content": "Hello!"}
     ],
-    "temperature": 0.7,
     "max_tokens": 1000
   }'
 ```
@@ -176,7 +181,6 @@ response = client.chat.completions.create(
         {"role": "system", "content": "You are a helpful assistant."},
         {"role": "user", "content": "Hello!"}
     ],
-    temperature=0.7,
     max_tokens=1000
 )
 
@@ -197,7 +201,6 @@ const response = await client.chat.completions.create({
     { role: 'system', content: 'You are a helpful assistant.' },
     { role: 'user', content: 'Hello!' }
   ],
-  temperature: 0.7,
   max_tokens: 1000
 });
 
@@ -221,7 +224,6 @@ curl_setopt_array($ch, [
             ['role' => 'system', 'content' => 'You are a helpful assistant.'],
             ['role' => 'user', 'content' => 'Hello!']
         ],
-        'temperature' => 0.7,
         'max_tokens' => 1000
     ])
 ]);

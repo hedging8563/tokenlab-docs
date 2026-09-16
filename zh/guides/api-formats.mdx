@@ -19,10 +19,11 @@ description: "Chat Completions、Responses、Messages 和 Gemini 应该怎么选
 已有 OpenAI 兼容客户端，或想让同一套聊天代码适配更多模型时，可以使用 Chat Completions。
 
 ```python
+import os
 from openai import OpenAI
 
 client = OpenAI(
-    api_key="sk-your-tokenlab-key",
+    api_key=os.environ["TOKENLAB_API_KEY"],
     base_url="https://api.tokenlab.sh/v1",
 )
 
@@ -39,19 +40,19 @@ print(response.choices[0].message.content)
 - 已有的 OpenAI 兼容聊天功能
 - 标准消息历史和流式输出
 - 模型支持的函数调用
-- 通过 `/v1/embeddings` 获取 embeddings
 
 其他 API 独有的字段不保证能在 Chat Completions 中使用。
 
 ## Responses
 
-只有模型的 `accepted_request_formats` 包含 `responses` 时，才能使用 Responses API。
+只有模型的 `accepted_request_formats` 包含 `openai_responses` 时，才能使用 Responses API。
 
 ```python
+import os
 from openai import OpenAI
 
 client = OpenAI(
-    api_key="sk-your-tokenlab-key",
+    api_key=os.environ["TOKENLAB_API_KEY"],
     base_url="https://api.tokenlab.sh/v1",
 )
 
@@ -70,10 +71,11 @@ Responses 支持创建、读取、压缩、删除、流式输出、WebSocket 创
 使用 Anthropic SDK 时，TokenLab 地址末尾不要加 `/v1`。
 
 ```python
+import os
 from anthropic import Anthropic
 
 client = Anthropic(
-    api_key="sk-your-tokenlab-key",
+    api_key=os.environ["TOKENLAB_API_KEY"],
     base_url="https://api.tokenlab.sh",
 )
 
@@ -94,7 +96,7 @@ Gemini 请求使用 TokenLab 主域名和 Gemini REST 路径。
 
 ```bash
 curl "https://api.tokenlab.sh/v1beta/models/gemini-3.5-flash:generateContent" \
-  -H "Authorization: Bearer sk-your-tokenlab-key" \
+  -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "contents": [{"parts": [{"text": "Hello!"}]}]

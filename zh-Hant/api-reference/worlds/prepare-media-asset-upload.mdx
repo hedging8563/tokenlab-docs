@@ -18,11 +18,11 @@ TokenLab 會記錄資產歸屬。只有同一組織可以取得或在 World 生�
   媒體類型：`image` 或 `video`。
 </ParamField>
 
-<ParamField body="extension" type="string">
+<ParamField body="extension" type="string | null">
   可選副檔名，例如 `png`、`jpg` 或 `mp4`。
 </ParamField>
 
-<ParamField body="metadata" type="object">
+<ParamField body="metadata" type="object | null">
   隨上游媒體資產保存的可選中繼資料物件。
 </ParamField>
 
@@ -34,6 +34,14 @@ TokenLab 會記錄資產歸屬。只有同一組織可以取得或在 World 生�
 
 <ResponseField name="upload_info.upload_url" type="string">
   用於上傳二進位檔案的上游簽名 URL。
+</ResponseField>
+
+<ResponseField name="upload_info.upload_method" type="string">
+  將二進位檔案上傳至 `upload_info.upload_url` 時使用的 HTTP 方法（如有回傳）。
+</ResponseField>
+
+<ResponseField name="upload_info.required_headers" type="object">
+  上傳二進位檔案時須附帶的請求標頭（如有回傳）。
 </ResponseField>
 
 <RequestExample>

@@ -8,16 +8,20 @@ description: "오디오를 영어 텍스트로 번역합니다"
 
 지원되는 모든 언어의 오디오를 영어 텍스트로 번역합니다. transcription과 달리, 이 endpoint는 입력 언어와 관계없이 항상 영어 텍스트를 출력합니다.
 
+<Note>
+  이 엔드포인트는 오디오를 영어로 번역합니다. 오디오 번역은 `language`를 지원하지 않으므로 전송하면 `unsupported_parameter`가 반환될 수 있습니다. 텍스트 번역에는 `POST /v1/translations`를 사용하세요. `recommended_for=translation`은 해당 텍스트 API를 가리킵니다.
+</Note>
+
 ## 요청 본문
 
-**동기 요청 타임아웃:** 이 비채팅 엔드포인트는 라우팅된 모델이 완료될 때까지 기다립니다. 큰 입력, 긴 오디오, 큰 배치는 일반적인 30s 클라이언트 기본값을 초과할 수 있으므로 HTTP 클라이언트 타임아웃을 최소 `120s` 로 설정하세요.
+번역 처리가 완료되면 응답합니다. 긴 오디오는 HTTP 클라이언트 제한 시간을 최소 `120s`로 설정하세요.
 
 <ParamField body="file" type="file" required>
   번역할 오디오 파일입니다. 지원 형식: `flac`, `mp3`, `mp4`, `mpeg`, `mpga`, `m4a`, `ogg`, `wav`, `webm`. 최대 파일 크기는 25 MB입니다.
 </ParamField>
 
 <ParamField body="model" type="string" default="whisper-1">
-  사용할 model입니다. 현재는 `whisper-1`만 지원됩니다.
+  오디오 번역 모델 ID입니다. 예: `whisper-1`. 현재 모델 세부정보에서 `POST /v1/audio/translations` 지원을 확인하세요.
 </ParamField>
 
 <ParamField body="prompt" type="string">
@@ -25,14 +29,16 @@ description: "오디오를 영어 텍스트로 번역합니다"
 </ParamField>
 
 <ParamField body="response_format" type="string" default="json">
-  출력 형식입니다. 옵션: `json`, `text`, `srt`, `verbose_json`, `vtt`.
+  출력 형식입니다. Whisper는 `json`, `text`, `srt`, `verbose_json`, `vtt`를 지원합니다. 다른 모델의 지원 범위는 모델 세부정보에서 확인하세요.
 </ParamField>
 
 <ParamField body="temperature" type="number">
-  0과 1 사이의 sampling temperature입니다. 0.8과 같은 높은 값은 더 무작위적인 출력을 생성하고, 0.2와 같은 낮은 값은 출력을 더 집중되고 결정적으로 만듭니다.
+  0~1 범위의 샘플링 온도입니다. 이 매개변수를 지원하는 모델에서만 사용하세요.
 </ParamField>
 
 ## 응답
+
+다음 필드는 JSON 전사 또는 번역 응답에 해당합니다. `text`, `srt`, `vtt`는 JSON 객체 대신 원시 텍스트나 자막을 반환합니다. 추가 필드는 모델과 출력 형식에 따라 다릅니다.
 
 <ResponseField name="text" type="string">
   영어로 번역된 텍스트입니다.
@@ -41,7 +47,7 @@ description: "오디오를 영어 텍스트로 번역합니다"
 `verbose_json` 형식의 경우, 응답에는 다음도 포함됩니다:
 
 <ResponseField name="language" type="string">
-  입력 오디오에서 감지된 언어입니다.
+  응답에 제공되는 경우의 언어 표시입니다.
 </ResponseField>
 
 <ResponseField name="duration" type="number">
@@ -130,7 +136,6 @@ echo $data['text'];
 ```json verbose_json
 {
   "task": "translate",
-  "language": "german",
   "duration": 8.470000267028809,
   "text": "Hello, my name is Wolfgang and I come from Germany. Where are you from?",
   "segments": [
@@ -158,7 +163,3 @@ echo $data['text'];
 | 출력 언어 | 항상 영어 | 입력과 동일 |
 | 사용 사례 | 외국어 오디오를 영어로 변환 | 원본 언어 유지 |
 | Language parameter | 해당 없음 | 선택적 힌트 |
-
-<Note>
-  번역 endpoint는 원본 언어를 자동으로 감지하고 영어로 번역합니다. transcription의 `language` parameter는 무시됩니다.
-</Note>

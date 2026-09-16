@@ -55,19 +55,6 @@ Video, music, 3D, and task-based image generation return a task ID and `poll_url
 
 If Usage still does not show the final charge or released amount after the task finishes, contact support@tokenlab.sh with the Request ID and task ID.
 
-```python
-# Example: Video generation billing
-response = client.post("/v1/videos/generations", json={
-    "model": "veo3.1",
-    "prompt": "A sunset over the ocean"
-})
-# Estimated cost may be reserved now; final billing appears after success.
-
-poll_url = response.json()["poll_url"]
-task_id = response.json()["task_id"]
-# Poll poll_url for status; billing_transaction_id appears after settlement.
-```
-
 ### Billing transaction IDs
 
 Non-streaming OpenAI-compatible responses include `billing_transaction_id` when billing finishes before the response is sent. The same value may appear in `X-Billing-Transaction-ID`; Gemini and other native formats may expose it only in this header.
@@ -80,7 +67,7 @@ Text models usually report input, output, and total tokens in `usage`. Tokenizat
 
 ## Find your usage
 
-Open [Usage](https://tokenlab.sh/dashboard) to find:
+Open [Usage](https://tokenlab.sh/dashboard/usage) to find:
 
 - Real-time balance
 - Usage history by model

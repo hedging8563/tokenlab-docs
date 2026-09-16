@@ -8,10 +8,12 @@ description: "列出当前工作区的 Seedance 素材。"
 
 只有 `status` 为 `ACTIVE` 的素材可以用于视频生成。
 
+`project_name` 用于同一组织内的资源隔离，默认为 `default`。相关素材组和素材须使用相同且区分大小写的值；POST/PUT 在 JSON 请求体中传入，GET/DELETE 在查询参数中传入。
+
 ## 示例请求
 
 ```bash
-curl "https://api.tokenlab.sh/v1/videos/assets?library_type=aigc_avatar&group_id=group-20260720123456-vrt01&page_size=20" \
+curl "https://api.tokenlab.sh/v1/videos/assets?library_type=aigc_avatar&group_id=group-20260720123456-vrt01&page_size=20&project_name=default" \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```
 
@@ -23,6 +25,7 @@ curl "https://api.tokenlab.sh/v1/videos/assets?library_type=aigc_avatar&group_id
     {
       "id": "asset-20260720123456-qn7wr",
       "object": "seedance.material_asset",
+      "project_name": "default",
       "group_id": "group-20260720123456-vrt01",
       "library_type": "aigc_avatar",
       "asset_name": "Front view",

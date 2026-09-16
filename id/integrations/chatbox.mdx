@@ -17,10 +17,11 @@ Chatbox dapat menggunakan TokenLab melalui pengaturan API yang kompatibel dengan
 
 ## Mengonfigurasi Chatbox
 
-1. Buka **Settings** -> **AI Model**
-2. Pilih **OpenAI API Compatible**
+1. Buka **Settings** -> **Model Provider** -> **Add** -> **Add Custom Provider**
+2. Atur **Name** ke TokenLab dan **API Mode** ke **OpenAI API Compatible**, lalu klik **Add**.
 3. Masukkan:
    - **API Host**: `https://api.tokenlab.sh/v1`
+   - **API Path**: `/chat/completions`
    - **API Key**: `sk-your-tokenlab-key`
    - **Model**: `gpt-5.4-mini`
 4. Simpan dan kirim pesan tes singkat.

@@ -3,37 +3,22 @@ title: "OpenHands"
 description: "Connect OpenHands to TokenLab"
 ---
 
+
 ## Overview
 
-OpenHands can call TokenLab through its LiteLLM/OpenAI-compatible model settings. Enter the model, API key, and Base URL there.
-
-
-## Environment
-
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
+Use this page for the OpenHands UI with LiteLLM-backed **Settings → LLM → Advanced** options. Select **OpenAI** and enter a custom model with the `openai/` prefix, a TokenLab key in the local API-key field, and the Base URL below. Record the previous selection first and restore it when finished. Keep existing accounts and tool permissions. See the [official OpenAI-compatible configuration](https://docs.openhands.dev/openhands/usage/llms/openai-llms). CLI, cloud and source-checkout installations can use different setup flows; follow the instructions for your installed edition. `make setup-config` is not a general installed-CLI command.
 
 ## Model Settings
 
-Use:
+Save the current provider, model and connection settings locally before editing. These controls change the active model selection; restore your previous values when finished. Keep signed-in accounts and tool permissions unchanged. Do not overwrite another OpenAI-compatible connection without a restorable backup.
 
 ```text
-Model: openai/claude-sonnet-5
-API key: sk-your-tokenlab-key
+Custom Model: openai/kimi-k3
 Base URL: https://api.tokenlab.sh/v1
 ```
 
-The `openai/` prefix tells the LiteLLM-backed path to use an OpenAI-compatible provider configuration.
+Saving settings or listing models does not verify a key or a completed request. A prompt uses TokenLab balance. Check the reply and its matching [request record](https://tokenlab.sh/dashboard/runs?section=requests) before trying tools; auxiliary requests may also be billed.
 
-## Headless Setup
-
-If you are preparing local defaults for CLI or headless usage, run the OpenHands setup flow and enter:
-
-```bash
-make setup-config
+```text
+Reply only with TOKENLAB_CONNECTION_OK. Do not use tools or modify files.
 ```
-
-When prompted for model details, use the TokenLab model ID with the `openai/` prefix and TokenLab's `/v1` base URL.
-
-Model IDs change over time. Choose a current coding model on the [Models page](https://tokenlab.sh/en/models), then compare it on your own repository tasks.

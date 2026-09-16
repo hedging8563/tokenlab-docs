@@ -50,10 +50,11 @@ Hem `startDate` hem `endDate` varsa, `startDate` `endDate`'den küçük ya da e�
 
 | Alan | Tür | Varsayılan / Sınırlar | Notlar |
 |------|-----|----------------------|--------|
-| `name` | string | zorunlu, varsayılan `Default Key`, uzunluk `1-50` | Görünen ad, sunucu tarafında baştaki ve sondaki boşluklar kaldırılır |
-| `limitAmount` | number \| null | minimum `0`, girdi üst sınırı `1000000` | `null` veya atlanırsa = limitsiz, `0` = sıfır kota. Pozitif değerler `100000` USD eşdeğerini aşamayacak şekilde depolama limiti olarak normalize edilir |
+| `name` | string | isteğe bağlı, varsayılan `Default Key`, uzunluk `1-50` | Görünen ad, sunucu tarafında baştaki ve sondaki boşluklar kaldırılır |
+| `limitAmount` | number \| string \| null | `0–100000` USD | `null` sınırsız anlamına gelir; `0` harcamayı engeller. Ondalık dizeler en fazla 6 ondalık basamak destekler. Anahtar oluştururken bu alanı atlamak sınırsız anlamına gelir. |
 | `limitCurrency` | enum | varsayılan `USD` | Yalnızca USD. `CNY` gönderildiğinde `400 currency_retired` döner. |
 | `models` | string[] | varsayılan `[]` | Opsiyonel model allowlist'i |
+| `deliveryPolicy` | string \| null | `auto`, `verified`, `official`, `null` | `null`, çalışma alanının teslim politikasını devralır. |
 | `expiresAt` | string \| null | RFC3339 datetime | `null` son kullanma olmadığı anlamına gelir |
 
 ### PATCH /v1/management/api-keys/{keyId}
@@ -62,9 +63,10 @@ Hem `startDate` hem `endDate` varsa, `startDate` `endDate`'den küçük ya da e�
 |------|-----|----------------------|--------|
 | `status` | enum | - | `active`, `inactive`, `revoked` |
 | `name` | string | uzunluk `1-50` | Güncellenmiş görünen ad |
-| `limitAmount` | number \| null | minimum `0`, girdi üst sınırı `1000000` | `null` = limitsiz, `0` = sıfır kota. Pozitif değerler `100000` USD eşdeğerini aşamayacak şekilde normalize edilir |
-| `limitCurrency` | enum | varsayılan `USD` | Yalnızca USD. `CNY` gönderildiğinde `400 currency_retired` döner. |
+| `limitAmount` | number \| string \| null | `0–100000` USD | `null` sınırsız anlamına gelir; `0` harcamayı engeller. Ondalık dizeler en fazla 6 ondalık basamak destekler. |
+| `limitCurrency` | enum | varsayılan `USD` | Yalnızca USD. `CNY` gönderildiğinde `400 currency_retired` döner. Belirtilirse `limitAmount` da gereklidir. |
 | `models` | string[] | - | Güncellenmiş model allowlist'i |
+| `deliveryPolicy` | string \| null | `auto`, `verified`, `official`, `null` | `null`, çalışma alanının teslim politikasını devralır. |
 | `expiresAt` | string \| null | RFC3339 datetime | `null` son kullanmayı kaldırır |
 
 PATCH için en az bir alan verilmelidir.
@@ -121,10 +123,14 @@ curl "https://api.tokenlab.sh/v1/management/api-keys" \
       "limit_amount_decimal": "500",
       "used_amount": 148.25,
       "used_amount_decimal": "148.25",
-      "models": ["gpt-4o-mini", "claude-3-7-sonnet"],
+      "models": [
+        "gpt-4o-mini",
+        "claude-3-7-sonnet"
+      ],
       "expires_at": "2026-04-30T00:00:00.000Z",
       "last_used_at": "2026-03-27T08:12:45.000Z",
-      "created_at": "2026-03-01T10:00:00.000Z"
+      "created_at": "2026-03-01T10:00:00.000Z",
+      "delivery_policy": null
     }
   ],
   "pagination": {

@@ -6,14 +6,14 @@ description: "Crée un vecteur d’embedding représentant le texte d’entrée"
 
 ## Corps de la requête
 
-**Timeout des requêtes synchrones :** cet endpoint non-chat attend que le modèle routé termine son traitement. Les entrées volumineuses, les longs fichiers audio ou les grands lots peuvent dépasser les valeurs par défaut courantes de 30s côté client ; configurez donc le timeout de votre client HTTP à au moins `120s`.
+Pour les entrées volumineuses, réglez le délai du client HTTP sur au moins `120s`. La réponse arrive à la fin du traitement.
 
 <ParamField body="model" type="string" required>
   ID du modèle d’embedding à utiliser (par ex., `text-embedding-3-small`).
 </ParamField>
 
 <ParamField body="input" type="string | array" required>
-  Texte d’entrée à transformer en embedding. Peut être une chaîne de caractères ou un tableau de chaînes.
+  Texte sous forme de chaîne ou de tableau de chaînes. Les modèles acceptant des tokens prennent aussi `number[]` pour une séquence ou `number[][]` pour plusieurs séquences.
 </ParamField>
 
 <ParamField body="encoding_format" type="string" default="float">
@@ -30,11 +30,7 @@ description: "Crée un vecteur d’embedding représentant le texte d’entrée"
 
 ## Modèles disponibles
 
-| Modèle | Dimensions | Description |
-|-------|------------|-------------|
-| `text-embedding-3-large` | 3072 | Meilleure qualité |
-| `text-embedding-3-small` | 1536 | Équilibré |
-| `text-embedding-ada-002` | 1536 | Hérité |
+Consultez `GET /v1/models?recommended_for=embedding` pour les modèles et dimensions actuels.
 
 ## Réponse
 
@@ -48,7 +44,7 @@ description: "Crée un vecteur d’embedding représentant le texte d’entrée"
   Chaque objet contient :
   - `object` (string) : `embedding`
   - `index` (integer) : Index dans le tableau d’entrée
-  - `embedding` (array) : Le vecteur d’embedding
+  - `embedding` (array | string): Vecteur numérique pour `float`, ou chaîne Base64 pour `base64`.
 </ResponseField>
 
 <ResponseField name="model" type="string">
@@ -129,6 +125,10 @@ print_r(array_slice($data['data'][0]['embedding'], 0, 5));
 ```
 </RequestExample>
 
+<Note>
+Le vecteur de l’exemple est raccourci pour faciliter la lecture.
+</Note>
+
 <ResponseExample>
 ```json Response
 {
@@ -137,7 +137,7 @@ print_r(array_slice($data['data'][0]['embedding'], 0, 5));
     {
       "object": "embedding",
       "index": 0,
-      "embedding": [0.0023, -0.0194, 0.0081, ...]
+      "embedding": [0.0023, -0.0194, 0.0081]
     }
   ],
   "model": "text-embedding-3-small",

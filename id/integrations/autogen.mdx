@@ -31,17 +31,36 @@ export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 
 Gunakan endpoint `/v1` milik TokenLab sebagai `base_url`:
 
+Simpan konfigurasi ini sebagai `tokenlab-model.yaml`:
+
 ```yaml
 provider: autogen_ext.models.openai.OpenAIChatCompletionClient
 config:
   model: claude-sonnet-5
   base_url: https://api.tokenlab.sh/v1
-  api_key: ${TOKENLAB_API_KEY}
   model_info:
     function_calling: true
     json_output: true
+    structured_output: false
     vision: false
     family: claude
+```
+
+Muat YAML lalu baca kunci API dari variabel lingkungan. YAML tidak mengganti variabel lingkungan secara otomatis:
+
+```python
+import os
+import yaml
+
+from autogen_agentchat.agents import AssistantAgent
+from autogen_core.models import ChatCompletionClient
+
+with open("tokenlab-model.yaml", encoding="utf-8") as config_file:
+    config = yaml.safe_load(config_file)
+
+config["config"]["api_key"] = os.environ["TOKENLAB_API_KEY"]
+model_client = ChatCompletionClient.load_component(config)
+agent = AssistantAgent("assistant", model_client=model_client)
 ```
 
 ## Klien Python
@@ -59,12 +78,28 @@ model_client = OpenAIChatCompletionClient(
     model_info={
         "function_calling": True,
         "json_output": True,
+        "structured_output": False,
         "vision": False,
         "family": "claude",
     },
 )
 
 agent = AssistantAgent("assistant", model_client=model_client)
+```
+
+## Kirim permintaan pertama
+
+```python
+import asyncio
+
+async def main():
+    try:
+        result = await agent.run(task="Reply with: Connected to TokenLab.")
+        print(result.messages[-1].content)
+    finally:
+        await model_client.close()
+
+asyncio.run(main())
 ```
 
 ## Catatan Endpoint

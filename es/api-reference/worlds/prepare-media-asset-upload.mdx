@@ -18,11 +18,11 @@ TokenLab registra el propietario del medio. Solo la misma organización puede re
   Tipo de medio: `image` o `video`.
 </ParamField>
 
-<ParamField body="extension" type="string">
+<ParamField body="extension" type="string | null">
   Extensión opcional como `png`, `jpg` o `mp4`.
 </ParamField>
 
-<ParamField body="metadata" type="object">
+<ParamField body="metadata" type="object | null">
   Objeto opcional de metadatos guardado con el medio upstream.
 </ParamField>
 
@@ -34,6 +34,14 @@ TokenLab registra el propietario del medio. Solo la misma organización puede re
 
 <ResponseField name="upload_info.upload_url" type="string">
   URL upstream firmada donde subir el archivo binario.
+</ResponseField>
+
+<ResponseField name="upload_info.upload_method" type="string">
+  Método HTTP para subir el archivo binario a `upload_info.upload_url`, si se devuelve.
+</ResponseField>
+
+<ResponseField name="upload_info.required_headers" type="object">
+  Encabezados que se deben incluir al subir el archivo binario, si se devuelven.
 </ResponseField>
 
 <RequestExample>

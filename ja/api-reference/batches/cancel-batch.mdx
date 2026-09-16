@@ -4,18 +4,7 @@ openapi: "POST /v1/batches/{batch_id}/cancel"
 description: "キューに入っているまたは実行中のバッチジョブをキャンセルします。"
 ---
 
-## 概要
-
-このエンドポイントは、TokenLabのOpenAI互換バッチAPIの一部です。バッチジョブはアップロードされたJSONLファイルを使用し、非同期で実行され、後で出力/エラーファイルを返すことができます。
-
-## 注意事項
-
-- バッチ入力ファイルは`purpose=batch`を使用する必要があります。
-- `completion_window`は現在`24h`です。
-- 出力の順序は保証されていません; 常に`custom_id`で一致させてください。
-- バッチアイテム内でのストリーミングはサポートされていません。
-
-## 例
+待機中または実行中のバッチのキャンセルを要求します。レスポンスには現在の状態が返され、キャンセル処理中の場合も、すでにキャンセル済みの場合もあります。すでに終了したバッチは元の終了状態を保持します。終了状態でなければ、バッチを再取得して結果を確認してください。
 
 <RequestExample>
 ```bash cURL
@@ -23,18 +12,6 @@ curl -X POST "https://api.tokenlab.sh/v1/batches/batch_abc123/cancel" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 </RequestExample>
-
-## リクエスト / レスポンス
-
-正確なスキーマについては、上のインタラクティブなOpenAPIパネルを使用してください。
-
-## 操作のヒント
-
-- 冪等性のある下流の調整には`custom_id`を使用してください。
-- ワーカーがバッチを最終化した後にのみ`output_file_id`と`error_file_id`を期待してください。
-- バッチの価格は、`isBatchRequest=true`の割引ルールが適用されるため、同期価格とは異なる場合があります。
-
-## レスポンス例
 
 <ResponseExample>
 ```json 200 OK
@@ -47,7 +24,5 @@ curl -X POST "https://api.tokenlab.sh/v1/batches/batch_abc123/cancel" \
 ```
 </ResponseExample>
 
-## 重要フィールド
-
 <ResponseField name="id" type="string">後続呼び出しとサポート調査に使う識別子です。</ResponseField>
-<ResponseField name="status" type="string">このリソースの現在のライフサイクル状態です。</ResponseField>
+<ResponseField name="status" type="string">バッチの現在の状態です。キャンセル要求が成功しても、必ず `cancelling` が返るとは限りません。</ResponseField>

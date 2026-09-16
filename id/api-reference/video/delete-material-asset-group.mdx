@@ -8,10 +8,12 @@ Hapus grup material dan aset material TokenLab di dalamnya. Tindakan ini tidak d
 
 Jika pustaka material TokenLab tidak dapat menyelesaikan penghapusan karena status otorisasi saat ini tidak mengizinkannya, TokenLab akan mengembalikan error pustaka material netral. Setelah dihapus, grup dan asetnya tidak dapat lagi digunakan dalam pembuatan video.
 
+`project_name` memisahkan sumber daya dalam organisasi yang terautentikasi. Nilai default adalah `default`; gunakan nilai yang sama dan peka huruf besar-kecil untuk grup dan aset terkait. Kirim di body JSON untuk POST/PUT dan parameter kueri untuk GET/DELETE.
+
 ## Contoh Permintaan
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01 \
+curl "https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01?project_name=default" \
   -X DELETE \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```

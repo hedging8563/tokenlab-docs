@@ -6,17 +6,29 @@ description: "現在の組織の最近の Seedance 互換タスクを一覧し�
 
 ## 概要
 
-これらのエンドポイントは、Volc 形式の Seedance タスク構造をすでに利用しているチーム向けです。認証には TokenLab Bearer API Key を使います。返されるタスク ID は `cgt-` で始まります。`status` が `succeeded`、`failed`、`cancelled`、`expired` のいずれかになるまでポーリングしてください。
+TokenLab Bearer API キーを使用し、認証されたワークスペースの最近の互換タスクを一覧します。`filter.task_ids` がなければ直近7日間を対象とし、正確な ID を指定した場合は該当タスクを直接照会します。
 
 関連項目 [Seedance 2.0 動画モデル](/ja/guides/seedance-2-video) および [動画生成](/ja/guides/video-generation).
 
 ## 応答形式
 
-一覧応答は `items` と `total` を返します。`filter.status`、`filter.task_ids`、`filter.model`、`filter.service_tier` のフィルタと、`page_num`、`page_size` によるページングを利用できます。
+- `page_num`: 既定値は `1`。`1`–`500` の整数。
+- `page_size`: 既定値は `20`。`1`–`500` の整数。
+- `filter.status`: `queued`, `running`, `succeeded`, `failed`, `cancelled`, `expired`.
+- `filter.task_ids`: 複数の正確なタスク ID はパラメーターを繰り返して指定します。カンマで連結しないでください。
+- `filter.model`: モデル識別子。
+- `filter.service_tier`: `default`, `flex`.
+
+レスポンスは絞り込み結果の `items` と `total` を含みます。各項目は取得エンドポイントと同じ形式です。既知の ID の最新状態は取得エンドポイントで確認してください。
 
 ## 例
 
 ```bash
 curl "https://api.tokenlab.sh/api/v3/contents/generations/tasks?page_num=1&page_size=20&filter.status=succeeded" \
+  -H "Authorization: Bearer $TOKENLAB_API_KEY"
+```
+
+```bash
+curl "https://api.tokenlab.sh/api/v3/contents/generations/tasks?filter.task_ids=cgt-20260102030405-a1b2c" \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```

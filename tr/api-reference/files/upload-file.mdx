@@ -1,7 +1,7 @@
 ---
 title: "Dosya Yükle"
 openapi: "POST /v1/files"
-description: "Sonraki toplu oluşturma için bir JSONL toplu giriş dosyası yükler."
+description: "Batch dosyası, görüntü referansı veya Anthropic biçimli bir dosya yükleyin."
 ---
 
 ## Genel Bakış
@@ -43,7 +43,6 @@ Tam şema için yukarıdaki etkileşimli OpenAPI panelini kullanın.
 
 - İdempotent aşağı akış uzlaşması için `custom_id` kullanın.
 - Çalışan toplu işlemi tamamladıktan sonra yalnızca `output_file_id` ve `error_file_id` bekleyin.
-- Toplu fiyatlandırma, `isBatchRequest=true` indirim kuralları uygulandığı için senkron fiyatlandırmadan farklı olabilir.
 ## Görüntü dosyası girişleri
 
 Aynı `/v1/files` rotası `/v1/images/edits` için görüntü referans dosyaları da yükleyebilir.

@@ -8,7 +8,7 @@ Urutkan ulang dokumen menggunakan model kesamaan semantik. Berguna untuk meningk
 
 ## Isi Permintaan
 
-**Timeout permintaan sinkron:** endpoint non-chat ini menunggu model yang dirutekan selesai. Input besar, audio panjang, atau batch besar dapat melebihi default client umum 30s, jadi atur timeout HTTP client Anda minimal `120s`.
+Untuk input besar, atur timeout klien HTTP setidaknya `120s`. Respons dikembalikan setelah pemrosesan selesai.
 
 <ParamField body="model" type="string" required>
   ID model reranker yang akan digunakan (misalnya, `qwen3-vl-rerank`).
@@ -23,7 +23,7 @@ Urutkan ulang dokumen menggunakan model kesamaan semantik. Berguna untuk meningk
 </ParamField>
 
 <ParamField body="top_n" type="integer">
-  Jumlah hasil teratas yang akan dikembalikan. Default ke semua dokumen. Nilainya harus minimal `1` dan tidak boleh lebih besar dari `documents.length`. Saat ini TokenLab tidak menerapkan batas publik yang lebih rendah khusus provider; jika batas ini berubah, halaman ini akan diperbarui sebelum diberlakukan.
+  Jumlah hasil teratas, dari `1` hingga `documents.length`. Jika dihilangkan, model yang dipilih menentukan jumlahnya.
 </ParamField>
 
 <ParamField body="return_documents" type="boolean" default="false">
@@ -37,16 +37,16 @@ Urutkan ulang dokumen menggunakan model kesamaan semantik. Berguna untuk meningk
 
   Setiap hasil berisi:
   - `index` (integer): Indeks dokumen asli
-  - `relevance_score` (number): Skor relevansi (0-1)
+  - `relevance_score` (number): Skor relevansi. Rentangnya bergantung pada model yang dipilih.
   - `document` (string): Teks asli (jika `return_documents=true`)
 </ResponseField>
 
 <ResponseField name="model" type="string">
-  Model yang digunakan untuk reranking.
+  Model yang digunakan untuk reranking. Dikembalikan jika tersedia.
 </ResponseField>
 
 <ResponseField name="usage" type="object">
-  Statistik penggunaan token.
+  Statistik penggunaan token. Dikembalikan jika tersedia.
 </ResponseField>
 
 <RequestExample>

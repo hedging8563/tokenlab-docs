@@ -23,11 +23,13 @@ Explain any paid request test separately before running it.
 Use the current [Pi installation instructions](https://pi.dev/). The npm package is `@earendil-works/pi-coding-agent`. On Windows, follow the [shell setup](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/windows.md); the CLI uses Git Bash by default. Skip installation when Pi is already available.
 
 ```bash
-npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+npm install -g --ignore-scripts @earendil-works/pi-coding-agent@0.85.1
 pi --version
 ```
 
-Merge this into `~/.pi/agent/models.json`, or the active `PI_CODING_AGENT_DIR` directory. Back up the file and preserve other providers. Set `TOKENLAB_API_KEY` locally in the environment that launches Pi; never paste the key into chat. A Base URL environment variable alone does not create this provider.
+The configuration below was checked with **Pi 0.85.1**. Other versions need their own verification against the official documentation.
+
+Back up `~/.pi/agent/models.json`, then append the `tokenlab` entry after existing entries inside `providers`; create the file only if it is absent. A nonempty `PI_CODING_AGENT_DIR` selects the directory containing `models.json`. Keep existing provider order, `settings.json`, accounts, default-model fields and permissions unchanged. If `tokenlab` already exists in the configuration or saved accounts, use another provider name and update the launch command. Set `TOKENLAB_API_KEY` in the launch environment using [Quickstart](/quickstart) for macOS, Linux, WSL or Windows PowerShell; never put the key in chat.
 
 ```json
 {
@@ -44,11 +46,18 @@ Merge this into `~/.pi/agent/models.json`, or the active `PI_CODING_AGENT_DIR` d
 
 The leading `$` in `"$TOKENLAB_API_KEY"` is required: a bare `"TOKENLAB_API_KEY"` is a literal string. Choose a current model with Chat Completions and tool support. Set context, output, image and reasoning options from that model’s details instead of copying another model’s limits.
 
+Optional: the [reversible Pi setup helper](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/skills/tokenlab-api-integration/references/pi_setup.md) provides preview, apply and original-file restoration with Python 3.11+. TokenLab Skills plugin **0.1.2** includes these scripts; a standalone Skill installation can also be used after updating to a version that contains them. For an existing plugin or standalone Skill installation, follow the [README update instructions](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/README.md#update-an-existing-installation) and confirm the script is present. The manual configuration here remains usable without the helper.
+
 ## Check and restore
 
-Run `pi --list-models`, then open `/model` in Pi and select `tokenlab/gpt-5.6-luna`. Opening the picker reloads `models.json`. This checks model registration and credential presence, not credential validity or a completed API request.
+Use the same terminal and agent directory to check loading, then select TokenLab explicitly for this session. An unset `TOKENLAB_API_KEY` can hide the provider from the model list. Discovery proves registration and credential presence, not key validity or a completed API request.
 
-A short text request uses TokenLab balance. Check its reply and the matching [request record](https://tokenlab.sh/dashboard/runs?section=requests) before testing tools. To restore your setup, select the previous provider and remove only the TokenLab entry you added.
+```bash
+pi --list-models tokenlab
+pi --provider tokenlab --model gpt-5.6-luna
+```
+
+A prompt uses TokenLab balance. Check the reply and its [request record](https://tokenlab.sh/dashboard/runs?section=requests) before testing tools. To undo the manual configuration, remove only the provider entry you added, preserving all other settings and accounts.
 
 ## Skills and MCP
 

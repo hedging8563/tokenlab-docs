@@ -8,13 +8,15 @@ description: "Seedance 가상 아바타 머티리얼 그룹을 생성합니다."
 
 새로운 실존 인물 머티리얼 그룹은 [시각 인증 세션 생성](/ko/api-reference/video/create-visual-validation-session)을 통해 생성되며, 이 엔드포인트로 직접 생성할 수 없습니다.
 
+`project_name`은 인증된 조직 내 리소스를 분리합니다. 기본값은 `default`이며 관련 그룹과 소재에는 대소문자를 구분하는 동일한 값을 사용하세요. POST/PUT은 JSON 본문에, GET/DELETE는 쿼리 매개변수에 지정합니다.
+
 ## 요청 예시
 
 ```bash
 curl https://api.tokenlab.sh/v1/videos/assets/groups \
   -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"library_type":"aigc_avatar","group_name":"Product references","description":"Reusable product shots"}'
+  -d '{"library_type":"aigc_avatar","group_name":"Product references","description":"Reusable product shots","project_name":"default"}'
 ```
 
 ## 응답 예시
@@ -23,6 +25,7 @@ curl https://api.tokenlab.sh/v1/videos/assets/groups \
 {
   "id": "group-20260720123456-vrt01",
   "object": "seedance.material_asset_group",
+  "project_name": "default",
   "library_type": "aigc_avatar",
   "group_name": "Product references",
   "description": "Reusable product shots",

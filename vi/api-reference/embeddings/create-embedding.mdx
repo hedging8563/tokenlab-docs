@@ -6,14 +6,14 @@ description: "Tạo một vector embedding đại diện cho văn bản đầu v
 
 ## Nội dung Request
 
-**Timeout cho yêu cầu đồng bộ:** endpoint không phải chat này chờ model được định tuyến hoàn tất. Input lớn, audio dài, hoặc batch lớn có thể vượt quá mặc định 30s phổ biến của client, vì vậy hãy đặt timeout của HTTP client ít nhất là `120s`.
+Với đầu vào lớn, đặt thời gian chờ của máy khách HTTP ít nhất `120s`. Phản hồi trả về sau khi xử lý hoàn tất.
 
 <ParamField body="model" type="string" required>
   ID của model embedding sẽ sử dụng (ví dụ: `text-embedding-3-small`).
 </ParamField>
 
 <ParamField body="input" type="string | array" required>
-  Văn bản đầu vào để tạo embedding. Có thể là một chuỗi hoặc một mảng các chuỗi.
+  Văn bản dưới dạng chuỗi hoặc mảng chuỗi. Mô hình hỗ trợ đầu vào token còn nhận `number[]` cho một chuỗi token hoặc `number[][]` cho nhiều chuỗi.
 </ParamField>
 
 <ParamField body="encoding_format" type="string" default="float">
@@ -30,11 +30,7 @@ description: "Tạo một vector embedding đại diện cho văn bản đầu v
 
 ## Các Model Khả Dụng
 
-| Mô hình | Kích thước | Mô tả |
-|-------|------------|-------------|
-| `text-embedding-3-large` | 3072 | Chất lượng tốt nhất |
-| `text-embedding-3-small` | 1536 | Cân bằng |
-| `text-embedding-ada-002` | 1536 | Phiên bản cũ |
+Dùng `GET /v1/models?recommended_for=embedding` để xem mô hình và số chiều hiện tại.
 
 ## Phản hồi
 
@@ -48,7 +44,7 @@ description: "Tạo một vector embedding đại diện cho văn bản đầu v
   Mỗi đối tượng bao gồm:
   - `object` (string): `embedding`
   - `index` (integer): Chỉ mục trong mảng đầu vào
-  - `embedding` (array): Vector embedding
+  - `embedding` (array | string): Vector số với `float`, hoặc chuỗi Base64 với `base64`.
 </ResponseField>
 
 <ResponseField name="model" type="string">
@@ -129,6 +125,10 @@ print_r(array_slice($data['data'][0]['embedding'], 0, 5));
 ```
 </RequestExample>
 
+<Note>
+Vector trong ví dụ đã được rút ngắn để dễ đọc.
+</Note>
+
 <ResponseExample>
 ```json Response
 {
@@ -137,7 +137,7 @@ print_r(array_slice($data['data'][0]['embedding'], 0, 5));
     {
       "object": "embedding",
       "index": 0,
-      "embedding": [0.0023, -0.0194, 0.0081, ...]
+      "embedding": [0.0023, -0.0194, 0.0081]
     }
   ],
   "model": "text-embedding-3-small",

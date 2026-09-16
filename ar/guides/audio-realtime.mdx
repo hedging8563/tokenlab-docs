@@ -28,7 +28,7 @@ curl "https://api.tokenlab.sh/v1/models?recommended_for=stt" \
 
 ## طلبات الصوت المتزامنة
 
-تعيد طلبات الكلام والتفريغ والترجمة النتيجة مباشرة من طلب HTTP. قد تستغرق المدخلات الكبيرة وقتًا أطول من مهلات العملاء الشائعة، لذلك عيّن مهلة واسعة واحفظ request IDs للدعم.
+يعيد تحويل النص إلى كلام الصوت في استجابة HTTP. وقد يعيد التفريغ والترجمة نصًا نهائيًا أو مهمة مقبولة. إذا احتوت الاستجابة على معرّف مهمة وحالتها بدل النص النهائي، فاحفظ المعرّف وتابع `poll_url` حتى الاكتمال أو الفشل. امنح الملفات الكبيرة مهلة كافية واحتفظ بـ Request ID.
 
 ```bash
 curl -X POST "https://api.tokenlab.sh/v1/audio/speech" \
@@ -48,14 +48,27 @@ curl -X POST "https://api.tokenlab.sh/v1/audio/speech" \
 
 يغطي هذا الدليل سطح WebSocket المحدود فقط (WebSocket subset). لا يوفر TokenLab حالياً مسارات OpenAI Realtime REST الخاصة بـ client secret أو translation client secret أو Calls أو إدارة legacy beta session.
 
+ثبّت `ws` للمثال الخادمي، واضبط `TOKENLAB_REALTIME_MODEL` على نموذج حالي تعلن تفاصيله `/v1/realtime`. وفّر `TOKENLAB_API_KEY` في بيئة الخادم؛ الاسم وحده لا يثبت دعم الوقت الحقيقي.
+
+```bash
+npm install ws
+```
+
 ```javascript
 import WebSocket from 'ws';
 
-const socket = new WebSocket('wss://api.tokenlab.sh/v1/realtime?model=gpt-realtime', {
-  headers: { Authorization: 'Bearer sk-your-api-key' }
-});
+const model = process.env.TOKENLAB_REALTIME_MODEL;
+const apiKey = process.env.TOKENLAB_API_KEY;
+if (!model || !apiKey) throw new Error('Set TOKENLAB_REALTIME_MODEL and TOKENLAB_API_KEY');
 
+const url = new URL('wss://api.tokenlab.sh/v1/realtime');
+url.searchParams.set('model', model);
+const socket = new WebSocket(url, {
+  headers: { Authorization: `Bearer ${apiKey}` },
+});
 socket.on('message', (event) => console.log(event.toString()));
+socket.on('error', (error) => console.error(error.message));
+process.once('SIGINT', () => socket.close(1000, 'Client stopped'));
 ```
 
 ## معالجة الحالة

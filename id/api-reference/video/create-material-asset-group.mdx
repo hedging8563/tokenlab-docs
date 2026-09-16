@@ -8,13 +8,15 @@ Buat grup material dengan `library_type: "aigc_avatar"`. Gunakan endpoint ini un
 
 Grup material orang asli yang baru dibuat melalui [Membuat sesi validasi visual](/id/api-reference/video/create-visual-validation-session) dan tidak dapat dibuat secara langsung dengan endpoint ini.
 
+`project_name` memisahkan sumber daya dalam organisasi yang terautentikasi. Nilai default adalah `default`; gunakan nilai yang sama dan peka huruf besar-kecil untuk grup dan aset terkait. Kirim di body JSON untuk POST/PUT dan parameter kueri untuk GET/DELETE.
+
 ## Contoh Permintaan
 
 ```bash
 curl https://api.tokenlab.sh/v1/videos/assets/groups \
   -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"library_type":"aigc_avatar","group_name":"Product references","description":"Reusable product shots"}'
+  -d '{"library_type":"aigc_avatar","group_name":"Product references","description":"Reusable product shots","project_name":"default"}'
 ```
 
 ## Contoh Respons
@@ -23,6 +25,7 @@ curl https://api.tokenlab.sh/v1/videos/assets/groups \
 {
   "id": "group-20260720123456-vrt01",
   "object": "seedance.material_asset_group",
+  "project_name": "default",
   "library_type": "aigc_avatar",
   "group_name": "Product references",
   "description": "Reusable product shots",

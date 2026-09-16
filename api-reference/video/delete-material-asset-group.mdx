@@ -8,10 +8,12 @@ Delete a material group and the TokenLab material assets inside it. This cannot 
 
 If the TokenLab material library cannot complete the deletion because the current authorization state does not allow it, TokenLab returns a neutral material-library error. After deletion, the group and its assets can no longer be used in video generation.
 
+`project_name` isolates resources within the authenticated organization. It defaults to `default`; use the same case-sensitive value for related groups and assets. Send it in the JSON body for POST/PUT and in the query string for GET/DELETE.
+
 ## Example Request
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01 \
+curl "https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01?project_name=default" \
   -X DELETE \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```

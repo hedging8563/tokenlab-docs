@@ -9,10 +9,10 @@ description: "Obtenez une tâche de compatibilité Seedance par son ID de tâche
 Utilisez l'ID `cgt-...` renvoyé par la création. Interrogez l'API toutes les quelques secondes tant que la tâche est `queued` ou `running`. Arrêtez-vous lorsque la tâche est `succeeded`, `failed`, `cancelled` ou `expired`.
 
 <Warning>
-Ne réutilisez pas l'enum ou la structure de réponse de la tâche unifiée v1 ici. `/v1/tasks/{id}` utilise `pending`, `processing`, `completed` et `failed` ; ce point de terminaison v3 utilise l'enum officiel ci-dessus. Dans l'objet JSON v3, `duration` est une chaîne de caractères lorsqu'elle est présente et `error` est omis sauf si la tâche a échoué. Un client Go strict doit déclarer `Duration` en tant que `string` avec le tag JSON `duration,omitempty`, et s'arrêter sur chaque statut terminal v3.
+Ne réutilisez pas l'enum ou la structure de réponse de la tâche unifiée v1 ici. `/v1/tasks/{id}` utilise `pending`, `processing`, `completed` et `failed` ; ce point de terminaison v3 utilise l'enum officiel ci-dessus. Dans l'objet JSON v3, `duration` est une chaîne de caractères lorsqu'elle est présente et `error` est facultatif et contient les détails d’erreur disponibles. Un client Go strict doit déclarer `Duration` en tant que `string` avec le tag JSON `duration,omitempty`, et s'arrêter sur chaque statut terminal v3.
 </Warning>
 
-Voir aussi [Modèles vidéo Seedance 2.0](/guides/seedance-2-video) et [Génération de vidéo](/guides/video-generation).
+Voir aussi [Modèles vidéo Seedance 2.0](/fr/guides/seedance-2-video) et [Génération de vidéo](/fr/guides/video-generation).
 
 ## Valeurs de statut
 
@@ -32,7 +32,7 @@ Voir aussi [Modèles vidéo Seedance 2.0](/guides/seedance-2-video) et [Généra
 - `content.last_frame_url` : présent uniquement lorsqu'il est demandé et disponible.
 - `usage` : utilisation des tokens lorsqu'elle est disponible.
 - `created_at` et `updated_at` : horodatages de la tâche.
-- `error` : présent uniquement lorsque la tâche a échoué ; omis pour les tâches n'ayant pas échoué.
+- `error`: Détails d’erreur facultatifs, lorsqu’ils sont disponibles. Consultez `error.code` et `error.message` ; ne déduisez pas la présence du champ du seul `status`.
 
 La réponse n'ajoute jamais de champs TokenLab tels que `progress`, `return_last_frame`, `watermark`, `priority` ou `camera_fixed`.
 

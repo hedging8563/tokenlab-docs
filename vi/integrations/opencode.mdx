@@ -22,7 +22,7 @@ OpenCode là một trợ lý lập trình AI mã nguồn mở chạy trong termi
 [OpenCode](https://opencode.ai/docs/)
 
 ```bash
-npm install -g opencode-ai
+npm install -g opencode-ai@1.18.31
 ```
 
 Xác minh cài đặt:
@@ -35,22 +35,13 @@ opencode --version
 
 ### Bước 1: Thiết lập biến môi trường
 
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
-
-Để cấu hình vĩnh viễn, thêm vào `~/.bashrc` hoặc `~/.zshrc`:
-
-```bash
-echo 'export TOKENLAB_API_KEY="sk-your-tokenlab-key"' >> ~/.zshrc
-source ~/.zshrc
-```
+Làm theo bước terminal trong [bắt đầu nhanh](/vi/quickstart) cho macOS, Linux, WSL hoặc Windows PowerShell để đặt `TOKENLAB_API_KEY` mà không ghi khóa vào lịch sử lệnh. Mở OpenCode từ terminal đó. Khi dùng lâu dài, hãy dùng trình quản lý bí mật cục bộ, không thêm khóa dạng văn bản vào hồ sơ shell.
 
 ### Bước 2: Cấu hình OpenCode
 
-Tài liệu hiện tại của OpenCode khuyến nghị cấu hình các nhà cung cấp thông qua `opencode.json` hoặc `opencode.jsonc`. Với TokenLab, hãy sử dụng một nhà cung cấp tùy chỉnh thay vì ghi đè nhà cung cấp `openai` tích hợp sẵn:
+Cấu hình dưới đây đã được kiểm tra với **OpenCode 1.18.31**. Các phiên bản khác cần được xác minh riêng theo tài liệu chính thức.
 
-Ví dụ dùng định dạng V1 được hỗ trợ. Hợp nhất vào `~/.config/opencode/opencode.json` và giữ nguyên nhà cung cấp cùng quyền. V2 đọc được V1 tương thích nhưng không trộn hai định dạng trong một nhà cung cấp. Xem [hướng dẫn chuyển đổi](https://opencode.ai/v2/docs/migrate-v1/). Kiểm tra `/models`, rồi đối chiếu thử nghiệm trả phí với bản ghi TokenLab. Để hoàn tác, chọn mô hình cũ và chỉ xóa mục này.
+Lưu cấu hình vào tệp riêng `~/.config/opencode/tokenlab.jsonc`. Nếu đã đặt `XDG_CONFIG_HOME`, dùng `opencode/tokenlab.jsonc` trong thư mục đó. Giữ nguyên `opencode.json` / `opencode.jsonc` thông thường, tài khoản, mô hình mặc định và quyền. Tệp riêng chỉ được tải khi lần khởi chạy đó chọn nó bằng `OPENCODE_CONFIG`. Nếu tệp hoặc tên nhà cung cấp đã được dùng, chọn tên khác và sửa lệnh tương ứng.
 
 ```jsonc
 {
@@ -72,34 +63,46 @@ Ví dụ dùng định dạng V1 được hỗ trợ. Hợp nhất vào `~/.conf
         }
       }
     }
-  },
-  "model": "tokenlab/gpt-5.6-terra"
+  }
 }
 ```
 
 <Note>
-Sử dụng `@ai-sdk/openai-compatible` để tương thích theo kiểu chat-completions. Nếu bạn cần cụ thể một đường dẫn nhà cung cấp được xây dựng trên `/v1/responses`, tài liệu OpenCode khuyến nghị chuyển package sang `@ai-sdk/openai`.
+Cấu hình này gửi Chat Completions qua `@ai-sdk/openai-compatible`. Kiểm tra hỗ trợ Chat Completions và công cụ cần dùng trong thông tin mô hình hiện tại. Ví dụ không chứng minh khả năng tương thích với giao thức hoặc phiên bản khác.
 </Note>
+
+Tùy chọn: [trình cấu hình OpenCode có thể khôi phục](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/skills/tokenlab-api-integration/references/opencode_setup.md) dùng Python 3.11+ để xem trước, áp dụng và khôi phục tệp gốc. Plugin TokenLab Skills **0.1.2** chứa các script này; Skill độc lập cũng dùng được sau khi cập nhật lên phiên bản có chúng. Nếu đã cài plugin hoặc Skill độc lập, làm theo [hướng dẫn cập nhật README](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/README.md#update-an-existing-installation) và kiểm tra script đã có. Các bước thủ công trên trang vẫn dùng được mà không cần trình cấu hình.
 
 ## Cách dùng cơ bản
 
-**Khởi động chế độ tương tác:**
+Đặt khóa theo phần bắt đầu nhanh, rồi chỉ tải tệp cho lần khởi chạy này và chọn rõ mô hình. Thay đường dẫn và tên nhà cung cấp tùy chỉnh nếu có. Giữ thiết lập `OPENCODE_CONFIG` hoặc `OPENCODE_CONFIG_CONTENT` có sẵn trong môi trường khởi chạy riêng; cấu hình dự án hoặc được quản lý vẫn có thể được ưu tiên.
 
-```bash
-opencode
+<CodeGroup>
+```bash macOS / Linux / WSL
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode models tokenlab
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode --model tokenlab/gpt-5.6-terra
 ```
 
-**Chạy với một prompt:**
-
-```bash
-opencode run "Explain this codebase"
+```powershell Windows PowerShell
+$tokenlabConfigRoot = if ($env:XDG_CONFIG_HOME) { $env:XDG_CONFIG_HOME } else { Join-Path $HOME '.config' }
+$previousConfig = $env:OPENCODE_CONFIG
+try {
+  $env:OPENCODE_CONFIG = Join-Path $tokenlabConfigRoot 'opencode/tokenlab.jsonc'
+  opencode models tokenlab
+  opencode --model tokenlab/gpt-5.6-terra
+} finally {
+  if ($null -eq $previousConfig) {
+    Remove-Item Env:OPENCODE_CONFIG -ErrorAction SilentlyContinue
+  } else {
+    $env:OPENCODE_CONFIG = $previousConfig
+  }
+}
 ```
+</CodeGroup>
 
-**Chỉ định model:**
+Danh sách mô hình kiểm tra việc tải cục bộ, không chứng minh khóa hợp lệ hay yêu cầu thực tế thành công. Prompt dùng số dư TokenLab; OpenCode có thể gửi thêm yêu cầu phụ được tính phí riêng, như tạo tiêu đề. Kiểm tra phản hồi và các [bản ghi tương ứng](https://tokenlab.sh/dashboard/runs?section=requests).
 
-```bash
-opencode run --model tokenlab/gpt-5.6-terra "Fix the bugs in main.py"
-```
+Khởi chạy không tải tệp này để dùng thiết lập thông thường. Không lưu `OPENCODE_CONFIG` vào hồ sơ shell chỉ để làm theo hướng dẫn. Khi hoàn tác cấu hình thủ công, chỉ xóa tệp riêng vừa tạo hoặc khôi phục bản sao lưu nếu tệp đã có từ trước.
 
 ## Các model khả dụng
 
@@ -116,25 +119,25 @@ opencode run --model tokenlab/gpt-5.6-terra "Fix the bugs in main.py"
 **Phân tích code:**
 
 ```bash
-opencode run "What does this function do?" < src/utils.ts
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode run --model tokenlab/gpt-5.6-terra "What does this function do?" < src/utils.ts
 ```
 
 **Sinh code:**
 
 ```bash
-opencode run "Create a REST API with Express"
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode run --model tokenlab/gpt-5.6-terra "Create a REST API with Express"
 ```
 
 **Review thay đổi:**
 
 ```bash
-git diff | opencode run "Review these changes"
+git diff | OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode run --model tokenlab/gpt-5.6-terra "Review these changes"
 ```
 
 **Sửa lỗi:**
 
 ```bash
-opencode run "Fix the TypeScript errors in this project"
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode run --model tokenlab/gpt-5.6-terra "Fix the TypeScript errors in this project"
 ```
 
 ## Các lệnh tương tác

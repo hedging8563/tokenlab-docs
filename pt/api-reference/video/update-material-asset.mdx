@@ -6,6 +6,8 @@ description: "Atualiza um ativo de material Seedance pertencente à organizaçã
 
 Atualize o nome ou os metadados do material. A URL de origem e o tipo de ativo são fixos após a criação; crie um novo ativo quando o arquivo de origem for alterado.
 
+`project_name` isola recursos dentro da organização autenticada. O padrão é `default`; use o mesmo valor, diferenciando maiúsculas e minúsculas, para grupos e ativos relacionados. Envie-o no corpo JSON para POST/PUT e na consulta para GET/DELETE.
+
 ## Exemplo de Requisição
 
 ```bash
@@ -13,7 +15,7 @@ curl https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr \
   -X PUT \
   -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"asset_name":"Front view approved","metadata":{"approved_by":"creative-team"}}'
+  -d '{"asset_name":"Front view approved","metadata":{"approved_by":"creative-team"},"project_name":"default"}'
 ```
 
 ## Exemplo de Resposta
@@ -22,14 +24,15 @@ curl https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr \
 {
   "id": "asset-20260720123456-qn7wr",
   "object": "seedance.material_asset",
+  "project_name": "default",
   "group_id": "group-20260720123456-vrt01",
   "library_type": "aigc_avatar",
   "asset_name": "Front view approved",
   "asset_type": "Image",
-  "status": "PROCESSING",
-  "ready": false,
+  "status": "ACTIVE",
+  "ready": true,
   "error_message": null,
-  "metadata": null,
+  "metadata": {"approved_by": "creative-team"},
   "created_at": 1782998400000
 }
 ```

@@ -6,10 +6,12 @@ description: "حذف أصل مادي من Seedance مملوك للمؤسسة ا�
 
 حذف أصل مادي واحد. لا تؤدي هذه العملية إلى حذف مجموعة المواد التي تحتوي عليه. بعد الحذف، لا يمكن استخدام معرف الأصل (asset ID) كـ `material_asset_id` بعد الآن.
 
+يعزل `project_name` الموارد داخل المؤسسة المصادق عليها. قيمته الافتراضية `default`؛ استخدم القيمة نفسها مع مراعاة حالة الأحرف للمجموعات والأصول المرتبطة. أرسله في جسم JSON مع POST/PUT وفي معاملات الاستعلام مع GET/DELETE.
+
 ## مثال على الطلب
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr \
+curl "https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr?project_name=default" \
   -X DELETE \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```

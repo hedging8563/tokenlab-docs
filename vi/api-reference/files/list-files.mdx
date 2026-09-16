@@ -37,11 +37,10 @@ Sử dụng bảng OpenAPI tương tác ở trên để xem schema chính xác.
 
 - Dùng `custom_id` cho việc đối soát downstream mang tính idempotent.
 - Chỉ kỳ vọng `output_file_id` và `error_file_id` sau khi worker hoàn tất batch.
-- Giá batch có thể khác với giá đồng bộ vì các quy tắc giảm giá `isBatchRequest=true` được áp dụng.
 
 ## Bộ lọc
 
-- `limit` chấp nhận giá trị từ 1 đến 10000 và mặc định là 10000.
+- Với tệp lô và tệp tham chiếu ảnh, `limit` là 1–10000 (mặc định 10000), dùng `after` để phân trang. Trong chế độ Anthropic Files, giá trị là 1–1000 (mặc định 20); dùng `after_id` hoặc `before_id`, không dùng cả hai.
 - `purpose` có thể là `batch`, `batch_output`, `user_data` hoặc `vision`.
 - `user_data` và `vision` trả về các tệp tham chiếu hình ảnh do TokenLab tạo khi có sẵn.
 
@@ -51,7 +50,10 @@ Sử dụng bảng OpenAPI tương tác ở trên để xem schema chính xác.
 ```json 200 OK
 {
   "object": "list",
-  "data": [{ "id": "file_abc123", "object": "file", "purpose": "batch" }]
+  "data": [{ "id": "file_abc123", "object": "file", "purpose": "batch" }],
+  "first_id": "file_abc123",
+  "last_id": "file_abc123",
+  "has_more": false
 }
 ```
 </ResponseExample>
@@ -60,3 +62,4 @@ Sử dụng bảng OpenAPI tương tác ở trên để xem schema chính xác.
 
 <ResponseField name="object" type="string">Loại object của phản hồi.</ResponseField>
 <ResponseField name="data" type="array">Danh sách hoặc payload được trả về trong phản hồi.</ResponseField>
+<ResponseField name="has_more" type="boolean">Có thêm kết quả khi `has_more` là true.</ResponseField>

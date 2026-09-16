@@ -28,6 +28,8 @@ Follow the [official installation guide](https://hermes-agent.nousresearch.com/d
 
 Find the active Hermes directory: `HERMES_HOME` when set, otherwise `~/.hermes` (Windows: `%USERPROFILE%\.hermes`). Back up `config.yaml`, then merge the following entries without replacing other settings. The example uses Chat Completions; choose a current model that supports this format and tool calling.
 
+Back up the active configuration. Add only the TokenLab entry and preserve existing providers, accounts, default-model selection and permissions. If the name is already used, choose another name and update the commands. To undo setup, remove only your added entry or restore its previous backup.
+
 ```yaml
 providers:
   tokenlab:
@@ -35,16 +37,17 @@ providers:
     key_env: TOKENLAB_API_KEY
     transport: chat_completions
     default_model: gpt-5.6-luna
-model:
-  provider: custom:tokenlab
-  default: gpt-5.6-luna
 ```
 
 Create a key in [API keys](https://tokenlab.sh/dashboard/api?tab=keys). Enter it locally as `TOKENLAB_API_KEY` in the Hermes directory’s `.env` or in the environment of the process that starts Hermes. Never paste the key into a conversation or put it in the provider YAML.
 
 ## Check configuration, then make a request
 
-Run `hermes config get model.provider` and `hermes config get model.default`. They should show `custom:tokenlab` and the selected model. Start a new session; an existing session can keep its earlier model. Configuration checks do not validate the key or make a successful model call.
+Check the added provider with `hermes config get providers.tokenlab.api`; it should show `https://api.tokenlab.sh/v1`. Keep the existing `model` section unchanged. Start a new session with the explicit provider and model below; launch normally without these flags to use your previous default. Configuration inspection does not validate the key.
+
+```bash
+hermes chat --provider custom:tokenlab --model gpt-5.6-luna
+```
 
 When ready to spend TokenLab balance, send a short text request. Check the response and its matching record in [Requests](https://tokenlab.sh/dashboard/runs?section=requests). Only then try a read-only tool task. Auxiliary models and optional tools can have separate providers or keys.
 

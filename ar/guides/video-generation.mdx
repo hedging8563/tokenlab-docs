@@ -7,7 +7,9 @@ import VideoModelContracts from "../snippets/generated/video-model-contracts.mdx
 
 توليد الفيديو غير متزامن. `POST /v1/videos/generations` يعيد هوية مهمة عامة وعادةً ما يعيد `poll_url`؛ يظهر الفيديو النهائي في ردود الحالة اللاحقة.
 
-عندما يستطيع نموذج Seedance المحدد استخدام مكتبة مواد TokenLab، يتم تجهيز روابط الصور و data URL المضمنة المدعومة كمواد TokenLab قابلة لإعادة الاستخدام قبل التوليد. إذا استغرق التجهيز أكثر من 60 ثانية، أعد المحاولة بعد أن تصبح `auto_material_asset_ids` المعادة في حالة `ACTIVE`. إذا لم يستطع النموذج المحدد استخدام مكتبة المواد، تستمر مدخلات الصور العادية عبر مسار الصور المعتاد.
+أرسل روابط HTTP(S) عامة أو روابط data مدعومة في حقول الصور التي يقبلها النموذج المختار. تُعالج كمدخلات وسائط عادية ولا تُنشئ تلقائيًا معرّفات مواد قابلة لإعادة الاستخدام.
+
+إذا كانت المادة المحددة صراحةً لا تزال قيد الإعداد، يعيد `POST /v1/videos/generations` الخطأ `409 seedance_material_preparing` مع `inactive_asset_ids`. استعلم عنها حتى تصبح `ACTIVE` ثم أعد المحاولة بالمعرّفات نفسها. عند `FAILED` راجع `error_message` وصحح المادة أو أعد استيرادها أولًا.
 
 ## العمليات المدعومة
 
@@ -27,20 +29,20 @@ import VideoModelContracts from "../snippets/generated/video-model-contracts.mdx
 ## اكتشاف النموذج
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \\
+curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 
-استخدم معرفات النماذج التي تعرضها TokenLab في `model`، ثم اختر متغيرات العملية عبر `operation` ومدخلات الوسائط المناسبة. تشمل الأمثلة `wan-2.7` و`happyhorse-1.0` و`viduq3` و`viduq3-mix` و`pixverse-v6` و`kling-3.0-video` و`veo3.1` و`seedance-2.0`؛ لا تستخدم أسماء العمليات الخاصة بالمزوّد كأسماء نماذج في TokenLab.
+استخدم معرفات النماذج التي تعرضها TokenLab في `model`، ثم اختر متغيرات العملية عبر `operation` ومدخلات الوسائط المناسبة. تشمل الأمثلة `wan-2.7` و`happyhorse-1.0` و`viduq3` و`viduq3-mix` و`pixverse-v6` و`veo3.1` و`seedance-2.0`؛ لا تستخدم أسماء العمليات الخاصة بالمزوّد كأسماء نماذج في TokenLab.
 
 اقرأ تفاصيل النموذج المحدد قبل الاعتماد على الحقول المتخصصة مثل `reference_images`, `kling_elements`, `output_audio`, `duration`, `resolution`, أو `aspect_ratio`.
 
 ## إنشاء الطلب
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/generations \\
-  -H "Authorization: Bearer sk-your-api-key" \\
-  -H "Content-Type: application/json" \\
+curl https://api.tokenlab.sh/v1/videos/generations \
+  -H "Authorization: Bearer sk-your-api-key" \
+  -H "Content-Type: application/json" \
   -d '{
     "model": "veo3.1",
     "operation": "text-to-video",
@@ -55,9 +57,8 @@ curl https://api.tokenlab.sh/v1/videos/generations \\
 ## المدخلات والحقول المحددة للنموذج
 
 - طلبات عائلة Veo 3 افتراضيًا تكون على وضع الصوت عند حذف `output_audio`. قم بتعيينها صراحة عندما يدعم النموذج التبديل وتعتمد تجربة المستخدم الخاصة بك على الصوت.
-- `kling_elements` مخصصة لطلبات `kling-3.0-video` المشروطة بالصورة. قم بالإشارة إلى كل عنصر في `prompt` كـ `@name`؛ لا تجمعها مع `output_audio=true`.
 - بالنسبة إلى عائلة Seedance 2.0، اقرأ [دليل نماذج فيديو Seedance 2.0](/ar/guides/seedance-2-video) قبل استخدام مخرجات 4K أو حدود Fast/Mini أو مدخلات المرجع متعددة الوسائط.
-- بالنسبة لـ `grok-imagine-video`، يستخدم `video-to-video` `video_url` العامة بصيغة `.mp4`؛ يجب أن تأتي الحدود المحددة للنموذج مثل `duration` و `resolution` من تفاصيل النموذج.
+- في video-to-video مع `grok-imagine-video`، أرسل `prompt` ورابط HTTPS عامًا لملف `.mp4` في `video_url`. لا تستخدم هذه العملية خيارات `duration` أو `resolution` أو `aspect_ratio`.
 
 <VideoModelContracts />
 

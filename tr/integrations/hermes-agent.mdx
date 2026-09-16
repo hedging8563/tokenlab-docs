@@ -13,6 +13,8 @@ Mevcut hesapları, ayarları ve araç izinlerini koruyarak TokenLab adlı ayrı 
 
 Tanımlıysa `HERMES_HOME` dizinini, değilse `~/.hermes` dizinini kullanın (Windows: `%USERPROFILE%\.hermes`). `config.yaml` dosyasını yedekleyip diğer ayarları değiştirmeden aşağıdaki girdileri birleştirin. Chat Completions ve araç çağrılarını destekleyen güncel bir model seçin.
 
+Etkin yapılandırmayı yedekleyin. Yalnızca TokenLab girdisini ekleyip mevcut sağlayıcıları, hesapları, varsayılan modeli ve izinleri koruyun. Ad kullanımdaysa başka bir ad seçip komutları güncelleyin. Geri almak için yalnızca eklediğiniz girdiyi kaldırın veya önceki yedeğini yükleyin.
+
 ```yaml
 providers:
   tokenlab:
@@ -20,16 +22,17 @@ providers:
     key_env: TOKENLAB_API_KEY
     transport: chat_completions
     default_model: gpt-5.6-luna
-model:
-  provider: custom:tokenlab
-  default: gpt-5.6-luna
 ```
 
 [API anahtarları](https://tokenlab.sh/dashboard/api?tab=keys) sayfasında anahtar oluşturun. Anahtarı Hermes dizinindeki `.env` dosyasına veya başlatan sürecin ortamına `TOKENLAB_API_KEY` olarak yerel biçimde kaydedin. Sohbete veya sağlayıcının YAML dosyasına yapıştırmayın.
 
 ## Önce kontrol, sonra istek
 
-`hermes config get model.provider` ve `hermes config get model.default` komutları `custom:tokenlab` ile seçili modeli göstermelidir. Eski oturumlar önceki modeli koruyabileceğinden yeni oturum başlatın. Yapılandırma kontrolü anahtarın geçerliliğini veya başarılı model çağrısını kanıtlamaz.
+Sağlayıcıyı `hermes config get providers.tokenlab.api` ile kontrol edin; `https://api.tokenlab.sh/v1` görünmelidir. Mevcut `model` bölümünü koruyun. Aşağıdaki sağlayıcı ve modeli açıkça seçerek yeni oturum başlatın; bu seçenekler olmadan önceki varsayılan kullanılır. Yapılandırma denetimi anahtarı doğrulamaz.
+
+```bash
+hermes chat --provider custom:tokenlab --model gpt-5.6-luna
+```
 
 TokenLab bakiyesini kullanmaya hazır olduğunuzda kısa bir metin gönderip yanıtı [istek kaydıyla](https://tokenlab.sh/dashboard/runs?section=requests) karşılaştırın. Ardından salt okunur bir araç görevi deneyin. Yardımcı modeller ve isteğe bağlı araçlar ayrı sağlayıcılar veya anahtarlar kullanabilir.
 

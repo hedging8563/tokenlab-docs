@@ -18,11 +18,11 @@ The asset is available only in the Workspace that created it.
   Media type: `image` or `video`.
 </ParamField>
 
-<ParamField body="extension" type="string">
+<ParamField body="extension" type="string | null">
   Optional extension such as `png`, `jpg`, or `mp4`.
 </ParamField>
 
-<ParamField body="metadata" type="object">
+<ParamField body="metadata" type="object | null">
   Custom metadata stored with the asset.
 </ParamField>
 
@@ -34,6 +34,14 @@ The asset is available only in the Workspace that created it.
 
 <ResponseField name="upload_info.upload_url" type="string">
   Signed URL for uploading the file.
+</ResponseField>
+
+<ResponseField name="upload_info.upload_method" type="string">
+  HTTP method to use when uploading the binary file to `upload_info.upload_url`, when returned.
+</ResponseField>
+
+<ResponseField name="upload_info.required_headers" type="object">
+  Headers to include with the binary upload, when returned.
 </ResponseField>
 
 <RequestExample>

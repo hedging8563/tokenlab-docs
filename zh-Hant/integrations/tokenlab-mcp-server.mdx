@@ -37,10 +37,10 @@ description: "將 Claude Code、Cursor、VS Code、Codex 及其他 MCP 客戶端
 最快且安全的起步方式是先啟用 6 個公開目錄工具。它不需要 TokenLab API Key，之後可隨時開啟需要憑證的工具。
 
 <CardGroup cols={2}>
-  <Card title="一鍵安裝到 Cursor" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXIiXSwiZW52Ijp7IlRPS0VOTEFCX01DUF9UT09MX1BST0ZJTEUiOiJjYXRhbG9nIn19">
+  <Card title="一鍵安裝到 Cursor" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXJAMC42LjE5Il0sImVudiI6eyJUT0tFTkxBQl9NQ1BfVE9PTF9QUk9GSUxFIjoiY2F0YWxvZyJ9fQ%3D%3D">
     一鍵將公開 `catalog` 設定檔加入 Cursor
   </Card>
-  <Card title="一鍵安裝到 VS Code" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
+  <Card title="一鍵安裝到 VS Code" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%400.6.19%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
     將公開 `catalog` 設定檔加入 VS Code 使用者設定
   </Card>
 </CardGroup>
@@ -70,19 +70,19 @@ description: "將 Claude Code、Cursor、VS Code、Codex 及其他 MCP 客戶端
   <Step title="設定客戶端">
     在下方選擇你的客戶端。公開範例會明確選擇 `catalog`，因此所有公開的工具都能在沒有 Key 的情況下運作。
 
-    <Tabs>
+    先備份目前設定。只新增 TokenLab 項目，保留既有供應商、帳戶、預設模型與權限。如果名稱已被使用，另選名稱並同步修改指令。還原時只移除本次新增的項目，或還原其原始備份。
+
+<Tabs>
       <Tab title="Claude Code">
         為目前使用者加入 TokenLab，讓它在所有專案中可用：
 
         ```bash
-        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab -- npx -y @tokenlabai/mcp-server
+        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab -- npx -y @tokenlabai/mcp-server@0.6.19
         ```
 
         若要啟用預設的 `core` 設定檔，請改為攜帶 API Key 加入伺服器：
 
-        ```bash
-        claude mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key --scope user tokenlab -- npx -y @tokenlabai/mcp-server
-        ```
+
 
         僅目前專案使用時選擇 `--scope local`；要建立團隊共用的 `.mcp.json` 時選擇 `--scope project`。不要把真實 Key 提交到專案設定中。
       </Tab>
@@ -95,7 +95,7 @@ description: "將 Claude Code、Cursor、VS Code、Codex 及其他 MCP 客戶端
           "mcpServers": {
             "tokenlab": {
               "command": "npx",
-              "args": ["-y", "@tokenlabai/mcp-server"],
+              "args": ["-y", "@tokenlabai/mcp-server@0.6.19"],
               "env": { "TOKENLAB_MCP_TOOL_PROFILE": "catalog" }
             }
           }
@@ -112,7 +112,7 @@ description: "將 Claude Code、Cursor、VS Code、Codex 及其他 MCP 客戶端
             "tokenlab": {
               "type": "stdio",
               "command": "npx",
-              "args": ["-y", "@tokenlabai/mcp-server"],
+              "args": ["-y", "@tokenlabai/mcp-server@0.6.19"],
               "env": { "TOKENLAB_MCP_TOOL_PROFILE": "catalog" }
             }
           }
@@ -125,23 +125,17 @@ description: "將 Claude Code、Cursor、VS Code、Codex 及其他 MCP 客戶端
       <Tab title="Codex">
         ```bash
         # 公開目錄設定檔
-        codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab -- npx -y @tokenlabai/mcp-server
-
-        # 預設 core 設定檔與 API Key
-        codex mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key tokenlab -- npx -y @tokenlabai/mcp-server
+                codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab -- npx -y @tokenlabai/mcp-server@0.6.19
         ```
       </Tab>
 
       <Tab title="Claude Desktop">
-        將標準 `mcpServers` 設定加入 `claude_desktop_config.json`。命令為 `npx`，參數依序為 `-y` 和 `@tokenlabai/mcp-server`；若只需要公開工具，請設定 `TOKENLAB_MCP_TOOL_PROFILE=catalog`。
+        將標準 `mcpServers` 設定加入 `claude_desktop_config.json`。命令為 `npx`，參數依序為 `-y` 和 `@tokenlabai/mcp-server@0.6.19`；若只需要公開工具，請設定 `TOKENLAB_MCP_TOOL_PROFILE=catalog`。
       </Tab>
 
       <Tab title="其他客戶端">
-        Cline CLI 可直接安裝已發布的 stdio 伺服器：
 
-        ```bash
-        cline mcp add tokenlab --yes -- npx -y @tokenlabai/mcp-server
-        ```
+
 
         Windsurf 請將標準 `mcpServers` 設定儲存到 `~/.codeium/windsurf/mcp_config.json`。其他 stdio 客戶端使用相同的命令與參數，工作目錄留空。
       </Tab>
@@ -162,7 +156,7 @@ description: "將 Claude Code、Cursor、VS Code、Codex 及其他 MCP 客戶端
 
 ## 設定參考
 
-任何支援本機 stdio MCP 伺服器的客戶端都使用以下值：伺服器名稱 `tokenlab`、命令 `npx`、參數 `-y` 和 `@tokenlabai/mcp-server`，工作目錄留空。若要固定目前已驗證版本，請使用 `@tokenlabai/mcp-server@0.6.19`。
+任何支援本機 stdio MCP 伺服器的客戶端都使用以下值：伺服器名稱 `tokenlab`、命令 `npx`、參數 `-y` 和 `@tokenlabai/mcp-server@0.6.19`，工作目錄留空。若要固定目前已驗證版本，請使用 `@tokenlabai/mcp-server@0.6.19`。
 
 需要憑證的工具可使用以下標準設定：
 
@@ -171,7 +165,7 @@ description: "將 Claude Code、Cursor、VS Code、Codex 及其他 MCP 客戶端
   "mcpServers": {
     "tokenlab": {
       "command": "npx",
-      "args": ["-y", "@tokenlabai/mcp-server"],
+      "args": ["-y", "@tokenlabai/mcp-server@0.6.19"],
       "env": {
         "TOKENLAB_API_KEY": "<TOKENLAB_API_KEY>",
         "TOKENLAB_MCP_TOOL_PROFILE": "core"
@@ -296,7 +290,7 @@ MCP 伺服器在執行階段非常有用，而 [TokenLab skills repository](http
 
 <AccordionGroup>
   <Accordion title="客戶端無法啟動伺服器">
-    確認 Node.js 至少為 18.17，且客戶端能找到 `npx`。在終端機執行一次 `npx -y @tokenlabai/mcp-server` 以顯示 npm 或網路錯誤。stdio 成功啟動後會靜默等待 MCP 訊息；確認能啟動後按 **Ctrl+C** 結束。
+    確認 Node.js 至少為 18.17，且客戶端能找到 `npx`。在終端機執行一次 `npx -y @tokenlabai/mcp-server@0.6.19` 以顯示 npm 或網路錯誤。stdio 成功啟動後會靜默等待 MCP 訊息；確認能啟動後按 **Ctrl+C** 結束。
   </Accordion>
 
   <Accordion title="伺服器已設定，但沒有顯示工具">

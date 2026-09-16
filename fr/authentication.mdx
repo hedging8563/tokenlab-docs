@@ -5,7 +5,7 @@ description: "Sécurisez vos requêtes API TokenLab avec des clés API"
 
 ## Clés API
 
-Toutes les requêtes API TokenLab nécessitent une clé API.
+Les appels aux modèles et les ressources privées nécessitent une clé API. Les endpoints publics comme `GET /v1/models` et `GET /v1/models/{model}` fonctionnent sans clé. Une réponse de découverte réussie ne valide pas votre clé ; envoyez une requête au modèle en suivant le démarrage rapide. Utilisez la clé complète enregistrée, pas le préfixe affiché dans la liste.
 
 Pour les endpoints compatibles OpenAI, envoyez-la comme suit :
 
@@ -51,38 +51,7 @@ Les jetons de gestion ne permettent pas d’appeler les modèles, et les clés A
 
 ## Utilisation des clés API
 
-<CodeGroup>
-
-```bash cURL
-curl https://api.tokenlab.sh/v1/responses \
-  -H "Authorization: Bearer $TOKENLAB_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "gpt-5.6-terra",
-    "input": "Hello!"
-  }'
-```
-
-```python Python
-import os
-from openai import OpenAI
-
-client = OpenAI(
-    api_key=os.environ.get("TOKENLAB_API_KEY"),
-    base_url="https://api.tokenlab.sh/v1"
-)
-```
-
-```javascript JavaScript
-import OpenAI from 'openai';
-
-const client = new OpenAI({
-  apiKey: process.env.TOKENLAB_API_KEY,
-  baseURL: 'https://api.tokenlab.sh/v1'
-});
-```
-
-</CodeGroup>
+Consultez le [démarrage rapide](/fr/quickstart) pour les variables d’environnement et une première requête complète. Choisissez le SDK adapté au [format API](/fr/guides/api-formats) et gardez les clés côté serveur.
 
 ## Fonctionnalités des clés API
 
@@ -99,32 +68,12 @@ Vous pouvez définir une limite d’utilisation sur chaque clé API :
 
 Toutes les clés API TokenLab commencent par `sk-`.
 
-## Compatibilité Anthropic
-
-Pour l’endpoint `/v1/messages`, l’en-tête de style Anthropic fonctionne comme prévu :
-
-```bash
-curl https://api.tokenlab.sh/v1/messages \
-  -H "x-api-key: sk-your-api-key" \
-  -H "anthropic-version: 2023-06-01" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "claude-sonnet-5",
-    "max_tokens": 1024,
-    "messages": [{"role": "user", "content": "Hello!"}]
-  }'
-```
-
-<Note>
-Utilisez `Authorization: Bearer ...` pour les endpoints compatibles OpenAI tels que `/v1/responses`, `/v1/chat/completions`, `/v1/models` et la plupart des autres routes TokenLab.
-</Note>
-
 ## Réponses d’erreur
 
 | Code de statut | Type | Code | Description |
 |-------------|------|------|-------------|
-| 401 | `invalid_api_key` | `invalid_api_key` | Clé API manquante ou invalide |
-| 401 | `expired_api_key` | `expired_api_key` | La clé API a été révoquée |
+| 401 | `invalid_api_key` | `invalid_api_key` | La clé API est absente, invalide, inactive ou révoquée |
+| 401 | `expired_api_key` | `expired_api_key` | La clé API a expiré |
 | 402 | `insufficient_balance` | `insufficient_balance` | Le solde du compte est insuffisant |
 | 402 | `quota_exceeded` | `quota_exceeded` | La limite d’utilisation de la clé API a été atteinte |
 

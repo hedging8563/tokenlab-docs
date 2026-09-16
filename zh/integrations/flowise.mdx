@@ -20,13 +20,15 @@ Flowise 有 TokenLab 聊天节点时可以直接使用；没有时，添加 Open
 
 ## 使用 OpenAI 兼容节点
 
-如果 TokenLab 节点尚不可用，请使用 OpenAI 兼容的聊天模型节点，并配置如下：
+如果你的版本未包含 TokenLab 节点，请添加 **Chat Models** → **OpenAI Custom Model**。在 **Connect Credential** 中使用 TokenLab 密钥创建 **OpenAI API** 凭证，再按下表设置 **Model Name** 和 **Additional Parameters** → **Base Path**：
 
 | 字段 | 值 |
 |-------|-------|
-| Base URL | `https://api.tokenlab.sh/v1` |
+| Base Path | `https://api.tokenlab.sh/v1` |
 | API 密钥 | `sk-your-tokenlab-key` |
-| Model | `gpt-5.4-mini` |
+| Model Name | `gpt-5.4-mini` |
+
+将节点连接到链、代理或工作流，再发送一条测试提示词。
 
 ## 选择模型
 

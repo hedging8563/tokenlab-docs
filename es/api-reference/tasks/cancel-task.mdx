@@ -10,7 +10,7 @@ Usa `DELETE /v1/tasks/{id}` para cancelar una tarea asíncrona que aún no ha em
 
 ## Tareas compatibles
 
-La cancelación se admite para tareas de video Seedance en cola cuando el proveedor seleccionado para esa tarea admite cancelación. Los modelos compatibles son `seedance-1.5-pro`, `seedance-2.0` y `seedance-2.0-fast`. Las tareas que ya están en `processing`/running no se pueden cancelar. Las tareas completadas, fallidas, expiradas o no compatibles siguen disponibles para consultar estado y conciliación de facturación.
+Las tareas Seedance en cola con `seedance-1.5-pro`, `seedance-2.0`, `seedance-2.0-fast` o `seedance-2.5` pueden cancelarse si la tarea lo admite. Las tareas en ejecución o en estado final no se pueden cancelar. El estado puede consultarse mientras se conserve el registro público.
 
 ## Parámetros de ruta
 

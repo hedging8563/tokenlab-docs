@@ -9,7 +9,7 @@ description: "查询 Seedance 兼容任务的状态和结果。"
 使用创建响应返回的 `cgt-...` ID 查询任务。任务处于 `queued` 或 `running` 时每隔几秒轮询一次；到 `succeeded`、`failed`、`cancelled` 或 `expired` 就停止。
 
 <Warning>
-v3 与 `/v1/tasks/{id}` 的状态名称不同，不要复用 v1 的枚举或响应结构体。v3 JSON 中的 `duration` 是字符串，`error` 只在失败时出现。Go 客户端可将 `Duration` 声明为 `string`，JSON tag 使用 `duration,omitempty`，并在每个 v3 终态停止轮询。
+v3 与 `/v1/tasks/{id}` 的状态名称不同，不要复用 v1 的枚举或响应结构体。v3 JSON 中的 `duration` 是字符串，`error` 是可选的错误详情字段。Go 客户端可将 `Duration` 声明为 `string`，JSON tag 使用 `duration,omitempty`，并在每个 v3 终态停止轮询。
 </Warning>
 
 另见 [Seedance 2.0 视频模型](/zh/guides/seedance-2-video) 和 [视频生成](/zh/guides/video-generation)。
@@ -32,7 +32,7 @@ v3 与 `/v1/tasks/{id}` 的状态名称不同，不要复用 v1 的枚举或响�
 - `content.last_frame_url`：仅在请求且可用时返回。
 - `usage`：可用时返回 token 用量。
 - `created_at` 和 `updated_at`：任务时间戳。
-- `error`：仅任务失败时返回；非失败任务不返回该字段。
+- `error`: 可选的错误详情。有值时查看 `error.code` 和 `error.message`，不要仅根据 `status` 推断该字段是否存在。
 
 该响应不包含 `progress`、`return_last_frame`、`watermark`、`priority` 或 `camera_fixed`。
 

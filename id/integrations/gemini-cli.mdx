@@ -3,92 +3,68 @@ title: "Gemini CLI"
 description: "Konfigurasikan Google Gemini CLI untuk menggunakan TokenLab API"
 ---
 
-## Ringkasan
 
-Google Gemini CLI adalah alat baris perintah (command-line tool) untuk berinteraksi dengan model Gemini. TokenLab menyediakan endpoint yang kompatibel yang memungkinkan Anda menggunakan Gemini CLI dengan akses ke ratusan model.
+## Gambaran Umum
 
-
-<Warning>
-Anggap integrasi ini sebagai eksperimental: Gemini CLI saat ini belum mendokumentasikan alur Base URL kustom ala TokenLab secara stabil. Jika Anda membutuhkan integrasi TokenLab terminal yang benar-benar didukung, gunakan Codex CLI, Claude Code, atau OpenCode.
-</Warning>
-
-
-<Note>
-**Jenis**: Alat coding
-
-**Jalur utama**: Gemini-native
-
-**Tingkat dukungan**: Upaya terbaik
-</Note>
-
-## Persyaratan Sistem
-
-- **Node.js**: Versi 20.0+
-- **OS**: Windows 10/11, macOS 10.15+, Ubuntu 20.04+, atau Debian 10+
+Gemini CLI **0.60.0** mendokumentasikan `GOOGLE_GEMINI_BASE_URL` untuk autentikasi kunci API. Gunakan endpoint Gemini asli TokenLab dengan model terkini yang mendukung `gemini_generate_content`. Lihat [konfigurasi resmi](https://geminicli.com/docs/reference/configuration/) dan [panduan autentikasi](https://geminicli.com/docs/get-started/authentication/). Ini tidak merutekan langganan Google melalui TokenLab.
 
 ## Instalasi
 
 ```bash
-npm install -g @google/gemini-cli
-```
-
-Verifikasi instalasi:
-
-```bash
+npm install -g @google/gemini-cli@0.60.0
 gemini --version
 ```
 
 ## Konfigurasi
 
-### Langkah 1: Dapatkan API Key Anda
+Ikuti langkah terminal [panduan cepat](/id/quickstart) untuk macOS, Linux, WSL, atau Windows PowerShell guna mengatur `TOKENLAB_API_KEY` tanpa menulis kunci ke riwayat perintah. Jalankan Gemini CLI dari terminal tersebut. Untuk penggunaan berkelanjutan, gunakan pengelola rahasia lokal, bukan kunci teks biasa di profil shell.
 
-1. Masuk ke [TokenLab Dashboard](https://tokenlab.sh/dashboard)
-2. Navigasi ke [API Keys](https://tokenlab.sh/dashboard/api)
-3. Buat dan salin API key Anda (format: `sk-...`)
+Pertahankan login Google dan konfigurasi saat ini. Untuk TokenLab, pilih direktori konfigurasi yang belum dipakai seperti `~/.gemini-tokenlab` (`$HOME` di PowerShell), lalu buat `.gemini` di dalamnya. Salin `.gemini/settings.json` dan berkas kebijakan yang diperlukan ke lokasi yang sesuai, dengan tetap mempertahankan izin, sandbox, dan pengaturan lain. Gabungkan hanya bidang autentikasi berikut pada salinan tersebut; buat berkas jika belum ada. Jangan salin cache OAuth atau hapus kredensial asli. Patuhi kebijakan autentikasi terkelola.
 
-### Langkah 2: Atur Environment Variables
-
-**Sementara (sesi saat ini):**
-
-```bash
-export GEMINI_API_KEY="sk-your-tokenlab-key"
-export GOOGLE_GEMINI_BASE_URL="https://api.tokenlab.sh"
+```json
+{
+  "security": {
+    "auth": {
+      "selectedType": "gemini-api-key"
+    }
+  }
+}
 ```
 
-**Konfigurasi permanen:**
+## Penggunaan
 
-Tambahkan ke file konfigurasi shell Anda:
+Peluncuran berikut memakai `~/.gemini-tokenlab/.gemini/settings.json`. Sesuaikan jalur jika memilih direktori lain. Setujui direktori kerja lewat dialog kepercayaan biasa dan pertahankan kebijakan persetujuan alat. Model dipilih secara eksplisit untuk sesi ini.
 
-<Tabs>
-  <Tab title="Bash">
-    ```bash
-    echo 'export GEMINI_API_KEY="sk-your-tokenlab-key"' >> ~/.bashrc
-    echo 'export GOOGLE_GEMINI_BASE_URL="https://api.tokenlab.sh"' >> ~/.bashrc
-    source ~/.bashrc
-    ```
-  </Tab>
-  <Tab title="Zsh">
-    ```bash
-    echo 'export GEMINI_API_KEY="sk-your-tokenlab-key"' >> ~/.zshrc
-    echo 'export GOOGLE_GEMINI_BASE_URL="https://api.tokenlab.sh"' >> ~/.zshrc
-    source ~/.zshrc
-    ```
-  </Tab>
-  <Tab title="Fish">
-    ```bash
-    set -Ux GEMINI_API_KEY "sk-your-tokenlab-key"
-    set -Ux GOOGLE_GEMINI_BASE_URL "https://api.tokenlab.sh"
-    ```
-  </Tab>
-</Tabs>
+<CodeGroup>
+```bash macOS / Linux / WSL
+GEMINI_CLI_HOME="$HOME/.gemini-tokenlab" GEMINI_API_KEY="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" GOOGLE_GEMINI_BASE_URL=https://api.tokenlab.sh gemini --model gemini-3.5-flash
+```
 
-<Warning>
-Mulai ulang terminal Anda setelah konfigurasi agar perubahan dapat diterapkan.
-</Warning>
+```powershell Windows PowerShell
+if (-not $env:TOKENLAB_API_KEY) { throw 'Set TOKENLAB_API_KEY first' }
+$previous = @{}
+$previous['GEMINI_CLI_HOME'] = [Environment]::GetEnvironmentVariable('GEMINI_CLI_HOME', 'Process')
+$previous['GEMINI_API_KEY'] = [Environment]::GetEnvironmentVariable('GEMINI_API_KEY', 'Process')
+$previous['GOOGLE_GEMINI_BASE_URL'] = [Environment]::GetEnvironmentVariable('GOOGLE_GEMINI_BASE_URL', 'Process')
+try {
+  $env:GEMINI_CLI_HOME = (Join-Path $HOME '.gemini-tokenlab')
+  $env:GEMINI_API_KEY = $env:TOKENLAB_API_KEY
+  $env:GOOGLE_GEMINI_BASE_URL = 'https://api.tokenlab.sh'
+  gemini --model gemini-3.5-flash
+} finally {
+  foreach ($name in $previous.Keys) {
+    [Environment]::SetEnvironmentVariable($name, $previous[$name], 'Process')
+  }
+}
+```
+</CodeGroup>
 
-<Note>
-**Batasan yang diketahui**: Dalam beberapa kasus, Gemini CLI mungkin tidak mematuhi `GOOGLE_GEMINI_BASE_URL` jika terdapat sesi Google yang tersimpan di cache. Jika Anda mengalami masalah koneksi, coba hapus cache CLI atau mulai sesi terminal baru.
-</Note>
+Variabel ini hanya berlaku untuk peluncuran ini; akun, model default, dan izin tersimpan tetap ada. Jalankan tanpa variabel tersebut untuk memakai konfigurasi sebelumnya. Jangan simpan dalam profil shell.
 
-## Penggunaan Dasar
+## Verifikasi
 
+Menyimpan pengaturan atau menampilkan model tidak memvalidasi kunci maupun permintaan yang selesai. Prompt memakai saldo TokenLab. Periksa respons dan [catatan permintaan terkait](https://tokenlab.sh/dashboard/runs?section=requests) sebelum mencoba alat; permintaan tambahan juga dapat dikenai biaya.
+
+```text
+Reply only with TOKENLAB_CONNECTION_OK. Do not use tools or modify files.
+```

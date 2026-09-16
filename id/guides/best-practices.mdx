@@ -1,295 +1,47 @@
 ---
-title: "Praktik Terbaik"
-description: "Optimalkan penggunaan TokenLab API Anda untuk biaya, performa, dan keandalan"
+title: "Integrasi TokenLab yang andal"
+description: "Integrasi TokenLab yang andal"
 ---
 
-## Pemilihan Model
+## Model dan biaya
 
-Memilih model yang tepat dapat berdampak signifikan pada biaya dan kualitas.
+Periksa kemampuan dan harga terbaru melalui API atau halaman model. Bandingkan tugas yang sama dan tentukan model pada setiap permintaan. Jangan mengganti model diam-diam karena harga, kualitas, tool, dan konteks dapat berubah.
 
-### Rekomendasi Berdasarkan Tugas
+Batasi keluaran sesuai format dan model serta kurangi konteks berulang. Biaya media dapat bergantung pada jumlah, durasi, atau resolusi; tampilkan estimasi yang tersedia sebelum mengonfirmasi generasi mahal.
 
-| Tugas | Model yang Direkomendasikan | Alasan |
-|------|-------------------|-----------|
-| **Tanya Jawab Sederhana** | `gpt-5-mini`, `gemini-3.5-flash` | Cepat, murah, sudah memadai |
-| **Penalaran kompleks** | `gpt-5.4`, `claude-opus-4-6` | Logika dan perencanaan yang lebih baik |
-| **Coding** | `claude-sonnet-4-6`, `gpt-4o`, `deepseek-v3-2` | Dioptimalkan untuk code |
-| **Penulisan kreatif** | `claude-sonnet-4-6`, `gpt-4o` | Kualitas prosa yang lebih baik |
-| **Vision/Gambar** | `gpt-4o`, `claude-sonnet-4-6`, `gemini-3.5-flash` | Dukungan vision native |
-| **Konteks panjang** | `gemini-2.5-pro`, `claude-sonnet-4-6` | Jendela token 1M+ |
-| **Sensitif terhadap biaya** | `gpt-5-mini`, `gemini-3.5-flash`, `deepseek-v3-2` | Nilai terbaik |
+## Streaming dan retry
 
-### Tingkatan Biaya
+Streaming menampilkan teks lebih cepat, tetapi tidak mengurangi biaya token. Simpan keluaran parsial yang berguna saat koneksi terputus tanpa menandainya sebagai jawaban lengkap.
 
-```
-$$$$ Premium: gpt-5.4, claude-opus-4-6
-$$$  Standar: claude-sonnet-4-6, gpt-4o
-$$   Hemat:   gpt-5-mini, gemini-3.5-flash
-$    Ekonomis:  deepseek-v3-2
-```
+Untuk 429, tunggu sesuai `Retry-After` atau `retry_after`; gunakan backoff singkat untuk 5xx sementara. Error autentikasi, izin, saldo, validasi, dan konteks perlu diperbaiki. Batasi jumlah percobaan dan waktu total tanpa menggandakan retry bawaan SDK.
 
-## Optimasi Biaya
+- [Streaming](/id/guides/streaming)
+- [429 / Retry-After](/id/guides/rate-limits)
 
-### 1. Gunakan Model yang Lebih Kecil Terlebih Dahulu
+## Kunci dan catatan
+
+Simpan kunci di server atau pengelola rahasia, bukan browser, paket aplikasi, repositori publik, atau log. Pisahkan pengembangan, produksi, dan aplikasi, batasi model serta belanja, dan cabut kunci yang bocor.
 
 ```python
-def smart_query(question: str, complexity: str = "auto"):
-    """Use cheaper models for simple tasks."""
-
-    if complexity == "simple":
-        model = "gpt-5.6-luna"
-    elif complexity == "complex":
-        model = "gpt-5.6-terra"
-    else:
-        # Start cheap, escalate if needed
-        model = "gpt-5.6-luna"
-
-    response = client.chat.completions.create(
-        model=model,
-        messages=[{"role": "user", "content": question}]
-    )
-    return response
-```
-
-### 2. Tetapkan max_tokens
-
-Selalu tetapkan batas `max_tokens` yang wajar:
-
-```python
-# ❌ Bad: No limit, could generate thousands of tokens
-response = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": "Summarize this article"}]
-)
-
-# ✅ Good: Limit response length
-response = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": "Summarize this article"}],
-    max_tokens=500  # Reasonable limit for a summary
-)
-```
-
-### 3. Optimalkan Prompt
-
-```python
-# ❌ Verbose prompt (more input tokens)
-prompt = """
-I would like you to please help me by analyzing the following text
-and providing a comprehensive summary of the main points. Please be
-thorough but also concise in your response. The text is as follows:
-{text}
-"""
-
-# ✅ Concise prompt (fewer tokens)
-prompt = "Summarize the key points:\n{text}"
-```
-
-### 4. Batch Permintaan yang Serupa
-
-```python
-# ❌ Many small requests
-for question in questions:
-    response = client.chat.completions.create(
-        model="gpt-5.6-terra",
-        messages=[{"role": "user", "content": question}]
-    )
-
-# ✅ Fewer larger requests
-combined_prompt = "\n".join([f"{i+1}. {q}" for i, q in enumerate(questions)])
-response = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": f"Answer each question:\n{combined_prompt}"}]
-)
-```
-
-## Optimasi Performa
-
-### 5. Gunakan Streaming untuk UX
-
-Streaming meningkatkan performa yang dirasakan:
-
-```python
-stream = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": "Write a long essay"}],
-    stream=True
-)
-
-for chunk in stream:
-    if chunk.choices[0].delta.content:
-        print(chunk.choices[0].delta.content, end="", flush=True)
-```
-
-### 6. Pilih Model Cepat untuk Penggunaan Interaktif
-
-| Kasus Penggunaan | Direkomendasikan | Latensi |
-|----------|-------------|---------|
-| Chat UI | `gpt-5-mini`, `gemini-3.5-flash` | ~200ms token pertama |
-| Penyelesaian tab | `claude-haiku-4-5` | ~150ms token pertama |
-| Pemrosesan latar belakang | `gpt-4o`, `claude-sonnet-4-6` | ~500ms token pertama |
-
-### 7. Tetapkan Timeout
-
-```python
-client = OpenAI(
-    api_key="sk-your-key",
-    base_url="https://api.tokenlab.sh/v1",
-    timeout=60.0  # 60 second timeout
-)
-```
-
-## Keandalan
-
-### 8. Implementasikan Retry
-
-```python
-import time
-from openai import RateLimitError, APIError
-
-def chat_with_retry(messages, max_retries=3):
-    for attempt in range(max_retries):
-        try:
-            return client.chat.completions.create(
-                model="gpt-5.6-terra",
-                messages=messages
-            )
-        except RateLimitError:
-            wait = 2 ** attempt
-            print(f"Rate limited, waiting {wait}s...")
-            time.sleep(wait)
-        except APIError as e:
-            if attempt == max_retries - 1:
-                raise
-            time.sleep(1)
-    raise Exception("Max retries exceeded")
-```
-
-### 9. Tangani Error dengan Baik
-
-```python
-from openai import APIError, AuthenticationError, RateLimitError
-
-try:
-    response = client.chat.completions.create(...)
-except AuthenticationError:
-    # Check API key
-    notify_admin("Invalid API key")
-except RateLimitError:
-    # Queue for later or use backup
-    add_to_queue(request)
-except APIError as e:
-    if e.status_code == 402:
-        notify_admin("Balance low")
-    elif e.status_code >= 500:
-        # Server error, retry later
-        schedule_retry(request)
-```
-
-### 10. Gunakan Model Cadangan
-
-```python
-FALLBACK_CHAIN = ["gpt-5.6-terra", "claude-sonnet-5", "gemini-3.5-flash"]
-
-def chat_with_fallback(messages):
-    for model in FALLBACK_CHAIN:
-        try:
-            return client.chat.completions.create(
-                model=model,
-                messages=messages
-            )
-        except APIError:
-            continue
-    raise Exception("All models failed")
-```
-
-## Keamanan
-
-### 11. Lindungi API Key
-
-```python
-# ❌ Never hardcode keys
-client = OpenAI(api_key="sk-abc123...")
-
-# ✅ Use environment variables
 import os
-client = OpenAI(api_key=os.environ["TOKENLAB_API_KEY"])
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh/v1",
+    timeout=30.0,
+    max_retries=0,
+)
 ```
 
-### 12. Validasi Input Pengguna
+Catat `request_id`, `task_id`, `billing_transaction_id` yang dikembalikan, model, endpoint, dan ID pekerjaan Anda. Jangan catat kredensial, prompt privat lengkap, media, atau URL bertanda tangan. Nilai akhir tersedia di Usage atau API manajemen.
 
-```python
-def validate_message(content: str) -> bool:
-    """Validate user input before sending to API."""
-    if len(content) > 100000:
-        raise ValueError("Message too long")
-    # Add other validation as needed
-    return True
-```
+## Tugas asinkron
 
-### 13. Tetapkan Batas API Key
+Simpan ID dan `poll_url` setelah tugas asinkron dibuat, lalu periksa hingga `completed` atau `failed`. Kegagalan pengecekan tidak berarti generasi gagal. Setelah timeout atau refresh, lanjutkan tugas tersimpan; gunakan kunci idempotensi jika endpoint mendukungnya.
 
-Buat API key terpisah dengan batas pengeluaran untuk:
-- Pengembangan/pengujian
-- Produksi
-- Aplikasi yang berbeda
+[Pekerjaan Async & Polling](/id/guides/async-jobs-polling)
 
-## Pemantauan
+## Sebelum rilis
 
-### 14. Lacak Penggunaan
-
-Periksa dashboard Anda secara berkala untuk:
-- Penggunaan token per model
-- Rincian biaya
-- Rasio cache hit
-- Rasio error
-
-### 15. Catat Metrik Penting
-
-```python
-import logging
-
-response = client.chat.completions.create(...)
-
-logging.info({
-    "model": response.model,
-    "prompt_tokens": response.usage.prompt_tokens,
-    "completion_tokens": response.usage.completion_tokens,
-    "total_tokens": response.usage.total_tokens,
-})
-```
-
-### 16. Siapkan Alert
-
-Konfigurasikan alert saldo rendah di dashboard Anda untuk menghindari gangguan layanan.
-
-## Daftar periksa
-
-<AccordionGroup>
-  <Accordion title="Optimasi biaya">
-    - [ ] Menggunakan model yang sesuai untuk setiap tugas
-    - [ ] Menetapkan batas max_tokens
-    - [ ] Prompt ringkas
-    - [ ] Caching diaktifkan jika sesuai
-    - [ ] Melakukan batch permintaan serupa
-  </Accordion>
-
-  <Accordion title="Performa">
-    - [ ] Streaming untuk UX interaktif
-    - [ ] Model cepat untuk penggunaan real-time
-    - [ ] Timeout dikonfigurasi
-  </Accordion>
-
-  <Accordion title="Keandalan">
-    - [ ] Logika retry diimplementasikan
-    - [ ] Penanganan error tersedia
-    - [ ] Model fallback dikonfigurasi
-  </Accordion>
-
-  <Accordion title="Keamanan">
-    - [ ] API key di environment variables
-    - [ ] Validasi input
-    - [ ] Key terpisah untuk dev/prod
-    - [ ] Batas pengeluaran ditetapkan
-  </Accordion>
-</AccordionGroup>
+Sebelum rilis, uji model dan format yang digunakan, hasil sukses dan error umum, harga terbaru, refresh, serta klik berulang.

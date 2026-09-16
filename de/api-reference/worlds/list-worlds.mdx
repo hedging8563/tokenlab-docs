@@ -19,7 +19,7 @@ Nutze `/v1/worlds/generations/{id}` für ausstehende oder fehlgeschlagene Generi
 </ParamField>
 
 <ParamField body="status" type="string">
-  Optionaler Statusfilter. TokenLab gibt für `SUCCEEDED` abgeschlossene Worlds zurück; andere Status gehören zum Generierungs-Endpunkt.
+  Optionaler Filter: `SUCCEEDED`, `PENDING`, `RUNNING` oder `FAILED`. Dieser Endpunkt listet abgeschlossene Worlds auf; die anderen drei Werte liefern eine leere Liste. Den Fortschritt finden Sie beim Generierungstask.
 </ParamField>
 
 <ParamField body="model" type="string">
@@ -56,7 +56,7 @@ Nutze `/v1/worlds/generations/{id}` für ausstehende oder fehlgeschlagene Generi
   Array von World-Datensätzen.
 </ResponseField>
 
-<ResponseField name="next_page_token" type="string">
+<ResponseField name="next_page_token" type="string | null">
   Token für die nächste Seite oder `null`.
 </ResponseField>
 

@@ -5,19 +5,7 @@ description: "Configure o OpenAI Codex CLI para usar a API TokenLab"
 
 ## Visão geral
 
-
-
-<Note>
-**Tipo**: Ferramenta de Codificação
-
-**Caminho Primário**: OpenAI Responses (caminho opcional avançado)
-
-**Confiança de Suporte**: Suportado com limites de modelo/caminho
-</Note>
-
-OpenAI Codex é uma ferramenta de linha de comando (CLI) open-source que atua como um agente de codificação leve, capaz de ler, modificar e executar código no terminal. É construída sobre modelos GPT e otimizada para geração de código.
-
-Para TokenLab, o Codex CLI pode usar `/v1/responses`, mas você deve tratá-lo como um caminho de compatibilidade avançado. Algumas funcionalidades exclusivas do Responses não são garantidas em todos os modelos e rotas.
+O Codex CLI se conecta ao TokenLab por `/v1/responses`. O modelo escolhido deve incluir `openai_responses` em `tokenlab.accepted_request_formats`; os recursos podem variar por modelo.
 
 A compactação remota do Codex CLI é compatível em `POST /v1/responses/compact`. O Codex envia o `model` da sessão atual em `body.model` para `/compact` e auto-compactação, então o modelo usado para compactar deve estar disponível no caminho Responses. Não configure `/v1/compact`.
 
@@ -28,7 +16,7 @@ Siga o [guia CLI oficial](https://learn.chatgpt.com/docs/codex/cli) para macOS, 
 ## Instalação
 
 ```bash
-npm install -g @openai/codex
+npm install -g @openai/codex@0.149.0
 ```
 
 Verifique a instalação:
@@ -41,33 +29,11 @@ codex --version
 
 ### Passo 1: Definir Chave de API
 
-**Temporário (sessão atual):**
+Siga as etapas de terminal do [início rápido](/pt/quickstart) para macOS, Linux, WSL ou Windows PowerShell e defina `TOKENLAB_API_KEY` sem gravar a chave no histórico. Inicie o Codex nesse terminal. Para uso persistente, utilize um gerenciador local de segredos, sem acrescentar a chave em texto simples ao perfil do shell.
 
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
+### Passo 2: Configure tokenlab.config.toml
 
-**Configuração permanente:**
-
-Adicione em `~/.bashrc`, `~/.zshrc`, ou `~/.bash_profile`:
-
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
-
-Em seguida recarregue:
-
-```bash
-source ~/.zshrc  # or source ~/.bashrc
-```
-
-### Passo 2: Configure config.toml
-
-Mescle estas configurações no arquivo de usuário `~/.codex/config.toml`; não substitua o arquivo inteiro. Preserve os outros provedores, contas, configurações de sandbox e regras de aprovação. As configurações do provedor e de autenticação pertencem à configuração do usuário, não ao `.codex/config.toml` de um projeto. Consulte o [guia oficial de configuração](https://learn.chatgpt.com/docs/config-file/config-advanced#custom-model-providers).
-
-Para manter o provedor padrão, a partir do Codex 0.134.0 salve o exemplo em `~/.codex/tokenlab.config.toml` e inicie `codex --profile tokenlab`. Use o diretório real se personalizou `CODEX_HOME`. Não crie a antiga tabela `[profiles.tokenlab]`, sobrescreva `auth.json`, saia da conta ou altere permissões. Inicie sem esse perfil para restaurar.
-
-Em cada grupo de comandos abaixo, escolha **Perfil TokenLab** para `tokenlab.config.toml`. Use **TokenLab padrão** somente após mesclar as configurações em `config.toml`. O comando `codex` sozinho usa a configuração padrão; ele não mantém o perfil escolhido em uma sessão anterior.
+Com Codex **0.149.0**, use um arquivo `tokenlab.config.toml` separado no `CODEX_HOME` ativo (normalmente `~/.codex`). Crie-o apenas se o nome estiver livre ou faça backup do perfil TokenLab existente antes de editar. `codex --profile tokenlab` carrega o perfil explicitamente sem alterar `config.toml`, `auth.json`, contas ou permissões. Não use a tabela antiga `[profiles.tokenlab]`. Inicie sem esse perfil para voltar à configuração habitual. Consulte a [configuração oficial de perfis](https://learn.chatgpt.com/docs/config-file/config-advanced#profiles).
 
 ```toml
 model_provider = "tokenlab"
@@ -92,54 +58,32 @@ Crie o arquivo de configuração escolhido se ele não existir. Após editá-lo,
 O Codex atual usa `wire_api = "responses"`, não `chat/completions`. Omita `requires_openai_auth` ou use false para que este provedor utilize `env_key`.
 
 <Note>
-O TokenLab encaminha campos Responses desconhecidos em best-effort sem rebaixar silenciosamente a requisição para Chat Completions. O upstream selecionado decide se o campo ou a combinação é compatível.
+Solicitações Responses não são convertidas em Chat Completions. Campos opcionais e futuros dependem do modelo escolhido.
 </Note>
 
 ## Uso Básico
 
 **Iniciar modo interativo:**
 
-<CodeGroup>
-```bash Perfil TokenLab
+```bash
 codex --profile tokenlab
 ```
 
-```bash TokenLab padrão
-codex
-```
-</CodeGroup>
-
 **Comando direto:**
 
-<CodeGroup>
-```bash Perfil TokenLab
+```bash
 codex --profile tokenlab "Fix the bug in main.py line 42"
 ```
 
-```bash TokenLab padrão
-codex "Fix the bug in main.py line 42"
-```
-</CodeGroup>
-
 **Especificar modelo:**
 
-<CodeGroup>
-```bash Perfil TokenLab
+```bash
 codex --profile tokenlab -m gpt-5.6-sol "Build a REST API server"
 ```
 
-```bash TokenLab padrão
-codex -m gpt-5.6-sol "Build a REST API server"
-```
-</CodeGroup>
+## Escolha um modelo
 
-## Modelos Recomendados
-
-| Modelo | Melhor para |
-|-------|----------|
-| `gpt-5.6-sol` | Melhor escolha padrão para codificação e raciocínio |
-| `gpt-5-mini` | Alternativa mais rápida e barata para fluxos de trabalho de codificação |
-| `claude-sonnet-4-6` | Revisão de código, documentação |
+Escolha um modelo cujo `tokenlab.accepted_request_formats` inclua atualmente `openai_responses`. Compare em suas tarefas e consulte os preços na [página de modelos](https://tokenlab.sh/pt/models).
 
 ## Comandos Interativos
 
@@ -167,71 +111,41 @@ Inicie o Codex e execute `/status` para conferir o modelo ativo e as permissões
 
 Quando estiver pronto para enviar uma requisição real, execute o comando abaixo. Ele usa seu saldo TokenLab. Confira a resposta e o registro correspondente em [Requisições](https://tokenlab.sh/dashboard/runs?section=requests). Uma variável definida ou uma inicialização bem-sucedida, por si só, não comprova o sucesso de uma requisição.
 
-<CodeGroup>
-```bash Perfil TokenLab
+```bash
 codex --profile tokenlab "Reply only with OK. Do not use tools or modify files."
 ```
-
-```bash TokenLab padrão
-codex "Reply only with OK. Do not use tools or modify files."
-```
-</CodeGroup>
 
 ## Casos de Uso Comuns
 
 **Revisão de código:**
 
-<CodeGroup>
-```bash Perfil TokenLab
+```bash
 git diff | codex --profile tokenlab "Review these code changes"
 ```
 
-```bash TokenLab padrão
-git diff | codex "Review these code changes"
-```
-</CodeGroup>
-
 **Gerar mensagens de commit:**
 
-<CodeGroup>
-```bash Perfil TokenLab
+```bash
 git diff --staged | codex --profile tokenlab "Generate a commit message for these changes"
 ```
 
-```bash TokenLab padrão
-git diff --staged | codex "Generate a commit message for these changes"
-```
-</CodeGroup>
-
 **Corrigir erros:**
 
-<CodeGroup>
-```bash Perfil TokenLab
+```bash
 codex --profile tokenlab "Fix the TypeScript errors in src/components/"
 ```
 
-```bash TokenLab padrão
-codex "Fix the TypeScript errors in src/components/"
-```
-</CodeGroup>
-
 **Explicar código:**
 
-<CodeGroup>
-```bash Perfil TokenLab
+```bash
 cat main.py | codex --profile tokenlab "Explain what this code does"
 ```
-
-```bash TokenLab padrão
-cat main.py | codex "Explain what this code does"
-```
-</CodeGroup>
 
 ## Solução de Problemas
 
 <AccordionGroup>
   <Accordion title="Erro de Conexão">
-    - Verifique se `base_url` em `config.toml` está exatamente `https://api.tokenlab.sh/v1`
+    - Verifique se `base_url` em `tokenlab.config.toml` está exatamente `https://api.tokenlab.sh/v1`
     - Verifique a conectividade de rede
     - Certifique-se de que nenhum proxy esteja interferindo
   </Accordion>

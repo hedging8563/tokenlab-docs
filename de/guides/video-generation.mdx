@@ -7,7 +7,9 @@ import VideoModelContracts from "../snippets/generated/video-model-contracts.mdx
 
 Die Videoerstellung ist asynchron. `POST /v1/videos/generations` gibt eine öffentliche Aufgabenidentität und normalerweise eine `poll_url` zurück; das endgültige Video erscheint in späteren Statusantworten.
 
-Wenn das ausgewählte Seedance-Modell die TokenLab-Materialbibliothek verwenden kann, werden Bild-URLs und unterstützte Inline-data-URLs vor der Generierung als wiederverwendbare TokenLab-Materialien vorbereitet. Dauert die Vorbereitung länger als 60 Sekunden, versuchen Sie es erneut, sobald die zurückgegebenen `auto_material_asset_ids` `ACTIVE` sind. Kann das ausgewählte Modell die Materialbibliothek nicht verwenden, laufen normale Bildeingaben über den regulären Bildpfad.
+Übergeben Sie öffentliche HTTP(S)-URLs oder unterstützte data-URLs in den Bildfeldern des gewählten Modells. Sie werden als normale Medieneingaben verarbeitet und erzeugen nicht automatisch wiederverwendbare Material-IDs.
+
+Ist ein ausdrücklich angegebenes Material noch in Vorbereitung, liefert `POST /v1/videos/generations` den Fehler `409 seedance_material_preparing` mit `inactive_asset_ids`. Fragen Sie diese Assets bis `ACTIVE` ab und wiederholen Sie die Anfrage mit denselben IDs. Bei `FAILED` prüfen Sie zunächst `error_message` und korrigieren oder importieren das Asset erneut.
 
 ## Unterstützte Operationen
 
@@ -27,20 +29,20 @@ Verwenden Sie explizite `operation` in der Produktion. TokenLab kann einige Oper
 ## Modellerkennung
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \\
+curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 
-Verwenden Sie in `model` die von TokenLab angezeigten Modell-IDs und wählen Sie Funktionsvarianten mit `operation` und den passenden Medieneingaben. Beispiele sind `wan-2.7`, `happyhorse-1.0`, `viduq3`, `viduq3-mix`, `pixverse-v6`, `kling-3.0-video`, `veo3.1` und `seedance-2.0`; verwenden Sie keine operationsspezifischen Suffixe als TokenLab-Modellnamen.
+Verwenden Sie in `model` die von TokenLab angezeigten Modell-IDs und wählen Sie Funktionsvarianten mit `operation` und den passenden Medieneingaben. Beispiele sind `wan-2.7`, `happyhorse-1.0`, `viduq3`, `viduq3-mix`, `pixverse-v6`, `veo3.1` und `seedance-2.0`; verwenden Sie keine operationsspezifischen Suffixe als TokenLab-Modellnamen.
 
 Lesen Sie die Details des ausgewählten Modells, bevor Sie sich auf spezialisierte Felder wie `reference_images`, `kling_elements`, `output_audio`, `duration`, `resolution` oder `aspect_ratio` verlassen.
 
 ## Anfrage erstellen
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/generations \\
-  -H "Authorization: Bearer sk-your-api-key" \\
-  -H "Content-Type: application/json" \\
+curl https://api.tokenlab.sh/v1/videos/generations \
+  -H "Authorization: Bearer sk-your-api-key" \
+  -H "Content-Type: application/json" \
   -d '{
     "model": "veo3.1",
     "operation": "text-to-video",
@@ -55,9 +57,8 @@ Für Produktionsmedieneingaben bevorzugen Sie öffentliche `https` URLs gegenüb
 ## Eingaben und modell-spezifische Felder
 
 - Anfragen der Veo 3 Familie sind standardmäßig auf Audio-an, wenn `output_audio` weggelassen wird. Setzen Sie es explizit, wenn das Modell den Schalter unterstützt und Ihre UX von Ton abhängt.
-- `kling_elements` ist für `kling-3.0-video` bildkonditionierte Anfragen. Referenzieren Sie jedes Element im `prompt` als `@name`; kombinieren Sie es nicht mit `output_audio=true`.
 - Lesen Sie für die Seedance 2.0 Familie den [Leitfaden zu Seedance 2.0 Videomodellen](/de/guides/seedance-2-video), bevor Sie 4K-Ausgabe, Fast/Mini-Auflösungsgrenzen oder multimodale Referenzeingaben verwenden.
-- Für `grok-imagine-video` verwendet video-to-video eine öffentliche `.mp4` `video_url`; modell-spezifische Einschränkungen wie `duration` und `resolution` müssen aus dem Modelldetails stammen.
+- Für video-to-video mit `grok-imagine-video` senden Sie `prompt` und eine öffentliche HTTPS-URL einer `.mp4`-Datei als `video_url`. Diese Operation verwendet keine Auswahl über `duration`, `resolution` oder `aspect_ratio`.
 
 <VideoModelContracts />
 

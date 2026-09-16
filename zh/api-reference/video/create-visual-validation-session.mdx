@@ -6,6 +6,10 @@ description: "创建真人视觉验证会话。"
 
 上传可复用的 `liveness_face` 素材需要完成人脸验证。该接口兼容火山引擎 Action API 的请求格式，使用 TokenLab Bearer 认证。
 
+查询时须使用创建会话的同一组织、用户，以及相同且区分大小写的 `ProjectName`。
+
+创建会话后请立即打开 `Result.H5Link`。H5 的首次打开期限可能早于 `BytedToken` 的 30 分钟有效期，不要延迟打开。
+
 ## 接口与认证
 
 ```text

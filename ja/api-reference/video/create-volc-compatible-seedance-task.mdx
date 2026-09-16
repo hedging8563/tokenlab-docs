@@ -1,14 +1,18 @@
 ---
 title: "タスク作成 (Volc互換)"
 openapi: "POST /api/v3/contents/generations/tasks"
-description: "Volc互換APIを使用してSeedance 2.0タスクを作成します。"
+description: "Volc互換APIを使用してSeedanceタスクを作成します。"
 ---
 
 ## 概要
 
 既存のVolc形式のSeedanceクライアントは、APIアドレスとキーを変更することでTokenLabを利用できます。
 
-[Seedance 2.0 ビデオモデル](/guides/seedance-2-video) および [ビデオ生成](/guides/video-generation) も併せて参照してください。
+<Note>
+このページの例は Seedance 2.0 を使用します。同じエンドポイントは Seedance 2.5 にも対応し、モデルごとの差異は以下のとおりです。 このページの再利用可能な TokenLab 素材 URI の例は Seedance 2.0 向けです。
+</Note>
+
+[Seedance 2.0 ビデオモデル](/ja/guides/seedance-2-video) および [ビデオ生成](/ja/guides/video-generation) も併せて参照してください。
 
 ## 認証とエンドポイント
 
@@ -24,14 +28,23 @@ description: "Volc互換APIを使用してSeedance 2.0タスクを作成しま�
 - `role: "reference_image"`、`reference_video`、`reference_audio` は参照用として使用されます。
 - `image_url.url` は、パブリックな画像URL、または `asset://asset-YYYYMMDDHHMMSS-xxxxx` のようなマテリアルURIを受け付けます。`role` によって、そのマテリアルが最初のフレーム、最後のフレーム、または参照画像のいずれであるかが決定されます。
 - 最初のフレーム/最後のフレームの入力と参照メディアを1つのリクエスト内で混在させないでください。
-- リクエストボディは、この形式でサポートされているフィールドのみを受け付けます。トップレベルの `material_asset_id`、`material_asset_ids`、`priority` は拒否されます。代わりに、TokenLabのマテリアルURIを `image_url.url` 内に配置してください。
+- トップレベルの `material_asset_id` と `material_asset_ids` は受け付けません。TokenLab の素材 URI は `image_url.url` に指定してください。`priority` は Seedance 2.5 のみ対応します。
 
 ## パラメータに関する注意点
 
+`duration` は整数の秒数で、`-1` は自動の長さを指定します。既定値と制限はモデルごとに異なります。
+
+| パラメーター | Seedance 2.0 | Seedance 2.5 |
+|---|---|---|
+| `duration` | `4`–`15` / `-1` (既定値: `5`) | `4`–`30` / `-1` (既定値: `-1`) |
+| `resolution` | `480p`, `720p`, `1080p` (既定値: `720p`) | `480p`, `720p` (既定値: `720p`) |
+| `generate_audio` | `boolean` (既定値: `false`) | `boolean` (既定値: `true`) |
+| `priority` | 非対応 | `integer`: `0`–`9` |
+| `seed` | `integer`: `-1`–`4294967295` (既定値: `-1`) | 非対応 |
+
+Seedance 2.5 の最初のフレーム、最初と最後のフレーム、動画延長、動画から動画への生成には `ratio: "adaptive"` が必要です。動画から動画への生成には `duration: -1` も必要です。`output_format` の `mp4` と `mov` は Seedance 2.5 のみ対応します。
+
 - `ratio` は `16:9`、`4:3`、`1:1`、`3:4`、`9:16`、`21:9`、または `adaptive` を受け付けます。
-- `duration` は動画の長さ（秒）であり、モデルがサポートする自動持続時間値を含みます。
-- `resolution` は `480p`、`720p`、または `1080p` を受け付けます。
-- `generate_audio` のデフォルトは `false` です。同期されたオーディオが必要な場合は `true` に設定してください。
 - `watermark`、`return_last_frame`、`seed`、`execution_expires_after`、`safety_identifier` は、選択したモデルで有効な場合に受け付けられます。
 - `callback_url` にはパブリックなHTTP(S)エンドポイントを指定できます。
 
@@ -39,13 +52,13 @@ description: "Volc互換APIを使用してSeedance 2.0タスクを作成しま�
 
 `callback_url` が指定されている場合、タスクステータスが変更されるとTokenLabはHTTP `POST` を送信します。コールバックのステータスは `queued`、`running`、`succeeded`、`failed`、`expired` です。JSONボディはget-taskレスポンスと一致します。
 
-`2xx` レスポンスは配信が完了したことを示します。`succeeded` および `failed` の場合、5秒以内に配信が成功しないと、公式の動作に合わせて最大3回まで再試行されます。コールバックには標準のJSONコンテンツヘッダーのみが含まれ、TokenLab固有の配信ヘッダーは含まれません。リダイレクトは追跡されず、プライベートまたは予約済みのネットワークターゲットは拒否されます。
+`2xx` レスポンスは配信が完了したことを示します。`succeeded` および `failed` の場合、5秒以内に配信が成功しないと、最大3回まで再試行されます。コールバックには標準のJSONコンテンツヘッダーのみが含まれ、TokenLab固有の配信ヘッダーは含まれません。リダイレクトは追跡されず、プライベートまたは予約済みのネットワークターゲットは拒否されます。
 
 タスクIDを保存してください。コールバックが配信されない場合でも、get-taskエンドポイントを使用して結果を取得できます。
 
 ## 画像の準備
 
-`content[]` に画像URLが含まれている場合、選択されたSeedanceモデルで必要なときに、TokenLabはそれらを再利用可能なマテリアルとして準備します。60秒以内に準備が完了しない場合、作成リクエストは不完全な動画タスクを送信する代わりに、再試行可能な「マテリアル準備中」エラーを返します。
+公開 HTTP(S) 画像 URL と対応する data URL は入力のまま使用され、再利用可能な素材として自動保存されません。明示的な `asset://asset-...` 参照は既存の TokenLab 素材を使用し、生成前に所有権と準備状況を確認します。素材が準備中なら完了後に再試行してください。作成に失敗した場合は `error.code` と `error.message` を確認してください。
 
 既存のマテリアルについては、他のシステムから返された元の資産IDではなく、パブリックな `asset-YYYYMMDDHHMMSS-xxxxx` IDを使用してください。TokenLabは生成前にマテリアルの所有権を確認します。
 
@@ -64,7 +77,7 @@ description: "Volc互換APIを使用してSeedance 2.0タスクを作成しま�
 作成リクエストには一意の `Idempotency-Key` を送信してください。レスポンスが届く前に接続が切断された場合は、同じAPIキー、べき等キー、およびリクエストボディを使用して再試行してください。
 
 - 元のタスクが作成されていた場合、TokenLabは同じ `cgt-...` IDを返し、`Idempotency-Replayed: true` を追加します。
-- 元のリクエストがまだ登録中の場合、TokenLabは `Retry-After` を伴う `409 IdempotencyRequestInProgress` を返します。その遅延時間後に同じキーとボディで再試行してください。
+- 元のリクエストがまだ登録中の場合は `409 IdempotencyRequestInProgress` を返します。後で同じキーとボディで再試行してください。
 - 異なるボディでキーを再利用すると `409 IdempotencyConflict` が返され、2つ目のタスクは作成されません。
 
 べき等は公式のv3 REST作成パスに適用されます。これはJSONレスポンスの形状を変更するものではなく、`X-Request-ID` やキーのない同一のリクエストボディから推論されるものでもありません。
@@ -111,4 +124,4 @@ curl https://api.tokenlab.sh/api/v3/contents/generations/tasks \
 
 ## 次のステップ
 
-タスクが最終ステータスに達するまで、返された `cgt-...` IDを使用して [タスクの取得 (Volc互換)](/api-reference/video/get-volc-compatible-seedance-task) を呼び出してください。
+タスクが最終ステータスに達するまで、返された `cgt-...` IDを使用して [タスクの取得 (Volc互換)](/ja/api-reference/video/get-volc-compatible-seedance-task) を呼び出してください。

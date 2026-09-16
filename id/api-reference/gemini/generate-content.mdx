@@ -4,7 +4,8 @@ openapi: "POST /v1beta/models/{model}:generateContent"
 description: "Menghasilkan konten menggunakan format Google Gemini API"
 ---
 
-TokenLab hanya menampilkan rute ini untuk model yang mengiklankan kontrak Gemini native dan memiliki rute upstream dengan protokol yang sama; tidak ada fallback ke Chat Completions. Nama ProtoJSON lowerCamelCase dan nama proto asli snake_case sama-sama resmi dan dipertahankan, termasuk dalam request campuran. Field yang tidak dikenal diteruskan secara best-effort dan upstream menentukan dukungannya.
+Gunakan format permintaan dan respons Gemini dengan model yang dikembalikan Gemini Models API. Nama field ProtoJSON lowerCamelCase dan proto snake_case yang sesuai diterima. Field opsional dan nilai yang didukung bergantung pada model yang dipilih.
+
 ## Parameter Path
 
 <ParamField path="model" type="string" required>
@@ -27,7 +28,7 @@ Endpoint Gemini mendukung beberapa metode autentikasi:
 ## Isi Permintaan
 
 <ParamField body="contents" type="array" required>
-  Konten percakapan. Nilai `role` dan semua `parts` dipertahankan seperti dikirim; TokenLab tidak melakukan trim/lowercase, penulisan ulang Base64, atau inferensi MIME. `inlineData` / `inline_data` dan `fileData` / `file_data` adalah ejaan resmi, dan TokenLab tidak mewajibkan `fileData.mimeType` secara lokal. ID Files atau Cache buatan TokenLab diperiksa kepemilikannya dan mempertahankan binding upstream; aturan media dan tool lain ditentukan provider.
+  Konten percakapan dengan `parts` dan `role` opsional. Media menggunakan `inlineData` / `inline_data` atau `fileData` / `file_data`. ID Files dan Cache yang dibuat TokenLab hanya dapat digunakan dalam Workspace pemiliknya.
 </ParamField>
 
 <ParamField body="systemInstruction" type="object">
@@ -35,7 +36,7 @@ Endpoint Gemini mendukung beberapa metode autentikasi:
 </ParamField>
 
 <ParamField body="generationConfig" type="object">
-  Konfigurasi generasi native. Nama lowerCamelCase seperti `maxOutputTokens`, `candidateCount`, dan `thinkingConfig` serta padanan snake_case diterima tanpa perubahan. TokenLab tidak menghapus `thinkingConfig` setelah kegagalan atau memberlakukan batas lokal `candidateCount` untuk streaming; upstream menentukan rentang dan kombinasinya.
+  Pengaturan generasi seperti `temperature`, `topP`, `topK`, `maxOutputTokens`, `stopSequences`, `candidateCount`, `responseModalities`, `responseMimeType`, `responseSchema`, dan `thinkingConfig`. Nama snake_case yang sesuai juga diterima. Nilai dan kombinasi bergantung pada model.
 </ParamField>
 
 <ParamField body="safetySettings" type="array">
@@ -87,11 +88,11 @@ print(response.text)
 ```javascript JavaScript
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI("sk-your-api-key", {
-  baseUrl: "https://api.tokenlab.sh"
-});
-
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
+const genAI = new GoogleGenerativeAI("sk-your-api-key");
+const model = genAI.getGenerativeModel(
+  { model: "gemini-2.5-pro" },
+  { baseUrl: "https://api.tokenlab.sh" }
+);
 const result = await model.generateContent("Hello, Gemini!");
 
 console.log(result.response.text());

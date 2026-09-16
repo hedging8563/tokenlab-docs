@@ -6,6 +6,8 @@ description: "Cập nhật một material asset của Seedance thuộc sở hữ
 
 Cập nhật tên hoặc metadata của material. URL nguồn và loại asset là cố định sau khi tạo; hãy tạo một asset mới khi tệp nguồn thay đổi.
 
+`project_name` tách biệt tài nguyên trong tổ chức đã xác thực. Mặc định là `default`; dùng cùng một giá trị phân biệt chữ hoa, chữ thường cho nhóm và tài nguyên liên quan. Gửi trong nội dung JSON với POST/PUT và tham số truy vấn với GET/DELETE.
+
 ## Ví dụ yêu cầu
 
 ```bash
@@ -13,7 +15,7 @@ curl https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr \
   -X PUT \
   -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"asset_name":"Front view approved","metadata":{"approved_by":"creative-team"}}'
+  -d '{"asset_name":"Front view approved","metadata":{"approved_by":"creative-team"},"project_name":"default"}'
 ```
 
 ## Ví dụ phản hồi
@@ -22,14 +24,15 @@ curl https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr \
 {
   "id": "asset-20260720123456-qn7wr",
   "object": "seedance.material_asset",
+  "project_name": "default",
   "group_id": "group-20260720123456-vrt01",
   "library_type": "aigc_avatar",
   "asset_name": "Front view approved",
   "asset_type": "Image",
-  "status": "PROCESSING",
-  "ready": false,
+  "status": "ACTIVE",
+  "ready": true,
   "error_message": null,
-  "metadata": null,
+  "metadata": {"approved_by": "creative-team"},
   "created_at": 1782998400000
 }
 ```

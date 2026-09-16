@@ -1,117 +1,25 @@
 ---
-title: "計費與定價"
-description: "瞭解 TokenLab 的按量計費定價"
+title: "計費與價格"
+description: "計費與價格"
 ---
 
-## 概覽
+一份 TokenLab 餘額可用於各模型，無訂閱或最低消費；費用依模型與實際用量計算。
 
-TokenLab 採用 **按量計費 (pay-as-you-go)**。您只需為實際使用的部分付費，無需訂閱或最低消費承諾。
+## 價格與交付方式
 
-## 計費運作方式
+目前價格請查模型頁、`GET /v1/models/{model}/pricing` 或 Pricing API，不要將複製的價目表寫死。文字、嵌入等可能按輸入、輸出或快取 token 收費；媒體也可能按圖片、秒、分鐘、請求或工作收費。
 
-1. **儲值點數** 到您的帳戶
-2. **使用 API** - 費用將按請求扣除
-3. **監控用量** 在您的控制面板中
-4. **餘額不足時儲值**
+`TokenLab Verified` 使用 TokenLab 公開價格，`Official` 使用模型廠商公開價格的 Official 層。`Auto` 優先使用 Verified，必要時使用 Official；只按交付結果的選項收取一次費用。Console 付費生成在確認前顯示最高估價，完成後 Runs 與 Usage 顯示最終費用。
 
-## 定價模式
+[Pricing API](/zh-Hant/api-reference/pricing/get-pricing)
 
-即時價格會隨供應商、路由和模型詳情變化。請以 Dashboard、模型頁、`GET /v1/models/:model/pricing` 和 [Pricing API](/api-reference/pricing/get-pricing) 為準。
+## 非同步計費與記錄
 
-### 按 Token 計費
+部分工作建立時會預留估計費用。保存 task ID 與 `poll_url`，查詢到 `completed` 或 `failed`。成功工作收費一次，未使用的預留金額會釋放；失敗工作釋放或退回待扣金額。
 
-多數聊天、推理、嵌入、rerank 以及部分圖像模型按輸入、輸出、快取或圖像輸出 token 計費。
+非串流 OpenAI 相容回應在計費完成後可包含 `billing_transaction_id`，也可能透過 `X-Billing-Transaction-ID` 回傳；原生格式可能僅有 header。非同步或串流結果可能先於計費記錄完成，缺少該值時請查 Usage。
 
-| 計費類型 | 範例 | 如何確認目前價格 |
-|---|---|---|
-| Chat / Responses | `gpt-5.4`, `claude-sonnet-4-6`, `gemini-3.5-flash` | 模型頁或 Pricing API |
-| 嵌入 / rerank | `text-embedding-3-small`, `qwen3-vl-rerank` | 模型價格詳情 |
-| 按 token 計費的圖像 | `gpt-image-2` | `GET /v1/models/gpt-image-2/pricing` |
-
-<Note>
-不要把靜態價格表複製進生產邏輯。程式碼裡只保存模型 ID，上線前再拉取或複核目前價格。
-</Note>
-
-### 按請求和任務計費
-
-圖像、影片、音樂、3D、音訊和 world 生成模型可能按請求、圖片、秒/分鐘、任務或供應商特定用量計費。生產使用前請檢查所選模型詳情。
-
-| 家族 | 範例 |
-|---|---|
-| 圖像 | `flux-pro` |
-| 影片 | `veo3.1`, `seedance-2.0` |
-| 音樂 | `suno-music` |
-| 3D | `tripo-h3.1` |
-| 音訊 | `tts-1`, `whisper-1` |
-
-### 非同步任務計費 (影片/音樂/3D 及部分圖像模型)
-
-<Note>
-  對於基於任務的生成，建立任務時可能會預留或預扣預估費用。最終結算只會在非同步任務透過輪詢或終態處理進入成功終態後完成。
-</Note>
-
-對於基於任務的生成流程（影片、音樂、3D 和部分圖像模型）：
-
-1. 提交任務。TokenLab 可能會先做預估預扣或餘額預留，用於檢查餘額與 API Key 消費限制。
-2. 按返回的 `poll_url` 輪詢，或呼叫 `GET /v1/tasks/{id}`，直到任務進入終態。
-3. 任務成功完成時，系統完成最終結算並記錄用量，任務回應會包含 `billing_transaction_id`。
-4. 如果建立失敗或終態為失敗，待處理的預扣金額會退款或釋放，並將該請求標記為非計費。
-
-如果任務已經進入終態，但 dashboard 中沒有看到對應結算或退款，請聯繫 support@tokenlab.sh 尋求協助。
-
-```python
-# 示例：影片生成計費
-response = client.post("/v1/videos/generations", json={
-    "model": "veo3.1",
-    "prompt": "A sunset over the ocean"
-})
-# 現在可能會預留預估費用；最終帳單會在任務成功後出現。
-
-poll_url = response.json()["poll_url"]
-task_id = response.json()["task_id"]
-# 輪詢 poll_url 查看狀態；結算後會出現 billing_transaction_id。
-```
-
-### 帳單交易 ID
-
-已完成結算的 OpenAI 相容非串流 JSON 回應會返回 `billing_transaction_id`。同一個值也會透過 `X-Billing-Transaction-ID` 回應標頭暴露，方便瀏覽器與服務端整合讀取。Gemini `/v1beta` 等原生相容路由為了保持 provider 原生回應形狀，可能只透過回應標頭暴露該值。對於非同步媒體任務，請輪詢建立回應返回的 `poll_url` 或 `GET /v1/tasks/{id}`；當結算完成後，任務回應會包含 `billing_transaction_id`。串流回應可能在內容已送出後才完成結算，因此如果回應標頭中沒有該欄位，請透過 dashboard 用量記錄進行對帳。
-
-## Token 計數
-
-Token 是文本處理的基本單位：
-
-- 約 4 個字元 = 1 token (英文)
-- 約 1-2 個字元 = 1 token (中文)
-- 1 張圖片 = 視尺寸和細節而定
-
-### 估算 Token
-
-```python
-# Rough estimation
-def estimate_tokens(text):
-    return len(text) / 4  # Approximate for English
-
-# Actual count (for OpenAI models)
-import tiktoken
-encoder = tiktoken.encoding_for_model("gpt-5.6-terra")
-tokens = encoder.encode("Your text here")
-print(f"Token count: {len(tokens)}")
-```
-
-## 用量追蹤
-
-### 控制面板
-
-在 [控制面板](https://tokenlab.sh/dashboard) 中監控您的用量：
-
-- 即時餘額
-- 按模型的用量歷史
-- 費用明細
-- API key 使用情況
-
-### API 響應
-
-每個響應都包含用量資訊：
+在 Usage 查看模型、Key、成本與用量記錄。Token 計算依模型、語言及媒體而異，字元估算不能代替最終帳單；串流不會減少計費 token。比較相同任務的最終成本，並依所選模型設定輸出上限。
 
 ```json
 {
@@ -123,71 +31,13 @@ print(f"Token count: {len(tokens)}")
 }
 ```
 
-## 成本優化
+- [Usage](https://tokenlab.sh/dashboard/usage)
+- [非同步任務與輪詢](/zh-Hant/guides/async-jobs-polling)
 
-<AccordionGroup>
-  <Accordion title="使用合適的模型">
-    對於簡單任務，使用較小的模型 (GPT-4o-mini, Gemini Flash)。
-  </Accordion>
+## Console 操作
 
-  <Accordion title="實施快取">
-    為重複的相同請求快取響應。
-  </Accordion>
+在 Console → Billing 選擇金額與結帳時提供的付款方式。付款服務確認後餘額更新。
 
-  <Accordion title="優化提示詞">
-    在保持清晰的同時，讓提示詞保持簡潔。
-  </Accordion>
+在 Console → API Keys 建立或編輯 Key 時設定支出上限；達到上限會回傳 `402 Payment Required`。
 
-  <Accordion title="設置 max_tokens">
-    當不需要完整響應時，限制響應長度。
-  </Accordion>
-
-  <Accordion title="對長響應使用串流">
-    串流 (Streaming) 不會增加額外費用，但能提升感知效能。
-  </Accordion>
-</AccordionGroup>
-
-## 餘額不足警報
-
-配置當餘額下降時的警報：
-
-1. 前往 **控制面板 → 設置 → 通知**
-2. 設置您的閾值金額
-3. 接收電子郵件通知
-
-## 儲值點數
-
-### 付款方式
-
-- Stripe (Visa, Mastercard)
-
-### 步驟
-
-1. 登入 [控制面板](https://tokenlab.sh/dashboard)
-2. 點擊 **儲值點數**
-3. 選擇金額和付款方式
-4. 完成付款
-
-點數將在付款確認後立即入帳。
-
-## API Key 限制
-
-您可以為個別 API key 設置支出限制：
-
-1. 前往 **控制面板 → API Keys**
-2. 點擊某個 key 進行編輯
-3. 設置 **用量限制**
-
-當達到限制時，使用該 key 的請求將返回 `402 Payment Required`。
-
-## 發票
-
-對於企業帳戶，可提供發票：
-
-1. 前往 **控制面板 → 計費**
-2. 查看交易歷史
-3. 下載 PDF 格式發票
-
-## 有疑問嗎？
-
-如有計費諮詢，請聯繫 support@tokenlab.sh。
+在 Console → Settings 設定低餘額門檻以接收電子郵件通知。帳務問題請將 Request ID 和 task ID 提供給 support@tokenlab.sh，不要提供 API Key。

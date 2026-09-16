@@ -7,7 +7,9 @@ import VideoModelContracts from "../snippets/generated/video-model-contracts.mdx
 
 视频生成需要一些时间。`POST /v1/videos/generations` 会返回任务 ID，通常还会提供 `poll_url`。通过这个地址查询，完成后即可取得视频。
 
-Seedance 可以把支持的图片输入自动保存为可复用素材。图片准备超过 60 秒时，API 会返回 `auto_material_asset_ids`；等这些素材变为 `ACTIVE` 后重新提交即可。
+可以在所选模型支持的图片字段中传入公网 HTTP(S) URL 或支持的 data URL。这些输入按普通媒体路径处理，不会自动创建可复用的素材 ID。
+
+显式指定的素材仍在准备时，`POST /v1/videos/generations` 返回 `409 seedance_material_preparing`，并通过 `inactive_asset_ids` 列出相关素材。查询这些素材直到 `ACTIVE`，再用相同素材 ID 重试。如果素材为 `FAILED`，先根据 `error_message` 修正或重新导入。
 
 ## 选择 API
 
@@ -31,7 +33,7 @@ Seedance 可以把支持的图片输入自动保存为可复用素材。图片�
 ## 选择模型
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \\
+curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 
@@ -42,9 +44,9 @@ curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \\
 ## 创建视频
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/generations \\
-  -H "Authorization: Bearer sk-your-api-key" \\
-  -H "Content-Type: application/json" \\
+curl https://api.tokenlab.sh/v1/videos/generations \
+  -H "Authorization: Bearer sk-your-api-key" \
+  -H "Content-Type: application/json" \
   -d '{
     "model": "veo3.1",
     "operation": "text-to-video",
@@ -59,9 +61,8 @@ curl https://api.tokenlab.sh/v1/videos/generations \\
 ## 模型专属字段
 
 - Veo 3 系列省略 `output_audio` 时默认生成音频。产品是否需要声音很重要时，请明确填写这个字段。
-- `kling_elements` 用于 `kling-3.0-video` 的图片输入。提示词中通过 `@name` 引用每个元素，不能同时设置 `output_audio=true`。
 - Seedance 2.0 的 4K、Fast/Mini 分辨率和多媒体参考输入见 [Seedance 2.0 视频模型](/zh/guides/seedance-2-video)。
-- `grok-imagine-video` 的 video-to-video 使用可访问的 `.mp4` `video_url`；`duration` 和 `resolution` 限制以模型详情为准。
+- `grok-imagine-video` 的 video-to-video 使用 `prompt` 和公网 HTTPS `.mp4` `video_url`；此操作不使用 `duration`、`resolution` 或 `aspect_ratio` 选项。
 
 <VideoModelContracts />
 

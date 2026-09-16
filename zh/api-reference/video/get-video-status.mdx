@@ -13,10 +13,14 @@ description: "获取视频生成任务的状态和结果"
 <Info>
 如果创建响应中包含 `poll_url`，直接请求这个地址即可。
 
-找不到任务时，TokenLab 会返回 `async_task_not_found` 和消息 `Task not found or no longer available.`
+已过期或不可用的公开任务可能返回 `404 async_task_not_found`。无法确认当前 API 密钥对任务的归属权限时，返回 `403 task_not_owned`。
 </Info>
 
 ## 响应
+
+<Note>
+结果、错误、时间戳和模型字段仅在任务提供时返回。
+</Note>
 
 <ResponseField name="id" type="string">
   任务 ID。
@@ -54,7 +58,7 @@ description: "获取视频生成任务的状态和结果"
   任务生成的多个视频结果。
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="error" type="string | object">
   错误信息（如果失败）。
 </ResponseField>
 
@@ -88,6 +92,7 @@ while True:
         headers={"Authorization": "Bearer sk-your-api-key"}
     )
 
+    response.raise_for_status()
     data = response.json()
     print(f"Status: {data['status']}")
 
@@ -111,6 +116,7 @@ async function pollForVideo() {
       { headers: { 'Authorization': 'Bearer sk-your-api-key' } }
     );
 
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${await response.text()}`);
     const data = await response.json();
     console.log(`Status: ${data.status}`);
 
@@ -145,7 +151,9 @@ func main() {
         req.Header.Set("Authorization", "Bearer sk-your-api-key")
 
         client := &http.Client{}
-        resp, _ := client.Do(req)
+        resp, err := client.Do(req)
+        if err != nil { panic(err) }
+        if resp.StatusCode >= 400 { panic(fmt.Sprintf("HTTP %d", resp.StatusCode)) }
 
         var result map[string]interface{}
         json.NewDecoder(resp.Body).Decode(&result)
@@ -181,7 +189,11 @@ while (true) {
     ]);
 
     $response = curl_exec($ch);
+    $httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
+    if ($response === false || $httpStatus >= 400) {
+        throw new RuntimeException("HTTP request failed: {$httpStatus}");
+    }
 
     $data = json_decode($response, true);
     echo "Status: {$data['status']}\n";
@@ -260,6 +272,7 @@ while (true) {
 - 收到 `failed` 时停止查询，并向用户显示 `error`。
 
 ```python
+import requests
 import time
 
 def wait_for_video(task_id, max_wait=600, interval=5):
@@ -271,6 +284,7 @@ def wait_for_video(task_id, max_wait=600, interval=5):
             f"https://api.tokenlab.sh/v1/tasks/{task_id}",
             headers={"Authorization": "Bearer sk-your-api-key"}
         )
+        response.raise_for_status()
         data = response.json()
 
         if data["status"] == "completed":

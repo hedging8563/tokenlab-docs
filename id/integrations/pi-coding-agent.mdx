@@ -8,11 +8,13 @@ description: "Gunakan Pi dengan TokenLab. Pi adalah alat coding terminal minimal
 Gunakan [instalasi resmi](https://pi.dev/). Paket npm saat ini adalah `@earendil-works/pi-coding-agent`. Windows memakai Git Bash secara default; lihat [pengaturan shell](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/windows.md). Lewati instalasi jika Pi sudah ada.
 
 ```bash
-npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+npm install -g --ignore-scripts @earendil-works/pi-coding-agent@0.85.1
 pi --version
 ```
 
-Gabungkan ke `~/.pi/agent/models.json` atau direktori `PI_CODING_AGENT_DIR`. Cadangkan file dan pertahankan penyedia lain. Atur `TOKENLAB_API_KEY` secara lokal pada lingkungan peluncuran, bukan dalam chat. Variabel Base URL saja tidak membuat penyedia ini.
+Konfigurasi berikut telah diperiksa dengan **Pi 0.85.1**. Versi lain perlu diverifikasi sendiri berdasarkan dokumentasi resminya.
+
+Cadangkan `~/.pi/agent/models.json`, lalu tambahkan `tokenlab` setelah entri yang ada di dalam `providers`; buat file hanya jika belum ada. `PI_CODING_AGENT_DIR` yang tidak kosong memilih direktori `models.json`. Pertahankan urutan penyedia, `settings.json`, akun, kolom model default, dan izin. Jika `tokenlab` sudah ada dalam konfigurasi atau akun tersimpan, gunakan nama lain dan sesuaikan perintah. Atur `TOKENLAB_API_KEY` secara lokal lewat [panduan cepat](/id/quickstart) untuk macOS, Linux, WSL, atau Windows PowerShell, bukan dalam chat.
 
 ```json
 {
@@ -29,11 +31,18 @@ Gabungkan ke `~/.pi/agent/models.json` atau direktori `PI_CODING_AGENT_DIR`. Cad
 
 Tanda `$` dalam `"$TOKENLAB_API_KEY"` wajib; tanpanya nilai menjadi teks literal. Pilih model saat ini yang mendukung Chat Completions dan alat. Batas serta opsi gambar dan penalaran mengikuti detail model tersebut.
 
+Opsional: [helper konfigurasi Pi yang dapat dipulihkan](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/skills/tokenlab-api-integration/references/pi_setup.md) menyediakan pratinjau, penerapan, dan pemulihan file asli dengan Python 3.11+. Plugin TokenLab Skills **0.1.2** menyertakan skrip ini; Skill mandiri juga dapat digunakan setelah diperbarui ke versi yang memuatnya. Untuk plugin atau Skill mandiri yang sudah terpasang, ikuti [petunjuk pembaruan README](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/README.md#update-an-existing-installation) dan pastikan skrip tersedia. Konfigurasi manual di halaman ini tetap dapat digunakan tanpa helper.
+
 ## Periksa dan pulihkan
 
-Jalankan `pi --list-models`, lalu pilih `tokenlab/gpt-5.6-luna` di `/model`. Pemilih memuat ulang `models.json`. Ini memeriksa pendaftaran dan keberadaan kredensial, bukan validitasnya atau keberhasilan panggilan API.
+Periksa pemuatan dari terminal dan direktori Agent yang sama, lalu pilih TokenLab secara eksplisit untuk sesi ini. Jika `TOKENLAB_API_KEY` belum diatur, penyedia mungkin tidak muncul. Daftar hanya membuktikan pendaftaran dan keberadaan kredensial, bukan validitas atau keberhasilan panggilan API.
 
-Permintaan teks menggunakan saldo TokenLab. Cocokkan balasan dan [catatan permintaan](https://tokenlab.sh/dashboard/runs?section=requests) sebelum mencoba alat. Untuk memulihkan, pilih penyedia sebelumnya dan hapus hanya entri TokenLab yang ditambahkan.
+```bash
+pi --list-models tokenlab
+pi --provider tokenlab --model gpt-5.6-luna
+```
+
+Prompt memakai saldo TokenLab. Periksa respons dan [catatan permintaannya](https://tokenlab.sh/dashboard/runs?section=requests) sebelum mencoba alat. Untuk membatalkan konfigurasi manual, hapus hanya entri penyedia yang ditambahkan dan pertahankan pengaturan serta akun lain.
 
 ## Skills dan MCP
 

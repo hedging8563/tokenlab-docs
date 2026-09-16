@@ -19,10 +19,9 @@ Kod üreten ajanlar için önce `GET /v1/models?recommended_for=image` ile mevcu
 Google Gemini görsel aileleri aynı selector sözleşmesini paylaşmaz:
 
 - `gemini-3.1-flash-image`, `gemini-3-pro-image` ve `nano-banana-pro`, public text-to-image ve image-edit/image-to-image işlemlerinde `aspect_ratio` ile birlikte `resolution` (`1k`, `2k`, `4k`) destekler.
-- `nano-banana-2`, mevcut TokenLab sözleşmesinde yalnızca text-to-image için `aspect_ratio` ile birlikte `resolution` (`1k`, `2k`, `4k`) destekler.
+- `nano-banana-2`, hem text-to-image hem de image-to-image için `aspect_ratio` ve `resolution` (`1k`, `2k`, `4k`) destekler.
 - `gemini-2.5-flash-image`, `nano-banana` ve `nano-banana-edit`, `aspect_ratio` destekler fakat public `resolution` seçimi sunmaz.
 - Nano Banana referans görsel istekleri için bu endpointte (`/v1/images/generations`) `nano-banana-edit` veya `nano-banana-pro` kullanın ve `operation: "image-to-image"` ile `image_urls` gönderin. Nano Banana referans görsel isteklerini `/v1/images/edits` endpointine göndermeyin.
-- Nano Banana image-to-image isteklerinde `nano-banana-pro`, `resolution` (`1k`, `2k`, `4k`) içerebilir; `nano-banana-edit` bunu atlamalıdır. `nano-banana` ve `nano-banana-2` mevcut public sözleşmede text-to-image modelleridir.
 - Bu endpointte referans görseller JSON `image_url` / `image_urls` olarak veya multipart `image` dosyası olarak gönderilebilir. `/v1/images/generations`, `images[]` ya da `file_id` kabul etmez; `/v1/files` referansları yalnızca `images[].file_id` dokümante eden `/v1/images/edits` modelleri için kullanılır.
 
 Google görsel aileleri için `aspect_ratio` kullanmayı tercih edin ve `resolution`'ı yalnızca model açıkça destekliyorsa gönderin.
@@ -61,7 +60,7 @@ xAI Grok Imagine görsel modelleri (`grok-imagine-image`, `grok-imagine-image-qu
   Üretilecek görsel sayısı (1-10, modele bağlı).
 </ParamField>
 
-<ParamField body="size" type="string" default="1024x1024">
+<ParamField body="size" type="string">
   Görüntü boyutu. OpenAI tarzı görüntü aileleri ve kesin piksel boyutlarını kabul eden diğer modeller için kullanın.
 
   `gpt-image-2` için `size`, `auto` veya `WIDTHxHEIGHT` kabul eder. Özel boyutlarda her iki kenar da 16’nın katı olmalı, en uzun kenar en fazla `3840px` olmalı, uzun/kısa kenar oranı en fazla `3:1` olmalı ve toplam piksel sayısı `655,360` ile `8,294,400` arasında olmalıdır. `aspect_ratio` ve `resolution`, TokenLab’nın `gpt-image-2` için mevcut genel sözleşmesine dahil değildir.
@@ -76,19 +75,17 @@ xAI Grok Imagine görsel modelleri (`grok-imagine-image`, `grok-imagine-image-qu
 </ParamField>
 
 <ParamField body="resolution" type="string">
-  Modele bağlı çıktı çözünürlüğü seçici.
-
-  `gemini-3.1-flash-image` ve `gemini-3-pro-image` için text-to-image ve image-edit işlemlerinde, `nano-banana-pro` için text-to-image ve image-to-image işlemlerinde, `nano-banana-2` için yalnızca text-to-image işleminde desteklenir. Tipik değerler `1k`, `2k` ve `4k`'tür. Model bunu açıkça belgelemiyorsa bu parametreyi yalnızca oran seçimi destekleyen Gemini image ailelerine göndermeyin. xAI Grok Imagine görsel modelleri için `1k` veya `2k` kullanın.
+  Çıktı çözünürlüğü modele bağlıdır. `gemini-3.1-flash-image`, `gemini-3-pro-image`, `nano-banana-2` ve `nano-banana-pro`, `1k`, `2k`, `4k` değerlerini; Grok Imagine görsel modelleri `1k` ve `2k` değerlerini destekler. Bu alanı yalnızca seçilen model ve işlem açıkça destekliyorsa gönderin.
 </ParamField>
 
-<ParamField body="quality" type="string" default="standard">
+<ParamField body="quality" type="string">
   Görüntü kalitesi. `gpt-image-2` gibi GPT Image modelleri `auto`, `low`, `medium` veya `high` kullanır. Diğer görüntü aileleri sağlayıcıya özel değerler kullanabilir; varsayılan olmayan değerleri göndermeden önce seçilen model metadata bilgisini kontrol edin.
 </ParamField>
 
 <ParamField body="response_format" type="string" default="url">
   Yanıt formatı: `url` veya `b64_json`. Varsayılan `url` değeridir.
 
-  Azure Official veya Azure-compatible `gpt-image-2` isteklerinde TokenLab görüntü verisini `b64_json` olarak alır. `url` isteklerinde TokenLab her görseli CDN’e yükler ve `data[].url` döndürür. CDN depolama kullanılamıyorsa veya upload başarısız olursa istek Base64 yanıtına çevrilmeden başarısız olur. `b64_json` için ham Base64 döndürülür.
+  `url`, görsel URL’lerini `data[].url` içinde; `b64_json`, Base64 görsel verilerini `data[].b64_json` içinde döndürür.
 </ParamField>
 
 <ParamField body="async" type="boolean" default="false">
@@ -159,8 +156,7 @@ curl -X POST "https://api.tokenlab.sh/v1/images/generations" \
     "model": "gemini-3-pro-image",
     "prompt": "A cinematic portrait of a white cat sitting on a rainy windowsill",
     "aspect_ratio": "16:9",
-    "resolution": "2k",
-    "n": 1
+    "resolution": "2k"
   }'
 ```
 
@@ -175,9 +171,7 @@ client = OpenAI(
 response = client.images.generate(
     model="gemini-3-pro-image",
     prompt="A cinematic portrait of a white cat sitting on a rainy windowsill",
-    aspect_ratio="16:9",
-    resolution="2k",
-    n=1
+    extra_body={"aspect_ratio": "16:9", "resolution": "2k"}
 )
 
 print(response.data[0].url)
@@ -195,8 +189,7 @@ const response = await client.images.generate({
   model: 'gemini-3-pro-image',
   prompt: 'A cinematic portrait of a white cat sitting on a rainy windowsill',
   aspect_ratio: '16:9',
-  resolution: '2k',
-  n: 1
+  resolution: '2k'
 });
 
 console.log(response.data[0].url);
@@ -217,8 +210,7 @@ curl_setopt_array($ch, [
         'model' => 'gemini-3-pro-image',
         'prompt' => 'A cinematic portrait of a white cat sitting on a rainy windowsill',
         'aspect_ratio' => '16:9',
-        'resolution' => '2k',
-        'n' => 1
+        'resolution' => '2k'
     ])
 ]);
 
@@ -295,15 +287,7 @@ curl -X POST "https://api.tokenlab.sh/v1/images/generations" \
 
 ## Kullanılabilir Modeller
 
-Bunlar güncel örnek modellerdir, sabit bir katalog değildir. En son kullanılabilirlik ve fiyat için `GET /v1/models?recommended_for=image` veya Models sayfasını kullanın.
-
-| Model | Tip | Özellikler |
-|-------|-----|------------|
-| `gpt-image-2` | Inline veya task tabanlı | Token bazlı fiyatlanan GPT Image modeli, esnek boyutlar |
-| `flux-pro` | Sıklıkla task tabanlı | Fotogerçekçi, yüksek kalite |
-| `nano-banana-pro` | Sıklıkla task tabanlı | Referans görüntü akışları ve yüksek çözünürlüklü çıktı |
-| `grok-imagine-image` | Sıklıkla task tabanlı | En-boy oranı ve çözünürlük seçimiyle xAI görüntü üretimi |
-| `ideogram-v3` | Sıklıkla task tabanlı | Güçlü metin oluşturma |
+Güncel görsel modelleri, yetenekleri ve fiyatları için `GET /v1/models?recommended_for=image` kullanın.
 
 Bir modeli her zaman senkron ya da her zaman asenkron olarak hard-code etmeyin. Create yanıtı `status: "pending"` döndürürse, `poll_url`'ı takip edin ve tamamlanana kadar polling yapın.
 

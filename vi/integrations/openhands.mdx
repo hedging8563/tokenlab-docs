@@ -1,48 +1,24 @@
 ---
 title: "OpenHands"
-description: "Cấu hình các mô hình TokenLab cho OpenHands CLI và các quy trình làm việc headless"
+description: "Kết nối OpenHands với TokenLab"
 ---
+
 
 ## Tổng quan
 
-OpenHands có thể sử dụng TokenLab thông qua cấu hình mô hình tương thích với LiteLLM/OpenAI, đặc biệt là đối với CLI và các quy trình làm việc headless, nơi bạn cung cấp mô hình, API key và base URL.
-
-<Note>
-**Loại**: Tác nhân lập trình (Coding Agent)
-
-**Đường dẫn chính**: Cấu hình mô hình tương thích với OpenAI
-
-**Độ tin cậy hỗ trợ**: Hỗ trợ đường dẫn endpoint tùy chỉnh
-</Note>
-
-## Môi trường
-
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
+Trang này dành cho giao diện OpenHands dùng LiteLLM với **Settings → LLM → Advanced**. Chọn **OpenAI**, nhập mô hình tùy chỉnh có tiền tố `openai/`, khóa TokenLab trong ô cục bộ và Base URL bên dưới. Ghi lại lựa chọn cũ để khôi phục sau đó; giữ tài khoản và quyền công cụ. Xem [cấu hình tương thích OpenAI chính thức](https://docs.openhands.dev/openhands/usage/llms/openai-llms). Bản CLI, cloud và cài từ mã nguồn có thể dùng quy trình khác; làm theo bản đang cài. `make setup-config` không phải lệnh chung của CLI đã cài đặt.
 
 ## Cài đặt mô hình
 
-Sử dụng:
+Lưu cục bộ nhà cung cấp, mô hình và cấu hình kết nối hiện tại trước khi sửa. Các tùy chọn này đổi mô hình đang dùng; khôi phục giá trị cũ khi hoàn tất. Giữ nguyên tài khoản đã đăng nhập và quyền công cụ. Không ghi đè kết nối tương thích OpenAI khác khi chưa có bản sao lưu có thể khôi phục.
 
 ```text
-Model: openai/claude-sonnet-5
-API key: sk-your-tokenlab-key
+Custom Model: openai/kimi-k3
 Base URL: https://api.tokenlab.sh/v1
 ```
 
-Tiền tố `openai/` cho biết đường dẫn được hỗ trợ bởi LiteLLM sẽ sử dụng cấu hình nhà cung cấp tương thích với OpenAI.
+Lưu thiết lập hoặc liệt kê mô hình không xác nhận khóa hợp lệ hay yêu cầu đã hoàn tất. Prompt dùng số dư TokenLab. Kiểm tra phản hồi và [bản ghi tương ứng](https://tokenlab.sh/dashboard/runs?section=requests) trước khi thử công cụ; yêu cầu phụ cũng có thể được tính phí.
 
-## Thiết lập Headless
-
-Nếu bạn đang chuẩn bị các mặc định cục bộ cho CLI hoặc sử dụng headless, hãy chạy quy trình thiết lập OpenHands và nhập:
-
-```bash
-make setup-config
+```text
+Reply only with TOKENLAB_CONNECTION_OK. Do not use tools or modify files.
 ```
-
-Khi được nhắc nhập chi tiết mô hình, hãy sử dụng ID mô hình TokenLab với tiền tố `openai/` và base URL `/v1` của TokenLab.
-
-## Gợi ý mô hình
-
-Sử dụng `claude-sonnet-5` hoặc `gpt-5.4` cho việc lập kế hoạch của tác nhân lập trình, `gpt-5.4-mini` cho các vòng lặp thông thường nhanh hơn, và `deepseek-v4-pro` khi bạn muốn một mô hình suy luận thay thế mạnh mẽ.

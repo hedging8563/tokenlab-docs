@@ -18,6 +18,10 @@ Wenn eine Create-Antwort `poll_url` enthält, rufen Sie genau diesen Pfad auf. B
 
 ## Antwort
 
+<Note>
+Ergebnis-, Fehler-, Zeitstempel- und Modellfelder werden zurückgegeben, wenn sie für den Task verfügbar sind.
+</Note>
+
 <ResponseField name="id" type="string">
   Task-Bezeichner.
 </ResponseField>
@@ -54,13 +58,33 @@ Wenn eine Create-Antwort `poll_url` enthält, rufen Sie genau diesen Pfad auf. B
   URL des Ergebnis-Assets, wenn die Task abgeschlossen wird und ein Video erzeugt.
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="video" type="object">
+  Einzelnes Videoobjekt mit `url`, `duration`, `width` und `height`, falls verfügbar.
+</ResponseField>
+
+<ResponseField name="videos" type="array">
+  Video-Array, wenn die Generierungsaufgabe mehrere Ausgaben zurückgibt.
+</ResponseField>
+
+<ResponseField name="created" type="integer">
+  Zeitstempel der Erstellung.
+</ResponseField>
+
+<ResponseField name="updated" type="integer">
+  Zeitstempel der letzten Aktualisierung.
+</ResponseField>
+
+<ResponseField name="model" type="string">
+  Für die Task verwendetes Modell.
+</ResponseField>
+
+<ResponseField name="error" type="string | object">
   Fehlermeldung, wenn die Task fehlschlägt.
 </ResponseField>
 
 ## Fehlerverhalten
 
-Wenn die Task nicht mehr existiert, abgelaufen ist oder im öffentlichen Task-Datensatz nicht mehr verfügbar ist, gibt TokenLab Folgendes zurück:
+Ein abgelaufener oder nicht verfügbarer öffentlicher Task kann `404 async_task_not_found` zurückgeben. Ist die Zugehörigkeit zum aktuellen API-Schlüssel nicht feststellbar, lautet die Antwort `403 task_not_owned`.
 
 ```json
 {

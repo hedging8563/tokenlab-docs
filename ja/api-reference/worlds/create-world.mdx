@@ -6,12 +6,12 @@ description: "World Labs Marble のワールド生成タスクを作成します
 
 World Labs Marble で探索可能な 3D ワールドを生成します。この API は非同期です。作成レスポンスにはタスク識別子と、ステータス確認用の `poll_url` が返ります。
 
-対応モデルは `marble-1.0`、`marble-1.1`、`marble-1.1-plus` です。World Labs のドキュメントには `marble-1.0-draft` も記載されていますが、TokenLab は現時点でこのエンドポイントでは draft 生成を公開していません。
+[Models API](/ja/api-reference/models/list-models) で現在利用可能な Marble モデルを選んでください。
 
 ## リクエストボディ
 
 <ParamField body="model" type="string" default="marble-1.0">
-  使用する Marble モデル：`marble-1.0`、`marble-1.1`、`marble-1.1-plus`。
+  [Models API](/ja/api-reference/models/list-models) で現在利用可能な Marble モデルを選んでください。
 </ParamField>
 
 <ParamField body="prompt" type="string">
@@ -55,7 +55,7 @@ World Labs Marble で探索可能な 3D ワールドを生成します。この 
 </ParamField>
 
 <ParamField body="permission" type="object">
-  任意の World Labs permission オブジェクトです。
+  任意の公開範囲とアクセス設定です：`public`、`allow_id_access`、`allowed_readers`、`allowed_writers`。`public: true` は公開されるワールドの作成を要求します。
 </ParamField>
 
 ## レスポンス
@@ -94,11 +94,7 @@ World Labs Marble で探索可能な 3D ワールドを生成します。この 
 
 ## 料金
 
-World Labs は credits で課金します。TokenLab はリクエスト種別の最大値を事前控除し、完了した operation から `cost.total_credits` が得られる場合は実 credits で精算します。標準 Marble リクエストは最大 1,600 credits、`marble-1.1-plus` は最大 3,100 credits です。
-
-## スコープ
-
-これらの管理エンドポイントは TokenLab 所有のメディアアセットと完了済み world を対象にします。`marble-1.0-draft` 生成および単独の pano/depth ツールはまだ公開していません。
+現在の料金は [Pricing API](/ja/api-reference/pricing/get-pricing) で確認してください。最終請求額は利用記録に表示されます。返された `cost.total_credits` は生成使用量であり、通貨の金額ではありません。
 
 <RequestExample>
 ```bash cURL

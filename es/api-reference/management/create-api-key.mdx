@@ -14,10 +14,11 @@ Este endpoint crea una nueva API Key de tipo `type=user` en la organización aso
 
 | Campo | Tipo | Valor predeterminado / límites | Notas |
 |-------|------|-------------------------------|-------|
-| `name` | string | requerido, predeterminado `Default Key`, longitud `1-50` | Nombre visible, recortado en el servidor |
-| `limitAmount` | number \| null | mínimo `0`, máximo de entrada `1000000` | `null` o omitido = ilimitado, `0` = cuota cero. Los valores positivos se normalizan a un límite almacenado que no puede superar `100000` USD equivalente. |
+| `name` | string | opcional, predeterminado `Default Key`, longitud `1-50` | Nombre visible, recortado en el servidor |
+| `limitAmount` | number \| string \| null | `0–100000` USD | `null` significa sin límite; `0` impide el gasto. Las cadenas decimales admiten hasta 6 decimales. Al crear la clave, omitir este campo significa sin límite. |
 | `limitCurrency` | enum | predeterminado `USD` | Solo USD. Enviar `CNY` devuelve `400 currency_retired`. |
 | `models` | string[] | predeterminado `[]` | Lista opcional de modelos lógicos permitidos |
+| `deliveryPolicy` | string \| null | `auto`, `verified`, `official`, `null` | `null` hereda la política de entrega del espacio de trabajo. |
 | `expiresAt` | string \| null | datetime RFC3339 | `null` significa sin caducidad |
 
 ## Notas
@@ -68,7 +69,8 @@ Esta página ofrece el esquema OpenAPI y ejemplos de solicitudes que puedes copi
   ],
   "expires_at": "2026-12-31T23:59:59.000Z",
   "last_used_at": null,
-  "created_at": "2026-07-08T03:00:00.000Z"
+  "created_at": "2026-07-08T03:00:00.000Z",
+  "delivery_policy": null
 }
 ```
 </ResponseExample>
@@ -79,12 +81,13 @@ Esta página ofrece el esquema OpenAPI y ejemplos de solicitudes que puedes copi
 <ResponseField name="id" type="string">Identificador de clave API usado en llamadas posteriores a la API de gestión.</ResponseField>
 <ResponseField name="name" type="string">Nombre para mostrar de la clave API.</ResponseField>
 <ResponseField name="key_prefix" type="string">Prefijo de clave no secreto para visualización y soporte.</ResponseField>
-<ResponseField name="status" type="string">Uno de los valores `active`, `inactive` o `revoked`.</ResponseField>
+<ResponseField name="status" type="string">Uno de los valores `active`, `inactive`, `suspended` o `revoked`.</ResponseField>
 <ResponseField name="limit_amount" type="number | null">Límite de gasto en USD como número JSON para visualización. `null` significa sin límite.</ResponseField>
 <ResponseField name="limit_amount_decimal" type="string | null">Límite de gasto exacto en USD como cadena decimal. `null` significa sin límite.</ResponseField>
 <ResponseField name="used_amount" type="number">Gasto de uso acumulado en USD como número JSON para visualización.</ResponseField>
 <ResponseField name="used_amount_decimal" type="string">Gasto de uso acumulado exacto en USD como cadena decimal.</ResponseField>
 <ResponseField name="models" type="string[]">Lista de modelos permitidos por clave. Un array vacío significa que no hay una restricción adicional de modelos a nivel de clave.</ResponseField>
+<ResponseField name="delivery_policy" type="string | null">`auto`, `verified`, `official`, `null`. `null` hereda la política de entrega del espacio de trabajo.</ResponseField>
 <ResponseField name="expires_at" type="string | null">Marca de tiempo ISO en la que vence la clave, o `null` si no caduca.</ResponseField>
 <ResponseField name="last_used_at" type="string | null">Marca de tiempo ISO del uso más reciente, o `null` si nunca se ha usado.</ResponseField>
 <ResponseField name="created_at" type="string">Marca de tiempo ISO de creación.</ResponseField>

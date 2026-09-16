@@ -7,7 +7,9 @@ import VideoModelContracts from "../snippets/generated/video-model-contracts.mdx
 
 ビデオ生成は非同期です。 `POST /v1/videos/generations` は公開タスクIDを返し、通常は `poll_url` を返します。最終的なビデオは後のステータス応答に表示されます。
 
-選択した Seedance モデルが TokenLab 素材ライブラリを使用できる場合、画像 URL と対応するインライン data URL は生成前に再利用可能な TokenLab 素材として準備されます。準備に 60 秒を超える場合は、返された `auto_material_asset_ids` が `ACTIVE` になってから再試行してください。選択したモデルが素材ライブラリを使用できない場合、通常の画像入力は通常の画像パスで処理されます。
+選択したモデルが対応する画像フィールドに公開 HTTP(S) URL または対応する data URL を指定できます。通常のメディア入力として処理され、再利用可能な素材 ID は自動作成されません。
+
+明示した素材が準備中の場合、`POST /v1/videos/generations` は `409 seedance_material_preparing` と `inactive_asset_ids` を返します。素材が `ACTIVE` になるまで確認し、同じ ID で再試行してください。`FAILED` の場合は `error_message` に従って修正または再インポートします。
 
 ## 対応する操作
 
@@ -27,20 +29,20 @@ import VideoModelContracts from "../snippets/generated/video-model-contracts.mdx
 ## モデル発見
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \\
+curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 
-`model` には TokenLab に表示されるモデル ID を使い、機能差分は `operation` と対応するメディア入力で選択してください。例: `wan-2.7`、`happyhorse-1.0`、`viduq3`、`viduq3-mix`、`pixverse-v6`、`kling-3.0-video`、`veo3.1`、`seedance-2.0`。操作固有の接尾辞を TokenLab のモデル名として使わないでください。
+`model` には TokenLab に表示されるモデル ID を使い、機能差分は `operation` と対応するメディア入力で選択してください。例: `wan-2.7`、`happyhorse-1.0`、`viduq3`、`viduq3-mix`、`pixverse-v6`、`veo3.1`、`seedance-2.0`。操作固有の接尾辞を TokenLab のモデル名として使わないでください。
 
 `reference_images`, `kling_elements`, `output_audio`, `duration`, `resolution`, または `aspect_ratio` のような専門的なフィールドに依存する前に、選択したモデルの詳細を確認してください。
 
 ## リクエストの作成
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/generations \\
-  -H "Authorization: Bearer sk-your-api-key" \\
-  -H "Content-Type: application/json" \\
+curl https://api.tokenlab.sh/v1/videos/generations \
+  -H "Authorization: Bearer sk-your-api-key" \
+  -H "Content-Type: application/json" \
   -d '{
     "model": "veo3.1",
     "operation": "text-to-video",
@@ -55,9 +57,8 @@ curl https://api.tokenlab.sh/v1/videos/generations \\
 ## 入力とモデル固有のフィールド
 
 - Veo 3ファミリーのリクエストは、`output_audio` が省略された場合、デフォルトでオーディオオンになります。モデルがトグルをサポートしている場合は、サウンドに依存するUXのために明示的に設定してください。
-- `kling_elements` は `kling-3.0-video` 画像条件付きリクエスト用です。各要素を `prompt` で `@name` として参照してください。 `output_audio=true` と組み合わせないでください。
 - Seedance 2.0 ファミリーで 4K 出力、Fast/Mini の解像度上限、またはマルチモーダル参照入力を使う前に、[Seedance 2.0 ビデオモデルガイド](/ja/guides/seedance-2-video)を確認してください。
-- `grok-imagine-video` の場合、video-to-video は公開の `.mp4` `video_url` を使用します。モデル固有の制限（`duration` や `resolution` など）はモデル詳細から取得する必要があります。
+- `grok-imagine-video` の video-to-video では `prompt` と公開 HTTPS `.mp4` の `video_url` を送ります。この操作では `duration`、`resolution`、`aspect_ratio` は使用されません。
 
 <VideoModelContracts />
 

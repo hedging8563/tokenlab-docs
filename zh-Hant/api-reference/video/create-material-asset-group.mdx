@@ -8,13 +8,15 @@ description: "建立一個 Seedance 虛擬頭像素材群組。"
 
 新的真人素材群組需透過 [建立視覺驗證會話](/zh-Hant/api-reference/video/create-visual-validation-session) 建立，無法直接使用此端點建立。
 
+`project_name` 用於同一組織內的資源隔離，預設為 `default`。相關素材群組和素材須使用相同且區分大小寫的值；POST/PUT 在 JSON 請求主體中傳入，GET/DELETE 在查詢參數中傳入。
+
 ## 請求範例
 
 ```bash
 curl https://api.tokenlab.sh/v1/videos/assets/groups \
   -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"library_type":"aigc_avatar","group_name":"Product references","description":"Reusable product shots"}'
+  -d '{"library_type":"aigc_avatar","group_name":"Product references","description":"Reusable product shots","project_name":"default"}'
 ```
 
 ## 回應範例
@@ -23,6 +25,7 @@ curl https://api.tokenlab.sh/v1/videos/assets/groups \
 {
   "id": "group-20260720123456-vrt01",
   "object": "seedance.material_asset_group",
+  "project_name": "default",
   "library_type": "aigc_avatar",
   "group_name": "Product references",
   "description": "Reusable product shots",

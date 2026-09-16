@@ -15,11 +15,22 @@ description: "獲取非同步圖片生成任務的狀態與結果"
 
 你也可以用 `/v1/images/{id}` 輪詢 `ldtask_...` 這類公開圖片任務 ID。這個相容 alias 會沿用與 `/v1/images/generations/{id}` 完全相同的鑑權、ownership 檢查、計費 header、終態快照和回應格式。
 
-
-如果該任務已不存在，或無法再從公開任務記錄中查詢到，TokenLab 會回傳 `async_task_not_found`，並附上訊息 `Task not found or no longer available.`
+已過期或不可用的公開任務可能回傳 `404 async_task_not_found`。無法確認目前 API 金鑰對任務的歸屬權限時，回傳 `403 task_not_owned`。
 </Info>
 
 ## 響應
+
+<Note>
+結果、錯誤、時間戳記與模型欄位僅在任務提供時回傳。
+</Note>
+
+<ResponseField name="id" type="string">
+  標準的非同步任務識別碼。
+</ResponseField>
+
+<ResponseField name="poll_url" type="string">
+  當建立回應提供時，首選的輪詢 URL。
+</ResponseField>
 
 <ResponseField name="created" type="integer">
   建立時的 Unix 時間戳。
@@ -38,10 +49,10 @@ description: "獲取非同步圖片生成任務的狀態與結果"
 
   每個物件包含：
   - `url` (string): 生成圖片的 URL
-  - `revised_prompt` (string): 用於生成的提示詞
+  - `revised_prompt` (string): 所選模型回傳的選填 prompt 改寫結果
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="error" type="string | object">
   錯誤訊息（僅在 `status` 為 `failed` 時出現）。
 </ResponseField>
 
@@ -59,6 +70,7 @@ response = requests.get(
     headers={"Authorization": "Bearer sk-your-api-key"}
 )
 
+response.raise_for_status()
 data = response.json()
 print(f"Status: {data['status']}")
 
@@ -76,6 +88,7 @@ const response = await fetch(
   }
 );
 
+if (!response.ok) throw new Error(`HTTP ${response.status}`);
 const data = await response.json();
 console.log(`Status: ${data.status}`);
 
@@ -93,12 +106,7 @@ if (data.status === 'completed') {
   "task_id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "poll_url": "/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "status": "pending",
-  "data": [
-    {
-      "url": "",
-      "revised_prompt": "a beautiful sunset over mountains"
-    }
-  ]
+  "data": []
 }
 ```
 
@@ -134,7 +142,7 @@ if (data.status === 'completed') {
 ## 輪詢最佳實踐
 
 <Tip>
-**建議輪詢間隔**：3-5 秒。大多數圖片生成任務會在 30-120 秒內完成，具體取決於模型和路由的供應商路徑。
+狀態為 `pending` 或 `processing` 時，每 3–5 秒查詢一次；變為 `completed` 或 `failed` 後停止。
 </Tip>
 
 ```python
@@ -148,7 +156,8 @@ def poll_image_task(task_id, api_key, max_wait=300, interval=3):
 
     start_time = time.time()
     while time.time() - start_time < max_wait:
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=30)
+        response.raise_for_status()
         data = response.json()
 
         if data["status"] == "completed":

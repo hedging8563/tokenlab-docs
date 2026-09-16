@@ -18,11 +18,11 @@ TokenLab ghi nhận chủ sở hữu asset. Chỉ cùng tổ chức mới có th
   Loại media: `image` hoặc `video`.
 </ParamField>
 
-<ParamField body="extension" type="string">
+<ParamField body="extension" type="string | null">
   Đuôi tệp tùy chọn như `png`, `jpg` hoặc `mp4`.
 </ParamField>
 
-<ParamField body="metadata" type="object">
+<ParamField body="metadata" type="object | null">
   Đối tượng metadata tùy chọn lưu cùng media asset upstream.
 </ParamField>
 
@@ -34,6 +34,14 @@ TokenLab ghi nhận chủ sở hữu asset. Chỉ cùng tổ chức mới có th
 
 <ResponseField name="upload_info.upload_url" type="string">
   URL upstream đã ký để tải tệp nhị phân lên.
+</ResponseField>
+
+<ResponseField name="upload_info.upload_method" type="string">
+  Phương thức HTTP để tải tệp nhị phân lên `upload_info.upload_url`, nếu được trả về.
+</ResponseField>
+
+<ResponseField name="upload_info.required_headers" type="object">
+  Các header cần gửi cùng tệp nhị phân, nếu được trả về.
 </ResponseField>
 
 <RequestExample>

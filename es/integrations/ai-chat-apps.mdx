@@ -13,7 +13,7 @@ En la práctica, esto significa:
 - elija modelos que la aplicación pueda usar en un flujo de trabajo de chat estándar
 
 <Note>
-Las aplicaciones de chat generales suelen estar **orientadas a chat-completions**, no a clientes WebSocket de Codex Responses. Para Codex CLI/App, Cursor u otras herramientas de programación que requieran un comportamiento específico de Responses, utilice las guías de integración dedicadas en su lugar.
+La configuración de cada aplicación indica la API cuando es necesario elegirla. Algunas aplicaciones seleccionan Responses según el modelo. Usa un modelo compatible con la API de tu aplicación; las herramientas de programación tienen guías de integración separadas.
 </Note>
 
 ## Aplicaciones compatibles
@@ -54,81 +54,46 @@ Si una aplicación solicita una **URL de endpoint completa** en lugar de una URL
     ```
 
     **LobeChat Cloud**
-    1. Abra **Settings** → **AI Service Provider**
+    1. Abra **Settings** → **AI Providers**
     2. Seleccione **OpenAI**
     3. Ingrese su API key de TokenLab
     4. Establezca el endpoint personalizado en `https://api.tokenlab.sh/v1`
+
+    Habilita y selecciona un modelo y envía un mensaje de prueba. LobeChat puede usar Responses automáticamente para algunos modelos GPT, así que elige un modelo TokenLab compatible con la API que utiliza.
   </Tab>
 
   <Tab title="Cherry Studio">
-    1. Abra **Settings** → **Model Provider**
-    2. Añada un proveedor **OpenAI-compatible**
-    3. Ingrese:
-       - **Name**: TokenLab
-       - **API Base URL**: `https://api.tokenlab.sh/v1`
-       - **API Key**: `sk-your-tokenlab-key`
-    4. Añada los modelos que desea utilizar
+    Sigue la [guía de configuración de Cherry Studio](/es/integrations/cherry-studio) para conectar el servicio, elegir un modelo y enviar el primer mensaje de prueba.
   </Tab>
 
   <Tab title="Chatbox">
-    1. Abra **Settings** → **AI Model**
-    2. Elija **OpenAI API Compatible**
-    3. Ingrese:
-       - **API Host**: `https://api.tokenlab.sh/v1`
-       - **API Key**: `sk-your-tokenlab-key`
-       - **Model**: `gpt-5.4-mini` o `claude-sonnet-5`
+    Sigue la [guía de configuración de Chatbox](/es/integrations/chatbox) para conectar el servicio, elegir un modelo y enviar el primer mensaje de prueba.
   </Tab>
 
   <Tab title="TypingMind">
-    1. Abra **Settings**
-    2. Elija **Custom Endpoint**
-    3. Ingrese:
-       - **Endpoint URL**: `https://api.tokenlab.sh/v1/chat/completions`
-       - **API Key**: `sk-your-tokenlab-key`
-    4. Configure los modelos que desea exponer
+    1. Abre **Models** → **Add Custom Models**.
+    2. Introduce:
+       - **Name**: TokenLab
+       - **Endpoint**: `https://api.tokenlab.sh/v1/chat/completions`
+       - **Model ID / Context length**: Copia el ID exacto del modelo y la longitud del contexto de [Modelos TokenLab](https://tokenlab.sh/es/models).
+       - **Custom Headers**: `Authorization: Bearer sk-your-tokenlab-key`
+    3. Haz clic en **Test** y después en **Add Model**. Selecciona el modelo nuevo y envía un mensaje de prueba.
   </Tab>
 
   <Tab title="Open WebUI">
-    1. Abra **Admin Settings** → **Connections**
-    2. Añada una conexión **OpenAI-compatible**
-    3. Ingrese:
-       - **Base URL**: `https://api.tokenlab.sh/v1`
-       - **API Key**: `sk-your-tokenlab-key`
-    4. Guarde y seleccione los modelos que desea exponer
+    Sigue la [guía de configuración de Open WebUI](/es/integrations/open-webui) para conectar el servicio, elegir un modelo y enviar el primer mensaje de prueba.
   </Tab>
 
   <Tab title="DeepChat">
-    1. Abra **Settings** -> **Model Provider**
-    2. Añada un proveedor compatible con OpenAI
-    3. Ingrese:
-       - **Base URL**: `https://api.tokenlab.sh/v1`
-       - **API Key**: `sk-your-tokenlab-key`
-       - **Model**: `gpt-5.4-mini`
-    4. Guarde y realice un chat de prueba
+    Sigue la [guía de configuración de DeepChat](/es/integrations/deepchat) para conectar el servicio, elegir un modelo y enviar el primer mensaje de prueba.
   </Tab>
 
   <Tab title="Jan">
-    1. Abra **Settings** -> **Providers**
-    2. Añada un proveedor remoto compatible con OpenAI
-    3. Ingrese:
-       - **Provider name**: TokenLab
-       - **Base URL**: `https://api.tokenlab.sh/v1`
-       - **API Key**: `sk-your-tokenlab-key`
-    4. Seleccione `gpt-5.4-mini` u otro modelo de TokenLab
+    Sigue la [guía de configuración de Jan](/es/integrations/jan) para conectar el servicio, elegir un modelo y enviar el primer mensaje de prueba.
   </Tab>
 
   <Tab title="LibreChat">
-    Añada un endpoint compatible con OpenAI en la configuración de su proveedor de LibreChat y apúntelo a:
-
-    ```yaml
-    customEndpoints:
-      - name: TokenLab
-        apiKey: '${OPENAI_API_KEY}'
-        baseURL: 'https://api.tokenlab.sh/v1'
-        models:
-          default: ['gpt-5.6-luna', 'gpt-5.6-terra', 'claude-sonnet-5']
-          fetch: false
-    ```
+    Sigue la [guía de configuración de LibreChat](/es/integrations/librechat) para conectar el servicio, elegir un modelo y enviar el primer mensaje de prueba.
   </Tab>
 </Tabs>
 

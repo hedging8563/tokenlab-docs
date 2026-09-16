@@ -78,7 +78,8 @@ Unsupported tasks return `400 unsupported_task_cancel`. A task that is already r
 
 | Symptom | Likely cause | What to check |
 |---------|--------------|---------------|
-| `async_task_not_found` | Task is unknown, expired, inaccessible to this API key, or not a public async task | Confirm API key ownership and the stored public `task_id` |
+| `404 async_task_not_found` | The task has expired or is no longer available | Check the saved `task_id` and `poll_url` |
+| `403 task_not_owned` | Task ownership cannot be confirmed for the current workspace | Confirm the workspace or organization associated with the API key |
 | Task never appears to finish | Client keeps polling the wrong URL or stopped before terminal status | Use `poll_url` or `/v1/tasks/{id}` and inspect the latest status |
 | Final media URL missing | Task is not completed, or it finished without a usable file | Keep polling until it finishes, then treat a missing result as failed |
 | User sees duplicates | Retry path created a new task after timeout or refresh | Deduplicate by your own job ID and stored `task_id` |

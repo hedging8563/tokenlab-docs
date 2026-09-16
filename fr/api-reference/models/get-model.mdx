@@ -7,7 +7,7 @@ description: "Obtenez les capacités, la tarification et les formats d'API d'un 
 ## Paramètre de chemin
 
 <ParamField path="model" type="string" required>
-  ID du modèle, tel que `gpt-5.4` ou `claude-sonnet-4-6`.
+  ID du modèle, tel que `gpt-5.6-terra` ou `claude-sonnet-4-6`.
 </ParamField>
 
 ## Réponse
@@ -33,7 +33,7 @@ Certains modèles multimédias incluent également un statut de recommandation e
 ## Exemple
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models/gpt-5.4"
+curl "https://api.tokenlab.sh/v1/models/gpt-5.6-terra"
 ```
 
 ```json
@@ -43,8 +43,8 @@ curl "https://api.tokenlab.sh/v1/models/gpt-5.4"
   "owned_by": "openai",
   "tokenlab": {
     "category": "chat",
-    "capabilities": ["text"],
-    "accepted_request_formats": ["responses", "chat_completions"]
+    "capabilities": ["coding", "json-mode", "prompt-cache", "reasoning", "tool-use", "vision"],
+    "accepted_request_formats": ["openai_chat_completions", "openai_responses"]
   }
 }
 ```

@@ -14,10 +14,11 @@ playground: simple
 
 | الحقل | النوع | القيم الافتراضية / القيود | الوصف |
 |-------|------|----------------------------|-------|
-| `name` | string | مطلوب، الافتراضي `Default Key`، الطول `1-50` | اسم العرض؛ تتم إزالة المسافات من البداية والنهاية على الخادم |
-| `limitAmount` | number \| null | الحد الأدنى `0`، الحد الأقصى للإدخال `1000000` | `null` أو الحذف = غير محدود، `0` = حصة صفرية. تُطبّع القيم الموجبة إلى حد مخزن لا يمكن أن يتجاوز ما يعادل `100000` دولارًا أمريكيًا. |
+| `name` | string | اختياري، الافتراضي `Default Key`، الطول `1-50` | اسم العرض؛ تتم إزالة المسافات من البداية والنهاية على الخادم |
+| `limitAmount` | number \| string \| null | `0–100000` USD | تعني `null` عدم وجود حد، وتمنع `0` الإنفاق. تدعم السلاسل العشرية حتى 6 منازل عشرية. عند إنشاء المفتاح، يعني حذف هذا الحقل عدم وجود حد. |
 | `limitCurrency` | تعداد | افتراضي `USD` | USD فقط. إرسال `CNY` يُرجع `400 currency_retired`. |
 | `models` | string[] | الافتراضي `[]` | قائمة اختيارية للنماذج المنطقية المسموح بها |
+| `deliveryPolicy` | string \| null | `auto`, `verified`, `official`, `null` | تعني `null` وراثة سياسة التسليم لمساحة العمل. |
 | `expiresAt` | string \| null | تاريخ ووقت RFC3339 | `null` يعني عدم وجود انتهاء |
 
 ## ملاحظات
@@ -68,7 +69,8 @@ curl -X POST "https://api.tokenlab.sh/v1/management/api-keys" \
   ],
   "expires_at": "2026-12-31T23:59:59.000Z",
   "last_used_at": null,
-  "created_at": "2026-07-08T03:00:00.000Z"
+  "created_at": "2026-07-08T03:00:00.000Z",
+  "delivery_policy": null
 }
 ```
 </ResponseExample>
@@ -79,12 +81,13 @@ curl -X POST "https://api.tokenlab.sh/v1/management/api-keys" \
 <ResponseField name="id" type="string">معرّف مفتاح API المستخدم في استدعاءات واجهة API للإدارة اللاحقة.</ResponseField>
 <ResponseField name="name" type="string">اسم العرض لمفتاح API.</ResponseField>
 <ResponseField name="key_prefix" type="string">بادئة مفتاح غير سرية للعرض والدعم.</ResponseField>
-<ResponseField name="status" type="string">إحدى القيم `active` أو `inactive` أو `revoked`.</ResponseField>
+<ResponseField name="status" type="string">إحدى القيم `active` أو `inactive` أو `suspended` أو `revoked`.</ResponseField>
 <ResponseField name="limit_amount" type="number | null">حد الإنفاق بالدولار الأمريكي كرقم JSON للعرض. تعني `null` عدم وجود حد.</ResponseField>
 <ResponseField name="limit_amount_decimal" type="string | null">حد الإنفاق الدقيق بالدولار الأمريكي كسلسلة عشرية. تعني `null` عدم وجود حد.</ResponseField>
 <ResponseField name="used_amount" type="number">الإنفاق التراكمي للاستخدام بالدولار الأمريكي كرقم JSON للعرض.</ResponseField>
 <ResponseField name="used_amount_decimal" type="string">الإنفاق التراكمي الدقيق للاستخدام بالدولار الأمريكي كسلسلة عشرية.</ResponseField>
 <ResponseField name="models" type="string[]">قائمة النماذج المسموح بها لكل مفتاح. تعني المصفوفة الفارغة عدم وجود قيود إضافية على النماذج على مستوى المفتاح.</ResponseField>
+<ResponseField name="delivery_policy" type="string | null">`auto`, `verified`, `official`, `null`. تعني `null` وراثة سياسة التسليم لمساحة العمل.</ResponseField>
 <ResponseField name="expires_at" type="string | null">طابع زمني ISO لانتهاء صلاحية المفتاح، أو `null` إذا لم تكن له مدة انتهاء.</ResponseField>
 <ResponseField name="last_used_at" type="string | null">طابع زمني ISO لأحدث استخدام، أو `null` إذا لم يُستخدم.</ResponseField>
 <ResponseField name="created_at" type="string">طابع زمني ISO للإنشاء.</ResponseField>

@@ -24,7 +24,7 @@ irm https://claude.ai/install.ps1 | iex
 Si vous avez spécifiquement besoin du package npm, utilisez :
 
 ```bash
-npm install -g @anthropic-ai/claude-code
+npm install -g @anthropic-ai/claude-code@2.1.263
 ```
 
 <Warning>
@@ -33,35 +33,39 @@ N’utilisez pas `sudo npm install -g` pour Claude Code.
 
 ## Configuration
 
-### Variables d’environnement
+Définissez `TOKENLAB_API_KEY` avec les étapes du [démarrage rapide](/fr/quickstart) pour macOS, Linux, WSL ou Windows PowerShell, sans placer la clé dans l’historique. Lancez Claude Code depuis ce terminal. Pour un usage permanent, utilisez un gestionnaire local de secrets plutôt qu’une clé en clair dans le profil du shell.
 
-Définissez les variables d’environnement suivantes :
+Ces variables s’appliquent uniquement à ce lancement ; le compte, le modèle par défaut et les permissions enregistrés sont conservés. Lancez normalement sans ces variables pour retrouver vos réglages. Ne les enregistrez pas dans le profil du shell.
 
-```bash
-export ANTHROPIC_API_KEY="sk-your-tokenlab-key"
-export ANTHROPIC_BASE_URL="https://api.tokenlab.sh"
+Ce lancement utilise Claude Code **2.1.263** et l’authentification Bearer via `ANTHROPIC_AUTH_TOKEN`. La Base URL reste sans `/v1`. Les valeurs `env` enregistrées, assistants d’identifiants, options cloud et politiques gérées peuvent influencer l’authentification : vérifiez-les avant le lancement. En cas de conflit, utilisez l’assistant ci-dessous sans supprimer les comptes ni affaiblir les règles. Vérifiez modèle et permissions avec `/status`.
+
+<CodeGroup>
+```bash macOS / Linux / WSL
+ANTHROPIC_BASE_URL=https://api.tokenlab.sh ANTHROPIC_AUTH_TOKEN="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" ANTHROPIC_API_KEY= claude --model claude-sonnet-4-6
 ```
 
-Ajoutez-les à votre profil shell (`~/.bashrc`, `~/.zshrc`, etc.) pour qu’elles persistent.
-
-<Note>
-Pour TokenLab, conservez `ANTHROPIC_BASE_URL` à `https://api.tokenlab.sh` sans suffixe `/v1`. Cela correspond au format des endpoints de style Anthropic et au modèle de gateway unifiée documenté par Claude Code.
-</Note>
-
-### Fichier de configuration
-
-Vous pouvez aussi créer ou modifier `~/.claude/settings.json` :
-
-Sauvegardez et fusionnez les paramètres sans remplacer comptes ou autorisations. `ANTHROPIC_API_KEY` envoie `X-Api-Key`, et `ANTHROPIC_AUTH_TOKEN` un jeton Bearer. Choisissez une méthode. `/status` affiche modèle et source de configuration, mais ne valide pas une requête payante. Après un court test, comparez réponse et journal TokenLab. Pour restaurer, annulez uniquement vos ajouts. Voir la [priorité](https://code.claude.com/docs/en/settings).
-
-```json
-{
-  "env": {
-    "ANTHROPIC_API_KEY": "sk-your-tokenlab-key",
-    "ANTHROPIC_BASE_URL": "https://api.tokenlab.sh"
+```powershell Windows PowerShell
+if (-not $env:TOKENLAB_API_KEY) { throw 'Set TOKENLAB_API_KEY first' }
+$previous = @{}
+$previous['ANTHROPIC_BASE_URL'] = [Environment]::GetEnvironmentVariable('ANTHROPIC_BASE_URL', 'Process')
+$previous['ANTHROPIC_AUTH_TOKEN'] = [Environment]::GetEnvironmentVariable('ANTHROPIC_AUTH_TOKEN', 'Process')
+$previous['ANTHROPIC_API_KEY'] = [Environment]::GetEnvironmentVariable('ANTHROPIC_API_KEY', 'Process')
+try {
+  $env:ANTHROPIC_BASE_URL = 'https://api.tokenlab.sh'
+  $env:ANTHROPIC_AUTH_TOKEN = $env:TOKENLAB_API_KEY
+  $env:ANTHROPIC_API_KEY = ''
+  claude --model claude-sonnet-4-6
+} finally {
+  foreach ($name in $previous.Keys) {
+    [Environment]::SetEnvironmentVariable($name, $previous[$name], 'Process')
   }
 }
 ```
+</CodeGroup>
+
+Facultatif : l’[assistant de configuration réversible pour Claude Code](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/skills/tokenlab-api-integration/references/claude_setup.md) permet de prévisualiser, appliquer et restaurer le fichier original avec Python 3.11+. Le plugin TokenLab Skills **0.1.2** contient ces scripts ; un Skill autonome convient aussi après sa mise à jour vers une version qui les inclut. Pour un plugin ou un Skill autonome déjà installé, suivez les [instructions de mise à jour du README](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/README.md#update-an-existing-installation) et vérifiez la présence du script. La configuration manuelle de cette page reste utilisable sans cet assistant.
+
+Enregistrer les réglages ou lister les modèles ne valide ni la clé ni un appel terminé. Un prompt utilise le solde TokenLab. Vérifiez la réponse et son [enregistrement correspondant](https://tokenlab.sh/dashboard/runs?section=requests) avant de tester les outils ; les requêtes auxiliaires peuvent aussi être facturées.
 
 ## Utilisation
 
@@ -69,11 +73,10 @@ Après la configuration, utilisez Claude Code normalement :
 
 ```bash
 # Start an interactive session
-claude
+ANTHROPIC_BASE_URL=https://api.tokenlab.sh ANTHROPIC_AUTH_TOKEN="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" ANTHROPIC_API_KEY= claude --model claude-sonnet-4-6
 
 # Run a single command
-claude "Explain this code" < main.py
-
+ANTHROPIC_BASE_URL=https://api.tokenlab.sh ANTHROPIC_AUTH_TOKEN="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" ANTHROPIC_API_KEY= claude --model claude-sonnet-4-6 "Explain this code" < main.py
 ```
 
 Vérifiez l’installation si nécessaire :
@@ -98,19 +101,7 @@ TokenLab prend en charge tous les modèles Claude :
 Spécifiez un modèle avec l’option `--model` :
 
 ```bash
-claude --model claude-sonnet-4-6 "Review this PR"
-```
-
-Ou définissez une valeur par défaut dans votre configuration :
-
-```json
-{
-  "env": {
-    "ANTHROPIC_API_KEY": "sk-your-tokenlab-key",
-    "ANTHROPIC_BASE_URL": "https://api.tokenlab.sh"
-  },
-  "model": "claude-sonnet-5"
-}
+ANTHROPIC_BASE_URL=https://api.tokenlab.sh ANTHROPIC_AUTH_TOKEN="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" ANTHROPIC_API_KEY= claude --model claude-sonnet-4-6 "Review this PR"
 ```
 
 ## Réflexion prolongée
@@ -118,7 +109,7 @@ Ou définissez une valeur par défaut dans votre configuration :
 Pour les tâches de raisonnement complexes, utilisez des modèles avec extended thinking :
 
 ```bash
-claude --model claude-opus-4-6 "Design a microservices architecture for..."
+ANTHROPIC_BASE_URL=https://api.tokenlab.sh ANTHROPIC_AUTH_TOKEN="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" ANTHROPIC_API_KEY= claude --model claude-opus-4-6 "Design a microservices architecture for..."
 ```
 
 ## Résolution des problèmes
@@ -132,9 +123,6 @@ claude --model claude-opus-4-6 "Design a microservices architecture for..."
     Assurez-vous que votre clé API TokenLab commence par `sk-` et dispose d’un solde suffisant.
   </Accordion>
 
-  <Accordion title="La gateway nécessite un bearer token Authorization">
-    Le mode gateway de Claude Code prend également en charge `ANTHROPIC_AUTH_TOKEN`. Continuez à utiliser `ANTHROPIC_API_KEY` pour la configuration standard de TokenLab, sauf si vous avez volontairement modifié le comportement d’authentification de votre gateway.
-  </Accordion>
 
   <Accordion title="Modèle introuvable">
     Vérifiez que le nom du modèle est correct. Utilisez le format `claude-sonnet-4-6`.

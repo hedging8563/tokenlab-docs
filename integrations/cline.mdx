@@ -14,6 +14,8 @@ Install **Cline** from your editor's extension marketplace, then open the Cline 
 
 ## Configure TokenLab
 
+Save the current provider, model and connection settings locally before editing. These controls change the active model selection; restore your previous values when finished. Keep signed-in accounts and tool permissions unchanged. Do not overwrite another OpenAI-compatible connection without a restorable backup.
+
 1. Click the gear icon in the Cline panel.
 2. Set **API Provider** to **OpenAI Compatible**.
 3. Enter the following values:
@@ -33,7 +35,6 @@ For the `kimi-k3` example, Cline's optional model configuration can use:
 | Context / input limit | `1048576` |
 | Max output tokens | `131072` |
 | Image support | Enabled |
-| Tool / computer use | Enabled |
 
 <Note>
 The model catalog changes over time. Use the [live TokenLab model catalog](https://tokenlab.sh/en/models) when selecting another model instead of copying a stale list.
@@ -47,13 +48,13 @@ After **Verify** succeeds, send a small read-only task before allowing edits:
 List the files in this workspace and explain which one is the application entry point. Do not edit anything.
 ```
 
-If Cline returns a response and can invoke a read tool, the endpoint, model, streaming, and tool-call path are working.
+Saving settings or listing models does not verify a key or a completed request. A prompt uses TokenLab balance. Check the reply and its matching [request record](https://tokenlab.sh/dashboard/runs?section=requests) before trying tools; auxiliary requests may also be billed.
 
 ## Troubleshooting
 
 <AccordionGroup>
   <Accordion title="Invalid API key">
-    Re-copy the key from the TokenLab dashboard and confirm it is active. Cline stores BYOK credentials in your IDE's native secret storage.
+    Re-copy the key from the TokenLab dashboard and confirm it is active.
   </Accordion>
   <Accordion title="Model not found">
     Enter the model ID exactly as shown by TokenLab, for example `kimi-k3`, without `kimi/` or another provider prefix.

@@ -6,6 +6,10 @@ description: "Creates a completion for the chat message"
 
 ## Request Body
 
+<Note>
+Supported optional parameters, accepted values, and defaults depend on the selected model. Check its [model details](/api-reference/models/get-model) before setting sampling, reasoning, or tool options.
+</Note>
+
 <ParamField body="model" type="string" required>
   ID of the model to use. See [Models](https://tokenlab.sh/en/models) for available options.
 </ParamField>
@@ -14,8 +18,10 @@ description: "Creates a completion for the chat message"
   A list of messages comprising the conversation.
 
   Each message object contains:
-  - `role` (string): `system`, `user`, or `assistant`
-  - `content` (string | array): The message content
+  - `role` (string): `system`, `developer`, `user`, `assistant`, `tool`, `function`
+  - `content` (string | array | null): The message content
+
+  For an `assistant` message containing `tool_calls`, `content` may be omitted or set to `null`.
 
   When `content` is an array, TokenLab supports structured multimodal blocks for compatible models:
   - text: `{ "type": "text", "text": "..." }`
@@ -26,8 +32,8 @@ description: "Creates a completion for the chat message"
   For multimodal input, use publicly reachable `https` URLs. Supported media types depend on the selected model.
 </ParamField>
 
-<ParamField body="temperature" type="number" default="1">
-  Sampling temperature between 0 and 2. Higher values make output more random.
+<ParamField body="temperature" type="number">
+  Sampling temperature. Support, allowed values, and the default depend on the selected model; omit this field to use its default.
 </ParamField>
 
 <ParamField body="max_tokens" type="integer">
@@ -42,20 +48,20 @@ description: "Creates a completion for the chat message"
   Options for streaming. Set `include_usage: true` to receive token usage in stream chunks.
 </ParamField>
 
-<ParamField body="top_p" type="number" default="1">
+<ParamField body="top_p" type="number">
   Nucleus sampling parameter. We recommend altering this or temperature, not both.
 </ParamField>
 
-<ParamField body="frequency_penalty" type="number" default="0">
+<ParamField body="frequency_penalty" type="number">
   Number between -2.0 and 2.0. Positive values penalize repeated tokens.
 </ParamField>
 
-<ParamField body="presence_penalty" type="number" default="0">
+<ParamField body="presence_penalty" type="number">
   Number between -2.0 and 2.0. Positive values penalize tokens already in the text.
 </ParamField>
 
 <ParamField body="stop" type="string | array">
-  Up to 4 sequences where the API will stop generating tokens.
+  Stop sequence or list of sequences. Support and sequence limits depend on the selected model.
 </ParamField>
 
 <ParamField body="tools" type="array">
@@ -66,8 +72,8 @@ description: "Creates a completion for the chat message"
   Controls how the model uses tools. Options: `auto`, `none`, `required`, or a specific tool object.
 </ParamField>
 
-<ParamField body="parallel_tool_calls" type="boolean" default="true">
-  Whether to enable parallel function calling. Set to false to call functions sequentially.
+<ParamField body="parallel_tool_calls" type="boolean">
+  Allow multiple tool calls in one assistant turn, when supported by the selected model.
 </ParamField>
 
 <ParamField body="max_completion_tokens" type="integer">
@@ -75,14 +81,14 @@ description: "Creates a completion for the chat message"
 </ParamField>
 
 <ParamField body="reasoning_effort" type="string">
-  Reasoning effort for reasoning-enabled models. Options: `low`, `medium`, `high`.
+  Reasoning effort for models that support it. Accepted values depend on the selected model.
 </ParamField>
 
 <ParamField body="seed" type="integer">
-  Random seed for deterministic sampling.
+  Sampling seed for models that support it. Identical output is not guaranteed.
 </ParamField>
 
-<ParamField body="n" type="integer" default="1">
+<ParamField body="n" type="integer">
   Number of completions to generate (1-128).
 </ParamField>
 
@@ -95,11 +101,11 @@ description: "Creates a completion for the chat message"
 </ParamField>
 
 <ParamField body="top_k" type="integer">
-  Top-K sampling parameter (for Anthropic/Gemini models).
+  Top-K sampling for models that support it.
 </ParamField>
 
 <ParamField body="response_format" type="object">
-  Response format. Use `{"type": "json_object"}` for JSON mode. `json_schema` support depends on the selected model.
+  Response format. Use `{"type": "json_object"}` for JSON mode or `{"type": "json_schema", "json_schema": {...}}` for a JSON schema. Support depends on the selected model.
 </ParamField>
 
 <ParamField body="logit_bias" type="object">
@@ -135,7 +141,7 @@ description: "Creates a completion for the chat message"
   Each choice contains:
   - `index` (integer): Index of the choice
   - `message` (object): The generated message
-  - `finish_reason` (string): Why the model stopped (`stop`, `length`, `tool_calls`)
+  - `finish_reason` (string): Why the model stopped, for example `stop`, `length`, or `tool_calls`
 </ResponseField>
 
 <ResponseField name="usage" type="object">
@@ -157,7 +163,6 @@ curl -X POST "https://api.tokenlab.sh/v1/chat/completions" \
       {"role": "system", "content": "You are a helpful assistant."},
       {"role": "user", "content": "Hello!"}
     ],
-    "temperature": 0.7,
     "max_tokens": 1000
   }'
 ```
@@ -176,7 +181,6 @@ response = client.chat.completions.create(
         {"role": "system", "content": "You are a helpful assistant."},
         {"role": "user", "content": "Hello!"}
     ],
-    temperature=0.7,
     max_tokens=1000
 )
 
@@ -197,7 +201,6 @@ const response = await client.chat.completions.create({
     { role: 'system', content: 'You are a helpful assistant.' },
     { role: 'user', content: 'Hello!' }
   ],
-  temperature: 0.7,
   max_tokens: 1000
 });
 
@@ -221,7 +224,6 @@ curl_setopt_array($ch, [
             ['role' => 'system', 'content' => 'You are a helpful assistant.'],
             ['role' => 'user', 'content' => 'Hello!']
         ],
-        'temperature' => 0.7,
         'max_tokens' => 1000
     ])
 ]);

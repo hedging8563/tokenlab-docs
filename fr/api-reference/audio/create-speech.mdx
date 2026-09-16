@@ -6,12 +6,12 @@ description: "Génère de l'audio à partir du texte d'entrée"
 
 ## Corps de la requête
 
-**Timeout des requêtes synchrones :** cet endpoint non-chat attend que le modèle routé termine son traitement. Les entrées volumineuses, les longs fichiers audio ou les grands lots peuvent dépasser les valeurs par défaut courantes de 30s côté client ; configurez donc le timeout de votre client HTTP à au moins `120s`.
+Le mode de réponse dépend du modèle choisi et de `stream_format`. Pour une entrée longue, prévoyez un délai HTTP d’au moins `120s`.
 
-Les champs optionnels pris en charge varient selon la famille de modèles. TokenLab valide cette matrice avant le routage : OpenAI TTS accepte `voice`, `instructions`, `response_format`, `stream_format` et `speed` ; MiniMax speech accepte `voice`, `voice_id`, `response_format`, `stream_format` et `speed` ; Gemini TTS accepte `prompt`, `language_code`, `voice`, `response_format`, `stream_format`, `speed` et `temperature` ; les routes TTS plus strictes de type Vidu/Kling peuvent n’accepter que `input` et `stream_format`. Les champs de premier niveau inconnus, y compris `user`, renvoient `400 unsupported_parameter` au lieu d’être ignorés.
+Les champs facultatifs, voix, formats et la prise en charge de SSE dépendent du modèle. Vérifiez `GET /v1/models/{model}` avant de les envoyer. Les paramètres non pris en charge peuvent renvoyer `400 unsupported_parameter`.
 
 <ParamField body="model" type="string" default="tts-1">
-  Modèle TTS. Exemples : `tts-1`, `gpt-4o-mini-tts`, `speech-02-hd` et `gemini-2.5-flash-tts`. Consultez `GET /v1/models?recommended_for=tts` pour la sélection actuelle.
+  Identifiant du modèle TTS. Consultez `GET /v1/models?recommended_for=tts` pour les choix actuels.
 </ParamField>
 
 <ParamField body="input" type="string" required>
@@ -23,7 +23,7 @@ Les champs optionnels pris en charge varient selon la famille de modèles. Token
 </ParamField>
 
 <ParamField body="voice_id" type="string">
-  Sélecteur vocal natif du fournisseur pour les modèles speech compatibles MiniMax.
+  Identifiant vocal pour les modèles qui acceptent ce paramètre, notamment les modèles vocaux MiniMax compatibles.
 </ParamField>
 
 <ParamField body="instructions" type="string">
@@ -56,7 +56,7 @@ Les champs optionnels pris en charge varient selon la famille de modèles. Token
 
 ## Réponse
 
-Retourne le fichier audio dans le format demandé.
+`stream_format=audio` renvoie des octets audio. Les modèles compatibles avec `stream_format=sse` renvoient `text/event-stream` : analysez les événements au lieu d’enregistrer toute la réponse comme fichier audio.
 
 <RequestExample>
 ```bash cURL
@@ -134,6 +134,8 @@ file_put_contents('speech.mp3', $audio);
 
 ## Exemples de voix
 
+Les voix disponibles dépendent du modèle. Les noms ci-dessous sont des exemples, pas une liste commune à tous les modèles TTS.
+
 | Voix | Description |
 |-------|-------------|
 | `alloy` | Neutre, équilibrée |
@@ -158,5 +160,9 @@ file_put_contents('speech.mp3', $audio);
 
 ## Champs importants
 
-<ResponseField name="Content-Type" type="string">Type d’événement ou de message retourné par l’API.</ResponseField>
-<ResponseField name="body" type="binary">Corps brut de la réponse. Enregistrez-le directement sans le parser en JSON.</ResponseField>
+<ResponseField name="Content-Type" type="string">
+  Type de média HTTP : format audio ou `text/event-stream` pour SSE.
+</ResponseField>
+<ResponseField name="body" type="binary | SSE">
+  Octets audio pour `audio`, flux d’événements pour `sse`. Choisissez l’analyseur selon `Content-Type` et le mode demandé.
+</ResponseField>

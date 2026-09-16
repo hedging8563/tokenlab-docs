@@ -14,7 +14,7 @@ TokenLab は `GET /v1/realtime` で、メタデータ確認と WebSocket アッ�
 
 ブラウザやモバイルアプリでは、長期 API キーをサーバー側に保持してください。このエンドポイントは短期 Realtime client secret を発行しません。
 
-<Note>エージェントは `/v1/models` で realtime 対応モデルを確認してから socket を開いてください。</Note>
+<Note>`/v1/models` から現在のリアルタイムモデルを選び、`/v1/models/{model}` で確認してから `TOKENLAB_REALTIME_MODEL` を設定してください。セッションのイベントと設定はモデルごとに異なります。下の JSON は通常の HTTP GET の応答であり、WebSocket のセッションイベントではありません。</Note>
 
 ## 接続
 
@@ -30,20 +30,28 @@ TokenLab は `GET /v1/realtime` で、メタデータ確認と WebSocket アッ�
 ```javascript JavaScript
 import WebSocket from 'ws';
 
-const socket = new WebSocket('wss://api.tokenlab.sh/v1/realtime?model=gpt-realtime', {
-  headers: { Authorization: 'Bearer sk-your-api-key' }
+const model = process.env.TOKENLAB_REALTIME_MODEL;
+const apiKey = process.env.TOKENLAB_API_KEY;
+if (!model || !apiKey) {
+  throw new Error('Set TOKENLAB_REALTIME_MODEL and TOKENLAB_API_KEY');
+}
+
+const url = new URL('wss://api.tokenlab.sh/v1/realtime');
+url.searchParams.set('model', model);
+const socket = new WebSocket(url, {
+  headers: { Authorization: `Bearer ${apiKey}` }
 });
 
 socket.on('open', () => {
-  socket.send(JSON.stringify({
-    type: 'session.update',
-    session: { modalities: ['text', 'audio'] }
-  }));
+  console.log('Realtime connection open');
 });
 
 socket.on('message', (data) => {
   console.log('realtime event', data.toString());
 });
+
+socket.on('error', (error) => console.error(error.message));
+socket.on('close', (code) => console.log('Realtime connection closed', code));
 ```
 
 ```bash cURL
@@ -65,19 +73,20 @@ TokenLab は、クライアントと選択したリアルタイムモデルの�
 ## レスポンス例
 
 <ResponseExample>
-```json Connected
+```json HTTP GET
 {
-  "type": "session.created",
-  "session": {
-    "id": "sess_abc123",
-    "model": "gpt-realtime",
-    "modalities": ["text", "audio"]
-  }
+  "object": "realtime.endpoint",
+  "websocket_url": "/v1/realtime?model={model}",
+  "protocol": "tokenlab_realtime_proxy"
 }
 ```
 </ResponseExample>
 
 ## 重要フィールド
+
+<ResponseField name="object" type="string">通常の HTTP GET 応答のオブジェクト種別です。値は `realtime.endpoint` 固定です。</ResponseField>
+<ResponseField name="websocket_url" type="string">通常の HTTP GET が返す WebSocket 接続の相対パスです：`/v1/realtime?model={model}`。`{model}` を選択したモデルの ID に置き換えてください。</ResponseField>
+<ResponseField name="protocol" type="string">通常の HTTP GET が返すプロトコル識別子です。値は `tokenlab_realtime_proxy` 固定です。</ResponseField>
 
 <ResponseField name="type" type="string">API が返す event または message type です。</ResponseField>
 <ResponseField name="session.id" type="string">リアルタイム接続を通じて受け取る不透明な識別子です。調査用のサポートログに含めてください。REST session URL ではありません。</ResponseField>

@@ -4,7 +4,7 @@ openapi: "POST /api/v3"
 description: "Volcengine uyumlu on materyal ve materyal grubu Action’ı için referans."
 ---
 
-Mevcut Volcengine istemcileri Action adlarını, `Version=2024-01-01`, PascalCase JSON, filtreleme, sıralama, sayfalama ve `ResponseMetadata + Result` zarfını koruyabilir. TokenLab yalnızca endpoint ve kimlik doğrulamayı değiştirir.
+Bu uç noktalar, aşağıdaki materyal Action ve alanlarını TokenLab Bearer kimlik doğrulaması ve `ResponseMetadata + Result` zarfıyla destekler.
 
 ## Endpoint ve kimlik doğrulama
 
@@ -23,7 +23,7 @@ Content-Type: application/json
 | Action | Amaç | JSON |
 | --- | --- | --- |
 | `CreateAssetGroup` | Normal materyal grubu oluşturma | `Name`; `Description`; `GroupType: "AIGC"`; `ProjectName` |
-| `ListAssetGroups` | Projedeki grupları listeleme | `Filter`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
+| `ListAssetGroups` | Projedeki grupları listeleme | `Filter.GroupIds`; `Filter.GroupType`; `Filter.Name`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
 | `GetAssetGroup` | Tek grup alma | `Id`; `ProjectName` |
 | `UpdateAssetGroup` | Ad veya açıklama değiştirme | `Id`; `Name`; `Description`; `ProjectName` |
 | `DeleteAssetGroup` | Grup ve materyallerini silme | `Id`; `ProjectName` |
@@ -57,12 +57,14 @@ curl 'https://api.tokenlab.sh/?Action=CreateAssetGroup&Version=2024-01-01' \
 | Action | Amaç | JSON |
 | --- | --- | --- |
 | `CreateAsset` | Herkese açık görsel, video veya ses URL’si içe aktarma | `GroupId`; `URL`; `Name`; `AssetType`; `ProjectName` |
-| `ListAssets` | Projedeki materyalleri listeleme | `Filter`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
+| `ListAssets` | Projedeki materyalleri listeleme | `Filter.GroupIds`; `Filter.GroupType`; `Filter.Statuses`; `Filter.Name`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
 | `GetAsset` | Materyali ve geçici URL’yi alma | `Id`; `ProjectName` |
 | `UpdateAsset` | Materyali yeniden adlandırma | `Id`; `Name`; `ProjectName` |
 | `DeleteAsset` | Tek materyal silme | `Id`; `ProjectName` |
 
 `AssetType`, `Image`, `Video` ve `Audio` değerlerini kabul eder. Hedef grup materyalin normal `AIGC` mi yoksa doğrulanmış `LivenessFace` mı olduğunu belirler.
+
+TokenLab materyal kimliklerini kullanın. `CreateAsset`, işlem tamamlanmadan `Result.Id` döndürür; `Result.Status` değeri `Active` veya `Failed` olana kadar `GetAsset` sorgulayın. `ListAssets` ayrıca `SortBy: "GroupId"` kabul eder.
 
 ### Materyal oluşturma
 
@@ -119,7 +121,7 @@ Hatalar Volcengine yanıt zarfını korur; kod ve mesaj `ResponseMetadata.Error`
 }
 ```
 
-`InvalidCredential`, `InvalidVersion`, `InvalidParameter`, `NotFound`, `Conflict`, `MethodNotAllowed`, `InternalError`.
+`InvalidCredential`, `InvalidVersion`, `InvalidParameter`, `NotFound`, `Conflict`, `OperationDenied`, `MethodNotAllowed`, `InternalError`.
 
 ## REST alternatifi
 

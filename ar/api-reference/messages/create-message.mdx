@@ -16,8 +16,8 @@ description: "ينشئ رسالة باستخدام تنسيق Anthropic Messages
 
 ## ترويسات الطلب
 
-<ParamField header="x-api-key" type="string" required>
-  مفتاح TokenLab API الخاص بك. بديل عن Bearer token.
+<ParamField header="x-api-key" type="string">
+  مفتاح TokenLab API الخاص بك. أرسله عبر `x-api-key` أو `Authorization: Bearer <API_KEY>`.
 </ParamField>
 
 <ParamField header="anthropic-version" type="string" required>
@@ -26,8 +26,12 @@ description: "ينشئ رسالة باستخدام تنسيق Anthropic Messages
 
 ## جسم الطلب
 
+<Note>
+يعتمد دعم المعلمات الاختيارية والقيم المقبولة والقيم الافتراضية على النموذج المختار. راجع [تفاصيل النموذج](/ar/api-reference/models/get-model) قبل ضبط خيارات أخذ العينات أو الاستدلال أو الأدوات.
+</Note>
+
 <ParamField body="model" type="string" required>
-  معرّف نموذج Claude (على سبيل المثال، `claude-sonnet-4-6` أو `claude-opus-4-6`).
+  معرّف نموذج يدعم تنسيق `anthropic_messages`. راجع [تفاصيل النموذج](/ar/api-reference/models/get-model) لمعرفة قدراته الحالية.
 </ParamField>
 
 <ParamField body="messages" type="array" required>
@@ -38,12 +42,12 @@ description: "ينشئ رسالة باستخدام تنسيق Anthropic Messages
   الحد الأقصى لعدد الـ tokens المطلوب إنشاؤها.
 </ParamField>
 
-<ParamField body="system" type="string">
-  System prompt (منفصل عن مصفوفة `messages`).
+<ParamField body="system" type="string | array">
+  تعليمة النظام كسلسلة نصية أو مصفوفة من كتل المحتوى، منفصلة عن مصفوفة `messages`.
 </ParamField>
 
-<ParamField body="temperature" type="number" default="1">
-  درجة حرارة أخذ العينات (0-1).
+<ParamField body="temperature" type="number">
+  درجة حرارة أخذ العينات. يعتمد الدعم والقيم المسموح بها والقيمة الافتراضية على النموذج المختار. احذف هذا الحقل لاستخدام القيمة الافتراضية للنموذج.
 </ParamField>
 
 <ParamField body="stream" type="boolean" default="false">
@@ -51,10 +55,7 @@ description: "ينشئ رسالة باستخدام تنسيق Anthropic Messages
 </ParamField>
 
 <ParamField body="thinking" type="object">
-  إعدادات التفكير الممتد (Claude Opus 4.5).
-
-  - `type` (string): `"enabled"` للتمكين
-  - `budget_tokens` (integer): ميزانية الـ tokens الخاصة بالتفكير
+  إعدادات thinking الأصلية. تعتمد الأوضاع والميزانيات المدعومة والتوافق مع المعلمات الأخرى على النموذج المختار.
 </ParamField>
 
 <ParamField body="tools" type="array">
@@ -62,7 +63,7 @@ description: "ينشئ رسالة باستخدام تنسيق Anthropic Messages
 </ParamField>
 
 <ParamField body="tool_choice" type="object">
-  كيفية استخدام النموذج للأدوات. الخيارات: `auto`، `any`، `tool` (أداة محددة).
+  كائن اختيار الأدوات الأصلي، مثل `{"type":"auto"}`. تعتمد الأنواع المدعومة على النموذج المختار.
 </ParamField>
 
 <ParamField body="top_p" type="number">
@@ -96,7 +97,7 @@ description: "ينشئ رسالة باستخدام تنسيق Anthropic Messages
 </ResponseField>
 
 <ResponseField name="content" type="array">
-  مصفوفة من كتل المحتوى (text، thinking، tool_use).
+  مصفوفة من كتل المحتوى، مثل `text` أو `thinking` أو `tool_use`.
 </ResponseField>
 
 <ResponseField name="model" type="string">
@@ -104,7 +105,7 @@ description: "ينشئ رسالة باستخدام تنسيق Anthropic Messages
 </ResponseField>
 
 <ResponseField name="stop_reason" type="string">
-  سبب توقف التوليد (`end_turn`، `max_tokens`، `tool_use`).
+  سبب توقف التوليد، مثل `end_turn` أو `max_tokens` أو `stop_sequence` أو `tool_use`.
 </ResponseField>
 
 <ResponseField name="usage" type="object">
@@ -315,9 +316,19 @@ echo $data['content'][0]['text'];
 
 ## مثال على التفكير الممتد
 
+عيّن `TOKENLAB_THINKING_MODEL` إلى نموذج يدعم التفكير اليدوي باستخدام `type: "enabled"` و`budget_tokens`. اضبط ميزانيتي التوكنات وفق حدود ذلك النموذج. قد تتطلب النماذج الأخرى إعدادات thinking مختلفة.
+
 ```python
+import os
+from anthropic import Anthropic
+
+client = Anthropic(
+    api_key="sk-your-api-key",
+    base_url="https://api.tokenlab.sh"
+)
+
 message = client.messages.create(
-    model="claude-opus-5",
+    model=os.environ["TOKENLAB_THINKING_MODEL"],
     max_tokens=16000,
     thinking={
         "type": "enabled",

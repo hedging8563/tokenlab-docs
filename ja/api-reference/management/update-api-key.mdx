@@ -18,9 +18,10 @@ PATCH リクエストでは少なくとも 1 つのフィールドを指定す�
 |-----------|------|---------------|------|
 | `status` | enum | - | `active`, `inactive`, `revoked` |
 | `name` | string | 長さ `1-50` | 更新後の表示名 |
-| `limitAmount` | number \| null | 最小 `0`、入力上限 `1000000` | `null` = 無制限、`0` = 利用可能額 0、正の値は保存時に正規化され、`100000` USD 相当を超えません |
-| `limitCurrency` | enum | 既定 `USD` | USD のみです。`CNY` を送信すると `400 currency_retired` が返されます。 |
+| `limitAmount` | number \| string \| null | `0–100000` USD | `null` は無制限、`0` は支出不可です。10 進文字列は小数点以下 6 桁まで指定できます。 |
+| `limitCurrency` | enum | 既定 `USD` | USD のみです。`CNY` を送信すると `400 currency_retired` が返されます。 指定する場合は `limitAmount` も必要です。 |
 | `models` | string[] | - | 更新後のモデル許可リスト |
+| `deliveryPolicy` | string \| null | `auto`, `verified`, `official`, `null` | `null` はワークスペースの配信ポリシーを継承します。 |
 | `expiresAt` | string \| null | RFC3339 datetime | `null` は有効期限を解除します |
 
 ## 補足
@@ -67,7 +68,8 @@ curl -X PATCH "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456" 
   ],
   "expires_at": "2026-12-31T23:59:59.000Z",
   "last_used_at": "2026-07-08T03:12:45.000Z",
-  "created_at": "2026-07-01T10:00:00.000Z"
+  "created_at": "2026-07-01T10:00:00.000Z",
+  "delivery_policy": null
 }
 ```
 </ResponseExample>
@@ -77,12 +79,13 @@ curl -X PATCH "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456" 
 <ResponseField name="id" type="string">後続の Management API 呼び出しで使用する API キー識別子。</ResponseField>
 <ResponseField name="name" type="string">API キーの表示名。</ResponseField>
 <ResponseField name="key_prefix" type="string">表示およびサポート用の機密ではないキープレフィックス。</ResponseField>
-<ResponseField name="status" type="string">`active`、`inactive`、`revoked` のいずれか。</ResponseField>
+<ResponseField name="status" type="string">`active`、`inactive`、`suspended`、`revoked` のいずれか。</ResponseField>
 <ResponseField name="limit_amount" type="number | null">表示用に JSON 数値で返される USD の利用上限。`null` は無制限を意味します。</ResponseField>
 <ResponseField name="limit_amount_decimal" type="string | null">10 進文字列で返される USD の正確な利用上限。`null` は無制限を意味します。</ResponseField>
 <ResponseField name="used_amount" type="number">表示用に JSON 数値で返される USD の累積利用額。</ResponseField>
 <ResponseField name="used_amount_decimal" type="string">10 進文字列で返される USD の正確な累積利用額。</ResponseField>
 <ResponseField name="models" type="string[]">キー単位のモデル許可リスト。空の配列は、キー単位の追加モデル制限がないことを意味します。</ResponseField>
+<ResponseField name="delivery_policy" type="string | null">`auto`, `verified`, `official`, `null`. `null` はワークスペースの配信ポリシーを継承します。</ResponseField>
 <ResponseField name="expires_at" type="string | null">キーの有効期限を示す ISO タイムスタンプ。期限なしの場合は `null`。</ResponseField>
 <ResponseField name="last_used_at" type="string | null">最終利用時刻の ISO タイムスタンプ。未使用の場合は `null`。</ResponseField>
 <ResponseField name="created_at" type="string">作成時刻の ISO タイムスタンプ。</ResponseField>

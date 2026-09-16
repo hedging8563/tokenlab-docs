@@ -12,15 +12,17 @@ playground: simple
 
 ## 注意事項
 
-- 金額欄位僅支援 USD。`CNY` 輸入已停用，並會回傳 `400 currency_retired`。
+- 金額欄位僅支援 USD。
 
 - 儲值、發票等組織級財務流水不會包含在這裡。
 
 ## 範例
 
+支援與[金鑰用量](/zh-Hant/api-reference/management/get-api-key-usage)相同的模型、模型廠商、場景和日期篩選；回傳彙總，不分頁。
+
 <RequestExample>
 ```bash cURL
-curl -X GET "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/billing?startDate=2026-01-01&endDate=2026-01-31" \
+curl -X GET "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/billing?startDate=2026-07-01&endDate=2026-07-31" \
   -H "Authorization: Bearer mt-your-management-token"
 ```
 </RequestExample>
@@ -49,7 +51,8 @@ curl -X GET "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/bil
     ],
     "expires_at": "2026-12-31T23:59:59.000Z",
     "last_used_at": "2026-07-08T03:12:45.000Z",
-    "created_at": "2026-07-01T10:00:00.000Z"
+    "created_at": "2026-07-01T10:00:00.000Z",
+    "delivery_policy": null
   },
   "summary": {
     "total_requests": 1,

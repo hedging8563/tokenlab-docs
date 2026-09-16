@@ -6,10 +6,12 @@ description: "Elimina un activo de material de Seedance propiedad de la organiza
 
 Elimina un activo de material. Esto no elimina el grupo de material que lo contiene. Después de la eliminación, el ID del activo ya no podrá utilizarse como `material_asset_id`.
 
+`project_name` aísla recursos dentro de la organización autenticada. El valor predeterminado es `default`; use el mismo valor, respetando mayúsculas y minúsculas, para los grupos y activos relacionados. Envíelo en el cuerpo JSON para POST/PUT y en la consulta para GET/DELETE.
+
 ## Ejemplo de solicitud
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr \
+curl "https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr?project_name=default" \
   -X DELETE \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```

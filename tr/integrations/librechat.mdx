@@ -17,34 +17,39 @@ LibreChat, özel bir OpenAI uyumlu uç nokta aracılığıyla TokenLab ile sorun
 
 ## Ortam
 
+Bu değişkeni LibreChat projenizin kök dizinindeki `.env` dosyasına ekleyin:
+
 ```bash
 TOKENLAB_API_KEY=sk-your-tokenlab-key
 ```
 
 ## Örnek Uç Nokta
 
-TokenLab'i LibreChat uç nokta yapılandırmanıza ekleyin:
+LibreChat projesinin kök dizininde `librechat.yaml` yoksa `librechat.example.yaml` dosyasından kopyalayın. Zorunlu `version` alanını ve mevcut ayarları koruyarak aşağıdaki girdiyi `endpoints.custom` alanına ekleyin:
 
 ```yaml
-customEndpoints:
-  - name: 'TokenLab'
-    apiKey: '${TOKENLAB_API_KEY}'
-    baseURL: 'https://api.tokenlab.sh/v1'
-    models:
-      default:
-        - 'gpt-5.5'
-        - 'gpt-5.6-terra'
-        - 'gpt-5.6-luna'
-        - 'claude-opus-4-8'
-        - 'claude-sonnet-5'
-        - 'gemini-3.5-flash'
-        - 'deepseek-v4-pro'
-        - 'deepseek-v4-flash'
-      fetch: true
-    titleConvo: true
-    titleModel: 'gpt-5.6-luna'
-    modelDisplayLabel: 'TokenLab'
+endpoints:
+  custom:
+    - name: 'TokenLab'
+      apiKey: '${TOKENLAB_API_KEY}'
+      baseURL: 'https://api.tokenlab.sh/v1'
+      models:
+        default:
+          - 'gpt-5.5'
+          - 'gpt-5.6-terra'
+          - 'gpt-5.6-luna'
+          - 'claude-opus-4-8'
+          - 'claude-sonnet-5'
+          - 'gemini-3.5-flash'
+          - 'deepseek-v4-pro'
+          - 'deepseek-v4-flash'
+        fetch: true
+      titleConvo: true
+      titleModel: 'gpt-5.6-luna'
+      modelDisplayLabel: 'TokenLab'
 ```
+
+Docker kullanıyorsanız bu dosyayı API konteynerine `/app/librechat.yaml` olarak bağlayın. Aynı LibreChat örneğini yeniden başlatın ve TokenLab'i seçin. [LibreChat yapılandırma kılavuzuna](https://www.librechat.ai/docs/configuration/librechat_yaml) bakın.
 
 ## Notlar
 

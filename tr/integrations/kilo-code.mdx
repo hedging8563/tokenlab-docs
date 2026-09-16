@@ -20,11 +20,13 @@ description: "Kilo Code ve Kilo CLI'ı TokenLab'e bağlayın"
 VS Code'da **Kilo Code** ön sürüm kanalını veya CLI'ı kurun:
 
 ```bash
-npm install -g @kilocode/cli
+npm install -g @kilocode/cli@7.7.2
 kilo --version
 ```
 
 **Settings → Providers → Custom provider** bölümünü açın.
+
+Düzenlemeden önce mevcut sağlayıcı, model ve bağlantı ayarlarını yerel olarak kaydedin. Bu alanlar etkin modeli değiştirir; işiniz bitince önceki değerleri geri yükleyin. Oturum açılmış hesapları ve araç izinlerini koruyun. Geri yüklenebilir yedek olmadan başka bir OpenAI uyumlu bağlantının üzerine yazmayın.
 
 | Alan | Değer |
 |---|---|
@@ -39,18 +41,17 @@ Kilo modelleri `/v1/models` üzerinden otomatik algılar. Kaydettikten sonra `to
 
 ## CLI yapılandırması
 
-Key'i ortam değişkeninde saklayın ve güvenilir genel dosya `~/.config/kilo/kilo.jsonc` içinde yapılandırın:
+[Hızlı başlangıç](/tr/quickstart) içindeki macOS, Linux, WSL veya Windows PowerShell adımlarıyla anahtarı komut geçmişine yazmadan `TOKENLAB_API_KEY` değerini ayarlayın. Kilo’u aynı terminalden başlatın. Sürekli kullanım için yerel bir sır yöneticisi kullanın; shell profiline düz metin anahtar eklemeyin.
 
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
+Kilo **7.7.2** başlamadan önce etkin genel yapılandırmayı yedekleyip `permission.bash` kuralını kontrol edin. Bu sürüm, açık kuralı olmayan mevcut yapılandırmaya `permission["*"]` değeri `deny` olsa bile `bash: "allow"` ekler. Mevcut kabuk kuralını genel dosyada açıkça koruyun: joker kuralı `deny` ise diğer kuralları değiştirmeden mevcut `permission` nesnesine `"bash": "deny"` ekleyin. Aşağıdaki ayrı sağlayıcı dosyası bu istemci geçişini engellemez.
+
+Yapılandırmayı ayrı bir `~/.config/kilo/tokenlab.jsonc` dosyasına kaydedin. `XDG_CONFIG_HOME` tanımlıysa bu dizinin altındaki `kilo/tokenlab.jsonc` yolunu kullanın. Normal `kilo.json` / `kilo.jsonc` dosyalarını, hesapları, varsayılan modeli ve izinleri koruyun. Ayrı dosya yalnızca o başlatmada `KILO_CONFIG` ile seçilirse yüklenir. Dosya veya sağlayıcı adı zaten kullanılıyorsa başka bir ad seçip komutları uyarlayın.
 
 ```jsonc
 {
   "$schema": "https://app.kilo.ai/config.json",
-  "model": "openai-compatible/kimi-k3",
   "provider": {
-    "openai-compatible": {
+    "tokenlab": {
       "options": {
         "apiKey": "{env:TOKENLAB_API_KEY}",
         "baseURL": "https://api.tokenlab.sh/v1"
@@ -61,18 +62,46 @@ export TOKENLAB_API_KEY="sk-your-tokenlab-key"
           "tool_call": true,
           "reasoning": true,
           "modalities": {
-            "input": ["text", "image"],
-            "output": ["text"]
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
           },
           "limit": {
             "context": 1048576,
             "output": 131072
           }
         }
-      }
+      },
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "TokenLab"
     }
   }
 }
 ```
 
-Kilo'yu yeniden başlatıp `kilo models` çalıştırın. `{env:...}` yalnızca güvenilir genel veya yönetilen yapılandırmada çözülür. Gerçek Key'i Git'e gidebilecek proje yapılandırmasına yazmayın.
+<CodeGroup>
+```bash macOS / Linux / WSL
+KILO_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/kilo/tokenlab.jsonc" kilo models tokenlab
+KILO_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/kilo/tokenlab.jsonc" kilo --model tokenlab/kimi-k3
+```
+
+```powershell Windows PowerShell
+$previous = @{}
+$previous['KILO_CONFIG'] = [Environment]::GetEnvironmentVariable('KILO_CONFIG', 'Process')
+try {
+  $env:KILO_CONFIG = (Join-Path $(if ($env:XDG_CONFIG_HOME) { $env:XDG_CONFIG_HOME } else { Join-Path $HOME '.config' }) 'kilo/tokenlab.jsonc')
+  kilo models tokenlab
+  kilo --model tokenlab/kimi-k3
+} finally {
+  foreach ($name in $previous.Keys) {
+    [Environment]::SetEnvironmentVariable($name, $previous[$name], 'Process')
+  }
+}
+```
+</CodeGroup>
+
+Ayarları kaydetmek veya modelleri listelemek anahtarı ya da tamamlanmış bir isteği doğrulamaz. İstem TokenLab bakiyesini kullanır. Araçları denemeden önce yanıtı ve ilgili [istek kaydını](https://tokenlab.sh/dashboard/runs?section=requests) kontrol edin; yardımcı istekler de ücretlendirilebilir.

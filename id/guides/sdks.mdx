@@ -10,8 +10,7 @@ TokenLab paling mudah diintegrasikan dengan mencocokkan SDK dengan perilaku yang
 - alat resmi **Gemini / Google AI** untuk bentuk permintaan asli Gemini
 - SDK OpenAI resmi untuk rute `/v1` yang kompatibel dengan OpenAI dan penggunaan bergaya Responses
 
-Gunakan halaman integrasi untuk memahami batas dukungan. Dalam dokumentasi ini, "recommended" atau "supported" berarti ada jalur setup yang terdokumentasi; tidak otomatis mencakup setiap helper framework atau fitur khusus provider.
-
+Lihat halaman integrasi terkait untuk konfigurasi klien dan batas model. [Panduan awal](/id/quickstart) memuat permintaan pertama yang lengkap.
 ## SDK yang Direkomendasikan
 
 <CardGroup cols={2}>
@@ -43,7 +42,7 @@ client = OpenAI(
 
 response = client.responses.create(
     model="gpt-5.6-terra",
-    input="Explain TokenLab in one sentence."
+    input="Reply with: Connected to TokenLab."
 )
 
 print(response.output_text)

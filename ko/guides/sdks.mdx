@@ -10,8 +10,7 @@ TokenLab는 필요한 동작에 맞는 SDK를 선택하면 가장 쉽게 통합�
 - Gemini 기본 요청 형식에 대한 공식 **Gemini / Google AI** 도구
 - OpenAI 호환 `/v1` 경로와 Responses 스타일 사용을 위한 공식 **OpenAI SDKs**
 
-지원 범위는 통합 페이지를 참고하세요. 이 문서 세트에서 "recommended" 또는 "supported"는 문서화된 설정 경로가 존재함을 의미하며, 그것이 곧 이 저장소에서 모든 프레임워크 헬퍼나 공급자별 기능이 종단간 회귀 테스트되었음을 자동으로 의미하지는 않습니다.
-
+클라이언트 설정과 모델별 제한은 해당 통합 페이지를 확인하세요. 전체 첫 요청은 [빠른 시작](/ko/quickstart)을 참고하세요.
 ## 권장 SDK
 
 <CardGroup cols={2}>
@@ -43,7 +42,7 @@ client = OpenAI(
 
 response = client.responses.create(
     model="gpt-5.6-terra",
-    input="Explain TokenLab in one sentence."
+    input="Reply with: Connected to TokenLab."
 )
 
 print(response.output_text)

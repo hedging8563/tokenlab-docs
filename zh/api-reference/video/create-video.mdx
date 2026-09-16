@@ -28,7 +28,7 @@ import VideoModelContractNote from "../../snippets/generated/video-model-contrac
 
 <VideoModelContractNote />
 
-<ParamField body="prompt" type="string" required>
+<ParamField body="prompt" type="string">
   要生成视频的文本描述。大多数公开视频模型都要求该字段。
 </ParamField>
 
@@ -57,7 +57,7 @@ import VideoModelContractNote from "../../snippets/generated/video-model-contrac
 </ParamField>
 
 <Info>
-Seedance 可把请求中的图片保存为当前工作区的可复用素材，也接受 `asset://asset-YYYYMMDDHHMMSS-xxxxx` 形式的 TokenLab 素材 URI。若素材在 60 秒内尚未就绪，API 会返回 `409 seedance_material_preparing` 和 `auto_material_asset_ids`；素材状态变为 `ACTIVE` 后即可重试。
+普通图片 URL 作为图片输入，不会自动创建可复用素材。需要复用时先通过素材 API 创建，再使用 TokenLab 素材 ID 或 `asset://asset-YYYYMMDDHHMMSS-xxxxx` URI。显式素材返回 `409 seedance_material_preparing` 时，查询响应中的 `inactive_asset_ids`，待素材变为 `ACTIVE` 后重试。
 </Info>
 
 
@@ -66,7 +66,7 @@ Seedance 可把请求中的图片保存为当前工作区的可复用素材，�
 </ParamField>
 
 <ParamField body="kling_elements" type="array">
-  `kling-3.0-video` 的元素引用定义，仅支持带图片条件的请求。可定义 1-3 个元素；每个元素包含 `name`、可选 `description`，以及 2-4 个图片 URL 的 `element_input_urls`。在 `prompt` 中用 `@name` 引用元素。不要将 `kling_elements` 与 `output_audio=true` 组合使用；使用元素引用时请省略 `output_audio` 或设置为 `false`。
+  仅当所选模型的当前公开详情列出 `kling_elements` 时使用。请求需包含图片输入和 1–3 个元素；每个元素包含 `name`、可选 `description` 和 2–4 个 `element_input_urls`，并在 `prompt` 中以 `@name` 引用。不能与 `output_audio=true` 组合。
 </ParamField>
 
 <ParamField body="video_url" type="string">
@@ -239,6 +239,10 @@ curl -X POST "https://api.tokenlab.sh/v1/videos/generations" \
 
 ## 响应
 
+<Note>
+结果、错误、时间戳和模型字段仅在任务提供时返回。
+</Note>
+
 <ResponseField name="id" type="string">
   任务 ID。
 </ResponseField>
@@ -256,7 +260,7 @@ curl -X POST "https://api.tokenlab.sh/v1/videos/generations" \
 </ResponseField>
 
 <ResponseField name="status" type="string">
-  初始状态：`pending`。
+  任务状态：`pending`、`processing`、`completed`、`failed`。
 </ResponseField>
 
 <ResponseField name="created" type="integer">
@@ -279,7 +283,7 @@ curl -X POST "https://api.tokenlab.sh/v1/videos/generations" \
   当任务生成多个输出时，可能出现视频数组。
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="error" type="string | object">
   任务失败时返回的错误信息或结构化错误对象。
 </ResponseField>
 
@@ -323,38 +327,14 @@ response = requests.post(
         "operation": "image-to-video",
         "image_url": "https://example.com/image.jpg",
         "duration": 6,
-        "aspect_ratio": "16:9"
+        "resolution": "768p"
     }
 )
 ```
 
 ## Kling 3.0 元素引用
 
-当需要元素引用时，在 `kling-3.0-video` 请求中传入 `kling_elements`。请求需要包含图片条件输入（`image_url`、`image_urls`、`start_image` 或 `end_image`），并在提示词中用 `@name` 引用对应元素。
-
-```python
-response = requests.post("https://api.tokenlab.sh/v1/videos/generations",
-    headers=headers,
-    json={
-        "model": "kling-3.0-video",
-        "prompt": "Place @hero_bag on a studio turntable with soft product lighting.",
-        "operation": "image-to-video",
-        "image_url": "https://example.com/studio-start.png",
-        "duration": 5,
-        "resolution": "720p",
-        "kling_elements": [
-            {
-                "name": "hero_bag",
-                "description": "black leather handbag",
-                "element_input_urls": [
-                    "https://example.com/bag-front.png",
-                    "https://example.com/bag-side.png"
-                ]
-            }
-        ]
-    }
-)
-```
+仅当所选模型的当前公开详情列出 `kling_elements` 时使用。请求需包含图片输入和 1–3 个元素；每个元素包含 `name`、可选 `description` 和 2–4 个 `element_input_urls`，并在 `prompt` 中以 `@name` 引用。不能与 `output_audio=true` 组合。
 
 ## 参考图生视频
 
@@ -390,7 +370,6 @@ response = requests.post(
     headers={"Authorization": "Bearer sk-your-api-key"},
     json={
         "model": "viduq2-pro",
-        "prompt": "Smooth transition from day to night",
         "operation": "start-end-to-video",
         "start_image": "https://example.com/day.jpg",
         "end_image": "https://example.com/night.jpg",
@@ -415,8 +394,7 @@ response = requests.post(
         "model": "grok-imagine-video",
         "operation": "video-to-video",
         "video_url": "https://example.com/source.mp4",
-        "prompt": "Enhance the clip while preserving the original motion.",
-        "resolution": "720p"
+        "prompt": "Enhance the clip while preserving the original motion."
     }
 )
 ```
@@ -445,11 +423,9 @@ response = requests.post(
 可用模型和生成方式可能调整。通过 [Models API](/zh/api-reference/models/list-models) 获取当前信息：
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \
-  -H "Authorization: Bearer sk-your-api-key"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=video"
 
-curl "https://api.tokenlab.sh/v1/models/veo3.1" \
-  -H "Authorization: Bearer sk-your-api-key"
+curl "https://api.tokenlab.sh/v1/models/veo3.1"
 ```
 
 `audio-to-video`、`video-extension` 等功能只在部分模型中提供，以单个模型的详情响应为准。

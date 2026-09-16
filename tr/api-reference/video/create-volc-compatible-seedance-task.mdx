@@ -1,14 +1,18 @@
 ---
 title: "Görev Oluştur (Volc Uyumlu)"
 openapi: "POST /api/v3/contents/generations/tasks"
-description: "Volc uyumlu API ile bir Seedance 2.0 görevi oluşturun."
+description: "Volc uyumlu API ile bir Seedance görevi oluşturun."
 ---
 
 ## Genel Bakış
 
 Mevcut Volc tarzı Seedance istemcileri, API adresini ve anahtarını değiştirerek TokenLab'i kullanabilirler.
 
-Ayrıca bkz: [Seedance 2.0 Video Modelleri](/guides/seedance-2-video) ve [Video Oluşturma](/guides/video-generation).
+<Note>
+Örneklerde Seedance 2.0 kullanılır. Bu endpoint, aşağıdaki model farklılıklarıyla Seedance 2.5’i de destekler. Bu sayfadaki yeniden kullanılabilir TokenLab materyal URI örnekleri Seedance 2.0 için geçerlidir.
+</Note>
+
+Ayrıca bkz: [Seedance 2.0 Video Modelleri](/tr/guides/seedance-2-video) ve [Video Oluşturma](/tr/guides/video-generation).
 
 ## Kimlik Doğrulama ve Uç Noktalar
 
@@ -24,14 +28,23 @@ Ayrıca bkz: [Seedance 2.0 Video Modelleri](/guides/seedance-2-video) ve [Video 
 - `role: "reference_image"`, `reference_video` ve `reference_audio` referans olarak kullanılır.
 - `image_url.url`, genel bir resim URL'sini veya `asset://asset-YYYYMMDDHHMMSS-xxxxx` gibi bir materyal URI'sini kabul eder. `role`, bu materyalin ilk kare, son kare veya referans resmi olup olmadığını belirler.
 - İlk/son kare girişlerini referans medyasıyla tek bir istekte karıştırmayın.
-- İstek gövdesi yalnızca bu format tarafından desteklenen alanları kabul eder. Üst düzey `material_asset_id`, `material_asset_ids` ve `priority` reddedilir. Bunun yerine `image_url.url` içine bir TokenLab materyal URI'si koyun.
+- Üst düzey `material_asset_id` ve `material_asset_ids` alanları reddedilir. TokenLab materyal URI’sini `image_url.url` içine koyun. `priority` yalnızca Seedance 2.5 için desteklenir.
 
 ## Parametre Notları
 
+`duration` saniye cinsinden bir tam sayıdır; `-1` otomatik süreyi seçer. Varsayılanlar ve sınırlar modele göre değişir:
+
+| Parametre | Seedance 2.0 | Seedance 2.5 |
+|---|---|---|
+| `duration` | `4`–`15` / `-1` (varsayılan: `5`) | `4`–`30` / `-1` (varsayılan: `-1`) |
+| `resolution` | `480p`, `720p`, `1080p` (varsayılan: `720p`) | `480p`, `720p` (varsayılan: `720p`) |
+| `generate_audio` | `boolean` (varsayılan: `false`) | `boolean` (varsayılan: `true`) |
+| `priority` | Desteklenmez | `integer`: `0`–`9` |
+| `seed` | `integer`: `-1`–`4294967295` (varsayılan: `-1`) | Desteklenmez |
+
+Seedance 2.5 için ilk kare, ilk/son kare, video uzatma ve videodan videoya istekler `ratio: "adaptive"` gerektirir. Videodan videoya istekler ayrıca `duration: -1` gerektirir. `output_format`, `mp4` veya `mov` değerlerini yalnızca Seedance 2.5 için kabul eder.
+
 - `ratio`, `16:9`, `4:3`, `1:1`, `3:4`, `9:16`, `21:9` veya `adaptive` değerlerini kabul eder.
-- `duration`, model tarafından desteklenen otomatik süre değerleri dahil olmak üzere saniye cinsinden video uzunluğudur.
-- `resolution`, `480p`, `720p` veya `1080p` değerlerini kabul eder.
-- `generate_audio` varsayılan olarak `false` değerindedir; senkronize ses gerektiğinde `true` olarak ayarlayın.
 - `watermark`, `return_last_frame`, `seed`, `execution_expires_after` ve `safety_identifier`, seçilen model için geçerli olduklarında kabul edilir.
 - `callback_url`, genel bir HTTP(S) uç noktasına işaret edebilir.
 
@@ -39,13 +52,13 @@ Ayrıca bkz: [Seedance 2.0 Video Modelleri](/guides/seedance-2-video) ve [Video 
 
 `callback_url` mevcut olduğunda, TokenLab görev durumu değiştiğinde bir HTTP `POST` gönderir. Geri arama durumları `queued`, `running`, `succeeded`, `failed` ve `expired` şeklindedir. JSON gövdesi, get-task yanıtıyla eşleşir.
 
-`2xx` yanıtı, teslimatı onaylar. `succeeded` ve `failed` durumları için, beş saniye içinde başarılı olmayan bir teslimat, resmi davranışla eşleşecek şekilde üç defaya kadar yeniden denenir. Geri arama yalnızca standart JSON içerik başlığına sahiptir ve TokenLab'e özgü teslimat başlıkları içermez. Yönlendirmeler takip edilmez ve özel veya ayrılmış ağ hedefleri reddedilir.
+`2xx` yanıtı, teslimatı onaylar. `succeeded` ve `failed` durumları için, beş saniye içinde başarılı olmayan bir teslimat, üç defaya kadar yeniden denenir. Geri arama yalnızca standart JSON içerik başlığına sahiptir ve TokenLab'e özgü teslimat başlıkları içermez. Yönlendirmeler takip edilmez ve özel veya ayrılmış ağ hedefleri reddedilir.
 
 Görev kimliğini (ID) kaydedin. Geri arama teslim edilmezse, sonucu get-task uç noktası ile yine de alabilirsiniz.
 
 ## Resim Hazırlığı
 
-`content[]` resim URL'leri içerdiğinde, TokenLab bunları seçilen Seedance modeli tarafından istendiğinde yeniden kullanılabilir materyaller olarak hazırlar. Hazırlık 60 saniye içinde tamamlanmazsa, oluşturma isteği eksik bir video görevi göndermek yerine yeniden denenebilir bir materyal hazırlama hatası döndürür.
+Herkese açık HTTP(S) görüntü URL’leri ve desteklenen data URL’leri verildiği gibi kullanılır; yeniden kullanılabilir materyal olarak otomatik kaydedilmez. Açık `asset://asset-...` referansları mevcut TokenLab materyallerini kullanır. Üretim öncesinde sahiplik ve hazır olma durumu denetlenir. Materyal hâlâ hazırlanıyorsa hazır olmasını bekleyip yeniden deneyin. Oluşturma başarısız olursa `error.code` ve `error.message` alanlarını inceleyin.
 
 Mevcut materyaller için, başka bir sistem tarafından döndürülen orijinal bir varlık kimliği yerine genel `asset-YYYYMMDDHHMMSS-xxxxx` kimliğini kullanın. TokenLab, oluşturma işleminden önce materyal sahipliğini doğrular.
 
@@ -64,7 +77,7 @@ Oluşturma yanıtı yalnızca görev kimliğini içerir. Durumu ve sonuçları i
 Oluşturma istekleriyle birlikte benzersiz bir `Idempotency-Key` gönderin. Yanıt gelmeden bağlantı kapanırsa, aynı API anahtarı, idempotency anahtarı ve istek gövdesi ile yeniden deneyin:
 
 - Orijinal görev oluşturulduysa, TokenLab aynı `cgt-...` kimliğini döndürür ve `Idempotency-Replayed: true` başlığını ekler.
-- Orijinal istek hala kaydedilme aşamasındaysa, TokenLab `Retry-After` ile birlikte `409 IdempotencyRequestInProgress` döndürür; bu süreden sonra aynı anahtar ve gövde ile yeniden deneyin.
+- İlk istek hâlâ kaydediliyorsa TokenLab `409 IdempotencyRequestInProgress` döndürür. Aynı anahtar ve gövdeyle daha sonra yeniden deneyin.
 - Anahtarı farklı bir gövde ile yeniden kullanmak `409 IdempotencyConflict` döndürür ve asla ikinci bir görev oluşturmaz.
 
 Idempotency, resmi v3 REST oluşturma yolu için geçerlidir. JSON yanıt şeklini değiştirmez ve `X-Request-ID`'den veya anahtar içermeyen özdeş istek gövdelerinden çıkarılmaz.
@@ -111,4 +124,4 @@ Mevcut materyaller için, her URI'yi resmi `content[]` öğesine yerleştirin ve
 
 ## Sonraki Adım
 
-Görev terminal bir duruma ulaşana kadar döndürülen `cgt-...` kimliğini [Görev Al (Volc Uyumlu)](/api-reference/video/get-volc-compatible-seedance-task) ile kullanın.
+Görev terminal bir duruma ulaşana kadar döndürülen `cgt-...` kimliğini [Görev Al (Volc Uyumlu)](/tr/api-reference/video/get-volc-compatible-seedance-task) ile kullanın.

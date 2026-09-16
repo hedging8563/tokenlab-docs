@@ -39,8 +39,8 @@ Chỉ `message` và `type` luôn xuất hiện trong các lỗi tương thích v
 
 | Mã | Ý nghĩa | Những gì cần thay đổi |
 | --- | --- | --- |
-| `invalid_api_key` | API key bị thiếu hoặc không hợp lệ | Kiểm tra tiêu đề Authorization và giá trị key |
-| `expired_api_key` | Key đã hết hạn hoặc bị thu hồi | Tạo hoặc chọn một key đang hoạt động |
+| `invalid_api_key` | Khóa API bị thiếu, không hợp lệ, không hoạt động hoặc đã bị thu hồi | Kiểm tra tiêu đề Authorization và giá trị key |
+| `expired_api_key` | Khóa API đã hết hạn | Tạo hoặc chọn một key đang hoạt động |
 | `insufficient_balance` | Số dư tài khoản không đủ để thực hiện yêu cầu | Nạp thêm tiền, giảm yêu cầu hoặc chọn mô hình có giá thấp hơn |
 | `quota_exceeded` | API key đã đạt giới hạn riêng | Tăng giới hạn của key đó hoặc sử dụng key được ủy quyền khác |
 | `model_not_allowed` | Key không thể sử dụng mô hình được yêu cầu | Cập nhật danh sách mô hình của key hoặc chọn mô hình được phép |
@@ -65,43 +65,10 @@ Một số lỗi tương thích với OpenAI bao gồm các trường tùy chọ
 
 Đối với việc tạo hình ảnh, video, âm nhạc, 3D và Worlds, hãy lưu ID tác vụ ngay khi nó được trả về. Nếu yêu cầu tạo bị hết thời gian chờ (timeout), hãy kiểm tra bản ghi tác vụ trước khi gửi yêu cầu tạo khác.
 
-## Ví dụ bằng Python
-
-```python
-import random
-import time
-from openai import OpenAI, APIConnectionError, APIStatusError, RateLimitError
-
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1",
-)
-
-def chat(messages, model="gpt-5.6-luna", attempts=3):
-    for attempt in range(attempts):
-        try:
-            return client.chat.completions.create(
-                model=model,
-                messages=messages,
-            )
-        except RateLimitError as exc:
-            if attempt == attempts - 1:
-                raise
-            retry_after = exc.response.headers.get("Retry-After")
-            wait = float(retry_after) if retry_after else (2 ** attempt + random.random())
-            time.sleep(wait)
-        except APIStatusError as exc:
-            if exc.status_code < 500 or attempt == attempts - 1:
-                raise
-            time.sleep(2 ** attempt + random.random())
-        except APIConnectionError:
-            if attempt == attempts - 1:
-                raise
-            time.sleep(2 ** attempt + random.random())
-```
-
 ## Lưu giữ Request ID
 
 Các tiêu đề phản hồi bao gồm Request ID để theo dõi. Hãy lưu nó cùng với endpoint, mô hình, thời gian và ID người dùng hoặc ID công việc của riêng bạn. Đối với công việc bất đồng bộ (async), hãy lưu thêm `task_id` và `billing_transaction_id` khi có.
 
 Khi liên hệ với bộ phận hỗ trợ, hãy bao gồm các ID đó và một ví dụ đã được che thông tin nhạy cảm. Không bao giờ gửi API keys, management tokens, phương tiện riêng tư, signed URLs hoặc các lời nhắc (prompts) riêng tư hoàn chỉnh.
+
+[Từ yêu cầu đến điều tra và hỗ trợ](/vi/guides/observability-troubleshooting)

@@ -32,7 +32,6 @@ Use o painel interativo do OpenAPI acima para o esquema exato.
 
 - Use `custom_id` para reconciliação idempotente a montante.
 - Espere `output_file_id` e `error_file_id` apenas após o trabalhador finalizar o lote.
-- A precificação do lote pode diferir da precificação síncrona porque as regras de desconto `isBatchRequest=true` se aplicam.
 
 ## Exemplo de resposta
 
@@ -44,7 +43,7 @@ Use o painel interativo do OpenAPI acima para o esquema exato.
   "status": "completed",
   "input_file_id": "file_abc123",
   "output_file_id": "file_out123",
-  "error_file_id": null,
+  "error_file_id": "file_err123",
   "request_counts": { "total": 100, "completed": 98, "failed": 2 }
 }
 ```
@@ -52,6 +51,6 @@ Use o painel interativo do OpenAPI acima para o esquema exato.
 
 ## Campos importantes
 
-<ResponseField name="request_counts" type="object">Lista ou payload retornado por esta resposta.</ResponseField>
+<ResponseField name="request_counts" type="object">Contagens de solicitações totais, concluídas, com falha e canceladas.</ResponseField>
 <ResponseField name="output_file_id" type="string|null">Identificador de arquivo usado por APIs relacionadas.</ResponseField>
 <ResponseField name="error_file_id" type="string|null">Identificador de arquivo usado por APIs relacionadas.</ResponseField>

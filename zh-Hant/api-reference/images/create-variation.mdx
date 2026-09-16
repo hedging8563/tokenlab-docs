@@ -13,7 +13,7 @@ description: "建立給定圖像的變體"
 **同步請求逾時：** 某些路由到的圖片提供者會以内嵌方式返回最終圖片，並等待生成完成。高解析度或高品質請求可能接近一分鐘甚至更久，因此請將 HTTP 用戶端逾時設定為至少 `120s`。如果建立回應包含 `status: "pending"`、`task_id` 或 `poll_url`，請改為依照返回的 `poll_url` 輪詢。
 
 <ParamField body="image" type="file" required>
-  用作變體基礎的圖像。必須是有效的 PNG 檔案，小於 50MB，且為正方形。
+  Multipart 來源圖片。檔案與完整請求主體均不得超過 50 MiB。支援的格式與尺寸取決於所選模型，其目前詳情必須明確列出 `/v1/images/variations`。
 </ParamField>
 
 <ParamField body="model" type="string" required>
@@ -21,14 +21,14 @@ description: "建立給定圖像的變體"
 </ParamField>
 
 <ParamField body="n" type="integer" default="1">
-  要生成的圖像數量。必須在 1 到 10 之間。
+  要產生的圖片數量（1-10，依模型而定）。
 </ParamField>
 
 <ParamField body="size" type="string">
   舊版變體相容路由生成圖片的尺寸。支援的取值取決於所選模型。
 </ParamField>
 
-<ParamField body="response_format" type="string" default="url">
+<ParamField body="response_format" type="string">
   回傳生成圖像的格式。必須是 `url` 或 `b64_json`。
 </ParamField>
 

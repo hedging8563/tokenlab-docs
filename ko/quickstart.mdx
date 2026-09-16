@@ -9,8 +9,8 @@ description: "2분 만에 TokenLab API 시작하기"
   <Step title="계정 만들기">
     이메일, Gmail 또는 GitHub 계정으로 [tokenlab.sh](https://tokenlab.sh)에서 가입하세요.
   </Step>
-  <Step title="제공된 체험 크레딧 사용">
-    새 계정에는 첫 번째 소규모 테스트 요청에 사용할 수 있는 체험 크레딧이 포함됩니다. Quickstart 전에 충전할 필요가 없습니다.
+  <Step title="워크스페이스 잔액 확인">
+    [청구](https://tokenlab.sh/dashboard/billing)에서 잔액과 사용 가능한 체험 크레딧을 확인하세요. 이 요청은 모델의 현재 요금으로 청구되므로 필요하면 충전하세요.
   </Step>
   <Step title="API 키 생성 및 저장">
     워크스페이스의 [API 키](https://tokenlab.sh/dashboard/api?tab=keys)를 열고 키를 생성한 뒤 전체 값을 즉시 저장하세요. 전체 키는 한 번만 표시됩니다. 이미 저장한 전체 키가 있으면 그 값을 사용하세요. 목록에 표시되거나 목록에서 복사한 접두사로는 요청을 인증할 수 없습니다.
@@ -20,6 +20,25 @@ description: "2분 만에 TokenLab API 시작하기"
 <Warning>
 API 키를 안전하게 보관하세요. 클라이언트 측 코드나 공개 저장소에 절대 노출하지 마십시오.
 </Warning>
+
+## 현재 터미널에 키 설정
+
+아래 명령은 명령 자체에 키를 쓰지 않습니다. 현재 터미널과 자식 프로세스에만 적용됩니다. 배포된 앱에는 비밀 관리 도구를 사용하세요.
+
+<CodeGroup>
+```bash macOS / Linux / WSL
+printf 'TokenLab API key: '
+read -r -s TOKENLAB_API_KEY
+printf '\n'
+export TOKENLAB_API_KEY
+```
+
+```powershell Windows PowerShell
+$secret = Read-Host 'TokenLab API key' -AsSecureString
+$env:TOKENLAB_API_KEY = [System.Net.NetworkCredential]::new('', $secret).Password
+Remove-Variable secret
+```
+</CodeGroup>
 
 ## 단계 2: 클라이언트 설치
 
@@ -34,11 +53,12 @@ npm install openai
 ```
 
 ```bash Go
+go mod init tokenlab-quickstart
 go get github.com/openai/openai-go/v3
 ```
 
 ```bash PHP
-composer require openai-php/client
+composer require openai-php/client guzzlehttp/guzzle
 ```
 
 </CodeGroup>
@@ -49,86 +69,117 @@ composer require openai-php/client
 
 <CodeGroup>
 
-```bash cURL
+```bash cURL — macOS / Linux / WSL
 curl https://api.tokenlab.sh/v1/chat/completions \
-  -H "Authorization: Bearer sk-your-api-key" \
+  -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{
-    "model": "gpt-5.6-terra",
-    "messages": [
-      {"role": "user", "content": "What is the capital of France?"}
-    ]
-  }'
+  -d '{"model":"gpt-5.6-terra","messages":[{"role":"user","content":"Reply only with OK."}]}'
 ```
 
-```python Python
+```powershell Windows PowerShell
+$body = @{
+  model = 'gpt-5.6-terra'
+  messages = @(@{ role = 'user'; content = 'Reply only with OK.' })
+} | ConvertTo-Json -Depth 6
+$result = Invoke-RestMethod -Method Post `
+  -Uri 'https://api.tokenlab.sh/v1/chat/completions' `
+  -Headers @{ Authorization = "Bearer $env:TOKENLAB_API_KEY" } `
+  -ContentType 'application/json' -Body $body -TimeoutSec 30
+$result.choices[0].message.content
+```
+
+```python Python — quickstart.py
+import os
 from openai import OpenAI
 
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
-
-response = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": "What is the capital of France?"}]
-)
-
-print(response.choices[0].message.content)
+with OpenAI(
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh/v1",
+    timeout=30.0,
+    max_retries=0,
+) as client:
+    response = client.chat.completions.create(
+        model="gpt-5.6-terra",
+        messages=[{"role": "user", "content": "Reply only with OK."}],
+    )
+    print(response.choices[0].message.content)
 ```
 
-```javascript JavaScript
+```javascript JavaScript — quickstart.mjs
 import OpenAI from 'openai';
 
 const client = new OpenAI({
-  apiKey: 'sk-your-api-key',
-  baseURL: 'https://api.tokenlab.sh/v1'
+  apiKey: process.env.TOKENLAB_API_KEY,
+  baseURL: 'https://api.tokenlab.sh/v1',
+  timeout: 30_000,
+  maxRetries: 0,
 });
-
 const response = await client.chat.completions.create({
   model: 'gpt-5.6-terra',
-  messages: [{ role: 'user', content: 'What is the capital of France?' }],
+  messages: [{ role: 'user', content: 'Reply only with OK.' }],
 });
-
 console.log(response.choices[0].message.content);
 ```
 
+```go Go — main.go
+package main
+
+import (
+    "context"
+    "fmt"
+    "os"
+    "time"
+
+    "github.com/openai/openai-go/v3"
+    "github.com/openai/openai-go/v3/option"
+)
+
+func main() {
+    client := openai.NewClient(
+        option.WithAPIKey(os.Getenv("TOKENLAB_API_KEY")),
+        option.WithBaseURL("https://api.tokenlab.sh/v1"),
+        option.WithMaxRetries(0),
+    )
+    ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+    defer cancel()
+    response, err := client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
+        Model: "gpt-5.6-terra",
+        Messages: []openai.ChatCompletionMessageParamUnion{
+            openai.UserMessage("Reply only with OK."),
+        },
+    })
+    if err != nil { panic(err) }
+    fmt.Println(response.Choices[0].Message.Content)
+}
+```
+
+```php PHP — quickstart.php
+<?php
+require __DIR__ . '/vendor/autoload.php';
+
+$client = OpenAI::factory()
+    ->withApiKey(getenv('TOKENLAB_API_KEY'))
+    ->withBaseUri('https://api.tokenlab.sh/v1')
+    ->withHttpClient(new \GuzzleHttp\Client(['timeout' => 30]))
+    ->make();
+$response = $client->chat()->create([
+    'model' => 'gpt-5.6-terra',
+    'messages' => [['role' => 'user', 'content' => 'Reply only with OK.']],
+]);
+echo $response->choices[0]->message->content . PHP_EOL;
+```
+
 </CodeGroup>
+
+SDK 예제 하나를 `quickstart.py`, `quickstart.mjs`, `main.go` 또는 `quickstart.php`로 저장한 후 `python quickstart.py`, `node quickstart.mjs`, `go run .` 또는 `php quickstart.php`로 실행하세요. Python, JavaScript, Go는 OpenAI 공식 SDK를 사용하며 PHP는 [커뮤니티 클라이언트](https://github.com/openai-php/client)를 사용합니다. PHP 8.2 이상이 필요합니다.
 
 <Note>
 Responses 전용 동작이 명시적으로 필요한 경우에만 `POST /v1/responses`를 사용하세요. 일부 Responses 전용 필드는 선택한 모델 및 라우팅 경로에 따라 다릅니다.
 </Note>
 
-## 프로덕션 사용을 위해 충전하기
+## 결과 확인
 
-제공된 체험 크레딧은 첫 번째 소규모 테스트용입니다. 프로덕션 사용이나 더 많은 테스트를 준비할 때만 **대시보드 → Billing**에서 크레딧을 추가하세요.
-
-## 다양한 모델 시도하기
-
-TokenLab는 수백 개의 모델을 지원합니다. 변경할 것은 `model` 필드뿐입니다:
-
-```python
-response = client.chat.completions.create(model="gpt-5.6-terra", messages=[{"role": "user", "content": "Hello"}])
-response = client.chat.completions.create(model="gpt-5.6-luna", messages=[{"role": "user", "content": "Hello"}])
-response = client.chat.completions.create(model="claude-sonnet-5", messages=[{"role": "user", "content": "Hello"}])
-response = client.chat.completions.create(model="gemini-3.5-flash", messages=[{"role": "user", "content": "Hello"}])
-response = client.chat.completions.create(model="deepseek-reasoner", messages=[{"role": "user", "content": "Hello"}])
-```
-
-## 스트리밍 활성화
-
-```python
-stream = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": "Tell me a short story."}],
-    stream=True
-)
-
-for chunk in stream:
-    delta = chunk.choices[0].delta.content
-    if delta:
-        print(delta, end="")
-```
+성공한 요청은 비어 있지 않은 답변을 반환합니다. 같은 워크스페이스의 [요청](https://tokenlab.sh/dashboard/runs)에서 모델, 상태, 사용량을 확인하세요. 오류는 [문제 해결](/ko/guides/observability-troubleshooting), 모델 변경과 스트리밍은 [SDK 가이드](/ko/integrations/openai-sdk)를 참고하세요.
 
 ## 다음 단계
 

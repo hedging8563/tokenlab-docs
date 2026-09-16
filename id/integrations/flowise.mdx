@@ -27,13 +27,15 @@ Jika build Flowise Anda menyertakan node model chat **TokenLab**:
 
 ## Fallback Kompatibel dengan OpenAI
 
-Jika node TokenLab belum tersedia, gunakan node model chat yang kompatibel dengan OpenAI dengan pengaturan berikut:
+Jika build Anda tidak menyertakan node TokenLab, tambahkan **Chat Models** → **OpenAI Custom Model**. Di **Connect Credential**, buat kredensial **OpenAI API** dengan kunci TokenLab Anda. Atur **Model Name** dan **Additional Parameters** → **Base Path** sebagai berikut:
 
 | Kolom | Nilai |
 |-------|-------|
-| Base URL | `https://api.tokenlab.sh/v1` |
+| Base Path | `https://api.tokenlab.sh/v1` |
 | API Key | `sk-your-tokenlab-key` |
-| Model | `gpt-5.4-mini` |
+| Model Name | `gpt-5.4-mini` |
+
+Hubungkan node ke chain, agen, atau workflow Anda, lalu kirim prompt pengujian.
 
 ## Model yang Direkomendasikan
 

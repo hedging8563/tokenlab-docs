@@ -18,6 +18,10 @@ If a create response includes `poll_url`, call that exact path. Some image model
 
 ## Response
 
+<Note>
+Fields describing results, errors, timestamps, and the model are returned when available for the task.
+</Note>
+
 <ResponseField name="id" type="string">
   Canonical async task identifier.
 </ResponseField>
@@ -62,7 +66,7 @@ If a create response includes `poll_url`, call that exact path. Some image model
   Multiple video payloads when more than one output is available.
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="error" type="string | object">
   Error message when the task fails.
 </ResponseField>
 
@@ -80,7 +84,7 @@ If a create response includes `poll_url`, call that exact path. Some image model
 
 ## Error Behavior
 
-If the task no longer exists, has expired, or is no longer available in the public task record, TokenLab returns:
+An expired or unavailable public task can return `404 async_task_not_found`. If task ownership cannot be established for the current API key, the response is `403 task_not_owned`.
 
 ```json
 {

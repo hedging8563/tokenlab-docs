@@ -14,7 +14,7 @@ Endpoint ini adalah bagian dari API Batch yang kompatibel dengan OpenAI dari Tok
 - `completion_window` saat ini adalah `24h`.
 - Urutan output tidak dijamin; selalu cocokkan berdasarkan `custom_id`.
 - Streaming tidak didukung di dalam item batch.
-- Endpoint item batch yang saat ini didukung adalah `/v1/chat/completions` dan `/v1/embeddings`; pekerjaan batch `/v1/responses` ditolak sampai executor batch Responses native tersedia.
+- Endpoint item batch yang didukung adalah `/v1/chat/completions` dan `/v1/embeddings`. `/v1/responses` tidak didukung.
 
 ## Contoh
 
@@ -39,7 +39,6 @@ Gunakan panel OpenAPI interaktif di atas untuk skema yang tepat.
 
 - Gunakan `custom_id` untuk rekonsiliasi downstream yang idempotent.
 - Harapkan `output_file_id` dan `error_file_id` hanya setelah pekerja menyelesaikan batch.
-- Harga batch mungkin berbeda dari harga sinkron karena aturan diskon `isBatchRequest=true` berlaku.
 
 ## Contoh respons
 

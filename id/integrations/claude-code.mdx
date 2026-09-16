@@ -33,7 +33,7 @@ irm https://claude.ai/install.ps1 | iex
 Jika Anda secara khusus memerlukan package npm, gunakan:
 
 ```bash
-npm install -g @anthropic-ai/claude-code
+npm install -g @anthropic-ai/claude-code@2.1.263
 ```
 
 <Warning>
@@ -42,35 +42,39 @@ Jangan gunakan `sudo npm install -g` untuk Claude Code.
 
 ## Konfigurasi
 
-### Variabel Environment
+Ikuti langkah terminal [panduan cepat](/id/quickstart) untuk macOS, Linux, WSL, atau Windows PowerShell guna mengatur `TOKENLAB_API_KEY` tanpa menulis kunci ke riwayat perintah. Jalankan Claude Code dari terminal tersebut. Untuk penggunaan berkelanjutan, gunakan pengelola rahasia lokal, bukan kunci teks biasa di profil shell.
 
-Atur variabel environment berikut:
+Variabel ini hanya berlaku untuk peluncuran ini; akun, model default, dan izin tersimpan tetap ada. Jalankan tanpa variabel tersebut untuk memakai konfigurasi sebelumnya. Jangan simpan dalam profil shell.
 
-```bash
-export ANTHROPIC_API_KEY="sk-your-tokenlab-key"
-export ANTHROPIC_BASE_URL="https://api.tokenlab.sh"
+Jalur sesi ini memakai Claude Code **2.1.263** dan autentikasi Bearer melalui `ANTHROPIC_AUTH_TOKEN`. Base URL tidak memakai `/v1`. Nilai `env` tersimpan, helper kredensial, opsi penyedia cloud, atau kebijakan terkelola dapat memengaruhi autentikasi; periksa sebelum mulai. Jika bertentangan, gunakan helper di bawah tanpa menghapus akun atau melonggarkan kebijakan. Periksa model dan izin melalui `/status`.
+
+<CodeGroup>
+```bash macOS / Linux / WSL
+ANTHROPIC_BASE_URL=https://api.tokenlab.sh ANTHROPIC_AUTH_TOKEN="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" ANTHROPIC_API_KEY= claude --model claude-sonnet-4-6
 ```
 
-Tambahkan ini ke profile shell Anda (`~/.bashrc`, `~/.zshrc`, dll.) agar tetap tersimpan.
-
-<Note>
-Untuk TokenLab, pertahankan `ANTHROPIC_BASE_URL` pada `https://api.tokenlab.sh` tanpa sufiks `/v1`. Ini sesuai dengan bentuk endpoint bergaya Anthropic dan pola gateway terpadu yang didokumentasikan oleh Claude Code.
-</Note>
-
-### File Konfigurasi
-
-Sebagai alternatif, buat atau edit `~/.claude/settings.json`:
-
-Cadangkan dan gabungkan pengaturan tanpa mengganti akun atau izin. `ANTHROPIC_API_KEY` mengirim `X-Api-Key`, sedangkan `ANTHROPIC_AUTH_TOKEN` mengirim token Bearer. Pilih satu cara autentikasi. `/status` menunjukkan model dan sumber konfigurasi, bukan keberhasilan permintaan berbayar. Setelah uji singkat, cocokkan balasan dan catatan TokenLab. Untuk memulihkan, batalkan tambahan Anda saja. Lihat [prioritas](https://code.claude.com/docs/en/settings).
-
-```json
-{
-  "env": {
-    "ANTHROPIC_API_KEY": "sk-your-tokenlab-key",
-    "ANTHROPIC_BASE_URL": "https://api.tokenlab.sh"
+```powershell Windows PowerShell
+if (-not $env:TOKENLAB_API_KEY) { throw 'Set TOKENLAB_API_KEY first' }
+$previous = @{}
+$previous['ANTHROPIC_BASE_URL'] = [Environment]::GetEnvironmentVariable('ANTHROPIC_BASE_URL', 'Process')
+$previous['ANTHROPIC_AUTH_TOKEN'] = [Environment]::GetEnvironmentVariable('ANTHROPIC_AUTH_TOKEN', 'Process')
+$previous['ANTHROPIC_API_KEY'] = [Environment]::GetEnvironmentVariable('ANTHROPIC_API_KEY', 'Process')
+try {
+  $env:ANTHROPIC_BASE_URL = 'https://api.tokenlab.sh'
+  $env:ANTHROPIC_AUTH_TOKEN = $env:TOKENLAB_API_KEY
+  $env:ANTHROPIC_API_KEY = ''
+  claude --model claude-sonnet-4-6
+} finally {
+  foreach ($name in $previous.Keys) {
+    [Environment]::SetEnvironmentVariable($name, $previous[$name], 'Process')
   }
 }
 ```
+</CodeGroup>
+
+Opsional: [helper konfigurasi Claude Code yang dapat dipulihkan](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/skills/tokenlab-api-integration/references/claude_setup.md) menyediakan pratinjau, penerapan, dan pemulihan file asli dengan Python 3.11+. Plugin TokenLab Skills **0.1.2** menyertakan skrip ini; Skill mandiri juga dapat digunakan setelah diperbarui ke versi yang memuatnya. Untuk plugin atau Skill mandiri yang sudah terpasang, ikuti [petunjuk pembaruan README](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/README.md#update-an-existing-installation) dan pastikan skrip tersedia. Konfigurasi manual di halaman ini tetap dapat digunakan tanpa helper.
+
+Menyimpan pengaturan atau menampilkan model tidak memvalidasi kunci maupun permintaan yang selesai. Prompt memakai saldo TokenLab. Periksa respons dan [catatan permintaan terkait](https://tokenlab.sh/dashboard/runs?section=requests) sebelum mencoba alat; permintaan tambahan juga dapat dikenai biaya.
 
 ## Penggunaan
 
@@ -78,11 +82,10 @@ Setelah konfigurasi, gunakan Claude Code seperti biasa:
 
 ```bash
 # Start an interactive session
-claude
+ANTHROPIC_BASE_URL=https://api.tokenlab.sh ANTHROPIC_AUTH_TOKEN="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" ANTHROPIC_API_KEY= claude --model claude-sonnet-4-6
 
 # Run a single command
-claude "Explain this code" < main.py
-
+ANTHROPIC_BASE_URL=https://api.tokenlab.sh ANTHROPIC_AUTH_TOKEN="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" ANTHROPIC_API_KEY= claude --model claude-sonnet-4-6 "Explain this code" < main.py
 ```
 
 Verifikasi instalasi jika diperlukan:
@@ -107,19 +110,7 @@ TokenLab mendukung semua model Claude:
 Tentukan model dengan flag `--model`:
 
 ```bash
-claude --model claude-sonnet-4-6 "Review this PR"
-```
-
-Atau atur default dalam konfigurasi Anda:
-
-```json
-{
-  "env": {
-    "ANTHROPIC_API_KEY": "sk-your-tokenlab-key",
-    "ANTHROPIC_BASE_URL": "https://api.tokenlab.sh"
-  },
-  "model": "claude-sonnet-5"
-}
+ANTHROPIC_BASE_URL=https://api.tokenlab.sh ANTHROPIC_AUTH_TOKEN="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" ANTHROPIC_API_KEY= claude --model claude-sonnet-4-6 "Review this PR"
 ```
 
 ## Pemikiran Mendalam
@@ -127,7 +118,7 @@ Atau atur default dalam konfigurasi Anda:
 Untuk tugas penalaran kompleks, gunakan model dengan extended thinking:
 
 ```bash
-claude --model claude-opus-4-6 "Design a microservices architecture for..."
+ANTHROPIC_BASE_URL=https://api.tokenlab.sh ANTHROPIC_AUTH_TOKEN="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" ANTHROPIC_API_KEY= claude --model claude-opus-4-6 "Design a microservices architecture for..."
 ```
 
 ## Pemecahan Masalah
@@ -141,9 +132,6 @@ claude --model claude-opus-4-6 "Design a microservices architecture for..."
     Pastikan API key TokenLab Anda diawali dengan `sk-` dan memiliki saldo yang cukup.
   </Accordion>
 
-  <Accordion title="Gateway memerlukan Authorization bearer token">
-    Mode gateway Claude Code juga mendukung `ANTHROPIC_AUTH_TOKEN`. Tetap gunakan `ANTHROPIC_API_KEY` untuk setup TokenLab standar kecuali Anda memang sengaja mengubah perilaku auth gateway Anda.
-  </Accordion>
 
   <Accordion title="Model tidak ditemukan">
     Periksa bahwa nama model sudah benar. Gunakan format `claude-sonnet-4-6`.

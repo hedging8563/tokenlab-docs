@@ -6,12 +6,12 @@ description: "根據輸入文字產生音訊"
 
 ## 請求本文
 
-**同步請求逾時：** 這個非聊天端點會等待路由到的模型完成處理。大型輸入、長音訊或大量批次可能超過常見的 30s 用戶端預設逾時，因此請將 HTTP 用戶端逾時設定為至少 `120s`。
+回傳方式取決於所選模型和 `stream_format`。輸入較長時，請將 HTTP 用戶端逾時設為至少 `120s`。
 
-不同模型家族支援的可選欄位不同。TokenLab 會在路由前驗證欄位矩陣：OpenAI TTS 接受 `voice`、`instructions`、`response_format`、`stream_format`、`speed`；MiniMax 語音接受 `voice`、`voice_id`、`response_format`、`stream_format`、`speed`；Gemini TTS 接受 `prompt`、`language_code`、`voice`、`response_format`、`stream_format`、`speed`、`temperature`；更窄的 Vidu/Kling 類 TTS 路由可能只接受 `input` 和 `stream_format`。未知頂層欄位（包括 `user`）會返回 `400 unsupported_parameter`，不會被靜默忽略。
+可選欄位、音色、輸出格式及 SSE 支援均以所選模型為準。傳送前請查詢 `GET /v1/models/{model}`；不支援的參數可能回傳 `400 unsupported_parameter`。
 
 <ParamField body="model" type="string" default="tts-1">
-  TTS 模型。範例包括 `tts-1`、`gpt-4o-mini-tts`、`speech-02-hd` 和 `gemini-2.5-flash-tts`。請透過 `GET /v1/models?recommended_for=tts` 取得目前推薦清單。
+  TTS 模型 ID。透過 `GET /v1/models?recommended_for=tts` 取得目前可選模型。
 </ParamField>
 
 <ParamField body="input" type="string" required>
@@ -23,7 +23,7 @@ description: "根據輸入文字產生音訊"
 </ParamField>
 
 <ParamField body="voice_id" type="string">
-  MiniMax 相容語音模型的上游原生語音選擇器。
+  適用於支援此參數的模型，例如相容的 MiniMax 語音模型。
 </ParamField>
 
 <ParamField body="instructions" type="string">
@@ -56,7 +56,7 @@ description: "根據輸入文字產生音訊"
 
 ## 回應
 
-以請求的格式回傳音訊檔案。
+`stream_format=audio` 回傳音訊位元組；支援 `stream_format=sse` 的模型回傳 `text/event-stream`，應解析其中的事件，不要將整個回應直接儲存為音訊檔案。
 
 <RequestExample>
 ```bash cURL
@@ -134,6 +134,8 @@ file_put_contents('speech.mp3', $audio);
 
 ## 語音範例
 
+可用音色以模型為準；下列名稱僅為範例，並非所有 TTS 模型共用的音色清單。
+
 | 語音 | 描述 |
 |-------|-------------|
 | `alloy` | 中性、均衡 |
@@ -158,5 +160,9 @@ file_put_contents('speech.mp3', $audio);
 
 ## 重要欄位
 
-<ResponseField name="Content-Type" type="string">API 返回的事件或訊息類型。</ResponseField>
-<ResponseField name="body" type="binary">原始回應體。應直接保存，不要按 JSON 解析。</ResponseField>
+<ResponseField name="Content-Type" type="string">
+  HTTP 回應的媒體類型：音訊格式，或 SSE 使用的 `text/event-stream`。
+</ResponseField>
+<ResponseField name="body" type="binary | SSE">
+  `audio` 模式為音訊位元組，`sse` 模式為事件串流。請依 `Content-Type` 與請求模式選擇解析方式。
+</ResponseField>

@@ -18,11 +18,11 @@ TokenLab mencatat pemilik aset. Hanya organisasi yang sama yang dapat mengambil 
   Jenis media: `image` atau `video`.
 </ParamField>
 
-<ParamField body="extension" type="string">
+<ParamField body="extension" type="string | null">
   Ekstensi opsional seperti `png`, `jpg`, atau `mp4`.
 </ParamField>
 
-<ParamField body="metadata" type="object">
+<ParamField body="metadata" type="object | null">
   Objek metadata opsional yang disimpan bersama aset media upstream.
 </ParamField>
 
@@ -34,6 +34,14 @@ TokenLab mencatat pemilik aset. Hanya organisasi yang sama yang dapat mengambil 
 
 <ResponseField name="upload_info.upload_url" type="string">
   URL upstream bertanda tangan untuk mengupload file biner.
+</ResponseField>
+
+<ResponseField name="upload_info.upload_method" type="string">
+  Metode HTTP untuk mengunggah file biner ke `upload_info.upload_url`, jika dikembalikan.
+</ResponseField>
+
+<ResponseField name="upload_info.required_headers" type="object">
+  Header yang perlu disertakan saat mengunggah file biner, jika dikembalikan.
 </ResponseField>
 
 <RequestExample>

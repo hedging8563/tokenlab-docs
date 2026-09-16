@@ -50,10 +50,11 @@ Authorization: Bearer mt-your-management-token
 
 | フィールド | 型 | 既定値 / 制約 | 説明 |
 |-----------|------|---------------|------|
-| `name` | string | 必須、既定値 `Default Key`、長さ `1-50` | 表示名。サーバー側で前後空白が取り除かれます |
-| `limitAmount` | number \| null | 最小 `0`、入力上限 `1000000` | `null` または省略 = 無制限、`0` = 利用可能額 0、正の値は保存時に正規化され、`100000` USD 相当を超えません |
+| `name` | string | 任意、既定値 `Default Key`、長さ `1-50` | 表示名。サーバー側で前後空白が取り除かれます |
+| `limitAmount` | number \| string \| null | `0–100000` USD | `null` は無制限、`0` は支出不可です。10 進文字列は小数点以下 6 桁まで指定できます。 作成時に省略すると無制限になります。 |
 | `limitCurrency` | enum | 既定 `USD` | USD のみです。`CNY` を送信すると `400 currency_retired` が返されます。 |
 | `models` | string[] | 既定値 `[]` | 任意のモデル許可リスト |
+| `deliveryPolicy` | string \| null | `auto`, `verified`, `official`, `null` | `null` はワークスペースの配信ポリシーを継承します。 |
 | `expiresAt` | string \| null | RFC3339 datetime | `null` は期限なしを意味します |
 
 ### PATCH /v1/management/api-keys/{keyId}
@@ -62,9 +63,10 @@ Authorization: Bearer mt-your-management-token
 |-----------|------|---------------|------|
 | `status` | enum | - | `active`, `inactive`, `revoked` |
 | `name` | string | 長さ `1-50` | 更新後の表示名 |
-| `limitAmount` | number \| null | 最小 `0`、入力上限 `1000000` | `null` = 無制限、`0` = 利用可能額 0、正の値は保存時に正規化され、`100000` USD 相当を超えません |
-| `limitCurrency` | enum | 既定 `USD` | USD のみです。`CNY` を送信すると `400 currency_retired` が返されます。 |
+| `limitAmount` | number \| string \| null | `0–100000` USD | `null` は無制限、`0` は支出不可です。10 進文字列は小数点以下 6 桁まで指定できます。 |
+| `limitCurrency` | enum | 既定 `USD` | USD のみです。`CNY` を送信すると `400 currency_retired` が返されます。 指定する場合は `limitAmount` も必要です。 |
 | `models` | string[] | - | 更新後のモデル許可リスト |
+| `deliveryPolicy` | string \| null | `auto`, `verified`, `official`, `null` | `null` はワークスペースの配信ポリシーを継承します。 |
 | `expiresAt` | string \| null | RFC3339 datetime | `null` は有効期限を解除します |
 
 PATCH リクエストでは少なくとも 1 つのフィールドを指定する必要があります。
@@ -121,10 +123,14 @@ curl "https://api.tokenlab.sh/v1/management/api-keys" \
       "limit_amount_decimal": "500",
       "used_amount": 148.25,
       "used_amount_decimal": "148.25",
-      "models": ["gpt-4o-mini", "claude-3-7-sonnet"],
+      "models": [
+        "gpt-4o-mini",
+        "claude-3-7-sonnet"
+      ],
       "expires_at": "2026-04-30T00:00:00.000Z",
       "last_used_at": "2026-03-27T08:12:45.000Z",
-      "created_at": "2026-03-01T10:00:00.000Z"
+      "created_at": "2026-03-01T10:00:00.000Z",
+      "delivery_policy": null
     }
   ],
   "pagination": {

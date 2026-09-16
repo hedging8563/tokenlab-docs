@@ -3,186 +3,68 @@ title: "Gemini CLI"
 description: "Google Gemini CLI'yı TokenLab API kullanacak şekilde yapılandırın"
 ---
 
+
 ## Genel Bakış
 
-
-
-<Note>
-**Tür**: Kodlama aracı
-
-**Birincil yol**: Gemini-native
-
-**Destek seviyesi**: En iyi çaba uyumluluk
-</Note>
-
-Google Gemini CLI, Gemini modelleriyle etkileşim kurmak için kullanılan bir komut satırı aracıdır. TokenLab, Gemini CLI'yı 300'den fazla modele erişimle kullanmanıza olanak tanıyan uyumlu bir uç nokta (endpoint) sağlar.
-
-
-<Warning>
-Bu entegrasyonu deneysel kabul edin: Gemini CLI şu anda TokenLab benzeri özel Base URL iş akışını kararlı bir resmi yapılandırma olarak belgelemiyor. Desteklenen bir TokenLab terminal kurulumu istiyorsanız Codex CLI, Claude Code veya OpenCode kullanın.
-</Warning>
-
-## Sistem Gereksinimleri
-
-- **Node.js**: Sürüm 20.0+
-- **OS**: Windows 10/11, macOS 10.15+, Ubuntu 20.04+ veya Debian 10+
+Gemini CLI **0.60.0**, API anahtarı kimlik doğrulaması için `GOOGLE_GEMINI_BASE_URL` değişkenini belgeler. TokenLab’in yerel Gemini uç noktasını `gemini_generate_content` destekleyen güncel bir modelle kullanın. [Resmî yapılandırmaya](https://geminicli.com/docs/reference/configuration/) ve [kimlik doğrulama kılavuzuna](https://geminicli.com/docs/get-started/authentication/) bakın. Bu kurulum Google aboneliğini TokenLab üzerinden yönlendirmez.
 
 ## Kurulum
 
 ```bash
-npm install -g @google/gemini-cli
-```
-
-Kurulumu doğrulayın:
-
-```bash
+npm install -g @google/gemini-cli@0.60.0
 gemini --version
 ```
 
 ## Yapılandırma
 
-### Adım 1: API Anahtarınızı Alın
+[Hızlı başlangıç](/tr/quickstart) içindeki macOS, Linux, WSL veya Windows PowerShell adımlarıyla anahtarı komut geçmişine yazmadan `TOKENLAB_API_KEY` değerini ayarlayın. Gemini CLI’u aynı terminalden başlatın. Sürekli kullanım için yerel bir sır yöneticisi kullanın; shell profiline düz metin anahtar eklemeyin.
 
-1. [TokenLab Dashboard](https://tokenlab.sh/dashboard) sayfasına giriş yapın
-2. [API Keys](https://tokenlab.sh/dashboard/api) bölümüne gidin
-3. API anahtarınızı oluşturun ve kopyalayın (format: `sk-...`)
+Mevcut Google girişini ve yapılandırmayı koruyun. TokenLab için `~/.gemini-tokenlab` (PowerShell’de `$HOME`) gibi kullanılmayan bir kök seçip içinde `.gemini` oluşturun. Mevcut `.gemini/settings.json` ve gerekli politika dosyalarını karşılık gelen konumlara kopyalayın; izinleri, sandbox ve diğer ayarları koruyun. Aşağıdaki kimlik alanını yalnızca bu kopyaya birleştirin; dosya yoksa oluşturun. OAuth önbelleklerini kopyalamayın veya eski kimlik bilgilerini silmeyin. Yönetilen kimlik politikalarına uyun.
 
-### Adım 2: Ortam Değişkenlerini Ayarlayın
-
-**Geçici (mevcut oturum):**
-
-```bash
-export GEMINI_API_KEY="sk-your-tokenlab-key"
-export GOOGLE_GEMINI_BASE_URL="https://api.tokenlab.sh"
+```json
+{
+  "security": {
+    "auth": {
+      "selectedType": "gemini-api-key"
+    }
+  }
+}
 ```
 
-**Kalıcı yapılandırma:**
+## Kullanım
 
-Kabuk (shell) yapılandırma dosyanıza ekleyin:
+Aşağıdaki başlatma `~/.gemini-tokenlab/.gemini/settings.json` kullanır. Başka kök seçtiyseniz yolu değiştirin. Çalışma dizinini normal güven istemiyle onaylayın ve araç onay politikalarını koruyun. Model bu oturum için açıkça seçilir.
 
-<Tabs>
-  <Tab title="Bash">
-    ```bash
-    echo 'export GEMINI_API_KEY="sk-your-tokenlab-key"' >> ~/.bashrc
-    echo 'export GOOGLE_GEMINI_BASE_URL="https://api.tokenlab.sh"' >> ~/.bashrc
-    source ~/.bashrc
-    ```
-  </Tab>
-  <Tab title="Zsh">
-    ```bash
-    echo 'export GEMINI_API_KEY="sk-your-tokenlab-key"' >> ~/.zshrc
-    echo 'export GOOGLE_GEMINI_BASE_URL="https://api.tokenlab.sh"' >> ~/.zshrc
-    source ~/.zshrc
-    ```
-  </Tab>
-  <Tab title="Fish">
-    ```bash
-    set -Ux GEMINI_API_KEY "sk-your-tokenlab-key"
-    set -Ux GOOGLE_GEMINI_BASE_URL "https://api.tokenlab.sh"
-    ```
-  </Tab>
-</Tabs>
-
-<Warning>
-Değişikliklerin etkili olması için yapılandırmadan sonra terminalinizi yeniden başlatın.
-</Warning>
-
-<Note>
-**Bilinen kısıtlama**: Bazı durumlarda, önbelleğe alınmış bir Google oturumu varsa Gemini CLI, `GOOGLE_GEMINI_BASE_URL` değişkenini dikkate almayabilir. Bağlantı sorunları yaşıyorsanız, CLI önbelleğini temizlemeyi veya yeni bir terminal oturumu başlatmayı deneyin.
-</Note>
-
-## Temel Kullanım
-
-Gemini CLI'yı proje dizininizden başlatın:
-
-```bash
-cd your-project
-gemini
+<CodeGroup>
+```bash macOS / Linux / WSL
+GEMINI_CLI_HOME="$HOME/.gemini-tokenlab" GEMINI_API_KEY="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" GOOGLE_GEMINI_BASE_URL=https://api.tokenlab.sh gemini --model gemini-3.5-flash
 ```
 
-İlk çalıştırmada şunları yapacaksınız:
-1. Bir tema seçin
-2. Güvenlik bildirimini onaylayın
-3. Çalışma dizinine güvenin
-
-## Mevcut Modeller
-
-| Model | Açıklama |
-|-------|-------------|
-| `gemini-2.5-pro` | En yetenekli Gemini modeli |
-| `gemini-3.5-flash` | Çoğu görev için hızlı ve verimli |
-| `gemini-3.1-flash-lite` | Guncel hafif Gemini modeli |
-
-## Yaygın Komutlar
-
-**Bir soru sorun:**
-
+```powershell Windows PowerShell
+if (-not $env:TOKENLAB_API_KEY) { throw 'Set TOKENLAB_API_KEY first' }
+$previous = @{}
+$previous['GEMINI_CLI_HOME'] = [Environment]::GetEnvironmentVariable('GEMINI_CLI_HOME', 'Process')
+$previous['GEMINI_API_KEY'] = [Environment]::GetEnvironmentVariable('GEMINI_API_KEY', 'Process')
+$previous['GOOGLE_GEMINI_BASE_URL'] = [Environment]::GetEnvironmentVariable('GOOGLE_GEMINI_BASE_URL', 'Process')
+try {
+  $env:GEMINI_CLI_HOME = (Join-Path $HOME '.gemini-tokenlab')
+  $env:GEMINI_API_KEY = $env:TOKENLAB_API_KEY
+  $env:GOOGLE_GEMINI_BASE_URL = 'https://api.tokenlab.sh'
+  gemini --model gemini-3.5-flash
+} finally {
+  foreach ($name in $previous.Keys) {
+    [Environment]::SetEnvironmentVariable($name, $previous[$name], 'Process')
+  }
+}
 ```
-> What is the best way to structure a React app?
+</CodeGroup>
+
+Bu değişkenler yalnızca bu başlatma için geçerlidir; kayıtlı hesap, varsayılan model ve izinler korunur. Önceki yapılandırma için bu değişkenler olmadan normal başlatın. Bunları kabuk profiline kaydetmeyin.
+
+## Doğrulama
+
+Ayarları kaydetmek veya modelleri listelemek anahtarı ya da tamamlanmış bir isteği doğrulamaz. İstem TokenLab bakiyesini kullanır. Araçları denemeden önce yanıtı ve ilgili [istek kaydını](https://tokenlab.sh/dashboard/runs?section=requests) kontrol edin; yardımcı istekler de ücretlendirilebilir.
+
+```text
+Reply only with TOKENLAB_CONNECTION_OK. Do not use tools or modify files.
 ```
-
-**Kodu analiz edin:**
-
-```
-> Explain the code in src/main.ts
-```
-
-**Kod oluşturun:**
-
-```
-> Create a Python function to parse JSON files
-```
-
-**Değişiklikleri gözden geçirin:**
-
-```
-> Review the recent git changes and suggest improvements
-```
-
-## Yapılandırmayı Doğrulayın
-
-```bash
-# Ortam değişkenlerini kontrol edin
-echo $GEMINI_API_KEY
-echo $GOOGLE_GEMINI_BASE_URL
-
-# Bağlantıyı test edin
-gemini
-```
-
-## Sorun Giderme
-
-<AccordionGroup>
-  <Accordion title="Bağlantı Hatası">
-    - `GOOGLE_GEMINI_BASE_URL` değişkeninin `https://api.tokenlab.sh` olarak ayarlandığını doğrulayın
-    - Not: Gemini uç noktası için `/v1` son eki yoktur
-    - Ağ bağlantısını kontrol edin
-  </Accordion>
-
-  <Accordion title="Kimlik Doğrulama Başarısız">
-    - `GEMINI_API_KEY` ortam değişkeninin ayarlandığını doğrulayın
-    - Anahtarın `sk-` ile başladığını kontrol edin
-    - Anahtarın TokenLab panelinde aktif olduğundan emin olun
-  </Accordion>
-
-  <Accordion title="Model Mevcut Değil">
-    - Gemini modellerinin uygunluğunu [tokenlab.sh/en/models](https://tokenlab.sh/tr/models) adresinden kontrol edin
-    - Farklı bir Gemini model varyantı deneyin
-  </Accordion>
-</AccordionGroup>
-
-## En İyi Uygulamalar
-
-<AccordionGroup>
-  <Accordion title="Proje dizininde kullanın">
-    Daha iyi bağlam anlayışı için Gemini CLI'yı her zaman proje kök dizininizden çalıştırın.
-  </Accordion>
-
-  <Accordion title="Dizinlere dikkatle güvenin">
-    Yalnızca size ait olan dizinlere güvenin. Gemini CLI dosyaları okuyabilir ve değiştirebilir.
-  </Accordion>
-
-  <Accordion title="Üretilen kodu gözden geçirin">
-    Yapay zeka tarafından oluşturulan kodu projenize işlemeden (commit) önce her zaman gözden geçirin.
-  </Accordion>
-</AccordionGroup>

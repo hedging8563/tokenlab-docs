@@ -9,18 +9,22 @@ Bu kılavuz, TokenLab'yı AI sağlayıcısı olarak bağlamak isteyen **self-hos
 
 ## Önerilen: eklentiyi yükleyin
 
-Standart OpenClaw agent çalıştırma için TokenLab sağlayıcı eklentisini yükleyin:
+İsteğe bağlı olarak yayımlanmış sağlayıcı eklentisi **0.1.0** sürümünü kurun. `TOKENLAB_API_KEY` değerini aşağıdaki Gateway ortamında sağlayın ve modeli yalnızca oturum için seçin. Kurulum sihirbazı varsayılan modeli değiştirir; bu yüzden bu kılavuz `openclaw onboard` çalıştırmaz. Mevcut eklenti ve izinleri koruyun; istekten önce eklenti yüklemesini ve model listesini kontrol edin.
+
+Yükleyicinin istediği yetenekleri inceleyip istemcinin onay adımlarını izleyin. İlgisiz izinler vermeyin veya mevcut eklentilerin izinlerini değiştirmeyin.
 
 ```bash
-openclaw plugins install @tokenlabai/openclaw-provider
-openclaw onboard
+openclaw plugins install @tokenlabai/openclaw-provider@0.1.0
+openclaw plugins list
+openclaw models list --provider tokenlab
 ```
 
-Kurulumdan sonra `openclaw onboard` çalıştırıp TokenLab seçin ve anahtarı yalnızca yerel iletişim kutusuna girin. Eklenti yüklenmezse aşağıdaki elle ayarları kullanıp sürüm uyumluluğunu kontrol edin.
+```text
+/model tokenlab/claude-sonnet-5 -s
+/model default -s
+```
 
-Eklenti, TokenLab'ın canlı sohbet modeli kataloğunu getirir ve çevrimdışı keşif için 18 yedek model tutar. Modeller `tokenlab/<model-id>` biçimini kullanır.
-
-[npm paketi](https://www.npmjs.com/package/@tokenlabai/openclaw-provider) · [ClawHub kaydı](https://clawhub.ai/tokenlabai/plugins/openclaw-provider) · [Kaynak kod](https://github.com/hedging8563/tokenlab-openclaw-provider)
+[npm](https://www.npmjs.com/package/@tokenlabai/openclaw-provider/v/0.1.0) · [GitHub](https://github.com/hedging8563/tokenlab-openclaw-provider)
 
 ## Manuel sağlayıcı yapılandırması
 
@@ -45,6 +49,7 @@ Sadece `openai-completions` ve `openai-responses` için `/v1` son ekini kullanı
 ## Önkoşullar
 
 - Bir self-hosted OpenClaw örneği
+- OpenClaw **2026.9.4**, Node.js `>=24.16.0 <25 || >=26.1.0` gerektirir ([sürüm gereksinimleri](https://github.com/openclaw/openclaw/blob/v2026.9.4/package.json)). Diğer OpenClaw sürümleri için ilgili sürümün gereksinimlerini kontrol edin.
 - Bir TokenLab API Key — [Get one here](https://tokenlab.sh/dashboard/api?tab=keys)
 
 ## Yapılandırma
@@ -57,15 +62,10 @@ TokenLab sağlayıcılarını `models.providers` altında ekleyin:
 
 Çalışan Gateway ile aynı profil, `OPENCLAW_STATE_DIR` ve `OPENCLAW_CONFIG_PATH` değerlerini kullanıp ayarları yedekleyin. `TOKENLAB_API_KEY` değerini bu örneğin güvenilir genel `.env` dosyasına veya hizmet ortamına koyun. Terminal export veya proje `.env` dosyası arka plana ulaşmayabilir. [Ortam açıklamasına](https://docs.openclaw.ai/help/environment) bakın.
 
+Etkin yapılandırmayı yedekleyin. Yalnızca TokenLab girdisini ekleyip mevcut sağlayıcıları, hesapları, varsayılan modeli ve izinleri koruyun. Ad kullanımdaysa başka bir ad seçip komutları güncelleyin. Geri almak için yalnızca eklediğiniz girdiyi kaldırın veya önceki yedeğini yükleyin.
+
 ```json5
 {
-  agents: {
-    defaults: {
-      model: {
-        primary: "tokenlab-claude/claude-sonnet-5"
-      }
-    }
-  },
   models: {
     mode: "merge",
     providers: {
@@ -131,16 +131,11 @@ Yukarıdaki `models` dizileri sadece yaygın örnekleri gösterir. Gerektikçe h
 
 OpenClaw hâlâ modelleri `provider/model` formatıyla referans gösterir:
 
-```json5
-{
-  agents: {
-    defaults: {
-      model: {
-        primary: "tokenlab-gemini/gemini-3.5-flash"
-      }
-    }
-  }
-}
+**OpenClaw 2026.9.4** içinde `-s` ile modeli yalnızca mevcut oturum için seçin. `agents.defaults.model`, ajan varsayılanları ve izinleri koruyun. Oturumu yapılandırılmış varsayılana döndürmek için `/model default -s` kullanın.
+
+```text
+/model tokenlab-claude/claude-sonnet-5 -s
+/model default -s
 ```
 
 ### Model Örnekleri

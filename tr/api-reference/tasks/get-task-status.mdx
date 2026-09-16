@@ -18,6 +18,10 @@ Bir create yanıtı `poll_url` içeriyorsa, tam olarak o path'i çağırın. Dah
 
 ## Yanıt
 
+<Note>
+Sonuç, hata, zaman damgası ve model alanları görev için mevcut olduğunda döndürülür.
+</Note>
+
 <ResponseField name="id" type="string">
   Görev tanımlayıcısı.
 </ResponseField>
@@ -54,13 +58,33 @@ Bir create yanıtı `poll_url` içeriyorsa, tam olarak o path'i çağırın. Dah
   Görev tamamlandığında ve bir video ürettiğinde sonuç varlığının URL'si.
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="video" type="object">
+  Mevcutsa `url`, `duration`, `width` ve `height` içeren tek video nesnesi.
+</ResponseField>
+
+<ResponseField name="videos" type="array">
+  Üretim görevi birden fazla çıktı döndürdüğünde video dizisi görünebilir.
+</ResponseField>
+
+<ResponseField name="created" type="integer">
+  Oluşturulma zaman damgası.
+</ResponseField>
+
+<ResponseField name="updated" type="integer">
+  Son güncelleme zaman damgası.
+</ResponseField>
+
+<ResponseField name="model" type="string">
+  Görevde kullanılan model.
+</ResponseField>
+
+<ResponseField name="error" type="string | object">
   Görev başarısız olduğunda hata mesajı.
 </ResponseField>
 
 ## Hata Davranışı
 
-Görev artık mevcut değilse, süresi dolmuşsa veya genel görev kaydında artık bulunmuyorsa TokenLab şunu döndürür:
+Süresi dolmuş veya kullanılamayan bir görev `404 async_task_not_found` döndürebilir. Geçerli API anahtarının görev sahipliği doğrulanamazsa yanıt `403 task_not_owned` olur.
 
 ```json
 {

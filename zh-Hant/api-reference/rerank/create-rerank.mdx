@@ -8,10 +8,10 @@ description: "根據與查詢的相關性對文件進行重排"
 
 ## 請求主體
 
-**同步請求逾時：** 這個非聊天端點會等待路由到的模型完成處理。大型輸入、長音訊或大量批次可能超過常見的 30s 用戶端預設逾時，因此請將 HTTP 用戶端逾時設定為至少 `120s`。
+輸入較多時，請將 HTTP 用戶端逾時設為至少 `120s`；端點會在處理完成後回傳。
 
 <ParamField body="model" type="string" required>
-  要使用的重排模型 ID（例如：`qwen3-vl-rerank`、`qwen3-vl-rerank`）。
+  要使用的重排模型 ID（例如：`qwen3-vl-rerank`）。
 </ParamField>
 
 <ParamField body="query" type="string" required>
@@ -23,7 +23,7 @@ description: "根據與查詢的相關性對文件進行重排"
 </ParamField>
 
 <ParamField body="top_n" type="integer">
-  要返回的前幾個結果數量。預設為所有文件。必須至少為 `1`，且不能大於 `documents.length`。如果供應商日後公開更嚴格的限制，TokenLab 會在這裡文件化並執行。
+  回傳的前幾個結果數量，範圍為 `1` 到 `documents.length`。省略時由所選模型決定回傳數量。
 </ParamField>
 
 <ParamField body="return_documents" type="boolean" default="false">
@@ -37,16 +37,16 @@ description: "根據與查詢的相關性對文件進行重排"
 
   每個結果包含：
   - `index` (integer)：原始文件索引
-  - `relevance_score` (number)：相關性評分 (0-1)
+  - `relevance_score` (number): 相關性評分，範圍取決於所選模型。
   - `document` (string)：原始文本（若 `return_documents=true`）
 </ResponseField>
 
 <ResponseField name="model" type="string">
-  用於重排的模型。
+  用於重排的模型。 可用時回傳。
 </ResponseField>
 
 <ResponseField name="usage" type="object">
-  Token 使用量統計。
+  Token 使用量統計。 可用時回傳。
 </ResponseField>
 
 <RequestExample>

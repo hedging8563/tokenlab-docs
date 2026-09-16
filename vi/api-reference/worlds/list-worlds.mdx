@@ -19,7 +19,7 @@ Dùng `/v1/worlds/generations/{id}` cho các tác vụ đang chờ hoặc thất
 </ParamField>
 
 <ParamField body="status" type="string">
-  Bộ lọc trạng thái tùy chọn. TokenLab trả world hoàn tất cho `SUCCEEDED`; trạng thái khác thuộc endpoint tác vụ tạo.
+  Bộ lọc tùy chọn: `SUCCEEDED`, `PENDING`, `RUNNING` hoặc `FAILED`. Endpoint này liệt kê world đã hoàn tất; ba giá trị còn lại trả về danh sách rỗng. Truy vấn tác vụ tạo để xem tiến độ.
 </ParamField>
 
 <ParamField body="model" type="string">
@@ -56,7 +56,7 @@ Dùng `/v1/worlds/generations/{id}` cho các tác vụ đang chờ hoặc thất
   Mảng bản ghi world.
 </ResponseField>
 
-<ResponseField name="next_page_token" type="string">
+<ResponseField name="next_page_token" type="string | null">
   Token trang tiếp theo hoặc `null`.
 </ResponseField>
 

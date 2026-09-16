@@ -6,12 +6,12 @@ description: "입력 텍스트로부터 오디오를 생성합니다"
 
 ## 요청 본문
 
-**동기 요청 타임아웃:** 이 비채팅 엔드포인트는 라우팅된 모델이 완료될 때까지 기다립니다. 큰 입력, 긴 오디오, 큰 배치는 일반적인 30s 클라이언트 기본값을 초과할 수 있으므로 HTTP 클라이언트 타임아웃을 최소 `120s` 로 설정하세요.
+응답 방식은 선택한 모델과 `stream_format`에 따라 달라집니다. 입력이 길면 HTTP 클라이언트 제한 시간을 최소 `120s`로 설정하세요.
 
-지원되는 선택 필드는 모델 패밀리별로 다릅니다. TokenLab은 라우팅 전에 이 필드 매트릭스를 검증합니다. OpenAI TTS는 `voice`, `instructions`, `response_format`, `stream_format`, `speed`를 허용합니다. MiniMax speech는 `voice`, `voice_id`, `response_format`, `stream_format`, `speed`를 허용합니다. Gemini TTS는 `prompt`, `language_code`, `voice`, `response_format`, `stream_format`, `speed`, `temperature`를 허용합니다. 더 좁은 Vidu/Kling 계열 TTS 라우트는 `input`과 `stream_format`만 허용할 수 있습니다. `user`를 포함한 알 수 없는 최상위 필드는 무시되지 않고 `400 unsupported_parameter`를 반환합니다.
+선택 필드, 음성, 출력 형식 및 SSE 지원은 모델마다 다릅니다. 전송 전에 `GET /v1/models/{model}`을 확인하세요. 지원하지 않는 매개변수는 `400 unsupported_parameter`를 반환할 수 있습니다.
 
 <ParamField body="model" type="string" default="tts-1">
-  TTS 모델입니다. 예시는 `tts-1`, `gpt-4o-mini-tts`, `speech-02-hd`, `gemini-2.5-flash-tts`입니다. 현재 후보는 `GET /v1/models?recommended_for=tts`로 확인하세요.
+  TTS 모델 ID입니다. `GET /v1/models?recommended_for=tts`에서 현재 모델을 확인하세요.
 </ParamField>
 
 <ParamField body="input" type="string" required>
@@ -23,7 +23,7 @@ description: "입력 텍스트로부터 오디오를 생성합니다"
 </ParamField>
 
 <ParamField body="voice_id" type="string">
-  MiniMax 호환 speech 모델의 provider-native 음성 선택자입니다.
+  호환 MiniMax 음성 모델 등 이 매개변수를 지원하는 모델의 음성 ID입니다.
 </ParamField>
 
 <ParamField body="instructions" type="string">
@@ -56,7 +56,7 @@ description: "입력 텍스트로부터 오디오를 생성합니다"
 
 ## 응답
 
-요청한 형식의 오디오 파일을 반환합니다.
+`stream_format=audio`는 오디오 바이트를 반환합니다. `stream_format=sse`를 지원하는 모델은 `text/event-stream`을 반환하므로 전체 응답을 오디오 파일로 저장하지 말고 이벤트를 파싱하세요.
 
 <RequestExample>
 ```bash cURL
@@ -134,6 +134,8 @@ file_put_contents('speech.mp3', $audio);
 
 ## 음성 샘플
 
+사용 가능한 음성은 모델마다 다릅니다. 다음 이름은 예시이며 모든 TTS 모델이 공유하는 목록이 아닙니다.
+
 | 음성 | 설명 |
 |-------|-------------|
 | `alloy` | 중립적이고 균형 잡힘 |
@@ -158,5 +160,9 @@ file_put_contents('speech.mp3', $audio);
 
 ## 중요 필드
 
-<ResponseField name="Content-Type" type="string">API가 반환하는 event 또는 message type입니다.</ResponseField>
-<ResponseField name="body" type="binary">원본 response body입니다. JSON으로 파싱하지 말고 그대로 저장하세요.</ResponseField>
+<ResponseField name="Content-Type" type="string">
+  HTTP 응답의 미디어 유형입니다. 오디오 형식 또는 SSE의 `text/event-stream`입니다.
+</ResponseField>
+<ResponseField name="body" type="binary | SSE">
+  `audio`는 오디오 바이트, `sse`는 이벤트 스트림입니다. `Content-Type`과 요청 모드에 맞게 처리하세요.
+</ResponseField>

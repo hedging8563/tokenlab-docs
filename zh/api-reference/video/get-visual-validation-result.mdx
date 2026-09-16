@@ -6,6 +6,8 @@ description: "获取视觉验证生成的真人素材组。"
 
 H5 验证完成后，通过此 Action 获取对应的 TokenLab 素材组 ID。
 
+查询时须使用创建会话的同一组织、用户，以及相同且区分大小写的 `ProjectName`。
+
 ## 接口与认证
 
 ```text
@@ -16,7 +18,7 @@ Content-Type: application/json
 
 发送 [创建视觉验证会话](/zh/api-reference/video/create-visual-validation-session) 返回的 `BytedToken`。如果创建时设置了 `ProjectName`，此处必须发送相同且区分大小写的值；否则可省略或使用 `default`。
 
-浏览器回调后，结果可能还需要几秒钟才会就绪。重复请求直到返回 `Result.GroupId`；`BytedToken` 的有效期为 30 分钟。同一 token 会返回同一个 `GroupId`。
+浏览器回调后，结果可能尚未就绪。重复请求直到返回 `Result.GroupId`；`BytedToken` 的有效期为 30 分钟。同一 token 会返回同一个 `GroupId`。
 
 创建 `liveness_face` 素材时，将返回的 `GroupId` 作为 `group_id`。
 

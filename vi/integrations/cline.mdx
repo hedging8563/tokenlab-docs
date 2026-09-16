@@ -17,6 +17,8 @@ description: "Cấu hình Cline để dùng mô hình TokenLab"
 
 ## Cấu hình TokenLab
 
+Lưu cục bộ nhà cung cấp, mô hình và cấu hình kết nối hiện tại trước khi sửa. Các tùy chọn này đổi mô hình đang dùng; khôi phục giá trị cũ khi hoàn tất. Giữ nguyên tài khoản đã đăng nhập và quyền công cụ. Không ghi đè kết nối tương thích OpenAI khác khi chưa có bản sao lưu có thể khôi phục.
+
 1. Cài **Cline** từ kho tiện ích và mở bảng Cline.
 2. Nhấp biểu tượng bánh răng và chọn **OpenAI Compatible** trong **API Provider**.
 3. Nhập:
@@ -29,6 +31,6 @@ description: "Cấu hình Cline để dùng mô hình TokenLab"
 
 4. Nhấp **Verify**.
 
-Trong cấu hình nâng cao tùy chọn, đặt giới hạn đầu vào `1048576`, đầu ra tối đa `131072`, đồng thời bật hình ảnh và công cụ / Computer Use.
-
 Sau khi xác minh, bắt đầu với tác vụ chỉ đọc. Nếu gặp 404, kiểm tra Base URL kết thúc bằng `/v1` và không chứa `/chat/completions`. ID là `kimi-k3`, không phải `kimi/kimi-k3`.
+
+Lưu thiết lập hoặc liệt kê mô hình không xác nhận khóa hợp lệ hay yêu cầu đã hoàn tất. Prompt dùng số dư TokenLab. Kiểm tra phản hồi và [bản ghi tương ứng](https://tokenlab.sh/dashboard/runs?section=requests) trước khi thử công cụ; yêu cầu phụ cũng có thể được tính phí.

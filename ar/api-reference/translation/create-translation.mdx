@@ -9,20 +9,19 @@ description: "يترجم النص إلى لغة هدف"
 استخدم `/v1/translations` لـ **الترجمة النصية إلى نصية**.
 
 <Note>
-هذا الـ endpoint يختلف عن [ترجمة الصوت](/api-reference/audio/create-translation)، الذي يقبل ملفًا صوتيًا ويُخرج دائمًا نصًا بالإنجليزية.
+هذا الـ endpoint يختلف عن [ترجمة الصوت](/ar/api-reference/audio/create-translation)، الذي يقبل ملفًا صوتيًا ويُخرج دائمًا نصًا بالإنجليزية.
 </Note>
 
 لـ workflows الخاصة بالوكلاء، اكتشف أولًا نماذج الترجمة الموصى بها حاليًا:
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=translation" \
-  -H "Authorization: Bearer sk-your-api-key"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=translation"
 ```
 
 ثم أرسل النموذج المختار صراحةً إلى `/v1/translations`.
 
 <Note>
-ينطبق `recommended_for=translation` فقط على **ترجمة النص** (`POST /v1/translations`). ولا ينطبق على [ترجمة الصوت](/api-reference/audio/create-translation).
+ينطبق `recommended_for=translation` فقط على **ترجمة النص** (`POST /v1/translations`). ولا ينطبق على [ترجمة الصوت](/ar/api-reference/audio/create-translation).
 </Note>
 
 ## جسم الطلب
@@ -82,13 +81,7 @@ curl -X POST "https://api.tokenlab.sh/v1/translations" \
 ```
 
 ```python Python
-from openai import OpenAI
 import requests
-
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
 
 response = requests.post(
     "https://api.tokenlab.sh/v1/translations",

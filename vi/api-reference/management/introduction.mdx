@@ -50,10 +50,11 @@ Nếu truyền cả `startDate` và `endDate`, thì `startDate` phải nhỏ hơ
 
 | Trường | Kiểu | Mặc định / Giới hạn | Ghi chú |
 |--------|------|---------------------|--------|
-| `name` | string | bắt buộc, mặc định `Default Key`, độ dài `1-50` | Tên hiển thị, máy chủ sẽ loại bỏ khoảng trắng ở đầu và cuối |
-| `limitAmount` | number \| null | tối thiểu `0`, tối đa `100000` | `null` hoặc bỏ qua = không giới hạn, `0` = quota bằng 0, giá trị dương = trần chi tiêu USD |
+| `name` | string | tùy chọn, mặc định `Default Key`, độ dài `1-50` | Tên hiển thị, máy chủ sẽ loại bỏ khoảng trắng ở đầu và cuối |
+| `limitAmount` | number \| string \| null | `0–100000` USD | `null` nghĩa là không giới hạn; `0` ngăn phát sinh chi phí. Chuỗi thập phân hỗ trợ tối đa 6 chữ số sau dấu thập phân. Khi tạo khóa, bỏ qua trường này nghĩa là không giới hạn. |
 | `limitCurrency` | enum | mặc định `USD` | Chỉ hỗ trợ USD. Gửi `CNY` sẽ trả về `400 currency_retired`. |
 | `models` | string[] | mặc định `[]` | Danh sách cho phép model tùy chọn |
+| `deliveryPolicy` | string \| null | `auto`, `verified`, `official`, `null` | `null` kế thừa chính sách cung cấp của không gian làm việc. |
 | `expiresAt` | string \| null | datetime RFC3339 | `null` nghĩa là không hết hạn |
 
 ### PATCH /v1/management/api-keys/{keyId}
@@ -62,9 +63,10 @@ Nếu truyền cả `startDate` và `endDate`, thì `startDate` phải nhỏ hơ
 |--------|------|---------------------|--------|
 | `status` | enum | - | `active`, `inactive`, `revoked` |
 | `name` | string | độ dài `1-50` | Tên hiển thị đã cập nhật |
-| `limitAmount` | number \| null | tối thiểu `0`, input tối đa `1000000` | `null` = không giới hạn, `0` = quota bằng 0. Giá trị dương được chuẩn hoá thành trần lưu trữ không vượt quá tương đương `100000` USD |
-| `limitCurrency` | enum | mặc định `USD` | Chỉ hỗ trợ USD. Gửi `CNY` sẽ trả về `400 currency_retired`. |
+| `limitAmount` | number \| string \| null | `0–100000` USD | `null` nghĩa là không giới hạn; `0` ngăn phát sinh chi phí. Chuỗi thập phân hỗ trợ tối đa 6 chữ số sau dấu thập phân. |
+| `limitCurrency` | enum | mặc định `USD` | Chỉ hỗ trợ USD. Gửi `CNY` sẽ trả về `400 currency_retired`. Khi được chỉ định, phải có cả `limitAmount`. |
 | `models` | string[] | - | Danh sách cho phép model đã cập nhật |
+| `deliveryPolicy` | string \| null | `auto`, `verified`, `official`, `null` | `null` kế thừa chính sách cung cấp của không gian làm việc. |
 | `expiresAt` | string \| null | datetime RFC3339 | `null` sẽ xoá thời hạn hết hạn |
 
 PATCH phải có ít nhất một trường.
@@ -121,10 +123,14 @@ curl "https://api.tokenlab.sh/v1/management/api-keys" \
       "limit_amount_decimal": "500",
       "used_amount": 148.25,
       "used_amount_decimal": "148.25",
-      "models": ["gpt-4o-mini", "claude-3-7-sonnet"],
+      "models": [
+        "gpt-4o-mini",
+        "claude-3-7-sonnet"
+      ],
       "expires_at": "2026-04-30T00:00:00.000Z",
       "last_used_at": "2026-03-27T08:12:45.000Z",
-      "created_at": "2026-03-01T10:00:00.000Z"
+      "created_at": "2026-03-01T10:00:00.000Z",
+      "delivery_policy": null
     }
   ],
   "pagination": {

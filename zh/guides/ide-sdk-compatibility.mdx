@@ -7,46 +7,45 @@ description: "找到编程工具、聊天应用、SDK 和框架对应的 TokenLa
 
 | API 格式 | Base URL | 常见客户端 |
 | --- | --- | --- |
-| OpenAI 兼容 Chat Completions | `https://api.tokenlab.sh/v1` | OpenAI SDK、许多聊天应用和框架 |
+| Chat Completions (OpenAI 兼容) | `https://api.tokenlab.sh/v1` | OpenAI SDK、许多聊天应用和框架 |
 | OpenAI Responses | `https://api.tokenlab.sh/v1` | Responses 客户端和依赖 Responses 事件的工具 |
 | Anthropic Messages | `https://api.tokenlab.sh` | Anthropic SDK 和 Claude 工具 |
 | Gemini | `https://api.tokenlab.sh` | 允许自定义地址的 Gemini REST 或 SDK 客户端 |
 
-所选模型的 `accepted_request_formats` 必须包含同一种格式。配置示例见[选择 API 格式](/zh/guides/api-formats)。
+所选模型的 `accepted_request_formats` 必须包含同一种格式。流式输出和工具调用还取决于模型能力与客户端支持。配置示例见[选择 API 格式](/zh/guides/api-formats)。
 
 ## 状态说明
 
 | 状态 | 含义 |
 | --- | --- |
-| **可用** | 仓库中的配置与该工具公开的自定义服务设置一致 |
-| **有部分限制** | 基本模型请求可用，但工具自营或厂商专属功能仍由原服务提供 |
-| **实验性** | 依赖未正式承诺或经常变化的自定义地址设置，工具升级后可能失效 |
+| **可用** | 链接页面中的 TokenLab 配置使用客户端公开支持的设置选项 |
+| **有部分限制** | 配置适用于特定功能或认证方式；厂商其他服务仍有各自的使用要求 |
 
-这里描述的是文档中的连接方式，不代表第三方产品的每个插件和功能都经过验证。
+这些状态描述链接页面中的配置方式。具体功能是否可用，还取决于所选模型和客户端版本。
 
 ## 编程工具
 
 | 工具 | 状态 | API 格式 | 说明 |
 | --- | --- | --- | --- |
 | [Claude Code](/zh/integrations/claude-code) | 可用 | Anthropic Messages | 使用 `ANTHROPIC_BASE_URL` 和 TokenLab API 密钥 |
-| [Codex CLI](/zh/integrations/codex-cli) | 有部分限制 | Responses | Responses 专属功能取决于所选模型 |
-| [Cursor](/zh/integrations/cursor) | 有部分限制 | OpenAI 兼容 | 只适用于 Cursor 中允许自定义 API 密钥和地址的功能 |
-| [Cline](/zh/integrations/cline) | 可用 | OpenAI 兼容 | 把 TokenLab 添加为自定义 OpenAI 兼容服务 |
+| [Codex CLI](/zh/integrations/codex-cli) | 有部分限制 | Responses | 使用 Responses；可用功能取决于所选模型 |
+| [Cursor](/zh/integrations/cursor) | 有部分限制 | OpenAI 兼容 | 适用于 Cursor 中允许自定义 API 密钥和地址的功能 |
+| [Cline](/zh/integrations/cline) | 可用 | OpenAI 兼容 | 选择 **OpenAI Compatible**，填写 Base URL 和模型 ID |
 | [Kilo Code](/zh/integrations/kilo-code) | 可用 | OpenAI 兼容 | 配置自定义服务和模型 ID |
-| [OpenCode](/zh/integrations/opencode) | 可用 | OpenAI 兼容 | 添加 OpenAI 兼容服务 |
-| [OpenHands](/zh/integrations/openhands) | 可用 | OpenAI 兼容 | 使用自定义 LLM 设置 |
-| [Gemini CLI](/zh/integrations/gemini-cli) | 实验性 | Gemini | Google 没有把自定义 TokenLab 地址列为稳定集成 |
+| [OpenCode](/zh/integrations/opencode) | 可用 | OpenAI 兼容 | 通过 `OPENCODE_CONFIG` 加载独立的服务配置 |
+| [OpenHands](/zh/integrations/openhands) | 可用 | OpenAI 兼容 | LiteLLM 版界面：**Advanced → Custom Model**（`openai/` 前缀）和 **Base URL** |
+| [Gemini CLI](/zh/integrations/gemini-cli) | 有部分限制 | Gemini | 以 API 密钥认证使用 `GOOGLE_GEMINI_BASE_URL`；独立的 `GEMINI_CLI_HOME` 保留原有配置 |
 
 ## 聊天应用
 
 | 应用 | 状态 | 说明 |
 | --- | --- | --- |
-| [Chatbox](/zh/integrations/chatbox) | 可用 | 添加 OpenAI 兼容服务 |
-| [Cherry Studio](/zh/integrations/cherry-studio) | 可用 | 在自定义模型设置中添加 TokenLab |
-| [DeepChat](/zh/integrations/deepchat) | 可用 | 使用 OpenAI 兼容客户端配置 |
+| [Chatbox](/zh/integrations/chatbox) | 可用 | 添加 **OpenAI API Compatible** 服务 |
+| [Cherry Studio](/zh/integrations/cherry-studio) | 可用 | 添加服务并完成 **Verify and Enable** |
+| [DeepChat](/zh/integrations/deepchat) | 可用 | 选择 **OpenAI Completions** 以使用 Chat Completions |
 | [Jan](/zh/integrations/jan) | 可用 | 添加 OpenAI 兼容服务 |
 | [LibreChat](/zh/integrations/librechat) | 可用 | 配置自定义 OpenAI 兼容地址 |
-| [Open WebUI](/zh/integrations/open-webui) | 可用 | 添加 OpenAI 兼容连接 |
+| [Open WebUI](/zh/integrations/open-webui) | 可用 | 添加 OpenAI 兼容连接，API Type 选择 **Chat** |
 
 ## SDK 与框架
 
@@ -57,12 +56,12 @@ description: "找到编程工具、聊天应用、SDK 和框架对应的 TokenLa
 | [Vercel AI SDK](/zh/integrations/vercel-ai-sdk) | 可用 | 创建自定义 OpenAI 兼容服务 |
 | [LangChain](/zh/integrations/langchain) | 可用 | 为 `ChatOpenAI` 或 `OpenAIEmbeddings` 配置 TokenLab 地址 |
 | [LlamaIndex](/zh/integrations/llamaindex) | 可用 | 使用 OpenAI 兼容客户端选项 |
-| [OpenAI Agents SDK](/zh/integrations/openai-agents-sdk) | 有部分限制 | 模型没有明确支持 Responses 时，请使用 Chat Completions |
+| [OpenAI Agents SDK](/zh/integrations/openai-agents-sdk) | 有部分限制 | 指南使用 `OpenAIChatCompletionsModel`；使用 Responses 前确认模型与 SDK 的功能支持 |
 | [AutoGen](/zh/integrations/autogen) | 可用 | 使用 OpenAI 兼容模型客户端 |
 | [CrewAI](/zh/integrations/crewai) | 可用 | 配置 OpenAI 兼容 LLM 客户端 |
 | [PydanticAI](/zh/integrations/pydantic-ai) | 可用 | 提供 OpenAI 兼容服务配置 |
 
-其他框架、监控工具、网关和评测产品可在 Integrations 分类中找到。
+其他框架、监控工具、网关和评测产品可在 Integrations 导航中找到。
 
 ## 流式响应中的用量
 

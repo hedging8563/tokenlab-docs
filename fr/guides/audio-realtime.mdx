@@ -28,7 +28,7 @@ curl "https://api.tokenlab.sh/v1/models?recommended_for=stt" \
 
 ## Requêtes Audio Synchrones
 
-Les requêtes de parole, transcription et traduction répondent directement dans la requête HTTP. Les entrées volumineuses peuvent dépasser les timeouts habituels des clients, donc définissez un timeout généreux et stockez les request IDs pour le support.
+La synthèse vocale renvoie l’audio dans la réponse HTTP. La transcription et la traduction peuvent renvoyer du texte final ou une tâche acceptée. Si la réponse contient un identifiant et un statut de tâche, conservez l’identifiant et interrogez `poll_url` jusqu’à la fin ou l’échec. Prévoyez un délai suffisant pour les gros fichiers et gardez le Request ID.
 
 ```bash
 curl -X POST "https://api.tokenlab.sh/v1/audio/speech" \
@@ -48,14 +48,27 @@ Ouvrez un WebSocket avec le modèle dans la query string et la clé API dans l�
 
 Ce guide couvre uniquement le WebSocket subset. TokenLab ne fournit pas actuellement les endpoints REST OpenAI Realtime pour client secret, translation client secret, Calls ou gestion legacy beta session.
 
+Pour cet exemple serveur, installez `ws` et définissez `TOKENLAB_REALTIME_MODEL` sur un modèle actuel dont les détails déclarent `/v1/realtime`. Fournissez `TOKENLAB_API_KEY` dans l’environnement serveur ; le nom seul ne prouve pas la compatibilité realtime.
+
+```bash
+npm install ws
+```
+
 ```javascript
 import WebSocket from 'ws';
 
-const socket = new WebSocket('wss://api.tokenlab.sh/v1/realtime?model=gpt-realtime', {
-  headers: { Authorization: 'Bearer sk-your-api-key' }
-});
+const model = process.env.TOKENLAB_REALTIME_MODEL;
+const apiKey = process.env.TOKENLAB_API_KEY;
+if (!model || !apiKey) throw new Error('Set TOKENLAB_REALTIME_MODEL and TOKENLAB_API_KEY');
 
+const url = new URL('wss://api.tokenlab.sh/v1/realtime');
+url.searchParams.set('model', model);
+const socket = new WebSocket(url, {
+  headers: { Authorization: `Bearer ${apiKey}` },
+});
 socket.on('message', (event) => console.log(event.toString()));
+socket.on('error', (error) => console.error(error.message));
+process.once('SIGINT', () => socket.close(1000, 'Client stopped'));
 ```
 
 ## Gestion D’état

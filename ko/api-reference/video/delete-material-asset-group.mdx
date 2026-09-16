@@ -8,10 +8,12 @@ description: "현재 조직이 소유한 Seedance 머티리얼 그룹을 삭제�
 
 현재 권한 상태로 인해 TokenLab 머티리얼 라이브러리가 삭제를 완료할 수 없는 경우, TokenLab은 중립적인 머티리얼 라이브러리 오류를 반환합니다. 삭제 후에는 해당 그룹과 에셋을 비디오 생성에 더 이상 사용할 수 없습니다.
 
+`project_name`은 인증된 조직 내 리소스를 분리합니다. 기본값은 `default`이며 관련 그룹과 소재에는 대소문자를 구분하는 동일한 값을 사용하세요. POST/PUT은 JSON 본문에, GET/DELETE는 쿼리 매개변수에 지정합니다.
+
 ## 요청 예시
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01 \
+curl "https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01?project_name=default" \
   -X DELETE \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```

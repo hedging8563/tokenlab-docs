@@ -19,7 +19,7 @@ description: "列出透過 TokenLab 建立的已完成 World Labs Marble 世界"
 </ParamField>
 
 <ParamField body="status" type="string">
-  可選狀態篩選。TokenLab 對 `SUCCEEDED` 返回已完成 worlds；其他狀態屬於生成任務端點。
+  可選值為 `SUCCEEDED`、`PENDING`、`RUNNING` 或 `FAILED`。此端點列出已完成的 World，後三種值回傳空列表；進度請查詢生成任務端點。
 </ParamField>
 
 <ParamField body="model" type="string">
@@ -56,7 +56,7 @@ description: "列出透過 TokenLab 建立的已完成 World Labs Marble 世界"
   World 記錄陣列。
 </ResponseField>
 
-<ResponseField name="next_page_token" type="string">
+<ResponseField name="next_page_token" type="string | null">
   下一頁 token，或 `null`。
 </ResponseField>
 

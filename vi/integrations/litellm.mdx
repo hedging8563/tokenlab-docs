@@ -32,11 +32,17 @@ pip install 'litellm[proxy]'
 
 ## Cấu hình proxy
 
-```yaml
+```yaml litellm-config.yaml
 model_list:
   - model_name: tokenlab-gpt-5.4
     litellm_params:
       model: custom_openai/gpt-5.4
+      api_base: https://api.tokenlab.sh/v1
+      api_key: os.environ/OPENAI_API_KEY
+
+  - model_name: tokenlab-claude-sonnet
+    litellm_params:
+      model: custom_openai/claude-sonnet-4-6
       api_base: https://api.tokenlab.sh/v1
       api_key: os.environ/OPENAI_API_KEY
 ```
@@ -46,6 +52,37 @@ Khởi động:
 ```bash
 export OPENAI_API_KEY="sk-your-tokenlab-key"
 litellm --config litellm-config.yaml --port 4000
+```
+
+## Gọi qua OpenAI SDK
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="anything",
+    base_url="http://127.0.0.1:4000"
+)
+
+response = client.chat.completions.create(
+    model="tokenlab-gpt-5.4",
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+
+print(response.choices[0].message.content)
+```
+
+## Gọi trực tiếp bằng Python
+
+```python
+import litellm
+
+response = litellm.completion(
+    model="custom_openai/gpt-5.4",
+    api_base="https://api.tokenlab.sh/v1",
+    api_key="sk-your-tokenlab-key",
+    messages=[{"role": "user", "content": "Summarize this repo."}]
+)
 ```
 
 ## Thực tiễn tốt nhất

@@ -1,295 +1,47 @@
 ---
-title: "أفضل الممارسات"
-description: "حسّن استخدامك لـ TokenLab API من حيث التكلفة والأداء والموثوقية"
+title: "تكامل موثوق مع TokenLab"
+description: "تكامل موثوق مع TokenLab"
 ---
 
-## اختيار النموذج
+## النماذج والتكلفة
 
-يمكن أن يؤثر اختيار النموذج المناسب بشكل كبير على التكلفة والجودة.
+تحقق من القدرات والأسعار الحالية عبر API النماذج أو صفحة النموذج. قارن مهام متماثلة وحدد النموذج في كل طلب. لا تبدله دون إعلام المستخدم، لأن السعر والجودة والأدوات والسياق قد تتغير.
 
-### توصيات حسب المهمة
+حدد سقف الإخراج وفق التنسيق والنموذج وقلل السياق المكرر. قد تعتمد تكلفة الوسائط على العدد أو المدة أو الدقة؛ اعرض التقدير المتاح قبل تأكيد إنشاء مرتفع التكلفة.
 
-| المهمة | النماذج الموصى بها | السبب |
-|------|-------------------|-----------|
-| **أسئلة وأجوبة بسيطة** | `gpt-5-mini`, `gemini-3.5-flash` | سريع، منخفض التكلفة، وكافٍ |
-| **استدلال معقد** | `gpt-5.4`, `claude-opus-4-6` | منطق وتخطيط أفضل |
-| **البرمجة** | `claude-sonnet-4-6`, `gpt-4o`, `deepseek-v3-2` | مُحسّن للكود |
-| **الكتابة الإبداعية** | `claude-sonnet-4-6`, `gpt-4o` | جودة نثر أفضل |
-| **الرؤية/الصور** | `gpt-4o`, `claude-sonnet-4-6`, `gemini-3.5-flash` | دعم رؤية أصلي |
-| **سياق طويل** | `gemini-2.5-pro`, `claude-sonnet-4-6` | نوافذ token تتجاوز 1M |
-| **حساسية للتكلفة** | `gpt-5-mini`, `gemini-3.5-flash`, `deepseek-v3-2` | أفضل قيمة |
+## البث وإعادة المحاولة
 
-### مستويات التكلفة
+يُظهر البث النص مبكرًا لكنه لا يخفض تكلفة الرموز. احتفظ بالإخراج الجزئي المفيد عند الانقطاع دون اعتباره إجابة مكتملة.
 
-```
-$$$$ Premium: gpt-5.4, claude-opus-4-6
-$$$  Standard: claude-sonnet-4-6, gpt-4o
-$$   Budget:   gpt-5-mini, gemini-3.5-flash
-$    Economy:  deepseek-v3-2
-```
+عند 429 انتظر وفق `Retry-After` أو `retry_after`، واستخدم تراجعًا قصيرًا لأخطاء 5xx المؤقتة. أخطاء المصادقة والصلاحيات والرصيد والتحقق والسياق تحتاج إلى تصحيح. حدد عدد المحاولات والوقت الإجمالي ولا تضاعف إعادة المحاولة المدمجة في SDK.
 
-## تحسين التكلفة
+- [البث](/ar/guides/streaming)
+- [429 / Retry-After](/ar/guides/rate-limits)
 
-### 1. استخدم النماذج الأصغر أولاً
+## المفاتيح والسجلات
+
+احفظ المفاتيح على الخادم أو في مدير أسرار، لا في المتصفح أو حزمة التطبيق أو المستودعات العامة أو السجلات. افصل مفاتيح التطوير والإنتاج والتطبيقات وحدد النماذج والإنفاق، وألغِ المفاتيح المكشوفة فورًا.
 
 ```python
-def smart_query(question: str, complexity: str = "auto"):
-    """Use cheaper models for simple tasks."""
-
-    if complexity == "simple":
-        model = "gpt-5.6-luna"
-    elif complexity == "complex":
-        model = "gpt-5.6-terra"
-    else:
-        # Start cheap, escalate if needed
-        model = "gpt-5.6-luna"
-
-    response = client.chat.completions.create(
-        model=model,
-        messages=[{"role": "user", "content": question}]
-    )
-    return response
-```
-
-### 2. قم بتعيين `max_tokens`
-
-اضبط دائماً حدًا مناسبًا لـ `max_tokens`:
-
-```python
-# ❌ Bad: No limit, could generate thousands of tokens
-response = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": "Summarize this article"}]
-)
-
-# ✅ Good: Limit response length
-response = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": "Summarize this article"}],
-    max_tokens=500  # Reasonable limit for a summary
-)
-```
-
-### 3. حسّن الـ Prompts
-
-```python
-# ❌ Verbose prompt (more input tokens)
-prompt = """
-I would like you to please help me by analyzing the following text
-and providing a comprehensive summary of the main points. Please be
-thorough but also concise in your response. The text is as follows:
-{text}
-"""
-
-# ✅ Concise prompt (fewer tokens)
-prompt = "Summarize the key points:\n{text}"
-```
-
-### 4. اجمع الطلبات المتشابهة على دفعات
-
-```python
-# ❌ Many small requests
-for question in questions:
-    response = client.chat.completions.create(
-        model="gpt-5.6-terra",
-        messages=[{"role": "user", "content": question}]
-    )
-
-# ✅ Fewer larger requests
-combined_prompt = "\n".join([f"{i+1}. {q}" for i, q in enumerate(questions)])
-response = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": f"Answer each question:\n{combined_prompt}"}]
-)
-```
-
-## تحسين الأداء
-
-### 5. استخدم Streaming لتحسين تجربة المستخدم
-
-يؤدي Streaming إلى تحسين الأداء المُدرَك:
-
-```python
-stream = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": "Write a long essay"}],
-    stream=True
-)
-
-for chunk in stream:
-    if chunk.choices[0].delta.content:
-        print(chunk.choices[0].delta.content, end="", flush=True)
-```
-
-### 6. اختر النماذج السريعة للاستخدام التفاعلي
-
-| حالة الاستخدام | الموصى به | زمن الاستجابة |
-|----------|-------------|---------|
-| واجهة محادثة | `gpt-5-mini`, `gemini-3.5-flash` | ~200ms لأول token |
-| الإكمال عبر Tab | `claude-haiku-4-5` | ~150ms لأول token |
-| المعالجة في الخلفية | `gpt-4o`, `claude-sonnet-4-6` | ~500ms لأول token |
-
-### 7. قم بتعيين المهلات الزمنية
-
-```python
-client = OpenAI(
-    api_key="sk-your-key",
-    base_url="https://api.tokenlab.sh/v1",
-    timeout=60.0  # 60 second timeout
-)
-```
-
-## الموثوقية
-
-### 8. نفّذ إعادة المحاولة
-
-```python
-import time
-from openai import RateLimitError, APIError
-
-def chat_with_retry(messages, max_retries=3):
-    for attempt in range(max_retries):
-        try:
-            return client.chat.completions.create(
-                model="gpt-5.6-terra",
-                messages=messages
-            )
-        except RateLimitError:
-            wait = 2 ** attempt
-            print(f"Rate limited, waiting {wait}s...")
-            time.sleep(wait)
-        except APIError as e:
-            if attempt == max_retries - 1:
-                raise
-            time.sleep(1)
-    raise Exception("Max retries exceeded")
-```
-
-### 9. تعامل مع الأخطاء بسلاسة
-
-```python
-from openai import APIError, AuthenticationError, RateLimitError
-
-try:
-    response = client.chat.completions.create(...)
-except AuthenticationError:
-    # Check API key
-    notify_admin("Invalid API key")
-except RateLimitError:
-    # Queue for later or use backup
-    add_to_queue(request)
-except APIError as e:
-    if e.status_code == 402:
-        notify_admin("Balance low")
-    elif e.status_code >= 500:
-        # Server error, retry later
-        schedule_retry(request)
-```
-
-### 10. استخدم نماذج احتياطية
-
-```python
-FALLBACK_CHAIN = ["gpt-5.6-terra", "claude-sonnet-5", "gemini-3.5-flash"]
-
-def chat_with_fallback(messages):
-    for model in FALLBACK_CHAIN:
-        try:
-            return client.chat.completions.create(
-                model=model,
-                messages=messages
-            )
-        except APIError:
-            continue
-    raise Exception("All models failed")
-```
-
-## الأمان
-
-### 11. احمِ مفاتيح API
-
-```python
-# ❌ Never hardcode keys
-client = OpenAI(api_key="sk-abc123...")
-
-# ✅ Use environment variables
 import os
-client = OpenAI(api_key=os.environ["TOKENLAB_API_KEY"])
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh/v1",
+    timeout=30.0,
+    max_retries=0,
+)
 ```
 
-### 12. تحقّق من صحة إدخال المستخدم
+سجل `request_id` و`task_id` و`billing_transaction_id` المعاد والنموذج ونقطة النهاية ومعرف مهمتك. لا تسجل بيانات الاعتماد أو المطالبات الخاصة الكاملة أو الوسائط أو الروابط الموقعة. راجع Usage أو API الإدارة للمبلغ النهائي.
 
-```python
-def validate_message(content: str) -> bool:
-    """Validate user input before sending to API."""
-    if len(content) > 100000:
-        raise ValueError("Message too long")
-    # Add other validation as needed
-    return True
-```
+## المهام غير المتزامنة
 
-### 13. قم بتعيين حدود لمفاتيح API
+احفظ معرف المهمة و`poll_url` بعد الإنشاء غير المتزامن واستعلم حتى `completed` أو `failed`. فشل الاستعلام لا يعني فشل الإنشاء. بعد انتهاء المهلة أو التحديث، استأنف المهمة المحفوظة؛ استخدم مفتاح منع التكرار عندما تدعمه نقطة النهاية.
 
-أنشئ مفاتيح API منفصلة مع حدود إنفاق لكل من:
-- التطوير/الاختبار
-- الإنتاج
-- التطبيقات المختلفة
+[وظائف غير متزامنة واستطلاع](/ar/guides/async-jobs-polling)
 
-## المراقبة
+## قبل الإطلاق
 
-### 14. تتبّع الاستخدام
-
-تحقق من لوحة التحكم الخاصة بك بانتظام من أجل:
-- استخدام token حسب النموذج
-- تفصيل التكلفة
-- معدلات نجاح التخزين المؤقت
-- معدلات الأخطاء
-
-### 15. سجّل المقاييس المهمة
-
-```python
-import logging
-
-response = client.chat.completions.create(...)
-
-logging.info({
-    "model": response.model,
-    "prompt_tokens": response.usage.prompt_tokens,
-    "completion_tokens": response.usage.completion_tokens,
-    "total_tokens": response.usage.total_tokens,
-})
-```
-
-### 16. أعدّ التنبيهات
-
-قم بتكوين تنبيهات انخفاض الرصيد في لوحة التحكم الخاصة بك لتجنب انقطاع الخدمة.
-
-## قائمة التحقق
-
-<AccordionGroup>
-  <Accordion title="تحسين التكلفة">
-    - [ ] استخدام النموذج المناسب لكل مهمة
-    - [ ] تعيين حدود `max_tokens`
-    - [ ] الـ Prompts موجزة
-    - [ ] تفعيل التخزين المؤقت عند الاقتضاء
-    - [ ] تجميع الطلبات المتشابهة على دفعات
-  </Accordion>
-
-  <Accordion title="الأداء">
-    - [ ] Streaming لتجربة مستخدم تفاعلية
-    - [ ] نماذج سريعة للاستخدام الفوري
-    - [ ] تكوين المهلات الزمنية
-  </Accordion>
-
-  <Accordion title="الموثوقية">
-    - [ ] تنفيذ منطق إعادة المحاولة
-    - [ ] وجود معالجة للأخطاء
-    - [ ] تكوين النماذج الاحتياطية
-  </Accordion>
-
-  <Accordion title="الأمان">
-    - [ ] مفاتيح API في متغيرات البيئة
-    - [ ] التحقق من صحة الإدخال
-    - [ ] مفاتيح منفصلة للتطوير/الإنتاج
-    - [ ] تعيين حدود الإنفاق
-  </Accordion>
-</AccordionGroup>
+قبل الإطلاق تحقق من النموذج والتنسيق الفعليين والنجاح والأخطاء الشائعة والأسعار الحالية وتحديث الصفحة والنقرات المتكررة.

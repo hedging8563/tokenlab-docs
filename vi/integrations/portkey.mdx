@@ -5,7 +5,7 @@ description: "Sử dụng TokenLab làm nhà cung cấp upstream trong Portkey G
 
 ## Tổng quan
 
-Portkey Gateway có thể định tuyến các yêu cầu đến TokenLab như một nhà cung cấp upstream. Mặc định an toàn nhất là các chat completions tương thích với OpenAI; hãy sử dụng Responses khi phiên bản Portkey của bạn hỗ trợ đường dẫn đó cho TokenLab.
+Cấu hình TokenLab trong Portkey dưới dạng host tùy chỉnh tương thích với OpenAI. Chỉ dùng Responses khi phiên bản Portkey của bạn hỗ trợ endpoint Responses tùy chỉnh.
 
 <Note>
 **Loại**: AI Gateway
@@ -19,19 +19,22 @@ Portkey Gateway có thể định tuyến các yêu cầu đến TokenLab như m
 
 | Trường | Giá trị |
 |-------|-------|
-| Provider | `tokenlab` |
-| Base URL | `https://api.tokenlab.sh/v1` |
+| Provider | `openai` |
+| Custom Host | `https://api.tokenlab.sh/v1` |
 | API key | `sk-your-tokenlab-key` |
-| Mô hình mặc định | `gpt-5.4-mini` |
+| Mô hình | ID mô hình TokenLab hiện có |
 
 ## Chat Completions
 
 Sử dụng TokenLab cho các yêu cầu chat tương thích với OpenAI:
 
+Ví dụ này yêu cầu Portkey Gateway tự lưu trữ đang chạy. Thay URL gateway bằng URL triển khai của bạn. Với Portkey Cloud, hãy gửi thêm khóa API Portkey qua `x-portkey-api-key`. Xem [hướng dẫn cấu hình Portkey](https://portkey.ai/docs/api-reference/inference-api/headers).
+
 ```bash
 curl https://your-portkey-gateway.example/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -H "x-portkey-provider: tokenlab" \
+  -H "x-portkey-provider: openai" \
+  -H "x-portkey-custom-host: https://api.tokenlab.sh/v1" \
   -H "Authorization: Bearer sk-your-tokenlab-key" \
   -d '{
     "model": "gpt-5.6-luna",
@@ -41,8 +44,8 @@ curl https://your-portkey-gateway.example/v1/chat/completions \
 
 ## Responses
 
-Nếu bản dựng Portkey của bạn định tuyến các Responses của TokenLab, hãy sử dụng `gpt-5.5`, `gpt-5.4` hoặc `gpt-5.4-mini` với `/v1/responses`.
+Nếu phiên bản Portkey của bạn hỗ trợ URL Responses tùy chỉnh, hãy chọn mô hình hiện có hỗ trợ Responses trên [trang mô hình](https://tokenlab.sh/vi/models) và dùng `/v1/responses`.
 
 ## Lưu ý về Native Endpoint
 
-TokenLab cũng cung cấp trực tiếp các endpoint tương thích với Anthropic Messages và Gemini. Việc liệu các endpoint này có thể được sử dụng thông qua Portkey hay không phụ thuộc vào nhà cung cấp Portkey và khả năng hỗ trợ endpoint trong phiên bản bạn đã triển khai.
+Chỉ có thể dùng Anthropic Messages và Gemini qua Portkey nếu phiên bản Portkey của bạn hỗ trợ URL tùy chỉnh cho các định dạng đó.

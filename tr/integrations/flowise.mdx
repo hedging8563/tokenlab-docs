@@ -27,13 +27,15 @@ Flowise yapınız bir **TokenLab** sohbet modeli düğümü içeriyorsa:
 
 ## OpenAI Uyumlu Yedek (Fallback)
 
-TokenLab düğümü henüz mevcut değilse, OpenAI uyumlu bir sohbet modeli düğümünü şunlarla kullanın:
+Kullandığınız sürümde TokenLab düğümü yoksa **Chat Models** → **OpenAI Custom Model** ekleyin. **Connect Credential** altında TokenLab anahtarınızla bir **OpenAI API** kimlik bilgisi oluşturun. **Model Name** ve **Additional Parameters** → **Base Path** değerlerini şöyle ayarlayın:
 
 | Alan | Değer |
 |-------|-------|
-| Base URL | `https://api.tokenlab.sh/v1` |
+| Base Path | `https://api.tokenlab.sh/v1` |
 | API Key | `sk-your-tokenlab-key` |
-| Model | `gpt-5.4-mini` |
+| Model Name | `gpt-5.4-mini` |
+
+Düğümü zincirinize, aracınıza veya iş akışınıza bağlayıp bir test istemi gönderin.
 
 ## Önerilen Modeller
 

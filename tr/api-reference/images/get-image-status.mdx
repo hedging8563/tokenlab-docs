@@ -15,11 +15,22 @@ Eğer oluşturma yanıtı `poll_url` içeriyorsa, yoklama (polling) için tam ol
 
 `ldtask_...` gibi herkese açık görsel görev ID’lerini `/v1/images/{id}` üzerinden de sorgulayabilirsiniz. Bu uyumluluk alias’ı `/v1/images/generations/{id}` ile aynı yetkilendirme, ownership kontrolü, faturalama başlıkları, terminal snapshot’ları ve yanıt şeklini kullanır.
 
-
-Görev artık mevcut değilse veya genel görev kaydında artık bulunmuyorsa TokenLab `Task not found or no longer available.` mesajıyla `async_task_not_found` döndürür.
+Süresi dolmuş veya kullanılamayan bir görev `404 async_task_not_found` döndürebilir. Geçerli API anahtarının görev sahipliği doğrulanamazsa yanıt `403 task_not_owned` olur.
 </Info>
 
 ## Yanıt
+
+<Note>
+Sonuç, hata, zaman damgası ve model alanları görev için mevcut olduğunda döndürülür.
+</Note>
+
+<ResponseField name="id" type="string">
+  Görev tanımlayıcısı.
+</ResponseField>
+
+<ResponseField name="poll_url" type="string">
+  Oluşturma yanıtı sağladığında tercih edilen yoklama URL’si.
+</ResponseField>
 
 <ResponseField name="created" type="integer">
   Oluşturulma zamanının Unix zaman damgası.
@@ -38,10 +49,10 @@ Görev artık mevcut değilse veya genel görev kaydında artık bulunmuyorsa To
 
   Her nesne şunları içerir:
   - `url` (string): Oluşturulan görüntünün URL'si
-  - `revised_prompt` (string): Oluşturma için kullanılan istem (prompt)
+  - `revised_prompt` (string): Upstream model raporlarsa sağlayıcıdan gelen isteğe bağlı prompt revizyonu
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="error" type="string | object">
   Hata mesajı (yalnızca `status` değeri `failed` olduğunda mevcuttur).
 </ResponseField>
 
@@ -59,6 +70,7 @@ response = requests.get(
     headers={"Authorization": "Bearer sk-your-api-key"}
 )
 
+response.raise_for_status()
 data = response.json()
 print(f"Status: {data['status']}")
 
@@ -76,6 +88,7 @@ const response = await fetch(
   }
 );
 
+if (!response.ok) throw new Error(`HTTP ${response.status}`);
 const data = await response.json();
 console.log(`Status: ${data.status}`);
 
@@ -93,12 +106,7 @@ if (data.status === 'completed') {
   "task_id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "poll_url": "/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "status": "pending",
-  "data": [
-    {
-      "url": "",
-      "revised_prompt": "a beautiful sunset over mountains"
-    }
-  ]
+  "data": []
 }
 ```
 
@@ -134,7 +142,7 @@ if (data.status === 'completed') {
 ## Yoklama (Polling) İçin En İyi Uygulamalar
 
 <Tip>
-**Önerilen yoklama aralığı**: 3-5 saniye. Çoğu görüntü oluşturma görevi, modele ve yönlendirilen sağlayıcı yoluna bağlı olarak 30-120 saniye içinde tamamlanır.
+Durum `pending` veya `processing` iken 3–5 saniyede bir sorgulayın; `completed` veya `failed` olduğunda durun.
 </Tip>
 
 ```python
@@ -148,7 +156,8 @@ def poll_image_task(task_id, api_key, max_wait=300, interval=3):
 
     start_time = time.time()
     while time.time() - start_time < max_wait:
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=30)
+        response.raise_for_status()
         data = response.json()
 
         if data["status"] == "completed":

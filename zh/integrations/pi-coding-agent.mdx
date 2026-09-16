@@ -22,11 +22,13 @@ https://docs.tokenlab.sh/zh/integrations/pi-coding-agent
 使用 [Pi 当前官方安装说明](https://pi.dev/)，npm 包为 `@earendil-works/pi-coding-agent`。Windows 请按[官方终端设置](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/windows.md)配置，CLI 默认使用 Git Bash。已有 Pi 时跳过安装。
 
 ```bash
-npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+npm install -g --ignore-scripts @earendil-works/pi-coding-agent@0.85.1
 pi --version
 ```
 
-将下面配置合并到 `~/.pi/agent/models.json`；若设置了 `PI_CODING_AGENT_DIR`，使用该目录。先备份文件并保留其他提供商，在启动 Pi 的本机环境设置 `TOKENLAB_API_KEY`，不要把密钥粘贴进聊天。只设置 Base URL 环境变量不会创建此提供商。
+以下配置已在 **Pi 0.85.1** 核验；其他版本需按其官方文档重新确认。
+
+先备份 `~/.pi/agent/models.json`，再将 `tokenlab` 添加到 `providers` 中现有条目的末尾；文件不存在时才新建。非空 `PI_CODING_AGENT_DIR` 指定 `models.json` 所在目录。保留原提供商顺序、`settings.json`、账户、默认模型字段和权限。若配置或已保存账户中已有 `tokenlab`，请另选提供商名称并同步修改启动命令。按[快速开始](/zh/quickstart)的 macOS、Linux、WSL 或 Windows PowerShell 步骤，在启动环境设置 `TOKENLAB_API_KEY`，不要把密钥粘贴进聊天。
 
 ```json
 {
@@ -43,11 +45,18 @@ pi --version
 
 `"$TOKENLAB_API_KEY"` 开头的 `$` 不能省略；`"TOKENLAB_API_KEY"` 会被当作字面字符串。请选择当前支持 Chat Completions 和工具调用的模型；上下文、输出上限、图片及思考设置应按该模型详情填写，不沿用其他模型的数值。
 
+可选：使用[可恢复的 Pi 配置器](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/skills/tokenlab-api-integration/references/pi_setup.md)，通过 Python 3.11+ 预览、应用并恢复原文件。TokenLab Skills 插件 **0.1.2** 已包含新脚本；独立安装的 Skill 更新到包含这些脚本的版本后也可使用。已安装插件或独立 Skill 的用户请按 [README 更新说明](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/README.md#update-an-existing-installation)更新，并确认脚本已安装。也可直接完成本页手工配置。
+
 ## 验证与恢复
 
-运行 `pi --list-models`，再在 Pi 中打开 `/model` 并选择 `tokenlab/gpt-5.6-luna`。打开模型选择器会重新加载 `models.json`。这只能确认模型注册和凭据存在，不能证明密钥有效或真实请求成功。
+在同一终端和 Agent 目录下检查加载，再为本次会话显式选择 TokenLab。未设置 `TOKENLAB_API_KEY` 时，模型列表可能不显示此提供商。列表只能确认模型注册及凭据存在，不能证明密钥有效或 API 请求成功。
 
-发送简短文本会使用 TokenLab 余额。核对回复和对应[请求记录](https://tokenlab.sh/dashboard/runs?section=requests)后，再测试工具。恢复时选择原提供商，仅移除本次添加的 TokenLab 配置。
+```bash
+pi --list-models tokenlab
+pi --provider tokenlab --model gpt-5.6-luna
+```
+
+发送提示词会使用 TokenLab 余额。核对回复和对应[请求记录](https://tokenlab.sh/dashboard/runs?section=requests)后再测试工具。撤销手工配置时，仅移除本次添加的提供商条目，保留其他设置与账户。
 
 ## Skills 与 MCP
 

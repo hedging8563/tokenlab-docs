@@ -12,9 +12,16 @@ description: "Mengambil status dan hasil dari tugas pembuatan video"
 
 <Info>
 Jika respons create mengembalikan `poll_url`, panggil URL tersebut secara persis. Saat URL itu mengarah ke `/v1/tasks/{id}`, perlakukan itu sebagai endpoint status tetap yang kanonik.
+
+
+Task publik yang kedaluwarsa atau tidak tersedia dapat mengembalikan `404 async_task_not_found`. Jika kepemilikan task untuk API key saat ini tidak dapat dipastikan, responsnya adalah `403 task_not_owned`.
 </Info>
 
 ## Respons
+
+<Note>
+Field hasil, error, timestamp, dan model dikembalikan jika tersedia untuk task.
+</Note>
 
 <ResponseField name="id" type="string">
   Identifier tugas asinkron kanonik.
@@ -52,7 +59,7 @@ Jika respons create mengembalikan `poll_url`, panggil URL tersebut secara persis
   Array video saat tugas pembuatan mengembalikan lebih dari satu output.
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="error" type="string | object">
   Pesan kesalahan (jika gagal).
 </ResponseField>
 
@@ -86,6 +93,7 @@ while True:
         headers={"Authorization": "Bearer sk-your-api-key"}
     )
 
+    response.raise_for_status()
     data = response.json()
     print(f"Status: {data['status']}")
 
@@ -109,11 +117,12 @@ async function pollForVideo() {
       { headers: { 'Authorization': 'Bearer sk-your-api-key' } }
     );
 
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${await response.text()}`);
     const data = await response.json();
     console.log(`Status: ${data.status}`);
 
     if (data.status === 'completed') {
-      console.log(`Video URL: {data.video_url}`);
+      console.log(`Video URL: ${data.video_url}`);
       return data.video_url;
     } else if (data.status === 'failed') {
       throw new Error(data.error);
@@ -143,7 +152,9 @@ func main() {
         req.Header.Set("Authorization", "Bearer sk-your-api-key")
 
         client := &http.Client{}
-        resp, _ := client.Do(req)
+        resp, err := client.Do(req)
+        if err != nil { panic(err) }
+        if resp.StatusCode >= 400 { panic(fmt.Sprintf("HTTP %d", resp.StatusCode)) }
 
         var result map[string]interface{}
         json.NewDecoder(resp.Body).Decode(&result)
@@ -179,7 +190,11 @@ while (true) {
     ]);
 
     $response = curl_exec($ch);
+    $httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
+    if ($response === false || $httpStatus >= 400) {
+        throw new RuntimeException("HTTP request failed: {$httpStatus}");
+    }
 
     $data = json_decode($response, true);
     echo "Status: {$data['status']}\n";
@@ -258,6 +273,7 @@ while (true) {
 - Tangani status `failed` dengan baik
 
 ```python
+import requests
 import time
 
 def wait_for_video(task_id, max_wait=600, interval=5):
@@ -269,6 +285,7 @@ def wait_for_video(task_id, max_wait=600, interval=5):
             f"https://api.tokenlab.sh/v1/tasks/{task_id}",
             headers={"Authorization": "Bearer sk-your-api-key"}
         )
+        response.raise_for_status()
         data = response.json()
 
         if data["status"] == "completed":

@@ -18,11 +18,11 @@ TokenLab はアセットの所有組織を記録します。同じ組織だけ�
   メディア種別: `image` または `video`。
 </ParamField>
 
-<ParamField body="extension" type="string">
+<ParamField body="extension" type="string | null">
   任意の拡張子。例: `png`、`jpg`、`mp4`。
 </ParamField>
 
-<ParamField body="metadata" type="object">
+<ParamField body="metadata" type="object | null">
   上流メディアアセットに保存する任意のメタデータオブジェクト。
 </ParamField>
 
@@ -34,6 +34,14 @@ TokenLab はアセットの所有組織を記録します。同じ組織だけ�
 
 <ResponseField name="upload_info.upload_url" type="string">
   バイナリをアップロードするための上流署名付き URL。
+</ResponseField>
+
+<ResponseField name="upload_info.upload_method" type="string">
+  返された場合、バイナリを `upload_info.upload_url` にアップロードする際に使う HTTP メソッドです。
+</ResponseField>
+
+<ResponseField name="upload_info.required_headers" type="object">
+  返された場合、バイナリのアップロードに含めるヘッダーです。
 </ResponseField>
 
 <RequestExample>

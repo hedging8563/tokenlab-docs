@@ -6,12 +6,14 @@ description: "Enumera los grupos de material de Seedance propiedad de la organiz
 
 Enumera los grupos de material propiedad de la organización autenticada. Filtre por `library_type` y `status` para separar los grupos de avatares virtuales de los grupos de personas reales.
 
-Utilice el `group_id` devuelto al cargar materiales. No pase un `group_id` como `material_asset_id` durante la generación de video; la generación requiere un `id` de activo de material.
+Utilice el `id` devuelto al cargar materiales. No pase un `group_id` como `material_asset_id` durante la generación de video; la generación requiere un `id` de activo de material.
+
+`project_name` aísla recursos dentro de la organización autenticada. El valor predeterminado es `default`; use el mismo valor, respetando mayúsculas y minúsculas, para los grupos y activos relacionados. Envíelo en el cuerpo JSON para POST/PUT y en la consulta para GET/DELETE.
 
 ## Ejemplo de solicitud
 
 ```bash
-curl "https://api.tokenlab.sh/v1/videos/assets/groups?library_type=aigc_avatar&page_size=20" \
+curl "https://api.tokenlab.sh/v1/videos/assets/groups?library_type=aigc_avatar&page_size=20&project_name=default" \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```
 
@@ -23,6 +25,7 @@ curl "https://api.tokenlab.sh/v1/videos/assets/groups?library_type=aigc_avatar&p
     {
       "id": "group-20260720123456-vrt01",
       "object": "seedance.material_asset_group",
+      "project_name": "default",
       "library_type": "aigc_avatar",
       "group_name": "Product references",
       "status": "ACTIVE",

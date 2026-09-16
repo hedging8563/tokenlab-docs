@@ -4,7 +4,8 @@ openapi: "POST /v1beta/models/{model}:generateContent"
 description: "Tạo nội dung bằng định dạng Google Gemini API"
 ---
 
-TokenLab chỉ cung cấp tuyến này cho mô hình công bố hợp đồng Gemini gốc và có tuyến upstream cùng giao thức; không fallback sang Chat Completions. Tên ProtoJSON lowerCamelCase và tên proto gốc snake_case đều là chính thức và được giữ nguyên, kể cả trong yêu cầu trộn lẫn. Trường chưa biết được chuyển tiếp theo best-effort và upstream quyết định khả năng hỗ trợ.
+Dùng định dạng yêu cầu và phản hồi Gemini với model do Gemini Models API trả về. Chấp nhận tên trường ProtoJSON lowerCamelCase và proto snake_case tương ứng. Các trường tùy chọn và giá trị được hỗ trợ phụ thuộc vào model đã chọn.
+
 ## Tham số đường dẫn
 
 <ParamField path="model" type="string" required>
@@ -27,7 +28,7 @@ Các endpoint của Gemini hỗ trợ nhiều phương thức xác thực:
 ## Thân yêu cầu
 
 <ParamField body="contents" type="array" required>
-  Nội dung hội thoại. Giá trị `role` và mọi `parts` được giữ nguyên như đã gửi; TokenLab không trim/lowercase, viết lại Base64 hay suy luận MIME. `inlineData` / `inline_data` và `fileData` / `file_data` đều là cách viết chính thức, và TokenLab không bắt buộc `fileData.mimeType` ở cục bộ. ID Files/Cache do TokenLab tạo được kiểm tra quyền sở hữu và giữ binding upstream ban đầu; nhà cung cấp quyết định các quy tắc media và tool khác.
+  Nội dung hội thoại có `parts` và `role` tùy chọn. Media dùng `inlineData` / `inline_data` hoặc `fileData` / `file_data`. ID Files và Cache do TokenLab tạo chỉ dùng được trong Workspace sở hữu chúng.
 </ParamField>
 
 <ParamField body="systemInstruction" type="object">
@@ -35,7 +36,7 @@ Các endpoint của Gemini hỗ trợ nhiều phương thức xác thực:
 </ParamField>
 
 <ParamField body="generationConfig" type="object">
-  Cấu hình tạo nội dung gốc. Tên lowerCamelCase như `maxOutputTokens`, `candidateCount`, `thinkingConfig` và tên snake_case tương ứng được chấp nhận không thay đổi. TokenLab không xóa `thinkingConfig` sau lỗi hoặc áp giới hạn cục bộ cho `candidateCount` khi streaming; upstream quyết định phạm vi và tổ hợp.
+  Thiết lập tạo nội dung như `temperature`, `topP`, `topK`, `maxOutputTokens`, `stopSequences`, `candidateCount`, `responseModalities`, `responseMimeType`, `responseSchema` và `thinkingConfig`. Chấp nhận cả tên snake_case tương ứng. Giá trị và tổ hợp phụ thuộc vào model.
 </ParamField>
 
 <ParamField body="safetySettings" type="array">
@@ -87,11 +88,11 @@ print(response.text)
 ```javascript JavaScript
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI("sk-your-api-key", {
-  baseUrl: "https://api.tokenlab.sh"
-});
-
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
+const genAI = new GoogleGenerativeAI("sk-your-api-key");
+const model = genAI.getGenerativeModel(
+  { model: "gemini-2.5-pro" },
+  { baseUrl: "https://api.tokenlab.sh" }
+);
 const result = await model.generateContent("Hello, Gemini!");
 
 console.log(result.response.text());

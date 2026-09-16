@@ -4,7 +4,7 @@ openapi: "POST /v1beta/models/{model}:streamGenerateContent"
 description: "Streams content generation using Google Gemini API format"
 ---
 
-Streaming version of the Gemini generateContent endpoint. Returns Server-Sent Events.
+SSE version of Gemini `generateContent`. Events may contain only metadata or intermediate content without `finishReason`. The stream ends at natural EOF and does not append a `[DONE]` marker.
 
 ## Path Parameters
 
@@ -22,7 +22,7 @@ Streaming version of the Gemini generateContent endpoint. Returns Server-Sent Ev
 
 Same as [Generate Content](/api-reference/gemini/generate-content). This includes multimodal `parts` arrays with structured `inline_data` image parts for vision requests.
 
-lowerCamelCase and proto snake_case spellings are accepted. `candidateCount`, tools, and other optional fields depend on the selected model.
+Support for `generationConfig.candidateCount`, tools, media types, and other optional fields depends on the selected model.
 
 ## Response
 
@@ -30,7 +30,7 @@ Returns Gemini Server-Sent Events. Metadata-only events, intermediate chunks wit
 
 <RequestExample>
 ```bash cURL
-curl -X POST "https://api.tokenlab.sh/v1beta/models/gemini-2.5-pro:streamGenerateContent?key=sk-your-api-key" \
+curl -N -X POST "https://api.tokenlab.sh/v1beta/models/gemini-2.5-pro:streamGenerateContent?key=sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
     "contents": [
@@ -54,7 +54,10 @@ model = genai.GenerativeModel("gemini-2.5-pro")
 response = model.generate_content("Tell me a story", stream=True)
 
 for chunk in response:
-    print(chunk.text, end="")
+    for candidate in chunk.candidates:
+        for part in candidate.content.parts:
+            if part.text:
+                print(part.text, end="")
 ```
 
 ```javascript JavaScript
@@ -75,7 +78,7 @@ const decoder = new TextDecoder();
 while (true) {
   const { done, value } = await reader.read();
   if (done) break;
-  console.log(decoder.decode(value));
+  console.log(decoder.decode(value, { stream: true }));
 }
 ```
 

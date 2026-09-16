@@ -18,11 +18,11 @@ TokenLab speichert den Besitzer des Assets. Nur dieselbe Organisation kann diese
   Medientyp: `image` oder `video`.
 </ParamField>
 
-<ParamField body="extension" type="string">
+<ParamField body="extension" type="string | null">
   Optionale Erweiterung wie `png`, `jpg` oder `mp4`.
 </ParamField>
 
-<ParamField body="metadata" type="object">
+<ParamField body="metadata" type="object | null">
   Optionales Metadatenobjekt für das Upstream-Medien-Asset.
 </ParamField>
 
@@ -34,6 +34,14 @@ TokenLab speichert den Besitzer des Assets. Nur dieselbe Organisation kann diese
 
 <ResponseField name="upload_info.upload_url" type="string">
   Signierte Upstream-URL für den Binär-Upload.
+</ResponseField>
+
+<ResponseField name="upload_info.upload_method" type="string">
+  HTTP-Methode für den Binär-Upload an `upload_info.upload_url`, sofern zurückgegeben.
+</ResponseField>
+
+<ResponseField name="upload_info.required_headers" type="object">
+  Header für den Binär-Upload, sofern zurückgegeben.
 </ResponseField>
 
 <RequestExample>

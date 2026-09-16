@@ -1,388 +1,82 @@
 ---
-title: "IDE & SDK 互換性"
-description: "AIコーディングツール、SDK、およびフレームワーク向けの、エビデンスに基づいた互換性ガイダンス"
+title: "ツールと SDK の互換性"
+description: "開発ツール、チャットアプリ、SDK、フレームワークに適した TokenLab の設定を探す"
 ---
 
-## 概要
-
-TokenLab は複数の API 形式を公開しているため、一般的なコーディングツール、SDK、フレームワークが最小限のグルーコードで統合可能です。
-
-このページは、マーケティング用のマトリックスよりも意図的に範囲を絞っています。
-
-- **Supported (サポート済み)**: 具体的なセットアップ手順が文書化されており、TokenLab がその手順で期待されるプロトコル形式を公開していることを意味します。
-- **Strong native path (強力なネイティブパス)**: そのリポジトリが、当該プロトコルファミリーに対する直接的なアダプターやリクエスト形式のエビデンスを備えていることを意味します。
-- **Best-effort (ベストエフォート)**: 統合は機能する可能性がありますが、アップストリームのクライアントがこのカスタムゲートウェイワークフローを安定したコントラクトとして扱っていないことを意味します。
-
-<Note>
-  サポートされていないフィールドは一律には処理されません。互換性ルートでは、一部のフィールドは無視されるか正規化されます。`/v1/responses` では、リクエストされた動作を保証できない場合、サポートされていないフィールドに対して明示的な `400` または `503` エラーが返されることがあります。
-</Note>
-
-## サポートされている API 形式
-
-| エンドポイント | 形式 | ユースケース |
-|----------|--------|----------|
-| `/v1/chat/completions` | OpenAI Chat | ユニバーサルな互換性 |
-| `/v1/responses` | OpenAI Responses | ステートフルな会話 |
-| `/v1/messages` | Anthropic Messages | Claude ネイティブ機能 |
-| `/v1beta/models/:model:generateContent` | Google Gemini | Gemini ネイティブ機能 |
-
-## IDE & CLI の互換性
-
-### 文書化されたツールパス
-
-| ツール | サポートレベル | 形式 | 備考 |
-|------|---------------|--------|-------|
-| **Cursor** | 限定的にサポート | OpenAI 互換 | BYOK 標準チャット/エディタフローには対応していますが、Tab Completion のような Cursor 管理機能の代替としては機能しません |
-| **Claude Code CLI** | 強力なネイティブパス | Anthropic | thinking および `tool_choice` のアダプターカバレッジを備えたネイティブな `/v1/messages` ルート |
-| **Codex CLI** | モデル/パス制限付きでサポート | OpenAI Responses | `/v1/responses` を Codex 特有のワークフロー向けの高度なパスとして扱ってください。Responses 専用の一部のフィールドは、すべてのモデルやルーティングパスで保証されているわけではありません |
-| **Gemini CLI** | ベストエフォート / 実験的 | Gemini | カスタム TokenLab ベース URL フローは、公式の Gemini CLI 統合ではありません |
-| **OpenCode** | サポート済み | OpenAI 互換 | デフォルトでは OpenAI 互換プロバイダーを使用してください。明示的に必要な場合にのみ Responses ベースのプロバイダーに移行してください |
-| **OpenHands** | サポート済み | OpenAI 互換 | `openai/<model>` と TokenLab の `/v1` ベース URL を使用して、LiteLLM/OpenAI 互換パスを使用してください |
-
-<Note>
-  他の OpenAI 互換エディタやエージェントツールも、同じベース URL パターンで動作することがよくあります。本番環境で使用する前に、そのツール独自のカスタムプロバイダーサポートを確認してください。
-</Note>
-
-### 設定例
-
-<Tabs>
-  <Tab title="Cursor">
-    ```
-    Base URL: https://api.tokenlab.sh/v1
-    API Key: sk-your-tokenlab-key
-    ```
-    Cursor は内部的に Anthropic 形式のツール形式を使用します。TokenLab は両方をサポートしています：
-    - OpenAI 形式: `{ type: "function", function: { name, parameters } }`
-    - Anthropic 形式: `{ name, input_schema }` (type フィールドなし)
-  </Tab>
-  <Tab title="Claude Code">
-    ```bash
-    export ANTHROPIC_BASE_URL="https://api.tokenlab.sh"
-    export ANTHROPIC_API_KEY="sk-your-tokenlab-key"
-    ```
-  </Tab>
-  <Tab title="OpenCode">
-    ```bash
-    export OPENAI_API_KEY="sk-your-tokenlab-key"
-    export LOCAL_ENDPOINT="https://api.tokenlab.sh/v1"
-    ```
-  </Tab>
-  <Tab title="Aider">
-    ```bash
-    export OPENAI_API_KEY="sk-your-tokenlab-key"
-    export OPENAI_BASE_URL="https://api.tokenlab.sh/v1"
-    aider --model gpt-5.4
-    ```
-  </Tab>
-</Tabs>
-
-## SDK の互換性
-
-### 文書化された SDK & フレームワークパス
-
-| SDK / フレームワーク | 言語 | サポートレベル | 備考 |
-|-----------------|----------|---------------|-------|
-| **OpenAI SDK** | Python/JS/Go | コアパスをサポート | `/v1` Chat Completions および Embeddings の互換パス。プロバイダー固有の動作にはネイティブプロバイダーのルートを使用し、Responses 専用フィールドがすべてのモデルで動作すると想定しないでください |
-| **Anthropic SDK** | Python/JS | 強力なネイティブパス | ツール、thinking、プロンプトキャッシングのエビデンスを備えたネイティブ Messages ルート |
-| **Vercel AI SDK** | TypeScript | 推奨される統合パターン | `@ai-sdk/openai-compatible` を優先してください。明示的に Responses ネイティブの動作が必要な場合にのみ `@ai-sdk/openai` を使用してください |
-| **LangChain** | Python/JS | 標準インターフェースをサポート | `ChatOpenAI` および `OpenAIEmbeddings` が対象範囲です。ベンダー固有の拡張機能は対象外です |
-| **LlamaIndex** | Python | `OpenAILike` 経由でサポート | TokenLab のようなサードパーティゲートウェイには、組み込みの OpenAI クラスではなく `OpenAILike` を使用してください |
-| **OpenAI Agents SDK** | Python | チャット補完パスをサポート | `OpenAIChatCompletionsModel` と共に `AsyncOpenAI(base_url="https://api.tokenlab.sh/v1")` を使用してください。ネイティブな Responses の動作は選択したモデルとルートに依存します |
-| **AutoGen** | Python | カスタムエンドポイントパスをサポート | `base_url: https://api.tokenlab.sh/v1` を指定して `OpenAIChatCompletionClient` を使用してください |
-| **Semantic Kernel** | .NET | カスタムエンドポイントパスをサポート | OpenAI チャット補完コネクタのカスタムエンドポイントを使用し、`https://api.tokenlab.sh/v1` を指定してください |
-| **CrewAI** | Python | カスタムエンドポイントパスをサポート | `OPENAI_API_BASE` または `LLM(base_url=...)` を TokenLab の `/v1` エンドポイントに設定してください |
-| **Pydantic AI** | Python | OpenAI 互換プロバイダーパスをサポート | `OpenAIProvider(base_url="https://api.tokenlab.sh/v1")` を指定して `OpenAIChatModel` を使用してください |
-| **DSPy** | Python | カスタムエンドポイントパスをサポート | `dspy.LM("openai/<model>", api_base="https://api.tokenlab.sh/v1")` を使用してください |
-| **Langflow** | Python / Web | 範囲制限付きでサポート | OpenAI コンポーネントの **OpenAI API Base** フィールドに TokenLab の `/v1` エンドポイントを使用してください |
-| **Haystack** | Python | カスタムエンドポイントパスをサポート | `OpenAIChatGenerator(api_base_url="https://api.tokenlab.sh/v1")` を使用してください |
-| **Graphiti** | Python | カスタムエンドポイントパスをサポート | TokenLab の `/v1` エンドポイントを指定して `OpenAIGenericClient` を使用してください |
-| **Dify** | - | 範囲制限付きでサポート | OpenAI プロバイダーおよびチャット補完指向のフローが対象です。Codex 特有の Responses や WebSocket の動作には適していません |
-| **Flowise** | Web / Node | 範囲制限付きでサポート | 利用可能な場合は TokenLab チャットノードを使用するか、`https://api.tokenlab.sh/v1` を指定した ChatOpenAI 互換ノードを使用してください |
-| **Mem0** | Python | カスタムエンドポイントパスをサポート | OpenAI プロバイダーを維持し、`openai_base_url` を TokenLab の `/v1` エンドポイントに設定してください |
-| **Agno** | Python | サポート済みパス | 利用可能な場合は TokenLab モデルラッパーを使用するか、OpenAI 互換のベース URL パスを使用してください |
-| **Browser Use** | Python | カスタムエンドポイントパスをサポート | TokenLab の `/v1` エンドポイントを指定して `ChatOpenAILike` を使用してください |
-| **VoltAgent** | TypeScript | カスタムエンドポイントパスをサポート | `baseURL: "https://api.tokenlab.sh/v1"` で設定された AI SDK OpenAI プロバイダーを渡してください |
-| **Ragas** | Python | カスタムエンドポイントパスをサポート | `AsyncOpenAI(base_url="https://api.tokenlab.sh/v1")` を `llm_factory` に渡してください |
-| **Guardrails** | Python | 検証パスをサポート | TokenLab の `/v1` エンドポイントで設定された OpenAI SDK チャット補完呼び出し可能オブジェクトを渡してください |
-| **Prompt flow** | Python / CLI | カスタムエンドポイントパスをサポート | `base_url=https://api.tokenlab.sh/v1` を指定して OpenAI 接続を作成してください |
-| **Promptfoo** | CLI / Node | サポート済みパス | `apiBaseUrl: https://api.tokenlab.sh/v1` を指定して OpenAI チャットまたは Responses プロバイダーを使用してください |
-| **Portkey Gateway** | Gateway | サポート済みパス | OpenAI 互換のチャットおよび Responses トラフィックのアップストリームプロバイダーとして TokenLab を使用してください |
-| **Helicone** | Gateway / Observability | 可観測性パスをサポート | `Helicone-Target-Url: https://api.tokenlab.sh` を指定して、Helicone Gateway 経由で OpenAI 互換リクエストをルーティングしてください |
-| **Langfuse** | Observability | トレースパスをサポート | TokenLab の `/v1` ベース URL で Langfuse OpenAI 統合を設定してください |
-| **OpenLIT** | Observability | トレースパスをサポート | TokenLab の `/v1` ベース URL で設定された OpenAI SDK クライアントをインストルメントしてください |
-| **OpenLLMetry** | Observability | トレースパスをサポート | TokenLab の `/v1` ベース URL で OpenAI SDK インストルメンテーションを使用してください |
-| **Phoenix** | Observability | トレースパスをサポート | TokenLab の `/v1` ベース URL で設定された OpenAI SDK クライアントを自動インストルメントしてください |
-| **Opik** | Observability | トレースパスをサポート | TokenLab の `/v1` ベース URL で設定された OpenAI SDK クライアントをラップしてください |
-| **LangBot** | Bot Platform | チャットパスをサポート | 利用可能な場合は TokenLab リクエスターを使用するか、TokenLab の `/v1` エンドポイントで OpenAI 互換リクエスターを設定してください |
-| **Open WebUI** | Web Chat | チャットアプリパスをサポート | OpenAI 互換 API 接続として TokenLab を追加し、モデルリストを更新してください |
-| **Chatbox / DeepChat / Jan / LibreChat / Cherry Studio** | Desktop / Web | チャットアプリパスをサポート | 各アプリの OpenAI 互換カスタムプロバイダーフローを使用してください。これらのアプリは通常チャット補完指向です |
-
-## Chat Completions パラメータ
-
-### コアパラメータ
-
-| パラメータ | 型 | 説明 |
-|-----------|------|-------------|
-| `model` | string | モデル識別子 (必須) |
-| `messages` | array | 会話メッセージ (必須) |
-| `max_tokens` | integer | 最大出力トークン数 |
-| `temperature` | number | サンプリング温度 (0-2) |
-| `top_p` | number | 核サンプリング (0-1) |
-| `stream` | boolean | ストリーミングの有効化 |
-
-### ツール呼び出し
-
-```json
-{
-  "tools": [
-    {
-      "type": "function",
-      "function": {
-        "name": "get_weather",
-        "description": "Get weather for a location",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "location": { "type": "string" }
-          }
-        },
-        "strict": true
-      }
-    }
-  ],
-  "tool_choice": "auto",
-  "parallel_tool_calls": true
-}
-```
-
-### ツール選択オプション
-
-| 形式 | 例 | 説明 |
-|--------|---------|-------------|
-| String | `"auto"`, `"none"`, `"required"` | 単純な選択 |
-| OpenAI Object | `{ "type": "function", "function": { "name": "fn" } }` | 特定の関数を強制 |
-| Anthropic Object | `{ "type": "tool", "name": "fn", "disable_parallel_tool_use": true }` | Anthropic ネイティブ形式 |
-
-### 高度なパラメータ
-
-| パラメータ | 型 | 説明 |
-|-----------|------|-------------|
-| `stream_options` | object | Chat Completions のみ: `{ include_usage: true }` でトークン数を取得 |
-| `reasoning_effort` | string | 推論対応 GPT-5 モデル用の `"low"`, `"medium"`, `"high"` |
-| `service_tier` | string | `"auto"` または `"default"` |
-| `seed` | integer | 決定論的な出力 |
-| `logprobs` | boolean | ログ確率を返す |
-| `top_logprobs` | integer | 上位ログ確率の数 (0-20) |
-| `logit_bias` | object | トークンバイアスマップ (-100 ～ 100) |
-| `frequency_penalty` | number | 繰り返しペナルティ (-2 ～ 2) |
-| `presence_penalty` | number | トピックペナルティ (-2 ～ 2) |
-| `stop` | string/array | 停止シーケンス |
-| `n` | integer | 補完数 (1-128) |
-| `user` | string | 追跡用のユーザー識別子 |
-
-### OpenAI 高度な機能
-
-| パラメータ | 型 | 説明 |
-|-----------|------|-------------|
-| `modalities` | array | マルチモーダル用の `["text", "audio"]` |
-| `audio` | object | 音声出力設定 (音声、形式) |
-| `prediction` | object | 高速補完のための予測出力 |
-| `metadata` | object | 追跡用のキーバリューペア |
-| `store` | boolean | 後で取得するために保存 |
-
-### プロバイダー固有のオプション
-
-```json
-{
-  "anthropic_options": {
-    "thinking": {
-      "type": "enabled",
-      "budget_tokens": 10000
-    },
-    "prompt_caching": true
-  },
-  "google_options": {
-    "safety_settings": [...],
-    "google_search": true,
-    "code_execution": true
-  }
-}
-```
-
-## Anthropic Messages パラメータ
-
-### コアパラメータ
-
-| パラメータ | 型 | 説明 |
-|-----------|------|-------------|
-| `model` | string | モデル識別子 |
-| `messages` | array | 会話メッセージ |
-| `max_tokens` | integer | 最大出力 (最大 128000) |
-| `system` | string/array | システムプロンプト |
-| `stream` | boolean | ストリーミングの有効化 |
-
-### ツール呼び出し
-
-```json
-{
-  "tools": [
-    {
-      "name": "get_weather",
-      "description": "Get weather",
-      "input_schema": {
-        "type": "object",
-        "properties": {
-          "location": { "type": "string" }
-        }
-      }
-    }
-  ],
-  "tool_choice": {
-    "type": "auto",
-    "disable_parallel_tool_use": false
-  }
-}
-```
-
-### 拡張 Thinking
-
-```json
-{
-  "model": "claude-opus-5",
-  "thinking": {
-    "type": "enabled",
-    "budget_tokens": 10000
-  }
-}
-```
-
-## Responses API パラメータ
-
-### コアパラメータ
-
-| パラメータ | 型 | 説明 |
-|-----------|------|-------------|
-| `model` | string | モデル識別子 |
-| `input` | string/array | 入力コンテンツ |
-| `instructions` | string | システム指示 |
-| `max_output_tokens` | integer | 最大出力トークン数 |
-| `previous_response_id` | string | 会話の継続 |
-
-### 高度なパラメータ
-
-| パラメータ | 型 | 説明 |
-|-----------|------|-------------|
-| `truncation_strategy` | string | `"auto"` または `"disabled"` |
-| `include` | array | `["reasoning.encrypted_content"]` |
-| `reasoning_effort` | string | 推論モデル用 |
-| `service_tier` | string | 優先度ティア |
-
-### ツール形式
-
-OpenAI と Anthropic の両方のツール形式をサポートしています：
-
-```json
-// OpenAI 形式
-{ "type": "function", "name": "fn", "parameters": {...} }
-
-// Anthropic 形式 (Cursor 互換性)
-{ "name": "fn", "input_schema": {...} }
-```
-
-## Gemini API パラメータ
-
-### コアパラメータ
-
-| パラメータ | 型 | 説明 |
-|-----------|------|-------------|
-| `contents` | array | 会話コンテンツ |
-| `systemInstruction` | object | システムプロンプト |
-| `generationConfig` | object | 生成設定 |
-
-### ツール
-
-```json
-{
-  "tools": [{
-    "functionDeclarations": [{
-      "name": "search",
-      "description": "Search the web",
-      "parameters": {...}
-    }],
-    "codeExecution": {},
-    "googleSearch": {}
-  }],
-  "toolConfig": {
-    "functionCallingConfig": {
-      "mode": "AUTO"
-    }
-  }
-}
-```
-
-### 安全設定
-
-```json
-{
-  "safetySettings": [
-    {
-      "category": "HARM_CATEGORY_HARASSMENT",
-      "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-    }
-  ]
-}
-```
-
-### 追加パラメータ
-
-| パラメータ | 型 | 説明 |
-|-----------|------|-------------|
-| `cachedContent` | string | キャッシュされたコンテンツ参照 |
-| `responseMimeType` | string | `"text/plain"` または `"application/json"` |
-| `responseSchema` | object | 構造化出力用の JSON スキーマ |
-
-## ストリーミング
-
-Chat Completions や Responses を含む `stream: true` を公開する生成エンドポイントは、Server-Sent Events (SSE) を使用します：
-
-```bash
-# Chat Completions
-curl https://api.tokenlab.sh/v1/chat/completions \
-  -H "Authorization: Bearer sk-xxx" \
-  -d '{"model": "gpt-5.6-terra", "messages": [...], "stream": true}'
-
-# Chat Completions 使用状況追跡
--d '{"...", "stream_options": {"include_usage": true}}'
-```
-
-## エラーハンドリング
-
-TokenLab は OpenAI 互換のエラーレスポンスを返します：
-
-```json
-{
-  "error": {
-    "message": "Invalid API key",
-    "type": "invalid_api_key",
-    "code": "invalid_api_key"
-  }
-}
-```
-
-詳細は [Error Handling Guide](/guides/error-handling) を参照してください。
-
-## ベストプラクティス
-
-<AccordionGroup>
-  <Accordion title="不明なパラメータにはパススルーを使用する">
-    不明なパラメータは、選択されたパブリックルートとモデルがそれらをサポートしている場合にのみ転送されます。
-  </Accordion>
-
-  <Accordion title="stream_options.include_usage は Chat Completions にのみ使用する">
-    Chat Completions のストリーミングでは、正確なトークン数のために `stream_options.include_usage` を有効にしてください。Responses には独自のストリーミングコントラクトがあり、この Chat 専用オプションは公開していません。
-  </Accordion>
-
-  <Accordion title="適切な tool_choice 形式を使用する">
-    SDK が期待する形式に合わせてください。TokenLab は OpenAI 形式と Anthropic 形式の両方を受け入れます。
-  </Accordion>
-</AccordionGroup>
+多くのツールは API キーとベース URL を変更することで TokenLab に接続できます。具体的な設定は、ツールが使用できる API 形式によって異なります。
+
+| API 形式 | ベース URL | 主なクライアント |
+| --- | --- | --- |
+| Chat Completions (OpenAI 互換) | `https://api.tokenlab.sh/v1` | OpenAI SDK、多くのチャットアプリやフレームワーク |
+| OpenAI Responses | `https://api.tokenlab.sh/v1` | Responses クライアントと Responses イベントを利用するツール |
+| Anthropic Messages | `https://api.tokenlab.sh` | Anthropic SDK と Claude 向けツール |
+| Gemini | `https://api.tokenlab.sh` | カスタムホストを指定できる Gemini REST または SDK クライアント |
+
+選択するモデルの `accepted_request_formats` に、使用する形式が含まれている必要があります。ストリーミングとツール呼び出しには、モデルの機能とクライアント側の対応も必要です。例は [API 形式](/ja/guides/api-formats)を参照してください。
+
+## 互換性のラベル
+
+| ラベル | 意味 |
+| --- | --- |
+| **利用可能** | リンク先の TokenLab 設定は、クライアントが公式に公開している設定項目を使用しています |
+| **一部制限あり** | 設定は特定の機能や認証方式に適用されます。ベンダーのその他のサービスには、それぞれの利用条件が適用されます |
+
+このラベルはリンク先の設定方法を示します。利用できる機能は、選択したモデルとクライアントのバージョンにも依存します。
+
+## 開発ツール
+
+| ツール | 状態 | API 形式 | 補足 |
+| --- | --- | --- | --- |
+| [Claude Code](/ja/integrations/claude-code) | 利用可能 | Anthropic Messages | `ANTHROPIC_BASE_URL` と TokenLab API キーを使用 |
+| [Codex CLI](/ja/integrations/codex-cli) | 一部制限あり | Responses | Responses を使用。利用できる機能は選択したモデルに依存 |
+| [Cursor](/ja/integrations/cursor) | 一部制限あり | OpenAI 互換 | カスタム API キーと URL を指定できる Cursor の機能が対象 |
+| [Cline](/ja/integrations/cline) | 利用可能 | OpenAI 互換 | **OpenAI Compatible** を選び、ベース URL とモデル ID を入力 |
+| [Kilo Code](/ja/integrations/kilo-code) | 利用可能 | OpenAI 互換 | カスタムプロバイダーとモデル ID を設定 |
+| [OpenCode](/ja/integrations/opencode) | 利用可能 | OpenAI 互換 | `OPENCODE_CONFIG` で独立したプロバイダー設定を読み込む |
+| [OpenHands](/ja/integrations/openhands) | 利用可能 | OpenAI 互換 | LiteLLM を使用する UI：**Advanced → Custom Model**（`openai/` 接頭辞）と **Base URL** |
+| [Gemini CLI](/ja/integrations/gemini-cli) | 一部制限あり | Gemini | API キー認証で `GOOGLE_GEMINI_BASE_URL` を使用。独立した `GEMINI_CLI_HOME` により既存の設定を保持 |
+
+## チャットアプリ
+
+| アプリ | 状態 | 補足 |
+| --- | --- | --- |
+| [Chatbox](/ja/integrations/chatbox) | 利用可能 | **OpenAI API Compatible** プロバイダーを追加 |
+| [Cherry Studio](/ja/integrations/cherry-studio) | 利用可能 | プロバイダーを追加し、**Verify and Enable** を完了 |
+| [DeepChat](/ja/integrations/deepchat) | 利用可能 | Chat Completions を使う場合は **OpenAI Completions** を選択 |
+| [Jan](/ja/integrations/jan) | 利用可能 | OpenAI 互換サービスを追加 |
+| [LibreChat](/ja/integrations/librechat) | 利用可能 | カスタムの OpenAI 互換エンドポイントを設定 |
+| [Open WebUI](/ja/integrations/open-webui) | 利用可能 | OpenAI 互換接続を追加し、API Type に **Chat** を選択 |
+
+## SDK とフレームワーク
+
+| クライアント | 状態 | 設定 |
+| --- | --- | --- |
+| [OpenAI SDK](/ja/integrations/openai-sdk) | 利用可能 | `base_url` / `baseURL` を `https://api.tokenlab.sh/v1` に設定 |
+| [Anthropic SDK](/ja/integrations/anthropic-sdk) | 利用可能 | ベース URL を `https://api.tokenlab.sh` に設定 |
+| [Vercel AI SDK](/ja/integrations/vercel-ai-sdk) | 利用可能 | カスタムの OpenAI 互換プロバイダーを作成 |
+| [LangChain](/ja/integrations/langchain) | 利用可能 | `ChatOpenAI` または `OpenAIEmbeddings` に TokenLab の URL を設定 |
+| [LlamaIndex](/ja/integrations/llamaindex) | 利用可能 | OpenAI 互換クライアントの設定項目を使用 |
+| [OpenAI Agents SDK](/ja/integrations/openai-agents-sdk) | 一部制限あり | ガイドでは `OpenAIChatCompletionsModel` を使用。Responses の利用前にモデルと SDK の機能対応を確認 |
+| [AutoGen](/ja/integrations/autogen) | 利用可能 | OpenAI 互換モデルクライアントを使用 |
+| [CrewAI](/ja/integrations/crewai) | 利用可能 | OpenAI 互換 LLM クライアントを設定 |
+| [PydanticAI](/ja/integrations/pydantic-ai) | 利用可能 | OpenAI 互換プロバイダーを指定 |
+
+その他のフレームワーク、可観測性ツール、ゲートウェイ、評価製品は Integrations のナビゲーションから探せます。
+
+## ストリーミング応答の使用量
+
+Chat Completions のストリームは `stream_options: { include_usage: true }` を受け付け、終了前に使用量のチャンクを追加します。Responses API に `include_usage` はなく、Responses ストリームでは終了イベントに使用量が含まれます。
+
+## カスタム API キーでは置き換えられないもの
+
+一部の製品はモデル呼び出しに加え、ベンダーが提供するオンライン機能を備えています。TokenLab キーは BYOK 設定で公開されているモデルリクエストに使えますが、別のサブスクリプション、自動補完サービス、アカウント機能、独自拡張機能を置き換えるものではありません。
+
+ツールの更新で設定方法が変わった場合は、古い環境変数の例をコピーせず、現在の連携ページを参照してください。
+
+## 機能を利用する前の確認
+
+- 必要な形式でカスタムのベース URL を指定できるか確認してください。
+- モデルの `accepted_request_formats` にその形式が含まれているか確認してください。
+- ワークフローに必要な場合は、ストリーミングとツール呼び出しを試してください。
+- API キーは信頼できる端末またはサーバーに保管してください。
+- 問題を報告する際はリクエスト ID を記録してください。

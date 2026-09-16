@@ -6,13 +6,15 @@ description: "Kuyrukta veya iptal edilebilir durumdaki Seedance uyumlu görevi i
 
 ## Genel bakış
 
-Bu endpoint’ler, Volc tarzı Seedance görev şeklini zaten kullanan ekipler içindir. Kimlik doğrulama TokenLab Bearer API key ile yapılır. Dönen görev ID’si `cgt-` ile başlar; `status` `succeeded`, `failed`, `cancelled` veya `expired` olana kadar durumu sorgulayın.
+TokenLab Bearer API anahtarı ve `cgt-...` ID’siyle iptal isteyin. İptal için çaba gösterilir ve yalnızca görev hâlâ iptal edilebiliyorsa başarılı olur.
 
 Ayrıca bkz. [Seedance 2.0 Video Modelleri](/tr/guides/seedance-2-video) ve [Video Oluşturma](/tr/guides/video-generation).
 
 ## Yanıt şekli
 
 Başarılı iptal isteği HTTP 200 ve boş body döndürür. Son durumu doğrulamak istiyorsanız ardından görevi sorgulayın.
+
+Görev tamamlandıysa, başarısız olduysa, süresi dolduysa veya artık iptal edilemiyorsa endpoint hata döndürür. Durumu doğrulamak için görevi sorgulayın. İptal edilen görevin video sonucu yoktur.
 
 ## Örnek
 

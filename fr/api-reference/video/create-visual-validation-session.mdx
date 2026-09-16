@@ -6,6 +6,10 @@ description: "Crée une session de validation visuelle de personne réelle au fo
 
 Créez une session de validation visuelle avant de téléverser des ressources `liveness_face` réutilisables. TokenLab utilise le format de l’API Action Volc et l’authentification Bearer TokenLab.
 
+Utilisez l’organisation authentifiée, l’utilisateur et le `ProjectName` sensible à la casse qui ont créé la session.
+
+Ouvrez `Result.H5Link` immédiatement après la création de la session. Le délai du premier accès H5 peut expirer avant les 30 minutes de validité de `BytedToken`.
+
 ## Point de terminaison et authentification
 
 ```text

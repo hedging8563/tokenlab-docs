@@ -8,10 +8,12 @@ description: "현재 조직이 소유한 Seedance 머티리얼 에셋 목록을 
 
 `status`가 `ACTIVE`인 에셋만 사용하십시오. 비디오를 생성할 때는 반환된 TokenLab 소재 에셋 `id`를 사용하십시오.
 
+`project_name`은 인증된 조직 내 리소스를 분리합니다. 기본값은 `default`이며 관련 그룹과 소재에는 대소문자를 구분하는 동일한 값을 사용하세요. POST/PUT은 JSON 본문에, GET/DELETE는 쿼리 매개변수에 지정합니다.
+
 ## 요청 예시
 
 ```bash
-curl "https://api.tokenlab.sh/v1/videos/assets?library_type=aigc_avatar&group_id=group-20260720123456-vrt01&page_size=20" \
+curl "https://api.tokenlab.sh/v1/videos/assets?library_type=aigc_avatar&group_id=group-20260720123456-vrt01&page_size=20&project_name=default" \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```
 
@@ -23,6 +25,7 @@ curl "https://api.tokenlab.sh/v1/videos/assets?library_type=aigc_avatar&group_id
     {
       "id": "asset-20260720123456-qn7wr",
       "object": "seedance.material_asset",
+      "project_name": "default",
       "group_id": "group-20260720123456-vrt01",
       "library_type": "aigc_avatar",
       "asset_name": "Front view",

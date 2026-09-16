@@ -7,7 +7,7 @@ Coding agents repeatedly send instructions, conversation history, code, and tool
 
 ## Start with your own usage
 
-Open **Usage** in Console and group requests by model or API key. Compare similar tasks rather than relying on a generic hourly estimate.
+Open [Usage](https://tokenlab.sh/dashboard/usage) in the workspace that owns your API key and compare requests by model or key. Compare similar tasks rather than relying on a generic hourly estimate.
 
 Record at least:
 
@@ -38,15 +38,7 @@ Use the [Models page](https://tokenlab.sh/en/models) for current prices and capa
 
 ## Limit unnecessary output
 
-Set `max_tokens` when the client supports it and the task has a predictable answer length:
-
-```json
-{
-  "model": "gpt-5.6-luna",
-  "max_tokens": 4096,
-  "messages": [...]
-}
-```
+Set the output limit supported by your selected [API format](/guides/api-formats) when the task has a predictable answer length. Chat Completions and Messages use different request shapes from Responses; use the endpoint’s documented field.
 
 A limit prevents accidental long responses, but it should still leave enough room for the task to finish.
 

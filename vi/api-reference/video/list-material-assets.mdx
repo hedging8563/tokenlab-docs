@@ -8,10 +8,12 @@ Liệt kê các tài nguyên vật liệu thuộc sở hữu của tổ chức �
 
 Chỉ sử dụng các tài nguyên có `status` là `ACTIVE`. Khi tạo video, hãy dùng `id` tài nguyên vật liệu TokenLab được trả về.
 
+`project_name` tách biệt tài nguyên trong tổ chức đã xác thực. Mặc định là `default`; dùng cùng một giá trị phân biệt chữ hoa, chữ thường cho nhóm và tài nguyên liên quan. Gửi trong nội dung JSON với POST/PUT và tham số truy vấn với GET/DELETE.
+
 ## Ví dụ yêu cầu
 
 ```bash
-curl "https://api.tokenlab.sh/v1/videos/assets?library_type=aigc_avatar&group_id=group-20260720123456-vrt01&page_size=20" \
+curl "https://api.tokenlab.sh/v1/videos/assets?library_type=aigc_avatar&group_id=group-20260720123456-vrt01&page_size=20&project_name=default" \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```
 
@@ -23,6 +25,7 @@ curl "https://api.tokenlab.sh/v1/videos/assets?library_type=aigc_avatar&group_id
     {
       "id": "asset-20260720123456-qn7wr",
       "object": "seedance.material_asset",
+      "project_name": "default",
       "group_id": "group-20260720123456-vrt01",
       "library_type": "aigc_avatar",
       "asset_name": "Front view",

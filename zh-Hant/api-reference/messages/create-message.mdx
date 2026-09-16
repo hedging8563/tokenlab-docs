@@ -16,8 +16,8 @@ Anthropic SDK 的 Base URL：`https://api.tokenlab.sh`（不含 `/v1` 後綴）
 
 ## 請求標頭
 
-<ParamField header="x-api-key" type="string" required>
-  您的 TokenLab API 金鑰。可作為 Bearer token 的替代方案。
+<ParamField header="x-api-key" type="string">
+  您的 TokenLab API 金鑰。透過 `x-api-key` 或 `Authorization: Bearer <API_KEY>` 擇一傳送。
 </ParamField>
 
 <ParamField header="anthropic-version" type="string" required>
@@ -26,8 +26,12 @@ Anthropic SDK 的 Base URL：`https://api.tokenlab.sh`（不含 `/v1` 後綴）
 
 ## 請求主體
 
+<Note>
+選用參數的支援情況、取值與預設值取決於所選模型。設定取樣、推理或工具選項前，請查看其[模型詳情](/zh-Hant/api-reference/models/get-model)。
+</Note>
+
 <ParamField body="model" type="string" required>
-  Claude 模型 ID（例如：`claude-sonnet-4-6` 或 `claude-opus-4-6`）。
+  支援 `anthropic_messages` 格式的模型 ID。請查看其[模型詳情](/zh-Hant/api-reference/models/get-model)確認目前能力。
 </ParamField>
 
 <ParamField body="messages" type="array" required>
@@ -38,12 +42,12 @@ Anthropic SDK 的 Base URL：`https://api.tokenlab.sh`（不含 `/v1` 後綴）
   要生成的最大 token 數量。
 </ParamField>
 
-<ParamField body="system" type="string">
-  System prompt（與 messages 陣列分開）。
+<ParamField body="system" type="string | array">
+  系統提示詞，可以是字串或內容區塊陣列，獨立放在頂層，不放入 `messages` 陣列。
 </ParamField>
 
-<ParamField body="temperature" type="number" default="1">
-  取樣溫度（0-1）。
+<ParamField body="temperature" type="number">
+  取樣溫度。是否支援、允許的取值與預設值取決於所選模型；省略此欄位即可使用模型預設值。
 </ParamField>
 
 <ParamField body="stream" type="boolean" default="false">
@@ -51,10 +55,7 @@ Anthropic SDK 的 Base URL：`https://api.tokenlab.sh`（不含 `/v1` 後綴）
 </ParamField>
 
 <ParamField body="thinking" type="object">
-  延伸思考設定（Claude Opus 4.5）。
-
-  - `type`（string）：設為 `"enabled"` 以啟用
-  - `budget_tokens`（integer）：思考可使用的 token 預算
+  原生 thinking 設定。支援的模式、預算及與其他參數的組合取決於所選模型。
 </ParamField>
 
 <ParamField body="tools" type="array">
@@ -62,7 +63,7 @@ Anthropic SDK 的 Base URL：`https://api.tokenlab.sh`（不含 `/v1` 後綴）
 </ParamField>
 
 <ParamField body="tool_choice" type="object">
-  模型應如何使用工具。選項：`auto`、`any`、`tool`（指定工具）。
+  原生工具選擇物件，例如 `{"type":"auto"}`。支援的類型取決於所選模型。
 </ParamField>
 
 <ParamField body="top_p" type="number">
@@ -96,7 +97,7 @@ Anthropic SDK 的 Base URL：`https://api.tokenlab.sh`（不含 `/v1` 後綴）
 </ResponseField>
 
 <ResponseField name="content" type="array">
-  內容區塊陣列（text、thinking、tool_use）。
+  內容區塊陣列，例如 `text`、`thinking` 或 `tool_use`。
 </ResponseField>
 
 <ResponseField name="model" type="string">
@@ -104,7 +105,7 @@ Anthropic SDK 的 Base URL：`https://api.tokenlab.sh`（不含 `/v1` 後綴）
 </ResponseField>
 
 <ResponseField name="stop_reason" type="string">
-  生成停止的原因（`end_turn`、`max_tokens`、`tool_use`）。
+  停止生成的原因，例如 `end_turn`、`max_tokens`、`stop_sequence` 或 `tool_use`。
 </ResponseField>
 
 <ResponseField name="usage" type="object">
@@ -315,9 +316,19 @@ echo $data['content'][0]['text'];
 
 ## 延伸思考範例
 
+將 `TOKENLAB_THINKING_MODEL` 設為支援 `type: "enabled"` 和 `budget_tokens` 手動思考設定的模型。依該模型限制調整兩個 token 預算；其他模型可能需要不同的 thinking 設定。
+
 ```python
+import os
+from anthropic import Anthropic
+
+client = Anthropic(
+    api_key="sk-your-api-key",
+    base_url="https://api.tokenlab.sh"
+)
+
 message = client.messages.create(
-    model="claude-opus-5",
+    model=os.environ["TOKENLAB_THINKING_MODEL"],
     max_tokens=16000,
     thinking={
         "type": "enabled",

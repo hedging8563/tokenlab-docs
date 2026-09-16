@@ -6,12 +6,12 @@ description: "使用文字、图片或视频创建可探索的 3D World"
 
 创建可探索的 3D World。响应会返回任务 ID 和 `poll_url`，通过这个地址查询进度和结果。
 
-通过 [Models API](/zh/api-reference/models/list-models) 获取当前可用的 Marble 模型。该接口暂不支持 `marble-1.0-draft`。
+通过 [Models API](/zh/api-reference/models/list-models) 选择当前可用的 Marble 模型。
 
 ## 请求体
 
 <ParamField body="model" type="string" default="marble-1.0">
-  要使用的 Marble 模型：`marble-1.0`、`marble-1.1` 或 `marble-1.1-plus`。
+  通过 [Models API](/zh/api-reference/models/list-models) 选择当前可用的 Marble 模型。
 </ParamField>
 
 <ParamField body="prompt" type="string">
@@ -55,7 +55,7 @@ description: "使用文字、图片或视频创建可探索的 3D World"
 </ParamField>
 
 <ParamField body="permission" type="object">
-  可选的 World Labs 权限对象。
+  可选的可见性和访问设置：`public`、`allow_id_access`、`allowed_readers` 和 `allowed_writers`。`public: true` 请求创建公开可见的 World。
 </ParamField>
 
 ## 响应
@@ -94,9 +94,9 @@ description: "使用文字、图片或视频创建可探索的 3D World"
 
 ## 计费
 
-World Labs 按 credits 计费。创建任务时可能暂扣最高预估金额，完成后根据 `cost.total_credits` 记录实际费用。标准 Marble 请求最多 1,600 credits，`marble-1.1-plus` 最多 3,100 credits。
+通过 [Pricing API](/zh/api-reference/pricing/get-pricing) 查询当前价格。实际扣费以用量记录为准；返回的 `cost.total_credits` 是生成用量，不是货币金额。
 
-`marble-1.0-draft` 和独立 pano / depth 工具当前不可用。
+
 
 <RequestExample>
 ```bash cURL

@@ -8,10 +8,12 @@ Liste os ativos de material pertencentes à organização autenticada. Filtre po
 
 Use apenas ativos cujo `status` seja `ACTIVE`. Ao criar vídeos, use o `id` do ativo de material TokenLab retornado.
 
+`project_name` isola recursos dentro da organização autenticada. O padrão é `default`; use o mesmo valor, diferenciando maiúsculas e minúsculas, para grupos e ativos relacionados. Envie-o no corpo JSON para POST/PUT e na consulta para GET/DELETE.
+
 ## Exemplo de Requisição
 
 ```bash
-curl "https://api.tokenlab.sh/v1/videos/assets?library_type=aigc_avatar&group_id=group-20260720123456-vrt01&page_size=20" \
+curl "https://api.tokenlab.sh/v1/videos/assets?library_type=aigc_avatar&group_id=group-20260720123456-vrt01&page_size=20&project_name=default" \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```
 
@@ -23,6 +25,7 @@ curl "https://api.tokenlab.sh/v1/videos/assets?library_type=aigc_avatar&group_id
     {
       "id": "asset-20260720123456-qn7wr",
       "object": "seedance.material_asset",
+      "project_name": "default",
       "group_id": "group-20260720123456-vrt01",
       "library_type": "aigc_avatar",
       "asset_name": "Front view",

@@ -5,7 +5,7 @@ description: "Proteja suas requisições à API TokenLab com chaves de API"
 
 ## Chaves de API
 
-Todas as requisições à API TokenLab exigem uma chave de API.
+Chamadas a modelos e recursos privados exigem uma chave API. Endpoints públicos como `GET /v1/models` e `GET /v1/models/{model}` funcionam sem chave. Uma consulta de descoberta bem-sucedida não valida a chave; siga o guia de início rápido para enviar uma solicitação ao modelo. Use a chave completa salva, não o prefixo da lista.
 
 Para endpoints compatíveis com OpenAI, envie-a como:
 
@@ -51,38 +51,7 @@ Tokens de gerenciamento não podem ser usados para inferência de modelos, e cha
 
 ## Usando chaves de API
 
-<CodeGroup>
-
-```bash cURL
-curl https://api.tokenlab.sh/v1/responses \
-  -H "Authorization: Bearer $TOKENLAB_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "gpt-5.6-terra",
-    "input": "Hello!"
-  }'
-```
-
-```python Python
-import os
-from openai import OpenAI
-
-client = OpenAI(
-    api_key=os.environ.get("TOKENLAB_API_KEY"),
-    base_url="https://api.tokenlab.sh/v1"
-)
-```
-
-```javascript JavaScript
-import OpenAI from 'openai';
-
-const client = new OpenAI({
-  apiKey: process.env.TOKENLAB_API_KEY,
-  baseURL: 'https://api.tokenlab.sh/v1'
-});
-```
-
-</CodeGroup>
+Consulte o [início rápido](/pt/quickstart) para variáveis de ambiente e uma primeira solicitação completa. Use o SDK do [formato API](/pt/guides/api-formats) escolhido e mantenha as chaves no servidor.
 
 ## Recursos das chaves de API
 
@@ -99,32 +68,12 @@ Você pode definir um limite de uso para cada chave de API:
 
 Todas as chaves de API da TokenLab começam com `sk-`.
 
-## Compatibilidade com Anthropic
-
-Para o endpoint `/v1/messages`, o header no estilo Anthropic funciona conforme esperado:
-
-```bash
-curl https://api.tokenlab.sh/v1/messages \
-  -H "x-api-key: sk-your-api-key" \
-  -H "anthropic-version: 2023-06-01" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "claude-sonnet-5",
-    "max_tokens": 1024,
-    "messages": [{"role": "user", "content": "Hello!"}]
-  }'
-```
-
-<Note>
-Use `Authorization: Bearer ...` para endpoints compatíveis com OpenAI, como `/v1/responses`, `/v1/chat/completions`, `/v1/models` e a maioria das outras rotas da TokenLab.
-</Note>
-
 ## Respostas de erro
 
 | Código de status | Tipo | Código | Descrição |
 |-------------|------|------|-------------|
-| 401 | `invalid_api_key` | `invalid_api_key` | Chave de API ausente ou inválida |
-| 401 | `expired_api_key` | `expired_api_key` | A chave de API foi revogada |
+| 401 | `invalid_api_key` | `invalid_api_key` | A chave API está ausente, inválida, inativa ou revogada |
+| 401 | `expired_api_key` | `expired_api_key` | A chave API expirou |
 | 402 | `insufficient_balance` | `insufficient_balance` | O saldo da conta é insuficiente |
 | 402 | `quota_exceeded` | `quota_exceeded` | O limite de uso da chave de API foi atingido |
 

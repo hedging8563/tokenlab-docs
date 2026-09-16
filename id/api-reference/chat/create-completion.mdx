@@ -6,6 +6,10 @@ description: "Membuat penyelesaian untuk pesan obrolan"
 
 ## Isi Permintaan
 
+<Note>
+Parameter opsional yang didukung, nilai yang diizinkan, dan nilai default bergantung pada model yang dipilih. Periksa [detail model](/id/api-reference/models/get-model) sebelum menetapkan opsi sampling, penalaran, atau alat.
+</Note>
+
 <ParamField body="model" type="string" required>
   ID model yang akan digunakan. Lihat [Models](https://tokenlab.sh/id/models) untuk opsi yang tersedia.
 </ParamField>
@@ -14,8 +18,10 @@ description: "Membuat penyelesaian untuk pesan obrolan"
   Daftar pesan yang membentuk percakapan.
 
   Setiap objek pesan berisi:
-  - `role` (string): `system`, `user`, atau `assistant`
-  - `content` (string | array): Konten pesan
+  - `role` (string): `system`, `developer`, `user`, `assistant`, `tool`, `function`
+  - `content` (string | array | null): Konten pesan
+
+  Untuk pesan `assistant` yang berisi `tool_calls`, `content` dapat dihilangkan atau diatur ke `null`.
 
   Ketika `content` adalah array, TokenLab mendukung blok multimodal terstruktur untuk model yang kompatibel:
   - text: `{ "type": "text", "text": "..." }`
@@ -23,11 +29,11 @@ description: "Membuat penyelesaian untuk pesan obrolan"
   - video: `{ "type": "video_url", "video_url": { "url": "https://..." } }`
   - audio: `{ "type": "audio_url", "audio_url": { "url": "https://..." } }`
 
-  Untuk lalu lintas produksi multimodal, utamakan URL publik `https`. TokenLab akan menerjemahkan blok media ini ke bentuk permintaan spesifik provider yang diperlukan oleh model fisik yang diarahkan.
+  Untuk input multimodal, gunakan URL `https` yang dapat diakses publik. Jenis media yang didukung bergantung pada model yang dipilih.
 </ParamField>
 
-<ParamField body="temperature" type="number" default="1">
-  Temperatur sampling antara 0 dan 2. Nilai yang lebih tinggi membuat keluaran lebih acak.
+<ParamField body="temperature" type="number">
+  Temperatur sampling. Dukungan, nilai yang diizinkan, dan nilai default bergantung pada model yang dipilih. Hilangkan kolom ini untuk menggunakan default model.
 </ParamField>
 
 <ParamField body="max_tokens" type="integer">
@@ -42,20 +48,20 @@ description: "Membuat penyelesaian untuk pesan obrolan"
   Opsi untuk streaming. Setel `include_usage: true` untuk menerima pemakaian token dalam potongan stream.
 </ParamField>
 
-<ParamField body="top_p" type="number" default="1">
+<ParamField body="top_p" type="number">
   Parameter nucleus sampling. Kami menyarankan mengubah ini atau temperature, bukan keduanya.
 </ParamField>
 
-<ParamField body="frequency_penalty" type="number" default="0">
+<ParamField body="frequency_penalty" type="number">
   Angka antara -2.0 dan 2.0. Nilai positif memberi penalti pada token yang berulang.
 </ParamField>
 
-<ParamField body="presence_penalty" type="number" default="0">
+<ParamField body="presence_penalty" type="number">
   Angka antara -2.0 dan 2.0. Nilai positif memberi penalti pada token yang sudah ada di teks.
 </ParamField>
 
 <ParamField body="stop" type="string | array">
-  Hingga 4 urutan di mana API akan berhenti menghasilkan token.
+  Urutan berhenti atau daftar urutan. Dukungan dan batas jumlah urutan bergantung pada model yang dipilih.
 </ParamField>
 
 <ParamField body="tools" type="array">
@@ -66,8 +72,8 @@ description: "Membuat penyelesaian untuk pesan obrolan"
   Mengontrol bagaimana model menggunakan tools. Opsi: `auto`, `none`, `required`, atau objek tool tertentu.
 </ParamField>
 
-<ParamField body="parallel_tool_calls" type="boolean" default="true">
-  Menentukan apakah pemanggilan fungsi paralel diaktifkan. Setel ke false untuk memanggil fungsi secara berurutan.
+<ParamField body="parallel_tool_calls" type="boolean">
+  Mengizinkan beberapa panggilan alat dalam satu giliran asisten, jika model yang dipilih mendukungnya.
 </ParamField>
 
 <ParamField body="max_completion_tokens" type="integer">
@@ -75,14 +81,14 @@ description: "Membuat penyelesaian untuk pesan obrolan"
 </ParamField>
 
 <ParamField body="reasoning_effort" type="string">
-  Tingkat usaha reasoning untuk model yang mendukung reasoning. Opsi: `low`, `medium`, `high`.
+  Tingkat penalaran untuk model yang mendukungnya. Nilai yang diizinkan bergantung pada model yang dipilih.
 </ParamField>
 
 <ParamField body="seed" type="integer">
-  Seed acak untuk sampling deterministik.
+  Seed sampling untuk model yang mendukungnya. Output yang identik tidak dijamin.
 </ParamField>
 
-<ParamField body="n" type="integer" default="1">
+<ParamField body="n" type="integer">
   Jumlah penyelesaian yang akan dihasilkan (1-128).
 </ParamField>
 
@@ -95,11 +101,11 @@ description: "Membuat penyelesaian untuk pesan obrolan"
 </ParamField>
 
 <ParamField body="top_k" type="integer">
-  Parameter sampling Top-K (untuk model Anthropic/Gemini).
+  Sampling Top-K untuk model yang mendukungnya.
 </ParamField>
 
 <ParamField body="response_format" type="object">
-  Spesifikasi format respons. Gunakan `{"type": "json_object"}` untuk mode JSON. Perlakukan `{"type": "json_schema", "json_schema": {...}}` sebagai jalur best-effort yang bergantung pada model yang dipilih dan perilaku routing.
+  Format respons. Gunakan `{"type": "json_object"}` untuk mode JSON atau `{"type": "json_schema", "json_schema": {...}}` untuk skema JSON. Dukungan bergantung pada model yang dipilih.
 </ParamField>
 
 <ParamField body="logit_bias" type="object">
@@ -135,7 +141,7 @@ description: "Membuat penyelesaian untuk pesan obrolan"
   Setiap pilihan berisi:
   - `index` (integer): Indeks pilihan
   - `message` (object): Pesan yang dihasilkan
-  - `finish_reason` (string): Alasan model berhenti (`stop`, `length`, `tool_calls`)
+  - `finish_reason` (string): Alasan model berhenti, misalnya `stop`, `length`, atau `tool_calls`
 </ResponseField>
 
 <ResponseField name="usage" type="object">
@@ -157,7 +163,6 @@ curl -X POST "https://api.tokenlab.sh/v1/chat/completions" \
       {"role": "system", "content": "You are a helpful assistant."},
       {"role": "user", "content": "Hello!"}
     ],
-    "temperature": 0.7,
     "max_tokens": 1000
   }'
 ```
@@ -176,7 +181,6 @@ response = client.chat.completions.create(
         {"role": "system", "content": "You are a helpful assistant."},
         {"role": "user", "content": "Hello!"}
     ],
-    temperature=0.7,
     max_tokens=1000
 )
 
@@ -197,7 +201,6 @@ const response = await client.chat.completions.create({
     { role: 'system', content: 'You are a helpful assistant.' },
     { role: 'user', content: 'Hello!' }
   ],
-  temperature: 0.7,
   max_tokens: 1000
 });
 
@@ -221,7 +224,6 @@ curl_setopt_array($ch, [
             ['role' => 'system', 'content' => 'You are a helpful assistant.'],
             ['role' => 'user', 'content' => 'Hello!']
         ],
-        'temperature' => 0.7,
         'max_tokens' => 1000
     ])
 ]);

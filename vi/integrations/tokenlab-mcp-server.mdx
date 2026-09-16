@@ -37,10 +37,10 @@ Các công cụ danh mục và giá cả công khai không yêu cầu khóa API 
 Cách bắt đầu nhanh và an toàn nhất là chỉ bật sáu công cụ danh mục công khai. Bạn không cần khóa API TokenLab và có thể bật các công cụ cần xác thực sau.
 
 <CardGroup cols={2}>
-  <Card title="Cài đặt trong Cursor" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXIiXSwiZW52Ijp7IlRPS0VOTEFCX01DUF9UT09MX1BST0ZJTEUiOiJjYXRhbG9nIn19">
+  <Card title="Cài đặt trong Cursor" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXJAMC42LjE5Il0sImVudiI6eyJUT0tFTkxBQl9NQ1BfVE9PTF9QUk9GSUxFIjoiY2F0YWxvZyJ9fQ%3D%3D">
     Thêm cấu hình `catalog` công khai vào Cursor bằng một lần nhấp
   </Card>
-  <Card title="Cài đặt trong VS Code" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
+  <Card title="Cài đặt trong VS Code" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%400.6.19%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
     Thêm cấu hình `catalog` công khai vào cài đặt người dùng VS Code
   </Card>
 </CardGroup>
@@ -70,19 +70,19 @@ Cách bắt đầu nhanh và an toàn nhất là chỉ bật sáu công cụ dan
   <Step title="Cấu hình client">
     Các ví dụ công khai chọn rõ `catalog` để mọi công cụ được hiển thị đều hoạt động mà không cần khóa.
 
-    <Tabs>
+    Sao lưu cấu hình đang dùng. Chỉ thêm mục TokenLab và giữ nguyên nhà cung cấp, tài khoản, mô hình mặc định cùng quyền hiện có. Nếu tên đã được dùng, chọn tên khác và sửa lệnh tương ứng. Khi hoàn tác, chỉ xóa mục đã thêm hoặc khôi phục bản sao lưu trước đó.
+
+<Tabs>
       <Tab title="Claude Code">
         Thêm TokenLab ở phạm vi người dùng để sử dụng trong mọi dự án.
 
         ```bash
-        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab -- npx -y @tokenlabai/mcp-server
+        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab -- npx -y @tokenlabai/mcp-server@0.6.19
         ```
 
         Để bật cấu hình `core` mặc định, hãy thêm khóa API thay thế.
 
-        ```bash
-        claude mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key --scope user tokenlab -- npx -y @tokenlabai/mcp-server
-        ```
+
 
         Dùng `--scope local` cho riêng dự án hiện tại hoặc `--scope project` để tạo `.mcp.json` dùng chung. Không đưa khóa thật vào cấu hình dự án.
       </Tab>
@@ -95,7 +95,7 @@ Cách bắt đầu nhanh và an toàn nhất là chỉ bật sáu công cụ dan
           "mcpServers": {
             "tokenlab": {
               "command": "npx",
-              "args": ["-y", "@tokenlabai/mcp-server"],
+              "args": ["-y", "@tokenlabai/mcp-server@0.6.19"],
               "env": { "TOKENLAB_MCP_TOOL_PROFILE": "catalog" }
             }
           }
@@ -112,7 +112,7 @@ Cách bắt đầu nhanh và an toàn nhất là chỉ bật sáu công cụ dan
             "tokenlab": {
               "type": "stdio",
               "command": "npx",
-              "args": ["-y", "@tokenlabai/mcp-server"],
+              "args": ["-y", "@tokenlabai/mcp-server@0.6.19"],
               "env": { "TOKENLAB_MCP_TOOL_PROFILE": "catalog" }
             }
           }
@@ -125,23 +125,17 @@ Cách bắt đầu nhanh và an toàn nhất là chỉ bật sáu công cụ dan
       <Tab title="Codex">
         ```bash
         # Danh mục công khai
-        codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab -- npx -y @tokenlabai/mcp-server
-
-        # Cấu hình core mặc định với khóa API
-        codex mcp add --env TOKENLAB_API_KEY=your-tokenlab-api-key tokenlab -- npx -y @tokenlabai/mcp-server
+                codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab -- npx -y @tokenlabai/mcp-server@0.6.19
         ```
       </Tab>
 
       <Tab title="Claude Desktop">
-        Trong `claude_desktop_config.json`, thêm lệnh `npx` và các đối số `-y`, `@tokenlabai/mcp-server` vào đối tượng `mcpServers` chuẩn. Nếu chỉ cần công cụ công khai, đặt `TOKENLAB_MCP_TOOL_PROFILE=catalog`.
+        Trong `claude_desktop_config.json`, thêm lệnh `npx` và các đối số `-y`, `@tokenlabai/mcp-server@0.6.19` vào đối tượng `mcpServers` chuẩn. Nếu chỉ cần công cụ công khai, đặt `TOKENLAB_MCP_TOOL_PROFILE=catalog`.
       </Tab>
 
       <Tab title="Client khác">
-        Cline CLI có thể cài trực tiếp máy chủ stdio đã phát hành.
 
-        ```bash
-        cline mcp add tokenlab --yes -- npx -y @tokenlabai/mcp-server
-        ```
+
 
         Với Windsurf, lưu cấu hình `mcpServers` chuẩn tại `~/.codeium/windsurf/mcp_config.json`. Các client stdio khác dùng cùng lệnh và đối số, không cần thư mục làm việc.
       </Tab>
@@ -162,7 +156,7 @@ Cách bắt đầu nhanh và an toàn nhất là chỉ bật sáu công cụ dan
 
 ## Tham chiếu cấu hình
 
-Trong mọi client stdio cục bộ, dùng tên `tokenlab`, lệnh `npx`, hai đối số riêng `-y` và `@tokenlabai/mcp-server`, đồng thời để trống thư mục làm việc. Dùng `@tokenlabai/mcp-server@0.6.19` để ghim bản phát hành hiện đã được xác minh.
+Trong mọi client stdio cục bộ, dùng tên `tokenlab`, lệnh `npx`, hai đối số riêng `-y` và `@tokenlabai/mcp-server@0.6.19`, đồng thời để trống thư mục làm việc. Dùng `@tokenlabai/mcp-server@0.6.19` để ghim bản phát hành hiện đã được xác minh.
 
 Cấu hình chuẩn cho công cụ có xác thực:
 
@@ -171,7 +165,7 @@ Cấu hình chuẩn cho công cụ có xác thực:
   "mcpServers": {
     "tokenlab": {
       "command": "npx",
-      "args": ["-y", "@tokenlabai/mcp-server"],
+      "args": ["-y", "@tokenlabai/mcp-server@0.6.19"],
       "env": {
         "TOKENLAB_API_KEY": "<TOKENLAB_API_KEY>",
         "TOKENLAB_MCP_TOOL_PROFILE": "core"
@@ -296,7 +290,7 @@ Sử dụng cả hai khi có sẵn:
 
 <AccordionGroup>
   <Accordion title="Client không thể khởi động server">
-    Xác nhận Node.js từ phiên bản 18.17 trở lên và client tìm thấy `npx`. Chạy `npx -y @tokenlabai/mcp-server` trong terminal để hiển thị lỗi npm hoặc mạng. Khi stdio khởi động thành công, tiến trình sẽ im lặng chờ thông điệp MCP; nhấn **Ctrl+C** sau khi xác minh.
+    Xác nhận Node.js từ phiên bản 18.17 trở lên và client tìm thấy `npx`. Chạy `npx -y @tokenlabai/mcp-server@0.6.19` trong terminal để hiển thị lỗi npm hoặc mạng. Khi stdio khởi động thành công, tiến trình sẽ im lặng chờ thông điệp MCP; nhấn **Ctrl+C** sau khi xác minh.
   </Accordion>
 
   <Accordion title="Server đã cấu hình nhưng không thấy công cụ">

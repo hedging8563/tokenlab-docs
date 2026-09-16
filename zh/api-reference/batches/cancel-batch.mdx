@@ -4,9 +4,7 @@ openapi: "POST /v1/batches/{batch_id}/cancel"
 description: "取消尚未完成的批处理任务。"
 ---
 
-批处理仍在排队或运行时可以请求取消。响应状态变为 `cancelling` 后，通过 [获取批处理任务](/zh/api-reference/batches/retrieve-batch) 查询最终状态。
-
-## 示例
+请求取消排队或运行中的批处理。响应返回任务的当前状态，可能仍在取消，也可能已取消完成。已经结束的任务保留原有终态。返回状态尚未结束时，请再次获取批处理任务以确认结果。
 
 <RequestExample>
 ```bash cURL
@@ -14,8 +12,6 @@ curl -X POST "https://api.tokenlab.sh/v1/batches/batch_abc123/cancel" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 </RequestExample>
-
-## 响应示例
 
 <ResponseExample>
 ```json 200 OK
@@ -28,7 +24,5 @@ curl -X POST "https://api.tokenlab.sh/v1/batches/batch_abc123/cancel" \
 ```
 </ResponseExample>
 
-## 重要字段
-
 <ResponseField name="id" type="string">批处理任务 ID。</ResponseField>
-<ResponseField name="status" type="string">取消请求接受后为 `cancelling`。</ResponseField>
+<ResponseField name="status" type="string">批处理当前状态。取消请求成功并不一定返回 `cancelling`。</ResponseField>

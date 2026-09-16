@@ -1,6 +1,6 @@
 ---
 title: "MiniMax"
-description: "Hailuo video, MiniMax chat, Speech TTS"
+description: "MiniMax models available through TokenLab"
 ---
 
 ## Overview
@@ -40,10 +40,11 @@ TokenLab provides access to MiniMax models. Total: **12 models** available.
 This example uses one model's declared request format. Other models on this page may accept different formats.
 
 ```python
+import os
 from anthropic import Anthropic
 
 client = Anthropic(
-    api_key="sk-your-tokenlab-key",
+    api_key=os.environ["TOKENLAB_API_KEY"],
     base_url="https://api.tokenlab.sh"
 )
 

@@ -50,10 +50,11 @@ Si `startDate` et `endDate` sont présents ensemble, `startDate` doit être inf�
 
 | Champ | Type | Valeurs par défaut / limites | Description |
 |------|------|------------------------------|-------------|
-| `name` | string | requis, valeur par défaut `Default Key`, longueur `1-50` | Nom affiché ; les espaces de début et de fin sont retirés côté serveur |
-| `limitAmount` | number \| null | min. `0`, entrée max. `1000000` | `null` ou omis = illimité, `0` = quota nul. Les valeurs positives sont normalisées vers un plafond stocké qui ne peut pas dépasser l’équivalent de `100000` USD. |
+| `name` | string | facultatif, valeur par défaut `Default Key`, longueur `1-50` | Nom affiché ; les espaces de début et de fin sont retirés côté serveur |
+| `limitAmount` | number \| string \| null | `0–100000` USD | `null` signifie sans limite ; `0` empêche toute dépense. Les chaînes décimales acceptent jusqu’à 6 décimales. À la création, omettre ce champ signifie sans limite. |
 | `limitCurrency` | enum | valeur par défaut `USD` | USD uniquement. L'envoi de `CNY` renvoie `400 currency_retired`. |
 | `models` | string[] | valeur par défaut `[]` | Liste d’autorisation optionnelle des modèles logiques |
+| `deliveryPolicy` | string \| null | `auto`, `verified`, `official`, `null` | `null` hérite de la politique de livraison de l’espace de travail. |
 | `expiresAt` | string \| null | datetime RFC3339 | `null` signifie sans date d’expiration |
 
 ### PATCH /v1/management/api-keys/{keyId}
@@ -62,9 +63,10 @@ Si `startDate` et `endDate` sont présents ensemble, `startDate` doit être inf�
 |------|------|------------------------------|-------------|
 | `status` | enum | - | `active`, `inactive`, `revoked` |
 | `name` | string | longueur `1-50` | Nom affiché mis à jour |
-| `limitAmount` | number \| null | min. `0`, entrée max. `1000000` | `null` = illimité, `0` = quota nul. Les valeurs positives sont normalisées vers un plafond stocké qui ne peut pas dépasser l’équivalent de `100000` USD. |
-| `limitCurrency` | enum | valeur par défaut `USD` | USD uniquement. L'envoi de `CNY` renvoie `400 currency_retired`. |
+| `limitAmount` | number \| string \| null | `0–100000` USD | `null` signifie sans limite ; `0` empêche toute dépense. Les chaînes décimales acceptent jusqu’à 6 décimales. |
+| `limitCurrency` | enum | valeur par défaut `USD` | USD uniquement. L'envoi de `CNY` renvoie `400 currency_retired`. Si ce champ est fourni, `limitAmount` est obligatoire. |
 | `models` | string[] | - | Liste d’autorisation des modèles logiques mise à jour |
+| `deliveryPolicy` | string \| null | `auto`, `verified`, `official`, `null` | `null` hérite de la politique de livraison de l’espace de travail. |
 | `expiresAt` | string \| null | datetime RFC3339 | `null` efface la date d’expiration |
 
 Au moins un champ doit être fourni dans la requête PATCH.
@@ -121,10 +123,14 @@ curl "https://api.tokenlab.sh/v1/management/api-keys" \
       "limit_amount_decimal": "500",
       "used_amount": 148.25,
       "used_amount_decimal": "148.25",
-      "models": ["gpt-4o-mini", "claude-3-7-sonnet"],
+      "models": [
+        "gpt-4o-mini",
+        "claude-3-7-sonnet"
+      ],
       "expires_at": "2026-04-30T00:00:00.000Z",
       "last_used_at": "2026-03-27T08:12:45.000Z",
-      "created_at": "2026-03-01T10:00:00.000Z"
+      "created_at": "2026-03-01T10:00:00.000Z",
+      "delivery_policy": null
     }
   ],
   "pagination": {

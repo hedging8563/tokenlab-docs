@@ -6,12 +6,12 @@ description: "Gera áudio a partir do texto de entrada"
 
 ## Corpo da Requisição
 
-**Timeout de solicitações síncronas:** este endpoint não-chat aguarda o modelo roteado terminar. Entradas grandes, áudios longos ou lotes grandes podem exceder os padrões comuns de 30s dos clientes, então configure o timeout do seu cliente HTTP para pelo menos `120s`.
+O modo da resposta depende do modelo escolhido e de `stream_format`. Para entradas longas, configure um tempo limite HTTP de pelo menos `120s`.
 
-Os campos opcionais compatíveis variam por família de modelo. O TokenLab valida esta matriz antes do roteamento: OpenAI TTS aceita `voice`, `instructions`, `response_format`, `stream_format` e `speed`; MiniMax speech aceita `voice`, `voice_id`, `response_format`, `stream_format` e `speed`; Gemini TTS aceita `prompt`, `language_code`, `voice`, `response_format`, `stream_format`, `speed` e `temperature`; rotas TTS mais restritas do tipo Vidu/Kling podem aceitar apenas `input` e `stream_format`. Campos de nível superior desconhecidos, incluindo `user`, retornam `400 unsupported_parameter` em vez de serem ignorados.
+Campos opcionais, vozes, formatos e suporte a SSE dependem do modelo. Consulte `GET /v1/models/{model}` antes de enviá-los. Parâmetros não aceitos podem retornar `400 unsupported_parameter`.
 
 <ParamField body="model" type="string" default="tts-1">
-  Modelo TTS. Exemplos incluem `tts-1`, `gpt-4o-mini-tts`, `speech-02-hd` e `gemini-2.5-flash-tts`. Consulte `GET /v1/models?recommended_for=tts` para a lista atual.
+  ID do modelo TTS. Consulte as opções atuais com `GET /v1/models?recommended_for=tts`.
 </ParamField>
 
 <ParamField body="input" type="string" required>
@@ -23,7 +23,7 @@ Os campos opcionais compatíveis variam por família de modelo. O TokenLab valid
 </ParamField>
 
 <ParamField body="voice_id" type="string">
-  Seletor de voz nativo do provedor para modelos speech compatíveis com MiniMax.
+  ID de voz para modelos que aceitam esse parâmetro, como modelos de fala MiniMax compatíveis.
 </ParamField>
 
 <ParamField body="instructions" type="string">
@@ -56,7 +56,7 @@ Os campos opcionais compatíveis variam por família de modelo. O TokenLab valid
 
 ## Resposta
 
-Retorna o arquivo de áudio no formato solicitado.
+`stream_format=audio` retorna bytes de áudio. Modelos compatíveis com `stream_format=sse` retornam `text/event-stream`; processe os eventos em vez de salvar toda a resposta como arquivo de áudio.
 
 <RequestExample>
 ```bash cURL
@@ -134,6 +134,8 @@ file_put_contents('speech.mp3', $audio);
 
 ## Amostras de Voz
 
+As vozes disponíveis dependem do modelo. Os nomes abaixo são exemplos, não uma lista comum a todos os modelos TTS.
+
 | Voz | Descrição |
 |-------|-------------|
 | `alloy` | Neutra, equilibrada |
@@ -158,5 +160,9 @@ file_put_contents('speech.mp3', $audio);
 
 ## Campos importantes
 
-<ResponseField name="Content-Type" type="string">Tipo de evento ou mensagem retornado pela API.</ResponseField>
-<ResponseField name="body" type="binary">Corpo bruto da resposta. Salve diretamente sem interpretar como JSON.</ResponseField>
+<ResponseField name="Content-Type" type="string">
+  Tipo de mídia da resposta HTTP: formato de áudio ou `text/event-stream` para SSE.
+</ResponseField>
+<ResponseField name="body" type="binary | SSE">
+  Bytes de áudio em `audio`; fluxo de eventos em `sse`. Escolha o processamento conforme `Content-Type` e o modo solicitado.
+</ResponseField>

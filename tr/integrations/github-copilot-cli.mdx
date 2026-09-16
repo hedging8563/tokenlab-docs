@@ -18,20 +18,39 @@ description: "GitHub Copilot CLI'ı BYOK ile TokenLab'e bağlayın"
 ## Kurulum ve yapılandırma
 
 ```bash
-npm install -g @github/copilot
+npm install -g @github/copilot@1.0.85
 copilot --version
 ```
 
-npm kurulumu Node.js 22 veya üstünü gerektirir. GitHub şu anda etkin bir Copilot planı ister; kuruluş hesaplarında Copilot CLI politikası da etkinleştirilmelidir.
+npm kurulumu Node.js 22 veya üstünü gerektirir.
 
-```bash
-export COPILOT_PROVIDER_TYPE="openai"
-export COPILOT_PROVIDER_BASE_URL="https://api.tokenlab.sh/v1"
-export COPILOT_PROVIDER_API_KEY="sk-your-tokenlab-key"
-export COPILOT_MODEL="kimi-k3"
+[Hızlı başlangıç](/tr/quickstart) içindeki macOS, Linux, WSL veya Windows PowerShell adımlarıyla anahtarı komut geçmişine yazmadan `TOKENLAB_API_KEY` değerini ayarlayın. Copilot CLI’u aynı terminalden başlatın. Sürekli kullanım için yerel bir sır yöneticisi kullanın; shell profiline düz metin anahtar eklemeyin.
 
-copilot
+Bu değişkenler yalnızca bu başlatma için geçerlidir; kayıtlı hesap, varsayılan model ve izinler korunur. Önceki yapılandırma için bu değişkenler olmadan normal başlatın. Bunları kabuk profiline kaydetmeyin.
+
+<CodeGroup>
+```bash macOS / Linux / WSL
+COPILOT_PROVIDER_TYPE=openai COPILOT_PROVIDER_BASE_URL=https://api.tokenlab.sh/v1 COPILOT_PROVIDER_API_KEY="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" copilot --model kimi-k3
 ```
+
+```powershell Windows PowerShell
+if (-not $env:TOKENLAB_API_KEY) { throw 'Set TOKENLAB_API_KEY first' }
+$previous = @{}
+$previous['COPILOT_PROVIDER_TYPE'] = [Environment]::GetEnvironmentVariable('COPILOT_PROVIDER_TYPE', 'Process')
+$previous['COPILOT_PROVIDER_BASE_URL'] = [Environment]::GetEnvironmentVariable('COPILOT_PROVIDER_BASE_URL', 'Process')
+$previous['COPILOT_PROVIDER_API_KEY'] = [Environment]::GetEnvironmentVariable('COPILOT_PROVIDER_API_KEY', 'Process')
+try {
+  $env:COPILOT_PROVIDER_TYPE = 'openai'
+  $env:COPILOT_PROVIDER_BASE_URL = 'https://api.tokenlab.sh/v1'
+  $env:COPILOT_PROVIDER_API_KEY = $env:TOKENLAB_API_KEY
+  copilot --model kimi-k3
+} finally {
+  foreach ($name in $previous.Keys) {
+    [Environment]::SetEnvironmentVariable($name, $previous[$name], 'Process')
+  }
+}
+```
+</CodeGroup>
 
 Model hem akışı hem de araç çağrısını desteklemelidir. `kimi-k3` araç kullanımını ve GitHub'ın önerdiği 128K'dan büyük bağlamı destekler.
 
@@ -40,3 +59,5 @@ Dosyaları değiştirmeyen salt okunur bir görevle başlayın. Model bulunamazs
 <Warning>
 API Key'leri Git tarafından izlenen dosyalarda saklamayın. Terminal geçmişinde, ekran görüntüsünde veya loglarda görünen Key'leri yenileyin.
 </Warning>
+
+Ayarları kaydetmek veya modelleri listelemek anahtarı ya da tamamlanmış bir isteği doğrulamaz. İstem TokenLab bakiyesini kullanır. Araçları denemeden önce yanıtı ve ilgili [istek kaydını](https://tokenlab.sh/dashboard/runs?section=requests) kontrol edin; yardımcı istekler de ücretlendirilebilir.

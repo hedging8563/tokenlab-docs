@@ -5,15 +5,15 @@ description: "把 Portkey Gateway 连接到 TokenLab"
 
 ## 概述
 
-在 Portkey 中添加 TokenLab，即可使用 OpenAI 兼容 Chat Completions。只有当前 Portkey 版本支持自定义 Responses 地址时，才使用 Responses。
+在 Portkey 中将 TokenLab 配置为自定义 OpenAI 兼容服务。只有当前 Portkey 版本支持自定义 Responses 地址时，才使用 Responses。
 
 
 ## 配置值
 
 | 字段 | 值 |
 |-------|-------|
-| Provider | `tokenlab` |
-| Base URL | `https://api.tokenlab.sh/v1` |
+| Provider | `openai` |
+| Custom Host | `https://api.tokenlab.sh/v1` |
 | API 密钥 | `sk-your-tokenlab-key` |
 | 模型 | 当前 TokenLab 模型 ID |
 
@@ -21,10 +21,13 @@ description: "把 Portkey Gateway 连接到 TokenLab"
 
 使用 TokenLab 进行 OpenAI 兼容的聊天请求：
 
+此示例需要已运行的自托管 Portkey Gateway，请将网关 URL 替换为你的部署地址。使用 Portkey Cloud 时，还需通过 `x-portkey-api-key` 发送 Portkey API 密钥。参见 [Portkey 配置指南](https://portkey.ai/docs/api-reference/inference-api/headers)。
+
 ```bash
 curl https://your-portkey-gateway.example/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -H "x-portkey-provider: tokenlab" \
+  -H "x-portkey-provider: openai" \
+  -H "x-portkey-custom-host: https://api.tokenlab.sh/v1" \
   -H "Authorization: Bearer sk-your-tokenlab-key" \
   -d '{
     "model": "gpt-5.6-luna",

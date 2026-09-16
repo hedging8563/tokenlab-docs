@@ -1,388 +1,82 @@
 ---
-title: "Khả năng tương thích của IDE & SDK"
-description: "Hướng dẫn tương thích dựa trên bằng chứng cho các công cụ lập trình AI, SDK và framework"
+title: "Khả năng tương thích của công cụ và SDK"
+description: "Tìm cấu hình TokenLab phù hợp cho công cụ lập trình, ứng dụng trò chuyện, SDK và framework"
 ---
 
-## Tổng quan
-
-TokenLab cung cấp nhiều định dạng API để các công cụ lập trình, SDK và framework phổ biến có thể tích hợp với lượng mã kết nối (glue code) tối thiểu.
-
-Trang này được thiết kế có chủ đích để tập trung hơn so với một ma trận tiếp thị:
-
-- **Được hỗ trợ (Supported)**: Nghĩa là chúng tôi cung cấp tài liệu về lộ trình thiết lập cụ thể và TokenLab cung cấp cấu trúc giao thức mà lộ trình đó yêu cầu.
-- **Lộ trình native mạnh mẽ (Strong native path)**: Nghĩa là kho lưu trữ cũng có bằng chứng về bộ điều hợp (adapter) trực tiếp hoặc định dạng yêu cầu cho họ giao thức đó.
-- **Nỗ lực tốt nhất (Best-effort)**: Nghĩa là việc tích hợp có thể hoạt động, nhưng client thượng nguồn không coi quy trình gateway tùy chỉnh này là một hợp đồng ổn định.
-
-<Note>
-  Các trường không được hỗ trợ không được xử lý đồng nhất. Trên các lộ trình tương thích, một số trường bị bỏ qua hoặc được chuẩn hóa. Trên `/v1/responses`, các trường không được hỗ trợ có thể trả về lỗi `400` hoặc `503` rõ ràng khi lộ trình đó không thể đảm bảo hành vi được yêu cầu.
-</Note>
-
-## Các định dạng API được hỗ trợ
-
-| Endpoint | Định dạng | Trường hợp sử dụng |
-|----------|--------|----------|
-| `/v1/chat/completions` | OpenAI Chat | Tương thích phổ quát |
-| `/v1/responses` | OpenAI Responses | Hội thoại có trạng thái (Stateful) |
-| `/v1/messages` | Anthropic Messages | Các tính năng native của Claude |
-| `/v1beta/models/:model:generateContent` | Google Gemini | Các tính năng native của Gemini |
-
-## Khả năng tương thích của IDE & CLI
-
-### Các lộ trình công cụ đã được ghi nhận
-
-| Công cụ | Mức độ hỗ trợ | Định dạng | Ghi chú |
-|------|---------------|--------|-------|
-| **Cursor** | Được hỗ trợ với giới hạn | Tương thích OpenAI | Hoạt động cho các luồng chat/editor tiêu chuẩn BYOK, không thay thế cho các tính năng do Cursor quản lý như Tab Completion |
-| **Claude Code CLI** | Lộ trình native mạnh mẽ | Anthropic | Lộ trình `/v1/messages` native với phạm vi bao phủ bộ điều hợp cho thinking và `tool_choice` |
-| **Codex CLI** | Được hỗ trợ với giới hạn mô hình/lộ trình | OpenAI Responses | Coi `/v1/responses` là lộ trình nâng cao cho các quy trình làm việc cụ thể của Codex; một số trường chỉ dành cho Responses không được đảm bảo trên mọi mô hình và lộ trình |
-| **Gemini CLI** | Nỗ lực tốt nhất / thử nghiệm | Gemini | Luồng URL cơ sở TokenLab tùy chỉnh không phải là tích hợp Gemini CLI chính thức |
-| **OpenCode** | Được hỗ trợ | Tương thích OpenAI | Sử dụng nhà cung cấp tương thích OpenAI theo mặc định; chỉ chuyển sang nhà cung cấp dựa trên Responses khi bạn thực sự cần |
-| **OpenHands** | Được hỗ trợ | Tương thích OpenAI | Sử dụng lộ trình LiteLLM/tương thích OpenAI với `openai/<model>` và URL cơ sở `/v1` của TokenLab |
-
-<Note>
-  Các trình soạn thảo và công cụ agent tương thích OpenAI khác thường hoạt động với cùng mẫu URL cơ sở; hãy kiểm tra hỗ trợ nhà cung cấp tùy chỉnh của chính công cụ đó trước khi sử dụng trong môi trường production.
-</Note>
-
-### Ví dụ cấu hình
-
-<Tabs>
-  <Tab title="Cursor">
-    ```
-    Base URL: https://api.tokenlab.sh/v1
-    API Key: sk-your-tokenlab-key
-    ```
-    Cursor sử dụng định dạng công cụ kiểu Anthropic ở bên trong. TokenLab hỗ trợ cả hai:
-    - Định dạng OpenAI: `{ type: "function", function: { name, parameters } }`
-    - Định dạng Anthropic: `{ name, input_schema }` (không có trường type)
-  </Tab>
-  <Tab title="Claude Code">
-    ```bash
-    export ANTHROPIC_BASE_URL="https://api.tokenlab.sh"
-    export ANTHROPIC_API_KEY="sk-your-tokenlab-key"
-    ```
-  </Tab>
-  <Tab title="OpenCode">
-    ```bash
-    export OPENAI_API_KEY="sk-your-tokenlab-key"
-    export LOCAL_ENDPOINT="https://api.tokenlab.sh/v1"
-    ```
-  </Tab>
-  <Tab title="Aider">
-    ```bash
-    export OPENAI_API_KEY="sk-your-tokenlab-key"
-    export OPENAI_BASE_URL="https://api.tokenlab.sh/v1"
-    aider --model gpt-5.4
-    ```
-  </Tab>
-</Tabs>
-
-## Khả năng tương thích của SDK
-
-### Các lộ trình SDK & Framework đã được ghi nhận
-
-| SDK / Framework | Ngôn ngữ | Mức độ hỗ trợ | Ghi chú |
-|-----------------|----------|---------------|-------|
-| **OpenAI SDK** | Python/JS/Go | Lộ trình cốt lõi được hỗ trợ | Lộ trình tương thích cho Chat Completions và Embeddings `/v1`; sử dụng các lộ trình nhà cung cấp native cho hành vi cụ thể của nhà cung cấp, và không giả định các trường chỉ dành cho Responses hoạt động trên mọi mô hình |
-| **Anthropic SDK** | Python/JS | Lộ trình native mạnh mẽ | Lộ trình Messages native với bằng chứng trực tiếp cho tools, thinking và prompt caching |
-| **Vercel AI SDK** | TypeScript | Mẫu tích hợp được khuyến nghị | Ưu tiên `@ai-sdk/openai-compatible`; chỉ sử dụng `@ai-sdk/openai` khi bạn thực sự muốn hành vi native của Responses |
-| **LangChain** | Python/JS | Các bề mặt tiêu chuẩn được hỗ trợ | `ChatOpenAI` và `OpenAIEmbeddings` là phạm vi dự kiến; các tính năng bổ sung native của nhà cung cấp nằm ngoài phạm vi |
-| **LlamaIndex** | Python | Được hỗ trợ qua `OpenAILike` | Sử dụng `OpenAILike`, không phải các lớp OpenAI tích hợp sẵn, cho các gateway bên thứ ba như TokenLab |
-| **OpenAI Agents SDK** | Python | Lộ trình chat-completions được hỗ trợ | Sử dụng `AsyncOpenAI(base_url="https://api.tokenlab.sh/v1")` với `OpenAIChatCompletionsModel`; hành vi Responses native phụ thuộc vào mô hình và lộ trình được chọn |
-| **AutoGen** | Python | Lộ trình endpoint tùy chỉnh được hỗ trợ | Sử dụng `OpenAIChatCompletionClient` với `base_url: https://api.tokenlab.sh/v1` |
-| **Semantic Kernel** | .NET | Lộ trình endpoint tùy chỉnh được hỗ trợ | Sử dụng endpoint tùy chỉnh của trình kết nối hoàn thiện chat OpenAI và trỏ nó đến `https://api.tokenlab.sh/v1` |
-| **CrewAI** | Python | Lộ trình endpoint tùy chỉnh được hỗ trợ | Đặt `OPENAI_API_BASE` hoặc `LLM(base_url=...)` thành endpoint `/v1` của TokenLab |
-| **Pydantic AI** | Python | Lộ trình nhà cung cấp tương thích OpenAI được hỗ trợ | Sử dụng `OpenAIChatModel` với `OpenAIProvider(base_url="https://api.tokenlab.sh/v1")` |
-| **DSPy** | Python | Lộ trình endpoint tùy chỉnh được hỗ trợ | Sử dụng `dspy.LM("openai/<model>", api_base="https://api.tokenlab.sh/v1")` |
-| **Langflow** | Python / Web | Được hỗ trợ với giới hạn phạm vi | Sử dụng trường **OpenAI API Base** của thành phần OpenAI với endpoint `/v1` của TokenLab |
-| **Haystack** | Python | Lộ trình endpoint tùy chỉnh được hỗ trợ | Sử dụng `OpenAIChatGenerator(api_base_url="https://api.tokenlab.sh/v1")` |
-| **Graphiti** | Python | Lộ trình endpoint tùy chỉnh được hỗ trợ | Sử dụng `OpenAIGenericClient` với endpoint `/v1` của TokenLab |
-| **Dify** | - | Được hỗ trợ với giới hạn phạm vi | Nhà cung cấp OpenAI và các luồng hướng chat-completions là lộ trình dự kiến; không phù hợp cho các hành vi Responses hoặc WebSocket cụ thể của Codex |
-| **Flowise** | Web / Node | Được hỗ trợ với giới hạn phạm vi | Sử dụng node chat TokenLab khi có sẵn, hoặc node tương thích ChatOpenAI trỏ đến `https://api.tokenlab.sh/v1` |
-| **Mem0** | Python | Lộ trình endpoint tùy chỉnh được hỗ trợ | Giữ nhà cung cấp OpenAI và đặt `openai_base_url` thành endpoint `/v1` của TokenLab |
-| **Agno** | Python | Lộ trình được hỗ trợ | Sử dụng trình bao bọc mô hình TokenLab khi có sẵn, hoặc lộ trình URL cơ sở tương thích OpenAI |
-| **Browser Use** | Python | Lộ trình endpoint tùy chỉnh được hỗ trợ | Sử dụng `ChatOpenAILike` với endpoint `/v1` của TokenLab |
-| **VoltAgent** | TypeScript | Lộ trình endpoint tùy chỉnh được hỗ trợ | Truyền nhà cung cấp OpenAI của AI SDK được cấu hình với `baseURL: "https://api.tokenlab.sh/v1"` |
-| **Ragas** | Python | Lộ trình endpoint tùy chỉnh được hỗ trợ | Truyền `AsyncOpenAI(base_url="https://api.tokenlab.sh/v1")` vào `llm_factory` |
-| **Guardrails** | Python | Lộ trình xác thực được hỗ trợ | Truyền một callable chat completions của OpenAI SDK được cấu hình với endpoint `/v1` của TokenLab |
-| **Prompt flow** | Python / CLI | Lộ trình endpoint tùy chỉnh được hỗ trợ | Tạo kết nối OpenAI với `base_url=https://api.tokenlab.sh/v1` |
-| **Promptfoo** | CLI / Node | Lộ trình được hỗ trợ | Sử dụng các nhà cung cấp chat hoặc Responses của OpenAI với `apiBaseUrl: https://api.tokenlab.sh/v1` |
-| **Portkey Gateway** | Gateway | Lộ trình được hỗ trợ | Sử dụng TokenLab làm nhà cung cấp thượng nguồn cho lưu lượng chat và Responses tương thích OpenAI |
-| **Helicone** | Gateway / Observability | Lộ trình quan sát được hỗ trợ | Định tuyến các yêu cầu tương thích OpenAI qua Helicone Gateway với `Helicone-Target-Url: https://api.tokenlab.sh` |
-| **Langfuse** | Observability | Lộ trình theo dõi được hỗ trợ | Cấu hình tích hợp OpenAI của Langfuse với URL cơ sở `/v1` của TokenLab |
-| **OpenLIT** | Observability | Lộ trình theo dõi được hỗ trợ | Instrument một client OpenAI SDK được cấu hình với URL cơ sở `/v1` của TokenLab |
-| **OpenLLMetry** | Observability | Lộ trình theo dõi được hỗ trợ | Sử dụng instrumentation của OpenAI SDK với URL cơ sở `/v1` của TokenLab |
-| **Phoenix** | Observability | Lộ trình theo dõi được hỗ trợ | Tự động instrument client OpenAI SDK được cấu hình với URL cơ sở `/v1` của TokenLab |
-| **Opik** | Observability | Lộ trình theo dõi được hỗ trợ | Wrap một client OpenAI SDK được cấu hình với URL cơ sở `/v1` của TokenLab |
-| **LangBot** | Bot Platform | Lộ trình chat được hỗ trợ | Sử dụng requester TokenLab khi có sẵn, hoặc cấu hình requester tương thích OpenAI với endpoint `/v1` của TokenLab |
-| **Open WebUI** | Web Chat | Lộ trình ứng dụng chat được hỗ trợ | Thêm TokenLab làm kết nối API tương thích OpenAI và làm mới danh sách mô hình |
-| **Chatbox / DeepChat / Jan / LibreChat / Cherry Studio** | Desktop / Web | Lộ trình ứng dụng chat được hỗ trợ | Sử dụng luồng nhà cung cấp tùy chỉnh tương thích OpenAI của mỗi ứng dụng; các ứng dụng này thường hướng đến chat-completions |
-
-## Các tham số Chat Completions
-
-### Các tham số cốt lõi
-
-| Tham số | Loại | Mô tả |
-|-----------|------|-------------|
-| `model` | string | Định danh mô hình (bắt buộc) |
-| `messages` | array | Tin nhắn hội thoại (bắt buộc) |
-| `max_tokens` | integer | Số token đầu ra tối đa |
-| `temperature` | number | Nhiệt độ lấy mẫu (0-2) |
-| `top_p` | number | Lấy mẫu Nucleus (0-1) |
-| `stream` | boolean | Bật streaming |
-
-### Gọi công cụ (Tool Calling)
-
-```json
-{
-  "tools": [
-    {
-      "type": "function",
-      "function": {
-        "name": "get_weather",
-        "description": "Get weather for a location",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "location": { "type": "string" }
-          }
-        },
-        "strict": true
-      }
-    }
-  ],
-  "tool_choice": "auto",
-  "parallel_tool_calls": true
-}
-```
-
-### Tùy chọn Tool Choice
-
-| Định dạng | Ví dụ | Mô tả |
-|--------|---------|-------------|
-| String | `"auto"`, `"none"`, `"required"` | Lựa chọn đơn giản |
-| Đối tượng OpenAI | `{ "type": "function", "function": { "name": "fn" } }` | Ép buộc hàm cụ thể |
-| Đối tượng Anthropic | `{ "type": "tool", "name": "fn", "disable_parallel_tool_use": true }` | Định dạng native của Anthropic |
-
-### Các tham số nâng cao
-
-| Tham số | Loại | Mô tả |
-|-----------|------|-------------|
-| `stream_options` | object | Chỉ Chat Completions: `{ include_usage: true }` để đếm token |
-| `reasoning_effort` | string | `"low"`, `"medium"`, `"high"` cho các mô hình GPT-5 có khả năng suy luận |
-| `service_tier` | string | `"auto"` hoặc `"default"` |
-| `seed` | integer | Đầu ra tất định |
-| `logprobs` | boolean | Trả về xác suất log |
-| `top_logprobs` | integer | Số lượng logprobs hàng đầu (0-20) |
-| `logit_bias` | object | Bản đồ thiên kiến token (-100 đến 100) |
-| `frequency_penalty` | number | Phạt lặp lại (-2 đến 2) |
-| `presence_penalty` | number | Phạt chủ đề (-2 đến 2) |
-| `stop` | string/array | Chuỗi dừng |
-| `n` | integer | Số lượng hoàn thiện (1-128) |
-| `user` | string | Định danh người dùng để theo dõi |
-
-### Các tính năng nâng cao của OpenAI
-
-| Tham số | Loại | Mô tả |
-|-----------|------|-------------|
-| `modalities` | array | `["text", "audio"]` cho đa phương thức |
-| `audio` | object | Cấu hình đầu ra âm thanh (giọng nói, định dạng) |
-| `prediction` | object | Đầu ra dự đoán để hoàn thiện nhanh hơn |
-| `metadata` | object | Cặp khóa-giá trị để theo dõi |
-| `store` | boolean | Lưu trữ để truy xuất sau |
-
-### Các tùy chọn cụ thể của nhà cung cấp
-
-```json
-{
-  "anthropic_options": {
-    "thinking": {
-      "type": "enabled",
-      "budget_tokens": 10000
-    },
-    "prompt_caching": true
-  },
-  "google_options": {
-    "safety_settings": [...],
-    "google_search": true,
-    "code_execution": true
-  }
-}
-```
-
-## Các tham số Anthropic Messages
-
-### Các tham số cốt lõi
-
-| Tham số | Loại | Mô tả |
-|-----------|------|-------------|
-| `model` | string | Định danh mô hình |
-| `messages` | array | Tin nhắn hội thoại |
-| `max_tokens` | integer | Đầu ra tối đa (lên đến 128000) |
-| `system` | string/array | Prompt hệ thống |
-| `stream` | boolean | Bật streaming |
-
-### Gọi công cụ (Tool Calling)
-
-```json
-{
-  "tools": [
-    {
-      "name": "get_weather",
-      "description": "Get weather",
-      "input_schema": {
-        "type": "object",
-        "properties": {
-          "location": { "type": "string" }
-        }
-      }
-    }
-  ],
-  "tool_choice": {
-    "type": "auto",
-    "disable_parallel_tool_use": false
-  }
-}
-```
-
-### Suy luận mở rộng (Extended Thinking)
-
-```json
-{
-  "model": "claude-opus-5",
-  "thinking": {
-    "type": "enabled",
-    "budget_tokens": 10000
-  }
-}
-```
-
-## Các tham số Responses API
-
-### Các tham số cốt lõi
-
-| Tham số | Loại | Mô tả |
-|-----------|------|-------------|
-| `model` | string | Định danh mô hình |
-| `input` | string/array | Nội dung đầu vào |
-| `instructions` | string | Hướng dẫn hệ thống |
-| `max_output_tokens` | integer | Số token đầu ra tối đa |
-| `previous_response_id` | string | Tiếp tục hội thoại |
-
-### Các tham số nâng cao
-
-| Tham số | Loại | Mô tả |
-|-----------|------|-------------|
-| `truncation_strategy` | string | `"auto"` hoặc `"disabled"` |
-| `include` | array | `["reasoning.encrypted_content"]` |
-| `reasoning_effort` | string | Cho các mô hình suy luận |
-| `service_tier` | string | Cấp độ ưu tiên |
-
-### Định dạng công cụ
-
-Hỗ trợ cả định dạng công cụ OpenAI và Anthropic:
-
-```json
-// Định dạng OpenAI
-{ "type": "function", "name": "fn", "parameters": {...} }
-
-// Định dạng Anthropic (tương thích Cursor)
-{ "name": "fn", "input_schema": {...} }
-```
-
-## Các tham số Gemini API
-
-### Các tham số cốt lõi
-
-| Tham số | Loại | Mô tả |
-|-----------|------|-------------|
-| `contents` | array | Nội dung hội thoại |
-| `systemInstruction` | object | Prompt hệ thống |
-| `generationConfig` | object | Cài đặt tạo nội dung |
-
-### Công cụ
-
-```json
-{
-  "tools": [{
-    "functionDeclarations": [{
-      "name": "search",
-      "description": "Search the web",
-      "parameters": {...}
-    }],
-    "codeExecution": {},
-    "googleSearch": {}
-  }],
-  "toolConfig": {
-    "functionCallingConfig": {
-      "mode": "AUTO"
-    }
-  }
-}
-```
-
-### Cài đặt an toàn (Safety Settings)
-
-```json
-{
-  "safetySettings": [
-    {
-      "category": "HARM_CATEGORY_HARASSMENT",
-      "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-    }
-  ]
-}
-```
-
-### Các tham số bổ sung
-
-| Tham số | Loại | Mô tả |
-|-----------|------|-------------|
-| `cachedContent` | string | Tham chiếu nội dung đã lưu cache |
-| `responseMimeType` | string | `"text/plain"` hoặc `"application/json"` |
-| `responseSchema` | object | JSON schema cho đầu ra có cấu trúc |
-
-## Streaming
-
-Các endpoint tạo nội dung hỗ trợ `stream: true`, bao gồm Chat Completions và Responses, sử dụng Server-Sent Events (SSE):
-
-```bash
-# Chat Completions
-curl https://api.tokenlab.sh/v1/chat/completions \
-  -H "Authorization: Bearer sk-xxx" \
-  -d '{"model": "gpt-5.6-terra", "messages": [...], "stream": true}'
-
-# Theo dõi sử dụng Chat Completions
--d '{"...", "stream_options": {"include_usage": true}}'
-```
-
-## Xử lý lỗi
-
-TokenLab trả về các phản hồi lỗi tương thích với OpenAI:
-
-```json
-{
-  "error": {
-    "message": "Invalid API key",
-    "type": "invalid_api_key",
-    "code": "invalid_api_key"
-  }
-}
-```
-
-Xem [Hướng dẫn xử lý lỗi](/guides/error-handling) để biết thêm chi tiết.
-
-## Các phương pháp tốt nhất
-
-<AccordionGroup>
-  <Accordion title="Sử dụng passthrough cho các tham số không xác định">
-    Các tham số không xác định chỉ được chuyển tiếp khi lộ trình công khai và mô hình được chọn hỗ trợ chúng.
-  </Accordion>
-
-  <Accordion title="Chỉ sử dụng stream_options.include_usage cho Chat Completions">
-    Đối với streaming Chat Completions, hãy bật `stream_options.include_usage` để có số lượng token chính xác. Responses có hợp đồng streaming riêng và không công khai tùy chọn chỉ dành cho Chat này.
-  </Accordion>
-
-  <Accordion title="Sử dụng định dạng tool_choice phù hợp">
-    Khớp với định dạng dự kiến của SDK của bạn. TokenLab chấp nhận cả định dạng OpenAI và Anthropic.
-  </Accordion>
-</AccordionGroup>
+Hầu hết công cụ có thể kết nối với TokenLab bằng cách đổi khóa API và URL cơ sở. Cấu hình cụ thể phụ thuộc vào định dạng API mà công cụ sử dụng được.
+
+| Định dạng API | URL cơ sở | Ứng dụng khách phổ biến |
+| --- | --- | --- |
+| Chat Completions (Tương thích OpenAI) | `https://api.tokenlab.sh/v1` | SDK OpenAI, nhiều ứng dụng trò chuyện và framework |
+| OpenAI Responses | `https://api.tokenlab.sh/v1` | Ứng dụng khách Responses và công cụ sử dụng sự kiện Responses |
+| Anthropic Messages | `https://api.tokenlab.sh` | SDK Anthropic và công cụ dành cho Claude |
+| Gemini | `https://api.tokenlab.sh` | Ứng dụng khách REST và SDK Gemini cho phép tùy chỉnh máy chủ |
+
+Mô hình được chọn phải liệt kê cùng định dạng đó trong `accepted_request_formats`. Truyền phát và gọi công cụ còn phụ thuộc vào khả năng của mô hình và ứng dụng khách. Xem ví dụ tại [Định dạng API](/vi/guides/api-formats).
+
+## Nhãn tương thích
+
+| Nhãn | Ý nghĩa |
+| --- | --- |
+| **Tương thích** | Cấu hình TokenLab trên trang được liên kết sử dụng các tùy chọn được tài liệu của ứng dụng khách hỗ trợ |
+| **Tương thích có giới hạn** | Cấu hình áp dụng cho một số tính năng hoặc phương thức xác thực; các dịch vụ khác của nhà cung cấp vẫn có yêu cầu riêng |
+
+Các nhãn này mô tả cấu hình trên trang được liên kết. Tính năng khả dụng còn phụ thuộc vào mô hình được chọn và phiên bản ứng dụng khách.
+
+## Công cụ lập trình
+
+| Công cụ | Trạng thái | Định dạng API | Ghi chú |
+| --- | --- | --- | --- |
+| [Claude Code](/vi/integrations/claude-code) | Tương thích | Anthropic Messages | Sử dụng `ANTHROPIC_BASE_URL` và khóa API TokenLab |
+| [Codex CLI](/vi/integrations/codex-cli) | Tương thích có giới hạn | Responses | Sử dụng Responses; tính năng khả dụng phụ thuộc vào mô hình được chọn |
+| [Cursor](/vi/integrations/cursor) | Tương thích có giới hạn | Tương thích OpenAI | Áp dụng cho các tính năng Cursor chấp nhận khóa API và URL tùy chỉnh |
+| [Cline](/vi/integrations/cline) | Tương thích | Tương thích OpenAI | Chọn **OpenAI Compatible**, rồi nhập URL cơ sở và ID mô hình |
+| [Kilo Code](/vi/integrations/kilo-code) | Tương thích | Tương thích OpenAI | Sử dụng nhà cung cấp tùy chỉnh và ID mô hình |
+| [OpenCode](/vi/integrations/opencode) | Tương thích | Tương thích OpenAI | Nạp cấu hình nhà cung cấp riêng bằng `OPENCODE_CONFIG` |
+| [OpenHands](/vi/integrations/openhands) | Tương thích | Tương thích OpenAI | Giao diện dùng LiteLLM: **Advanced → Custom Model** (tiền tố `openai/`) và **Base URL** |
+| [Gemini CLI](/vi/integrations/gemini-cli) | Tương thích có giới hạn | Gemini | Sử dụng `GOOGLE_GEMINI_BASE_URL` với xác thực bằng khóa API; `GEMINI_CLI_HOME` riêng giữ nguyên cấu hình hiện có |
+
+## Ứng dụng trò chuyện
+
+| Ứng dụng | Trạng thái | Ghi chú |
+| --- | --- | --- |
+| [Chatbox](/vi/integrations/chatbox) | Tương thích | Thêm nhà cung cấp **OpenAI API Compatible** |
+| [Cherry Studio](/vi/integrations/cherry-studio) | Tương thích | Thêm nhà cung cấp và hoàn tất **Verify and Enable** |
+| [DeepChat](/vi/integrations/deepchat) | Tương thích | Chọn **OpenAI Completions** để dùng Chat Completions |
+| [Jan](/vi/integrations/jan) | Tương thích | Thêm dịch vụ tương thích OpenAI |
+| [LibreChat](/vi/integrations/librechat) | Tương thích | Cấu hình endpoint tùy chỉnh tương thích OpenAI |
+| [Open WebUI](/vi/integrations/open-webui) | Tương thích | Thêm kết nối tương thích OpenAI và chọn API Type là **Chat** |
+
+## SDK và framework
+
+| Ứng dụng khách | Trạng thái | Cấu hình |
+| --- | --- | --- |
+| [OpenAI SDK](/vi/integrations/openai-sdk) | Tương thích | Đặt `base_url` / `baseURL` thành `https://api.tokenlab.sh/v1` |
+| [Anthropic SDK](/vi/integrations/anthropic-sdk) | Tương thích | Đặt URL cơ sở thành `https://api.tokenlab.sh` |
+| [Vercel AI SDK](/vi/integrations/vercel-ai-sdk) | Tương thích | Tạo nhà cung cấp tùy chỉnh tương thích OpenAI |
+| [LangChain](/vi/integrations/langchain) | Tương thích | Cấu hình `ChatOpenAI` hoặc `OpenAIEmbeddings` với URL TokenLab |
+| [LlamaIndex](/vi/integrations/llamaindex) | Tương thích | Sử dụng các tùy chọn ứng dụng khách tương thích OpenAI |
+| [OpenAI Agents SDK](/vi/integrations/openai-agents-sdk) | Tương thích có giới hạn | Hướng dẫn sử dụng `OpenAIChatCompletionsModel`; kiểm tra tính năng của mô hình và SDK trước khi dùng Responses |
+| [AutoGen](/vi/integrations/autogen) | Tương thích | Sử dụng ứng dụng khách mô hình tương thích OpenAI |
+| [CrewAI](/vi/integrations/crewai) | Tương thích | Cấu hình ứng dụng khách LLM tương thích OpenAI |
+| [PydanticAI](/vi/integrations/pydantic-ai) | Tương thích | Cung cấp nhà cung cấp tương thích OpenAI |
+
+Các framework, công cụ quan sát, gateway và sản phẩm đánh giá khác nằm trong mục điều hướng Integrations.
+
+## Mức sử dụng trong phản hồi truyền phát
+
+Luồng Chat Completions chấp nhận `stream_options: { include_usage: true }`, thêm một đoạn cuối chứa thông tin sử dụng trước khi đóng luồng. API Responses không cung cấp `include_usage`; các luồng Responses báo mức sử dụng trong sự kiện kết thúc.
+
+## Những gì khóa API tùy chỉnh không thay thế
+
+Một số sản phẩm kết hợp lệnh gọi mô hình với các tính năng do nhà cung cấp lưu trữ. Khóa TokenLab có thể phục vụ các yêu cầu mô hình được mở qua cài đặt BYOK, nhưng không thay thế các gói đăng ký khác, dịch vụ tự động hoàn thành, tính năng tài khoản hay tiện ích mở rộng độc quyền.
+
+Nếu bản cập nhật công cụ thay đổi cách cấu hình, hãy dùng trang tích hợp hiện tại thay vì sao chép ví dụ biến môi trường cũ.
+
+## Trước khi phụ thuộc vào một tính năng
+
+- Xác nhận công cụ cho phép URL cơ sở tùy chỉnh cho định dạng cần dùng.
+- Xác nhận mô hình liệt kê định dạng đó trong `accepted_request_formats`.
+- Thử truyền phát và gọi công cụ nếu quy trình của bạn cần chúng.
+- Giữ khóa API trên thiết bị hoặc máy chủ đáng tin cậy.
+- Ghi lại ID yêu cầu khi báo lỗi.

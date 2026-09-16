@@ -6,12 +6,14 @@ description: "Lists Seedance material groups owned by the current organization."
 
 List material groups owned by the authenticated organization. Filter by `library_type` and `status` to separate virtual-avatar groups from real-person groups.
 
-Use a returned `group_id` when uploading materials. Do not pass a `group_id` as `material_asset_id` during video generation; generation requires a material asset `id`.
+Use a returned `id` when uploading materials. Do not pass a `group_id` as `material_asset_id` during video generation; generation requires a material asset `id`.
+
+`project_name` isolates resources within the authenticated organization. It defaults to `default`; use the same case-sensitive value for related groups and assets. Send it in the JSON body for POST/PUT and in the query string for GET/DELETE.
 
 ## Example Request
 
 ```bash
-curl "https://api.tokenlab.sh/v1/videos/assets/groups?library_type=aigc_avatar&page_size=20" \
+curl "https://api.tokenlab.sh/v1/videos/assets/groups?library_type=aigc_avatar&page_size=20&project_name=default" \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```
 
@@ -23,6 +25,7 @@ curl "https://api.tokenlab.sh/v1/videos/assets/groups?library_type=aigc_avatar&p
     {
       "id": "group-20260720123456-vrt01",
       "object": "seedance.material_asset_group",
+      "project_name": "default",
       "library_type": "aigc_avatar",
       "group_name": "Product references",
       "status": "ACTIVE",

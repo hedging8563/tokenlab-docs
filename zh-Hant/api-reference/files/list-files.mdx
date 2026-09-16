@@ -37,11 +37,10 @@ curl -X GET "https://api.tokenlab.sh/v1/files?purpose=batch&limit=20" \
 
 - 使用 `custom_id` 進行冪等的下游對帳。
 - 只有在工作者完成批次後，才預期會有 `output_file_id` 和 `error_file_id`。
-- 批次定價可能與同步定價不同，因為適用 `isBatchRequest=true` 的折扣規則。
 
 ## 篩選條件
 
-- `limit` 接受 1 到 10000，預設值為 10000。
+- 批次和圖片參考檔案的 `limit` 為 1–10000，預設 10000，可用 `after` 分頁。Anthropic Files 模式的 `limit` 為 1–1000，預設 20；分頁使用 `after_id` 或 `before_id`，不能同時使用。
 - `purpose` 可以是 `batch`、`batch_output`、`user_data` 或 `vision`。
 - 當存在 TokenLab 建立的圖像參考檔案時，`user_data` 和 `vision` 會返回這些檔案。
 
@@ -51,7 +50,10 @@ curl -X GET "https://api.tokenlab.sh/v1/files?purpose=batch&limit=20" \
 ```json 200 OK
 {
   "object": "list",
-  "data": [{ "id": "file_abc123", "object": "file", "purpose": "batch" }]
+  "data": [{ "id": "file_abc123", "object": "file", "purpose": "batch" }],
+  "first_id": "file_abc123",
+  "last_id": "file_abc123",
+  "has_more": false
 }
 ```
 </ResponseExample>
@@ -60,3 +62,4 @@ curl -X GET "https://api.tokenlab.sh/v1/files?purpose=batch&limit=20" \
 
 <ResponseField name="object" type="string">回應物件類型。</ResponseField>
 <ResponseField name="data" type="array">本次回應返回的列表或載荷。</ResponseField>
+<ResponseField name="has_more" type="boolean">`has_more` 為 true 時還有後續結果。</ResponseField>

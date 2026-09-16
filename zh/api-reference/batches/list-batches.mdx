@@ -21,7 +21,10 @@ curl -X GET "https://api.tokenlab.sh/v1/batches?limit=20" \
 ```json 200 OK
 {
   "object": "list",
-  "data": [{ "id": "batch_abc123", "object": "batch", "status": "completed" }]
+  "data": [{ "id": "batch_abc123", "object": "batch", "status": "completed" }],
+  "first_id": "batch_abc123",
+  "last_id": "batch_abc123",
+  "has_more": false
 }
 ```
 </ResponseExample>
@@ -31,3 +34,4 @@ curl -X GET "https://api.tokenlab.sh/v1/batches?limit=20" \
 <ResponseField name="object" type="string">固定为 `list`。</ResponseField>
 <ResponseField name="data" type="array">批处理任务列表。</ResponseField>
 <ResponseField name="status" type="string">每个批处理任务的状态。</ResponseField>
+<ResponseField name="has_more" type="boolean">`has_more` 为 true 时还有后续结果。</ResponseField>

@@ -8,16 +8,20 @@ description: "Sesi İngilizce metne çevirir"
 
 Desteklenen herhangi bir dildeki sesi İngilizce metne çevirir. Transkripsiyondan farklı olarak, bu endpoint girdi dilinden bağımsız olarak her zaman İngilizce metin çıktısı üretir.
 
+<Note>
+  Bu endpoint sesi İngilizceye çevirir. `language` göndermeyin; ses çevirisi bu parametreyi desteklemez ve `unsupported_parameter` döndürebilir. Metin çevirisi için `POST /v1/translations` kullanın; `recommended_for=translation` bu metin API’sini belirtir.
+</Note>
+
 ## İstek Gövdesi
 
-**Senkron istek zaman aşımı:** Bu chat dışı endpoint, yönlendirilen modelin tamamlanmasını bekler. Büyük girdiler, uzun sesler veya büyük batch’ler yaygın 30s istemci varsayılanlarını aşabilir; bu yüzden HTTP istemcisi zaman aşımını en az `120s` olarak ayarlayın.
+Çeviri işlemi tamamlanınca yanıt döner. Uzun sesler için HTTP zaman aşımını en az `120s` olarak ayarlayın.
 
 <ParamField body="file" type="file" required>
   Çevrilecek ses dosyası. Desteklenen formatlar: `flac`, `mp3`, `mp4`, `mpeg`, `mpga`, `m4a`, `ogg`, `wav`, `webm`. Maksimum dosya boyutu 25 MB'dir.
 </ParamField>
 
 <ParamField body="model" type="string" default="whisper-1">
-  Kullanılacak model. Şu anda yalnızca `whisper-1` desteklenmektedir.
+  Ses çevirisi model ID’si; örneğin `whisper-1`. Güncel model ayrıntılarında `POST /v1/audio/translations` desteğini doğrulayın.
 </ParamField>
 
 <ParamField body="prompt" type="string">
@@ -25,14 +29,16 @@ Desteklenen herhangi bir dildeki sesi İngilizce metne çevirir. Transkripsiyond
 </ParamField>
 
 <ParamField body="response_format" type="string" default="json">
-  Çıktının formatı. Seçenekler: `json`, `text`, `srt`, `verbose_json`, `vtt`.
+  Çıktı biçimi. Whisper `json`, `text`, `srt`, `verbose_json` ve `vtt` destekler; diğer modeller farklı seçenekler sunabilir. Model ayrıntılarını kontrol edin.
 </ParamField>
 
 <ParamField body="temperature" type="number">
-  0 ile 1 arasında örnekleme temperature değeri. 0.8 gibi daha yüksek değerler daha rastgele çıktı üretirken, 0.2 gibi daha düşük değerler çıktıyı daha odaklı ve deterministik hale getirir.
+  0 ile 1 arasında örnekleme sıcaklığı; yalnızca bu parametreyi destekleyen modeller için.
 </ParamField>
 
 ## Yanıt
+
+Aşağıdaki alanlar JSON transkripsiyon veya çeviri yanıtlarını açıklar. `text`, `srt` ve `vtt`, JSON nesnesi yerine ham metin veya altyazı döndürür. Ek alanlar modele ve çıktı biçimine bağlıdır.
 
 <ResponseField name="text" type="string">
   İngilizceye çevrilmiş metin.
@@ -41,7 +47,7 @@ Desteklenen herhangi bir dildeki sesi İngilizce metne çevirir. Transkripsiyond
 `verbose_json` formatı için, yanıt ayrıca şunları içerir:
 
 <ResponseField name="language" type="string">
-  Girdi sesinin algılanan dili.
+  Sağlandığında yanıttaki dil etiketi.
 </ResponseField>
 
 <ResponseField name="duration" type="number">
@@ -130,7 +136,6 @@ echo $data['text'];
 ```json verbose_json
 {
   "task": "translate",
-  "language": "german",
   "duration": 8.470000267028809,
   "text": "Hello, my name is Wolfgang and I come from Germany. Where are you from?",
   "segments": [
@@ -158,7 +163,3 @@ echo $data['text'];
 | Çıktı dili | Her zaman İngilizce | Girdi ile aynı |
 | Kullanım durumu | Yabancı dildeki sesi İngilizceye dönüştürme | Orijinal dili koruma |
 | Dil parametresi | Uygulanamaz | İsteğe bağlı ipucu |
-
-<Note>
-  Çeviri endpoint'i kaynak dili otomatik olarak algılar ve İngilizceye çevirir. Transkripsiyondaki `language` parametresi yok sayılır.
-</Note>

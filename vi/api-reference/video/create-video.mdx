@@ -30,7 +30,7 @@ Trong môi trường vận hành, nên ưu tiên URL `https` công khai cho ản
 
 <VideoModelContractNote />
 
-<ParamField body="prompt" type="string" required>
+<ParamField body="prompt" type="string">
   Mô tả văn bản của video cần tạo. Trường này là bắt buộc với hầu hết model video công khai.
 </ParamField>
 
@@ -51,7 +51,7 @@ Trong môi trường vận hành, nên ưu tiên URL `https` công khai cho ản
 </ParamField>
 
 <ParamField body="material_asset_id" type="string">
-  ID material Seedance của TokenLab được trả về bởi [Tạo Tài nguyên Vật liệu](/vi/api-reference/video/create-material-asset) hoặc luồng chuẩn bị hình ảnh tự động. Dùng sau khi material là `ACTIVE` với các model Seedance có thể dùng thư viện material TokenLab.
+  ID material Seedance của TokenLab được trả về bởi [Tạo Tài nguyên Vật liệu](/vi/api-reference/video/create-material-asset). Dùng sau khi material là `ACTIVE` với các model Seedance có thể dùng thư viện material TokenLab.
 </ParamField>
 
 <ParamField body="material_asset_ids" type="array">
@@ -59,7 +59,7 @@ Trong môi trường vận hành, nên ưu tiên URL `https` công khai cho ản
 </ParamField>
 
 <Info>
-Khi model Seedance đã chọn có thể dùng thư viện material của TokenLab, TokenLab chuẩn bị các field hình ảnh (`image`, `image_url`, `image_urls`, `reference_images`, `start_image`, `end_image`) thành material có thể tái sử dụng trước khi tạo video. Nếu chưa hoàn tất trong 60 giây, API trả về `409 seedance_material_preparing` với `auto_material_asset_ids`; hãy thử lại sau khi các material này chuyển sang `ACTIVE`. Nếu model đã chọn không thể dùng thư viện material, input hình ảnh thông thường tiếp tục đi theo luồng hình ảnh thông thường và ID material tường minh sẽ trả về lỗi khả dụng material.
+URL ảnh thông thường được dùng làm đầu vào và không tự tạo material tái sử dụng. Hãy tạo material qua API material rồi dùng ID TokenLab hoặc URI `asset://asset-YYYYMMDDHHMMSS-xxxxx`. Nếu material chỉ định trả về `409 seedance_material_preparing`, hãy kiểm tra `inactive_asset_ids` và thử lại khi chúng chuyển sang `ACTIVE`.
 </Info>
 
 
@@ -68,7 +68,7 @@ Khi model Seedance đã chọn có thể dùng thư viện material của TokenL
 </ParamField>
 
 <ParamField body="kling_elements" type="array">
-  Định nghĩa tham chiếu phần tử Kling 3.0. Chỉ hỗ trợ với `kling-3.0-video` cho request có điều kiện ảnh. Khai báo 1-3 phần tử; mỗi phần tử có `name`, `description` tùy chọn và `element_input_urls` gồm 2-4 URL ảnh. Tham chiếu phần tử trong `prompt` bằng `@name`. Không kết hợp `kling_elements` với `output_audio=true`; hãy bỏ `output_audio` hoặc đặt thành `false` khi dùng tham chiếu phần tử.
+  Chỉ dùng `kling_elements` khi chi tiết công khai hiện tại của model có trường này. Gửi ảnh và 1–3 phần tử gồm `name`, `description` tùy chọn, 2–4 `element_input_urls`; tham chiếu bằng `@name` trong `prompt`. Không kết hợp với `output_audio=true`.
 </ParamField>
 
 <ParamField body="video_url" type="string">
@@ -241,6 +241,10 @@ curl -X POST "https://api.tokenlab.sh/v1/videos/generations" \
 
 ## Phản hồi
 
+<Note>
+Các trường kết quả, lỗi, thời gian và model được trả về khi tác vụ cung cấp chúng.
+</Note>
+
 <ResponseField name="id" type="string">
   Mã định danh chuẩn của tác vụ bất đồng bộ. Khi cả `id` và `task_id` cùng xuất hiện, hãy xem chúng là cùng một tác vụ.
 </ResponseField>
@@ -258,7 +262,7 @@ curl -X POST "https://api.tokenlab.sh/v1/videos/generations" \
 </ResponseField>
 
 <ResponseField name="status" type="string">
-  Trạng thái ban đầu: `pending`.
+  Trạng thái tác vụ: `pending`, `processing`, `completed`, `failed`.
 </ResponseField>
 
 <ResponseField name="created" type="integer">
@@ -267,6 +271,18 @@ curl -X POST "https://api.tokenlab.sh/v1/videos/generations" \
 
 <ResponseField name="model" type="string">
   Model được sử dụng.
+</ResponseField>
+
+<ResponseField name="video" type="object">
+  Payload video đơn với `url`, `duration`, `width`, và `height` khi có.
+</ResponseField>
+
+<ResponseField name="videos" type="array">
+  Nhiều payload video khi tác vụ tạo trả về hơn một kết quả.
+</ResponseField>
+
+<ResponseField name="error" type="string | object">
+  Thông báo lỗi (nếu thất bại).
 </ResponseField>
 
 <RequestExample>
@@ -309,38 +325,14 @@ response = requests.post(
         "operation": "image-to-video",
         "image_url": "https://example.com/image.jpg",
         "duration": 6,
-        "aspect_ratio": "16:9"
+        "resolution": "768p"
     }
 )
 ```
 
 ## Thành phần Kling 3.0
 
-Dùng `kling_elements` với `kling-3.0-video` khi cần tham chiếu phần tử. Cung cấp request có điều kiện ảnh (`image_url`, `image_urls`, `start_image` hoặc `end_image`) và tham chiếu từng phần tử trong prompt bằng `@name`. Không kết hợp `kling_elements` với `output_audio=true`; hãy bỏ `output_audio` hoặc đặt thành `false` khi dùng tham chiếu phần tử.
-
-```python
-response = requests.post("https://api.tokenlab.sh/v1/videos/generations",
-    headers=headers,
-    json={
-        "model": "kling-3.0-video",
-        "prompt": "Place @hero_bag on a studio turntable with soft product lighting.",
-        "operation": "image-to-video",
-        "image_url": "https://example.com/studio-start.png",
-        "duration": 5,
-        "resolution": "720p",
-        "kling_elements": [
-            {
-                "name": "hero_bag",
-                "description": "black leather handbag",
-                "element_input_urls": [
-                    "https://example.com/bag-front.png",
-                    "https://example.com/bag-side.png"
-                ]
-            }
-        ]
-    }
-)
-```
+Chỉ dùng `kling_elements` khi chi tiết công khai hiện tại của model có trường này. Gửi ảnh và 1–3 phần tử gồm `name`, `description` tùy chọn, 2–4 `element_input_urls`; tham chiếu bằng `@name` trong `prompt`. Không kết hợp với `output_audio=true`.
 
 ## Ảnh tham chiếu sang video
 
@@ -376,7 +368,6 @@ response = requests.post(
     headers={"Authorization": "Bearer sk-your-api-key"},
     json={
         "model": "viduq2-pro",
-        "prompt": "Smooth transition from day to night",
         "operation": "start-end-to-video",
         "start_image": "https://example.com/day.jpg",
         "end_image": "https://example.com/night.jpg",
@@ -389,7 +380,7 @@ response = requests.post(
 
 ## Video sang video
 
-Với video-to-video của `grok-imagine-video`, hãy gửi URL HTTPS công khai dạng `.mp4` trong `video_url`. TokenLab chuyển nó thành body REST `video.url` của xAI. Bạn có thể đặt `resolution` là `480p` hoặc `720p`; luồng chỉnh sửa này không nhận `duration` và `aspect_ratio`.
+Với video-to-video của `grok-imagine-video`, hãy gửi URL HTTPS công khai dạng `.mp4` trong `video_url`.  Bạn có thể đặt `resolution` là `480p` hoặc `720p`; luồng chỉnh sửa này không nhận `duration` và `aspect_ratio`.
 
 Nếu model nhận một video có sẵn làm đầu vào chính, hãy dùng `operation=video-to-video`.
 
@@ -401,8 +392,7 @@ response = requests.post(
         "model": "grok-imagine-video",
         "operation": "video-to-video",
         "video_url": "https://example.com/source.mp4",
-        "prompt": "Enhance the clip while preserving the original motion.",
-        "resolution": "720p"
+        "prompt": "Enhance the clip while preserving the original motion."
     }
 )
 ```
@@ -431,11 +421,9 @@ response = requests.post(
 Inventory video công khai và các thao tác được hỗ trợ thay đổi theo thời gian. Hãy dùng [Models API](/vi/api-reference/models/list-models) làm nguồn sự thật trước khi tích hợp một luồng đặc thù theo model:
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \
-  -H "Authorization: Bearer sk-your-api-key"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=video"
 
-curl "https://api.tokenlab.sh/v1/models/veo3.1" \
-  -H "Authorization: Bearer sk-your-api-key"
+curl "https://api.tokenlab.sh/v1/models/veo3.1"
 ```
 
-Đọc `tokenlab.capabilities`, `tokenlab.supported_operations`, `GET /v1/models` và `GET /v1/models/{model}` trong response chi tiết model. Các thao tác như `audio-to-video` và `video-extension` phụ thuộc từng model; hãy xác nhận trạng thái hiện tại ở đó thay vì dựa vào ví dụ tĩnh trên trang này.
+Đọc `tokenlab.capabilities` và `tokenlab.supported_operations` trong response chi tiết model. Các thao tác như `audio-to-video` và `video-extension` phụ thuộc từng model; hãy xác nhận trạng thái hiện tại ở đó thay vì dựa vào ví dụ tĩnh trên trang này.

@@ -8,16 +8,20 @@ description: "Traduz áudio em texto em inglês"
 
 Traduz áudio em qualquer idioma suportado para texto em inglês. Diferentemente da transcrição, este endpoint sempre retorna texto em inglês, independentemente do idioma de entrada.
 
+<Note>
+  Este endpoint traduz áudio para inglês. Não envie `language`: a tradução de áudio não aceita esse parâmetro e pode retornar `unsupported_parameter`. Para traduzir texto, use `POST /v1/translations`; `recommended_for=translation` se refere a essa API de texto.
+</Note>
+
 ## Corpo da requisição
 
-**Timeout de solicitações síncronas:** este endpoint não-chat aguarda o modelo roteado terminar. Entradas grandes, áudios longos ou lotes grandes podem exceder os padrões comuns de 30s dos clientes, então configure o timeout do seu cliente HTTP para pelo menos `120s`.
+A resposta é retornada ao concluir a tradução. Para áudios longos, configure um tempo limite HTTP de pelo menos `120s`.
 
 <ParamField body="file" type="file" required>
   O arquivo de áudio a ser traduzido. Formatos suportados: `flac`, `mp3`, `mp4`, `mpeg`, `mpga`, `m4a`, `ogg`, `wav`, `webm`. O tamanho máximo do arquivo é 25 MB.
 </ParamField>
 
 <ParamField body="model" type="string" default="whisper-1">
-  O model a ser usado. Atualmente, apenas `whisper-1` é suportado.
+  ID do modelo de tradução de áudio, como `whisper-1`. Confirme nos detalhes atuais o suporte a `POST /v1/audio/translations`.
 </ParamField>
 
 <ParamField body="prompt" type="string">
@@ -25,14 +29,16 @@ Traduz áudio em qualquer idioma suportado para texto em inglês. Diferentemente
 </ParamField>
 
 <ParamField body="response_format" type="string" default="json">
-  O formato da saída. Opções: `json`, `text`, `srt`, `verbose_json`, `vtt`.
+  Formato de saída. Whisper aceita `json`, `text`, `srt`, `verbose_json` e `vtt`; outros modelos podem aceitar um conjunto diferente. Consulte os detalhes do modelo.
 </ParamField>
 
 <ParamField body="temperature" type="number">
-  A temperatura de sampling, entre 0 e 1. Valores mais altos, como 0.8, produzem uma saída mais aleatória, enquanto valores mais baixos, como 0.2, tornam a saída mais focada e determinística.
+  Temperatura de amostragem de 0 a 1, apenas para modelos que aceitam esse parâmetro.
 </ParamField>
 
 ## Resposta
+
+Os campos abaixo descrevem respostas JSON de transcrição ou tradução. `text`, `srt` e `vtt` retornam texto ou legendas sem um objeto JSON. Campos adicionais dependem do modelo e do formato.
 
 <ResponseField name="text" type="string">
   O texto traduzido em inglês.
@@ -41,7 +47,7 @@ Traduz áudio em qualquer idioma suportado para texto em inglês. Diferentemente
 Para o formato `verbose_json`, a resposta também inclui:
 
 <ResponseField name="language" type="string">
-  O idioma detectado do áudio de entrada.
+  Indicação de idioma fornecida na resposta, quando presente.
 </ResponseField>
 
 <ResponseField name="duration" type="number">
@@ -130,7 +136,6 @@ echo $data['text'];
 ```json verbose_json
 {
   "task": "translate",
-  "language": "german",
   "duration": 8.470000267028809,
   "text": "Hello, my name is Wolfgang and I come from Germany. Where are you from?",
   "segments": [
@@ -158,7 +163,3 @@ echo $data['text'];
 | Idioma de saída | Sempre inglês | Igual ao de entrada |
 | Caso de uso | Converter áudio estrangeiro para inglês | Preservar o idioma original |
 | Parâmetro `language` | Não se aplica | Dica opcional |
-
-<Note>
-  O endpoint de tradução detecta automaticamente o idioma de origem e traduz para inglês. O parâmetro `language` da transcrição é ignorado.
-</Note>

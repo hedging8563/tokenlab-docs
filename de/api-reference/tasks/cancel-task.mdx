@@ -10,7 +10,7 @@ Verwenden Sie `DELETE /v1/tasks/{id}`, um einen asynchronen Task abzubrechen, de
 
 ## Unterstützte Tasks
 
-Der Abbruch wird für wartende Seedance-Video-Tasks unterstützt, wenn der für diesen Task ausgewählte Provider den Abbruch unterstützt. Unterstützte Modelle sind `seedance-1.5-pro`, `seedance-2.0` und `seedance-2.0-fast`. Tasks, die bereits `processing`/running sind, können nicht abgebrochen werden. Abgeschlossene, fehlgeschlagene, abgelaufene oder nicht unterstützte Tasks bleiben für Status- und Abrechnungsabgleich abfragbar.
+Wartende Seedance-Tasks mit `seedance-1.5-pro`, `seedance-2.0`, `seedance-2.0-fast` oder `seedance-2.5` können abgebrochen werden, sofern der Task dies unterstützt. Laufende oder terminale Tasks können nicht abgebrochen werden. Der Status bleibt während der Aufbewahrung des öffentlichen Task-Datensatzes abfragbar.
 
 ## Pfadparameter
 

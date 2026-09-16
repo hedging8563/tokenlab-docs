@@ -3,6 +3,8 @@ title: "Erreurs sur lesquelles les agents peuvent agir"
 description: "Utilisez les codes d'erreur, les délais de nouvelle tentative et les suggestions de modèles sans analyser le texte"
 ---
 
+Cette page décrit les erreurs lisibles par machine de l’API publique pour les applications et agents de programmation. Elle ne donne aucun accès aux investigations ou au support de votre espace de travail. Consultez le [dépannage des requêtes](/fr/guides/observability-troubleshooting).
+
 Les erreurs TokenLab compatibles avec OpenAI peuvent inclure des indications structurées pour un agent ou une application. Utilisez ces champs lorsqu'ils sont présents ; n'analysez pas le `message` lisible par l'humain pour décider de la marche à suivre.
 
 Les API Anthropic Messages et Gemini conservent leurs formats d'erreur natifs, les extensions sur cette page ne s'appliquent donc qu'aux erreurs de Chat Completions et Responses compatibles avec OpenAI.
@@ -129,10 +131,10 @@ Lisez `tokenlab.accepted_request_formats` depuis `GET /v1/models/{model}` avant 
 
 | Valeur | Endpoint |
 | --- | --- |
-| `chat_completions` | `/v1/chat/completions` |
-| `responses` | `/v1/responses` |
-| `messages` | `/v1/messages` |
-| `gemini` | `/v1beta/models/{model}:generateContent` |
+| `openai_chat_completions` | `/v1/chat/completions` |
+| `openai_responses` | `/v1/responses` |
+| `anthropic_messages` | `/v1/messages` |
+| `gemini_generate_content` | `/v1beta/models/{model}:generateContent` |
 
 Un format accepté confirme l'endpoint. Les outils et champs individuels peuvent toujours varier selon le modèle ; consultez la page du modèle avant de vous y fier.
 
@@ -141,8 +143,7 @@ Un format accepté confirme l'endpoint. Les outils et champs individuels peuvent
 L'API Models peut renvoyer une présélection actuelle pour les tâches autres que le chat :
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=image" \
-  -H "Authorization: Bearer sk-your-api-key"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=image"
 ```
 
 Les valeurs valides pour `recommended_for` sont `image`, `video`, `music`, `3d`, `tts`, `stt`, `embedding`, `rerank` et `translation`. Envoyez explicitement l'ID du modèle choisi dans la requête de création. TokenLab ne le remplace pas silencieusement par un modèle différent.
@@ -157,28 +158,38 @@ GET https://api.tokenlab.sh/llms.txt
 
 Il inclut une première requête, les endpoints courants, les filtres de modèles et des conseils sur la gestion des erreurs.
 
-## Exemple de nouvelle tentative sécurisée
+## Traiter une erreur sans renvoyer la requête
 
-Cet exemple corrige un nom de modèle uniquement lorsque l'API renvoie `did_you_mean`. Ajoutez une confirmation de l'utilisateur si le changement de modèle peut altérer la qualité, le prix ou le traitement des données dans votre produit.
+Cet exemple envoie une seule requête, conserve le modèle choisi et expose les informations structurées de l’erreur. Les nouvelles tentatives automatiques du SDK sont désactivées. Faites confirmer tout changement de modèle ; ne renvoyez pas automatiquement une génération acceptée ou ayant dépassé le délai.
 
 ```python
-from openai import OpenAI, BadRequestError
+import os
+from openai import OpenAI, APIStatusError
 
-client = OpenAI(
-    api_key="sk-your-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
-
-def chat(messages, model):
+with OpenAI(
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh/v1",
+    timeout=30.0,
+    max_retries=0,
+) as client:
     try:
-        return client.chat.completions.create(model=model, messages=messages)
-    except BadRequestError as exc:
-        error = exc.body.get("error", {}) if isinstance(exc.body, dict) else {}
-        suggested = error.get("did_you_mean")
-        if error.get("code") == "model_not_found" and suggested:
-            return client.chat.completions.create(
-                model=suggested,
-                messages=messages,
-            )
+        response = client.chat.completions.create(
+            model="gpt-5.6-terra",
+            messages=[{"role": "user", "content": "Reply only with OK."}],
+        )
+        print(response.choices[0].message.content)
+    except APIStatusError as exc:
+        body = exc.body if isinstance(exc.body, dict) else {}
+        error = body.get("error", body)
+        if not isinstance(error, dict):
+            error = {}
+        print({
+            "status": exc.status_code,
+            "request_id": exc.request_id,
+            "code": error.get("code"),
+            "hint": error.get("hint"),
+            "suggested_model": error.get("did_you_mean"),
+            "retry_after": exc.response.headers.get("Retry-After") or error.get("retry_after"),
+        })
         raise
 ```

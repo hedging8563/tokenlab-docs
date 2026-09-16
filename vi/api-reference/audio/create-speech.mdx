@@ -6,12 +6,12 @@ description: "Tạo audio từ văn bản đầu vào"
 
 ## Nội dung yêu cầu
 
-**Timeout cho yêu cầu đồng bộ:** endpoint không phải chat này chờ model được định tuyến hoàn tất. Input lớn, audio dài, hoặc batch lớn có thể vượt quá mặc định 30s phổ biến của client, vì vậy hãy đặt timeout của HTTP client ít nhất là `120s`.
+Chế độ phản hồi phụ thuộc vào mô hình đã chọn và `stream_format`. Với đầu vào dài, đặt thời gian chờ HTTP ít nhất `120s`.
 
-Các field tuỳ chọn được hỗ trợ khác nhau theo từng họ model. TokenLab kiểm tra ma trận field này trước khi routing: OpenAI TTS nhận `voice`, `instructions`, `response_format`, `stream_format`, và `speed`; MiniMax speech nhận `voice`, `voice_id`, `response_format`, `stream_format`, và `speed`; Gemini TTS nhận `prompt`, `language_code`, `voice`, `response_format`, `stream_format`, `speed`, và `temperature`; các route TTS hẹp hơn kiểu Vidu/Kling có thể chỉ nhận `input` và `stream_format`. Field top-level không xác định, bao gồm `user`, sẽ trả về `400 unsupported_parameter` thay vì bị bỏ qua.
+Các trường tùy chọn, giọng nói, định dạng và hỗ trợ SSE phụ thuộc vào mô hình. Kiểm tra `GET /v1/models/{model}` trước khi gửi. Tham số không được hỗ trợ có thể trả về `400 unsupported_parameter`.
 
 <ParamField body="model" type="string" default="tts-1">
-  Model TTS. Ví dụ gồm `tts-1`, `gpt-4o-mini-tts`, `speech-02-hd`, và `gemini-2.5-flash-tts`. Gọi `GET /v1/models?recommended_for=tts` để lấy danh sách hiện tại.
+  ID mô hình TTS. Xem các lựa chọn hiện tại bằng `GET /v1/models?recommended_for=tts`.
 </ParamField>
 
 <ParamField body="input" type="string" required>
@@ -23,7 +23,7 @@ Các field tuỳ chọn được hỗ trợ khác nhau theo từng họ model. T
 </ParamField>
 
 <ParamField body="voice_id" type="string">
-  Bộ chọn giọng native của provider cho các model speech tương thích MiniMax.
+  ID giọng nói cho mô hình hỗ trợ tham số này, chẳng hạn mô hình giọng nói MiniMax tương thích.
 </ParamField>
 
 <ParamField body="instructions" type="string">
@@ -56,7 +56,7 @@ Các field tuỳ chọn được hỗ trợ khác nhau theo từng họ model. T
 
 ## Phản hồi
 
-Trả về tệp audio theo định dạng đã yêu cầu.
+`stream_format=audio` trả về các byte âm thanh. Mô hình hỗ trợ `stream_format=sse` trả về `text/event-stream`; hãy phân tích các sự kiện thay vì lưu toàn bộ phản hồi thành tệp âm thanh.
 
 <RequestExample>
 ```bash cURL
@@ -134,6 +134,8 @@ file_put_contents('speech.mp3', $audio);
 
 ## Mẫu giọng nói
 
+Giọng nói khả dụng tùy theo mô hình. Các tên dưới đây chỉ là ví dụ, không phải danh sách chung cho mọi mô hình TTS.
+
 | Voice | Mô tả |
 |-------|-------------|
 | `alloy` | Trung tính, cân bằng |
@@ -158,5 +160,9 @@ file_put_contents('speech.mp3', $audio);
 
 ## Trường quan trọng
 
-<ResponseField name="Content-Type" type="string">Loại event hoặc message do API trả về.</ResponseField>
-<ResponseField name="body" type="binary">Nội dung phản hồi thô. Lưu trực tiếp, không parse như JSON.</ResponseField>
+<ResponseField name="Content-Type" type="string">
+  Loại nội dung HTTP: định dạng âm thanh hoặc `text/event-stream` khi dùng SSE.
+</ResponseField>
+<ResponseField name="body" type="binary | SSE">
+  Byte âm thanh với `audio`; luồng sự kiện với `sse`. Chọn cách xử lý theo `Content-Type` và chế độ yêu cầu.
+</ResponseField>

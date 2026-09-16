@@ -34,7 +34,7 @@ description: "保留火山请求格式，把 Seedance 切换到 TokenLab"
 
 - `content[]` 支持 `text`、`image_url`、`video_url`、`audio_url` 和 `draft_task`。
 - `image_url` 不传 `role` 或传 `first_frame` 时表示首帧；`last_frame` 必须和首帧一起使用；`reference_image` 表示参考图。
-- 图片 URL 在需要素材引用的 Seedance 模型里会自动准备为 TokenLab 可复用素材。若 60 秒内仍未准备完成，创建请求会返回可重试的素材准备中错误。
+- 普通图片 URL 按媒体输入处理，不会自动保存成可复用素材。需要复用时，请先创建素材并等待 `ACTIVE`，再传入 `asset://<id>`。素材准备中时，兼容接口返回错误的 `code` 和 `message`；使用已保存的素材 ID 查询状态后再重试。
 - REST 请求只接受官方字段，包括 `model`、`content`、`ratio`、`duration`、`resolution`、`generate_audio`、`watermark`、`return_last_frame`、`seed`、`execution_expires_after` 和 `safety_identifier`；`generate_audio` 默认值为 `false`。
 
 ### 参考页面

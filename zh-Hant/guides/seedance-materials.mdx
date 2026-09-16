@@ -9,7 +9,7 @@ Seedance 素材是組織範圍內可重用的圖片、影片或音訊參考。�
 
 | 目標 | 必要流程 |
 | --- | --- |
-| 使用一次性圖片 URL | 直接在影片請求中傳入 URL；相容的 Seedance 模型會自動準備素材 |
+| 使用一次性圖片 URL | 在支援的圖片欄位傳入 URL；這不會建立可重用的素材 ID |
 | 重用虛擬人、商品或風格 | 建立 `aigc_avatar` 群組、建立素材、等待 `ACTIVE`，再使用素材 ID |
 | 重用真人 | 完成視覺驗證、取得 `GroupId`、在該群組建立素材、等待 `ACTIVE`，再使用素材 ID |
 | 遷移火山素材用戶端 | 保留 Action 請求格式並使用火山相容素材參考: [素材 Action（火山相容）](/zh-Hant/api-reference/video/volc-compatible-material-actions) |
@@ -27,11 +27,13 @@ Seedance 素材是可重複使用、以組織為範圍的參考資料，可在�
 
 請區分 `group_id` 與素材資產 `id`。`group_id` 用於組織上傳內容；素材資產 `id` 用於影片生成。若影片請求回傳 `Seedance material asset not found or not accessible`，請確認您傳入的是素材資產 `id` 而非 `group_id`，且該資產屬於同一組織、未被刪除，且狀態為 `status: "ACTIVE"`。
 
-## 自動圖片素材
+## 圖片 URL 與可重用素材
 
-當所選 Seedance 模型可使用 TokenLab 素材庫時，您可以直接在 `image`、`image_url`、`image_urls`、`reference_images`、`start_image` 或 `end_image` 中傳入圖片 URL 或支援的內嵌 data URL。TokenLab 會將這些圖片匯入組織預設的虛擬人像素材群組，並保留其首幀、尾幀或參考圖角色。
+可在所選模型支援的圖片欄位中傳入公開 HTTP(S) URL 或支援的 data URL。這些輸入沿一般媒體路徑處理，不會自動建立可重用的素材 ID。
 
-如果素材在 60 秒內變為 `ACTIVE`，同一個請求會繼續進入生成。如果尚未準備完成，API 會回傳 `409 seedance_material_preparing` 和 `auto_material_asset_ids`；請查詢這些素材直到它們變為 `ACTIVE`，再使用 `material_asset_id` 或 `material_asset_ids` 重試。如果所選模型暫不可使用素材庫，一般圖片 URL 或 data URL 會繼續走常規圖片路徑；明確傳入素材 ID 會安全失敗，並回傳可重試的素材可用性錯誤。既有虛擬人像素材 ID 和真人素材 ID 會原樣使用，不會重複匯入。
+需要重用時，先透過素材 API 建立素材，等待 `ACTIVE`，再使用 `material_asset_id`、`material_asset_ids` 或支援媒體欄位中的 `asset://<id>`。保留首幀、尾幀或參考圖的原本用途。
+
+明確指定的素材仍在準備時，`POST /v1/videos/generations` 回傳 `409 seedance_material_preparing`，並以 `inactive_asset_ids` 列出相關素材。查詢直到 `ACTIVE`，再用相同素材 ID 重試。若為 `FAILED`，先依 `error_message` 修正或重新匯入。
 
 ## 真人素材驗證
 
@@ -44,6 +46,8 @@ Seedance 素材是可重複使用、以組織為範圍的參考資料，可在�
 5. 儲存 `GroupId`；建立 `liveness_face` 素材時將其作為 `group_id`。
 
 `BytedToken` 的有效期限為 30 分鐘。兩個 Action 請求必須使用相同的 `ProjectName`。驗證使用 `Authorization: Bearer <TOKENLAB_API_KEY>`；不接受火山引擎 AK/SK 簽名。
+
+建立後立即開啟回傳的 `H5Link`。Token 有效期不代表可在這段期間的任意時間首次開啟驗證頁面。
 
 選用：使用 [測試控制台](https://tokenlab.sh/dashboard/seedance-assets) 來驗證您的請求與回呼流程、檢查素材群組並查看驗證紀錄。正式環境整合應直接呼叫 API。
 
@@ -63,9 +67,11 @@ Seedance 素材是可重複使用、以組織為範圍的參考資料，可在�
 
 | 類型 | 支援的輸入 |
 |------|-----------------|
-| 圖片 | `jpeg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`；長寬比 `(0.4, 2.5)`；寬高 `(300, 6000)` px；小於 30 MB。 |
-| 影片 | `mp4`, `mov`；`480p`, `720p` 或 `1080p`；2-15 秒；長寬比 `[0.4, 2.5]`；寬高 `[300, 6000]` px；總像素介於 409600 與 2068676 之間；最大 200 MB；24-60 FPS。 |
-| 音訊 | `aac`, `wav`, `mp3`；2-15 秒；最大 15 MB。 |
+| 圖片 | `jpeg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`; ≤ 30 MiB; 寬和高 [300, 6000] px; 長寬比 [0.4, 2.5] |
+| 影片 | `mp4`, `mov`; ≤ 200 MiB |
+| 音訊 | `aac`, `wav`, `mp3`; ≤ 15 MiB |
+
+上表是檔案匯入限制。匯入請求成功不代表媒體或真人驗證已通過。請等待 `ACTIVE`；若變為 `FAILED`，依 `error_message` 修正來源後再匯入。
 
 素材擷取為非同步處理。請輪詢 [取得素材資源 (Get Material Asset)](/zh-Hant/api-reference/video/get-material-asset) 直到 `status` 變為 `ACTIVE`。成功的 HTTP 回應僅代表請求已被接受；請務必讀取業務狀態。若狀態為 `FAILED`，請檢查 `error_message`，修正來源素材並建立新資產。
 

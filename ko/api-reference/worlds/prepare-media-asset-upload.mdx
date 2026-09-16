@@ -18,11 +18,11 @@ TokenLab은 자산 소유 조직을 기록합니다. 같은 조직만 이 미디
   미디어 유형: `image` 또는 `video`.
 </ParamField>
 
-<ParamField body="extension" type="string">
+<ParamField body="extension" type="string | null">
   선택 확장자. 예: `png`, `jpg`, `mp4`.
 </ParamField>
 
-<ParamField body="metadata" type="object">
+<ParamField body="metadata" type="object | null">
   상위 미디어 자산에 저장할 선택 메타데이터 객체.
 </ParamField>
 
@@ -34,6 +34,14 @@ TokenLab은 자산 소유 조직을 기록합니다. 같은 조직만 이 미디
 
 <ResponseField name="upload_info.upload_url" type="string">
   바이너리 파일을 업로드할 상위 서명 URL.
+</ResponseField>
+
+<ResponseField name="upload_info.upload_method" type="string">
+  반환된 경우, 바이너리 파일을 `upload_info.upload_url`에 업로드할 때 사용할 HTTP 메서드입니다.
+</ResponseField>
+
+<ResponseField name="upload_info.required_headers" type="object">
+  반환된 경우, 바이너리 업로드에 포함해야 할 헤더입니다.
 </ResponseField>
 
 <RequestExample>

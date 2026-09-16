@@ -1,20 +1,11 @@
 ---
 title: "Dify"
-description: "使用 OpenAI 提供商和自定义 base URL 将 TokenLab 集成到 Dify"
+description: "使用 OpenAI-API-compatible 提供商和自定义 base URL 将 TokenLab 集成到 Dify"
 ---
 
 ## 概述
 
-Dify 可以在 OpenAI 模型设置中使用 TokenLab。这里配置的是 Chat Completions，不会让 Dify 额外获得 Responses 或 WebSocket 功能。
-
-当前 Dify 版本可以这样设置：
-- 选择内置的 **OpenAI** 提供商
-- 设置你的 TokenLab API 密钥
-- 设置自定义 base URL 为 `https://api.tokenlab.sh/v1`
-
-<Note>
-较旧的 Dify 版本可能把这项设置称为 `OpenAI-API-compatible`。界面名称不同时，请选择能够填写自定义 OpenAI API 地址的模型设置。
-</Note>
+使用模型提供商插件 **OpenAI-API-compatible** 将 Dify 连接到 TokenLab。将模型类型设为 **LLM**、**Completion mode** 设为 **Chat**、**API Type** 设为 **Chat Completions API**。本指南使用 Chat Completions。
 
 
 ## 前置要求
@@ -36,8 +27,8 @@ Dify 可以在 OpenAI 模型设置中使用 TokenLab。这里配置的是 Chat C
   <Step title="打开模型提供商">
     在 Dify 中，前往 **设置 (Settings)** → **模型提供商 (Model Providers)**
   </Step>
-  <Step title="选择 OpenAI">
-    打开 **OpenAI** 提供商设置。如果你的 Dify 版本在此处不提供自定义 base URL，请改用该版本提供的 OpenAI 兼容自定义提供商选项。
+  <Step title="选择 OpenAI-API-compatible">
+    打开 **OpenAI-API-compatible**。如果没有显示，请先从 Dify Marketplace 安装该模型提供商插件。选择 **Add model**，输入 TokenLab 设置。
   </Step>
   <Step title="输入 TokenLab 设置">
     使用以下值：
@@ -45,7 +36,10 @@ Dify 可以在 OpenAI 模型设置中使用 TokenLab。这里配置的是 Chat C
     | 字段 | 值 |
     |-------|-------|
     | API 密钥 | `sk-your-tokenlab-key` |
-    | API Base URL / Custom Base URL | `https://api.tokenlab.sh/v1` |
+    | Model type | LLM |
+    | Completion mode | Chat |
+    | API Type | Chat Completions API |
+    | API Base URL | `https://api.tokenlab.sh/v1` |
   </Step>
   <Step title="添加模型">
     添加你想要使用的模型，例如：
@@ -61,7 +55,7 @@ Dify 可以在 OpenAI 模型设置中使用 TokenLab。这里配置的是 Chat C
 
 ### 第 3 步：测试连接
 
-1. 选择一个模型，例如 `gpt-5-mini` 或 `gpt-4o`
+1. 选择已添加的模型，例如 `gpt-5.4-mini`。
 2. 发送一条测试提示词 (prompt)
 3. 确认 Dify 收到了有效的响应
 
@@ -80,16 +74,16 @@ Dify 可以在 OpenAI 模型设置中使用 TokenLab。这里配置的是 Chat C
 ## 配置说明
 
 <AccordionGroup>
-  <Accordion title="优先使用内置 OpenAI 设置">
-    新版 Dify 可以直接在内置 OpenAI 模型设置中填写自定义 Base URL。
+  <Accordion title="以 OpenAI 插件作为备选">
+    独立的 **OpenAI** 插件可用于其目录支持的模型。将自定义 Base URL 设为 `https://api.tokenlab.sh/v1`，并将 **API Protocol** 设为 **Chat Completions**；默认值可能是 Responses。它不是 OpenAI-API-compatible 的旧名称，也不接受所有自定义模型 ID。
   </Accordion>
 
   <Accordion title="用自己的 Dify 应用比较模型">
     使用相同的代表性输入测试候选模型，再到 Usage 比较输出质量和最终费用。
   </Accordion>
 
-  <Accordion title="这里使用 Chat Completions">
-    OpenAI 兼容配置不会为 Dify 增加 Responses 或 WebSocket 功能。
+  <Accordion title="此设置使用 Chat Completions">
+    此设置请保持 **Completion mode = Chat** 和 **API Type = Chat Completions API**。Responses 是独立的 API 选项；本指南不配置该选项或 WebSocket 连接。
   </Accordion>
 </AccordionGroup>
 

@@ -6,13 +6,15 @@ description: "Batalkan tugas kompatibel Seedance yang masih antre atau dapat dib
 
 ## Ringkasan
 
-Endpoint ini ditujukan untuk tim yang sudah memakai bentuk tugas Seedance bergaya Volc. Autentikasi memakai TokenLab Bearer API key. ID tugas yang dikembalikan diawali `cgt-`; polling status sampai `status` menjadi `succeeded`, `failed`, `cancelled`, atau `expired`.
+Minta pembatalan dengan TokenLab Bearer API key dan ID `cgt-...`. Pembatalan diupayakan dan hanya berhasil saat tugas masih dapat dibatalkan.
 
 Lihat juga [Model Video Seedance 2.0](/id/guides/seedance-2-video) dan [Pembuatan Video](/id/guides/video-generation).
 
 ## Bentuk respons
 
 Permintaan batal yang berhasil mengembalikan HTTP 200 dengan body kosong. Ambil tugas setelahnya jika perlu memastikan status akhir.
+
+Jika tugas selesai, gagal, kedaluwarsa, atau tidak dapat dibatalkan lagi, endpoint mengembalikan error. Ambil tugas untuk memastikan statusnya. Tugas yang dibatalkan tidak memiliki hasil video.
 
 ## Contoh
 

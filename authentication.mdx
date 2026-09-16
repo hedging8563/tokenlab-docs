@@ -5,7 +5,7 @@ description: "Authenticate TokenLab API requests with an API key"
 
 ## API Keys
 
-All TokenLab API requests require an API key.
+Model calls and private resources require an API key. Public discovery endpoints such as `GET /v1/models` and `GET /v1/models/{model}` work without one. A successful discovery response does not verify that your key works; follow the Quickstart to send a model request. Use the complete saved key; the prefix in the key list cannot authenticate.
 
 For OpenAI-compatible endpoints, send it as:
 
@@ -51,38 +51,7 @@ Management tokens cannot be used for model inference, and standard `sk-...` API 
 
 ## Use an API key
 
-<CodeGroup>
-
-```bash cURL
-curl https://api.tokenlab.sh/v1/responses \
-  -H "Authorization: Bearer $TOKENLAB_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "gpt-5.6-terra",
-    "input": "Hello!"
-  }'
-```
-
-```python Python
-import os
-from openai import OpenAI
-
-client = OpenAI(
-    api_key=os.environ.get("TOKENLAB_API_KEY"),
-    base_url="https://api.tokenlab.sh/v1"
-)
-```
-
-```javascript JavaScript
-import OpenAI from 'openai';
-
-const client = new OpenAI({
-  apiKey: process.env.TOKENLAB_API_KEY,
-  baseURL: 'https://api.tokenlab.sh/v1'
-});
-```
-
-</CodeGroup>
+See the [Quickstart](/quickstart) for environment variables and a complete first request. Use the SDK matching your chosen [API format](/guides/api-formats); keep keys on the server.
 
 ## Set a usage limit
 
@@ -97,32 +66,12 @@ You can set a usage limit on each API key:
 
 All TokenLab API keys start with `sk-`.
 
-## Anthropic Compatibility
-
-For the `/v1/messages` endpoint, the Anthropic-style header works as expected:
-
-```bash
-curl https://api.tokenlab.sh/v1/messages \
-  -H "x-api-key: sk-your-api-key" \
-  -H "anthropic-version: 2023-06-01" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "claude-sonnet-5",
-    "max_tokens": 1024,
-    "messages": [{"role": "user", "content": "Hello!"}]
-  }'
-```
-
-<Note>
-Use `Authorization: Bearer ...` with OpenAI-compatible APIs such as `/v1/responses`, `/v1/chat/completions`, and `/v1/models`.
-</Note>
-
 ## Error Responses
 
 | Status Code | Type | Code | Description |
 |-------------|------|------|-------------|
-| 401 | `invalid_api_key` | `invalid_api_key` | Missing or invalid API key |
-| 401 | `expired_api_key` | `expired_api_key` | API key has expired |
+| 401 | `invalid_api_key` | `invalid_api_key` | The API key is missing, invalid, inactive, or revoked |
+| 401 | `expired_api_key` | `expired_api_key` | The key has expired |
 | 402 | `insufficient_balance` | `insufficient_balance` | Account balance is insufficient |
 | 402 | `quota_exceeded` | `quota_exceeded` | API key usage limit reached |
 

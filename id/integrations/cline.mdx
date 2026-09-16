@@ -17,6 +17,8 @@ description: "Konfigurasikan Cline untuk memakai model TokenLab"
 
 ## Konfigurasi TokenLab
 
+Simpan penyedia, model, dan pengaturan koneksi saat ini secara lokal sebelum mengedit. Kontrol ini mengubah model aktif; pulihkan nilai sebelumnya setelah selesai. Pertahankan akun yang masuk dan izin alat. Jangan timpa koneksi kompatibel OpenAI lain tanpa cadangan yang dapat dipulihkan.
+
 1. Instal **Cline** dari marketplace ekstensi dan buka panelnya.
 2. Klik ikon roda gigi lalu pilih **OpenAI Compatible** pada **API Provider**.
 3. Isi:
@@ -29,6 +31,6 @@ description: "Konfigurasikan Cline untuk memakai model TokenLab"
 
 4. Klik **Verify**.
 
-Pada pengaturan lanjutan opsional, gunakan batas input `1048576`, output maksimum `131072`, dan aktifkan gambar serta alat / Computer Use.
-
 Setelah verifikasi, mulai dengan tugas hanya-baca. Jika muncul 404, pastikan Base URL berakhir dengan `/v1` dan tidak memuat `/chat/completions`. ID model adalah `kimi-k3`, bukan `kimi/kimi-k3`.
+
+Menyimpan pengaturan atau menampilkan model tidak memvalidasi kunci maupun permintaan yang selesai. Prompt memakai saldo TokenLab. Periksa respons dan [catatan permintaan terkait](https://tokenlab.sh/dashboard/runs?section=requests) sebelum mencoba alat; permintaan tambahan juga dapat dikenai biaya.

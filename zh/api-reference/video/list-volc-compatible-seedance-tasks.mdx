@@ -4,20 +4,20 @@ openapi: "GET /api/v3/contents/generations/tasks"
 description: "列出当前工作区最近的 Seedance 兼容任务。"
 ---
 
-返回当前工作区最近的任务。已知任务 ID 时，直接使用 [查询任务](/zh/api-reference/video/get-volc-compatible-seedance-task) 会更快。
+使用 TokenLab Bearer API 密钥列出当前工作区最近的兼容任务。不传 `filter.task_ids` 时返回最近七天的任务范围；指定精确 ID 时直接查询这些任务。
 
 另见 [Seedance 2.0 视频模型](/zh/guides/seedance-2-video) 和 [视频生成](/zh/guides/video-generation)。
 
 ## 列表与过滤
 
-- `page_num`：默认 `1`。
-- `page_size`：默认 `20`，最大 `500`。
-- `filter.status`：`queued`、`running`、`succeeded`、`failed`、`cancelled` 或 `expired`。
-- `filter.task_ids`：查询多个精确任务 ID 时重复传入该参数，不要用逗号拼接。
-- `filter.model`：模型标识。
-- `filter.service_tier`：例如 `default`。
+- `page_num`: 默认 `1`，取值为 `1`–`500` 的整数。
+- `page_size`: 默认 `20`，取值为 `1`–`500` 的整数。
+- `filter.status`: `queued`, `running`, `succeeded`, `failed`, `cancelled`, `expired`.
+- `filter.task_ids`: 查询多个精确任务 ID 时重复传入该参数，不要用逗号拼接。
+- `filter.model`: 模型标识。
+- `filter.service_tier`: `default`, `flex`.
 
-响应包含 `items` 和 `total`。每个 `items[]` 元素使用与查询任务接口相同的任务结构。
+响应包含过滤结果的 `items` 和 `total`，每项均采用查询任务接口的响应结构。已知任务 ID 时，用查询接口刷新状态。
 
 ## 示例
 

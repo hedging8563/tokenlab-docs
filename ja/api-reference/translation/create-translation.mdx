@@ -9,14 +9,13 @@ description: "テキストを対象言語に翻訳します"
 `/v1/translations` は**テキストからテキストへの翻訳**に使用します。
 
 <Note>
-この endpoint は [音声翻訳](/ja/api-reference/audio/create-translation) とは異なります。音声ファイルを受け取り、常に英語テキストを出力します。
+この endpoint は [音声翻訳](/ja/api-reference/audio/create-translation) とは異なります。後者は音声ファイルを受け取り、常に英語テキストを出力します。
 </Note>
 
 agent workflow では、まず現在の推奨翻訳 model を確認してください。
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=translation" \
-  -H "Authorization: Bearer sk-your-api-key"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=translation"
 ```
 
 そのうえで、選択した model を `/v1/translations` に明示的に送信します。
@@ -82,13 +81,7 @@ curl -X POST "https://api.tokenlab.sh/v1/translations" \
 ```
 
 ```python Python
-from openai import OpenAI
 import requests
-
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
 
 response = requests.post(
     "https://api.tokenlab.sh/v1/translations",

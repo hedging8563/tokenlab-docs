@@ -9,6 +9,8 @@ description: "Configurer Cline pour utiliser les modèles TokenLab"
 
 ## Configurer TokenLab
 
+Sauvegardez localement le fournisseur, le modèle et la connexion avant toute modification. Ces réglages changent le modèle actif ; restaurez les valeurs précédentes après utilisation. Conservez les comptes connectés et les permissions des outils. Ne remplacez pas une autre connexion compatible OpenAI sans sauvegarde restaurable.
+
 1. Installez **Cline** depuis la boutique d'extensions, puis ouvrez son panneau.
 2. Cliquez sur l'engrenage et choisissez **OpenAI Compatible** dans **API Provider**.
 3. Renseignez :
@@ -21,6 +23,6 @@ description: "Configurer Cline pour utiliser les modèles TokenLab"
 
 4. Cliquez sur **Verify**.
 
-Dans les réglages avancés facultatifs, utilisez une limite d'entrée de `1048576`, une sortie maximale de `131072`, et activez les images ainsi que les outils / Computer Use.
-
 Après validation, commencez par une tâche en lecture seule. En cas de 404, vérifiez que la Base URL se termine par `/v1` et ne contient pas `/chat/completions`. L'ID est `kimi-k3`, et non `kimi/kimi-k3`.
+
+Enregistrer les réglages ou lister les modèles ne valide ni la clé ni un appel terminé. Un prompt utilise le solde TokenLab. Vérifiez la réponse et son [enregistrement correspondant](https://tokenlab.sh/dashboard/runs?section=requests) avant de tester les outils ; les requêtes auxiliaires peuvent aussi être facturées.

@@ -9,11 +9,11 @@ Generieren Sie Musik und Songtexte mithilfe von KI. Dies ist eine asynchrone API
 ## Anfrage-Body
 
 <ParamField body="model" type="string" default="suno_music">
-  Zu verwendendes Modell: `suno_music` für die Musikgenerierung, `suno_lyrics` nur für Songtexte.
+  Musikmodell-ID, etwa `suno-music`. Wählen Sie für reine Songtexte ein Modell, dessen aktuelle öffentliche Operationen `lyrics` enthalten.
 </ParamField>
 
 <ParamField body="prompt" type="string">
-  Musikbeschreibung. Erforderlich für music-, lyrics-, upload-cover- und upload-extend-Anfragen; bei add-instrumental weglassen.
+  Musikbeschreibung oder Ersatztext. Erforderlich für Musik, Songtexte, upload-cover, upload-extend und replace-section; optional für add-instrumental und Spurentrennung.
 </ParamField>
 
 <ParamField body="title" type="string">
@@ -29,11 +29,11 @@ Generieren Sie Musik und Songtexte mithilfe von KI. Dies ist eine asynchrone API
 </ParamField>
 
 <ParamField body="action" type="string">
-  Generierungstyp: `MUSIC` (Standard) oder `LYRICS`.
+  Optional `MUSIC` oder `LYRICS`. Wählen Sie ein Modell mit der passenden öffentlichen Operation; dieses Feld erweitert ein reines Musikmodell nicht um Songtextgenerierung.
 </ParamField>
 
 <ParamField body="mv" type="string">
-  Offizielle Suno-Modellversion. Erforderlich für die Musikgenerierung (wenn `action` fehlt oder `MUSIC` ist); bei Nur-Text-Anfragen weglassen. Unterstützte Werte: `chirp-v3-5`, `chirp-v4`, `chirp-v4-5`, `chirp-v4.5`, `chirp-v4-5plus`, `chirp-v4.5plus`, `chirp-v4-5all`, `chirp-v4.5all`, `chirp-v5`, `chirp-v5-5`, `chirp-v5.5`.
+  Suno-Versionsauswahl. Erforderlich für Generierung, upload-cover, upload-extend, add-instrumental und Ersetzung aus `audio_url`. Bei Songtexten, Ersetzung aus `task_id` + `audio_id` und Spurentrennung weglassen. Zulässige Werte: `chirp-v3-5`, `chirp-v4`, `chirp-v4-5`, `chirp-v4.5`, `chirp-v4-5plus`, `chirp-v4.5plus`, `chirp-v4-5all`, `chirp-v4.5all`, `chirp-v5`, `chirp-v5-5`, `chirp-v5.5`.
 </ParamField>
 
 <ParamField body="make_instrumental" type="boolean">
@@ -45,7 +45,35 @@ Generieren Sie Musik und Songtexte mithilfe von KI. Dies ist eine asynchrone API
 </ParamField>
 
 <ParamField body="audio_operation" type="string">
-  Upload-Audio-Modus: `upload-cover`, `upload-extend` oder `add-instrumental`. `upload-extend` erfordert `continue_at`; `add-instrumental` erfordert `audio_url`, `title`, `tags` und `negative_tags`.
+  Audiooperation: `upload-cover`, `upload-extend`, `add-instrumental`, `replace-section`, `vocal-separate`, `multi-stem-separation`, `advanced-split`.
+
+  `vocal-separate`, `multi-stem-separation` und `advanced-split` benötigen `task_id` + `audio_id`; `advanced-split` zusätzlich `stem_name`. `upload-extend` benötigt `continue_at` größer als 0. `add-instrumental` benötigt `audio_url`, `title`, `tags` und `negative_tags`.
+
+  `replace-section` benötigt `prompt`, `tags`, `title`, `infill_start_s`, `infill_end_s` und `full_lyrics`. Wählen Sie genau eine Quelle: `task_id` + `audio_id` oder `audio_url` + `mv`. Das Ersatzintervall muss 6–60 Sekunden betragen.
+</ParamField>
+
+<ParamField body="task_id" type="string">
+  Quellaufgaben-ID Ihrer Organisation für die Ersetzung generierten Audios oder die Spurentrennung.
+</ParamField>
+
+<ParamField body="audio_id" type="string">
+  Audio-ID aus dem Ergebnis der Quellaufgabe. Für die Ersetzung generierten Audios und die Spurentrennung zusammen mit `task_id` erforderlich.
+</ParamField>
+
+<ParamField body="infill_start_s" type="number">
+  Beginn der Ersetzung in Sekunden, mindestens 0. Für `replace-section` erforderlich.
+</ParamField>
+
+<ParamField body="infill_end_s" type="number">
+  Ende der Ersetzung in Sekunden. Für `replace-section` erforderlich und 6–60 Sekunden nach `infill_start_s`.
+</ParamField>
+
+<ParamField body="full_lyrics" type="string">
+  Vollständiger Songtext des resultierenden Songs. Für `replace-section` erforderlich.
+</ParamField>
+
+<ParamField body="stem_name" type="string">
+  Name der Tonspur. Für `advanced-split` erforderlich.
 </ParamField>
 
 <ParamField body="continue_clip_id" type="string">
@@ -53,8 +81,12 @@ Generieren Sie Musik und Songtexte mithilfe von KI. Dies ist eine asynchrone API
 </ParamField>
 
 <ParamField body="continue_at" type="number">
-  Zeitstempel in Sekunden, ab dem fortgesetzt wird. Erforderlich, wenn `audio_operation` `upload-extend` ist.
+  Zeitpunkt in Sekunden für die Fortsetzung. Für `upload-extend` erforderlich und größer als 0.
 </ParamField>
+
+<Note>
+`prompt` erlaubt bis zu 5000 Zeichen; `tags` und `negative_tags` jeweils bis zu 1000. Unterstützte Operationen und Parameter richten sich nach den aktuellen Modelldetails.
+</Note>
 
 ## Antwort
 
@@ -63,7 +95,7 @@ Generieren Sie Musik und Songtexte mithilfe von KI. Dies ist eine asynchrone API
 </ResponseField>
 
 <ResponseField name="task_id" type="string">
-  Alias der asynchronen Task-ID, wenn vom Adapter zurückgegeben.
+  Alias derselben asynchronen Aufgaben-ID, sofern zurückgegeben.
 </ResponseField>
 
 <ResponseField name="poll_url" type="string">
@@ -75,7 +107,7 @@ Generieren Sie Musik und Songtexte mithilfe von KI. Dies ist eine asynchrone API
 </ResponseField>
 
 <ResponseField name="created" type="integer">
-  Unix-Zeitstempel der Task-Erstellung.
+  Unix-Zeitstempel der Aufgabenerstellung, sofern zurückgegeben.
 </ResponseField>
 
 <RequestExample>
@@ -84,7 +116,7 @@ curl -X POST "https://api.tokenlab.sh/v1/music/generations" \
   -H "Authorization: Bearer sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "suno_music",
+    "model": "suno-music",
     "mv": "chirp-v4",
     "prompt": "An upbeat electronic dance track with heavy bass",
     "title": "Night Drive",
@@ -99,7 +131,7 @@ response = requests.post(
     "https://api.tokenlab.sh/v1/music/generations",
     headers={"Authorization": "Bearer sk-your-api-key"},
     json={
-        "model": "suno_music",
+        "model": "suno-music",
         "mv": "chirp-v4",
         "prompt": "An upbeat electronic dance track with heavy bass",
         "title": "Night Drive",
@@ -107,8 +139,11 @@ response = requests.post(
     }
 )
 
-task_id = response.json()["id"]
-print(f"Task ID: {task_id}")
+response.raise_for_status()
+task = response.json()
+task_id = task["id"]
+poll_url = task.get("poll_url") or f"/v1/tasks/{task_id}"
+print(f"Task ID: {task_id}; poll URL: {poll_url}")
 ```
 
 ```javascript JavaScript
@@ -119,7 +154,7 @@ const response = await fetch('https://api.tokenlab.sh/v1/music/generations', {
     'Content-Type': 'application/json'
   },
   body: JSON.stringify({
-    model: 'suno_music',
+    model: 'suno-music',
     mv: 'chirp-v4',
     prompt: 'An upbeat electronic dance track with heavy bass',
     title: 'Night Drive',
@@ -127,8 +162,10 @@ const response = await fetch('https://api.tokenlab.sh/v1/music/generations', {
   })
 });
 
+if (!response.ok) throw new Error(await response.text());
 const data = await response.json();
-console.log(`Task ID: ${data.id}`);
+const pollUrl = data.poll_url || `/v1/tasks/${data.id}`;
+console.log(`Task ID: ${data.id}; poll URL: ${pollUrl}`);
 ```
 
 ```go Go
@@ -143,7 +180,7 @@ import (
 
 func main() {
     payload := map[string]interface{}{
-        "model":  "suno_music",
+        "model":  "suno-music",
         "mv":     "chirp-v4",
         "prompt": "An upbeat electronic dance track with heavy bass",
         "title":  "Night Drive",
@@ -177,7 +214,7 @@ curl_setopt_array($ch, [
         'Authorization: Bearer sk-your-api-key'
     ],
     CURLOPT_POSTFIELDS => json_encode([
-        'model' => 'suno_music',
+        'model' => 'suno-music',
         'mv' => 'chirp-v4',
         'prompt' => 'An upbeat electronic dance track with heavy bass',
         'title' => 'Night Drive',
@@ -200,8 +237,7 @@ echo "Task ID: " . $data['id'];
   "task_id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "poll_url": "/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "status": "pending",
-  "created": 1706000000,
-  "model": "suno_music"
+  "model": "suno-music"
 }
 ```
 </ResponseExample>

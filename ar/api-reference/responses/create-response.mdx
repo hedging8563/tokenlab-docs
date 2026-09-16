@@ -4,7 +4,8 @@ openapi: "POST /v1/responses"
 description: "ينشئ استجابة باستخدام تنسيق OpenAI Responses API"
 ---
 
-Responses هو بروتوكول OpenAI الأصلي ذي الحالة. تعرضه TokenLab فقط عندما تعلن تفاصيل النموذج عن صيغة Responses وتوجد قناة upstream من البروتوكول نفسه؛ ولا يُستنتج ذلك من اسم النموذج أو المزوّد، ولا يعود الطلب إلى Chat Completions. تحتفظ TokenLab بشكل JSON، بما في ذلك الحقول غير المعروفة و`null` الصريح والمصفوفات الفارغة، وتمرره بأفضل جهد إلى upstream.
+استخدم هذه النقطة عندما تتضمن `accepted_request_formats` في تفاصيل النموذج القيمة `openai_responses`. تستخدم الطلبات والاستجابات تنسيق Responses API. تعتمد الحقول الاختيارية والقيم المدعومة على النموذج المحدد.
+
 ## جسم الطلب
 
 <ParamField body="model" type="string" required>
@@ -21,7 +22,7 @@ Responses هو بروتوكول OpenAI الأصلي ذي الحالة. تعرض�
   - `function_call`: طلب استدعاء دالة
   - `function_call_output`: المخرجات من استدعاء دالة
 
-  بالنسبة إلى الإدخال متعدد الوسائط، يمكن أن يكون `message.content` إما سلسلة نصية عادية أو مصفوفة من كتل المحتوى. بالنسبة إلى النماذج القادرة على التعامل مع الصور مثل متغيرات GPT-5.4، مرّر الصور على هيئة كتل `input_image` بدلًا من تضمين عناوين URL أو سلاسل Base64 مباشرة داخل النص العادي.
+  بالنسبة إلى الإدخال متعدد الوسائط، يمكن أن يكون `message.content` إما سلسلة نصية عادية أو مصفوفة من كتل المحتوى. بالنسبة إلى النماذج القادرة على التعامل مع الصور مثل متغيرات GPT-5.6 Terra، مرّر الصور على هيئة كتل `input_image` بدلًا من تضمين عناوين URL أو سلاسل Base64 مباشرة داخل النص العادي.
 
   مقاطع محتوى مثال:
   - `{ "type": "input_text", "text": "Describe this image" }`
@@ -37,12 +38,12 @@ Responses هو بروتوكول OpenAI الأصلي ذي الحالة. تعرض�
   الحد الأقصى لعدد الرموز المميزة المراد توليدها.
 </ParamField>
 
-<ParamField body="temperature" type="number" default="1">
-  درجة الحرارة الخاصة بالعيننة بين 0 و2.
+<ParamField body="temperature" type="number">
+  درجة حرارة أخذ العينات. تعتمد القيم المدعومة والافتراضية على النموذج المحدد.
 </ParamField>
 
 <ParamField body="tools" type="array">
-  قائمة الأدوات التي قد يستدعيها النموذج. تمرر TokenLab تعريفات الأدوات الأصلية من دون قائمة سماح محلية؛ ويحدد upstream المختار الأنواع والتركيبات المدعومة.
+  الأدوات التي يمكن للنموذج استدعاؤها. تعتمد الأنواع والتركيبات المدعومة على النموذج المحدد.
 </ParamField>
 
 <ParamField body="stream" type="boolean" default="false">
@@ -57,12 +58,20 @@ Responses هو بروتوكول OpenAI الأصلي ذي الحالة. تعرض�
   ما إذا كان سيتم تخزين الاستجابة لاسترجاعها لاحقًا.
 </ParamField>
 
+<ParamField body="background" type="boolean" default="false">
+  طلب التنفيذ غير المتزامن. يعتمد الدعم على النموذج المحدد.
+</ParamField>
+
+<ParamField body="prompt" type="object">
+  مرجع إلى قالب prompt قابل لإعادة الاستخدام ومتغيراته.
+</ParamField>
+
 <ParamField body="metadata" type="object">
   بيانات وصفية تُضاف إلى الاستجابة لأغراض التتبع.
 </ParamField>
 
 <ParamField body="text" type="object">
-  خيارات تهيئة توليد النص. يعتمد سلوك `text.format` على النموذج المحدد والمسار الموجَّه؛ ولا يُضمن أن يكون موحدًا عبر كل نموذج.
+  إعدادات إخراج النص. يعتمد دعم `text.format` على النموذج المحدد.
 </ParamField>
 
 <ParamField body="parallel_tool_calls" type="boolean" default="true">
@@ -74,9 +83,7 @@ Responses هو بروتوكول OpenAI الأصلي ذي الحالة. تعرض�
 </ParamField>
 
 <ParamField body="reasoning" type="object">
-  إعدادات الاستدلال للنماذج المفعّلة للاستدلال مثل متغيرات عائلة GPT-5.
-
-  - `effort` (string): مستوى جهد الاستدلال (`low`، `medium`، `high`)
+  تعتمد خيارات الاستدلال، بما فيها `effort`، على النموذج المحدد.
 </ParamField>
 
 ## الاستجابة
@@ -93,6 +100,10 @@ Responses هو بروتوكول OpenAI الأصلي ذي الحالة. تعرض�
   الطابع الزمني بنظام Unix عند إنشاء الاستجابة.
 </ResponseField>
 
+<ResponseField name="status" type="string">
+  حالة الاستجابة: `queued` أو `in_progress` أو `completed` أو `incomplete` أو `failed` أو `cancelled`. تحقّق من هذا الحقل حتى عند نجاح طلب HTTP.
+</ResponseField>
+
 <ResponseField name="output" type="array">
   قائمة عناصر الإخراج التي تم إنشاؤها بواسطة النموذج.
 </ResponseField>
@@ -100,6 +111,13 @@ Responses هو بروتوكول OpenAI الأصلي ذي الحالة. تعرض�
 <ResponseField name="usage" type="object">
   إحصاءات استخدام الرموز.
 </ResponseField>
+
+## نقاط النهاية المرتبطة
+
+- `GET /v1/responses/{id}` تسترجع استجابة محفوظة وتدعم `include` و`include_obfuscation` و`stream` و`starting_after`.
+- `DELETE /v1/responses/{id}` تحذف استجابة محفوظة. لا تلغي عملية التوليد.
+- `POST /v1/responses/compact` تعيد كائن `response.compaction`.
+- نقاط الإلغاء وinput-items وinput-tokens غير متاحة حاليًا.
 
 <RequestExample>
 ```bash cURL
@@ -268,14 +286,17 @@ print_r($data['output']);
 {
   "id": "resp_abc123",
   "object": "response",
-  "created": 1706000000,
+  "created_at": 1706000000,
+  "status": "completed",
   "model": "gpt-5.6-terra",
   "output": [
     {
+      "id": "msg_abc123",
       "type": "message",
+      "status": "completed",
       "role": "assistant",
       "content": [
-        {"type": "text", "text": "Hello! How can I help you today?"}
+        {"type": "output_text", "text": "Hello! How can I help you today?", "annotations": []}
       ]
     }
   ],

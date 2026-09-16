@@ -4,7 +4,8 @@ openapi: "POST /v1beta/models/{model}:streamGenerateContent"
 description: "Transmite la generación de contenido utilizando el formato de la API de Google Gemini"
 ---
 
-Variante SSE nativa y en streaming de Gemini `generateContent`. TokenLab conserva los eventos, el orden y los campos del upstream; son válidos los eventos solo de metadatos, los fragmentos intermedios sin `finishReason` y el EOF natural. No añade el marcador `[DONE]` de Chat Completions ni vuelve a Chat.
+Versión SSE de Gemini `generateContent`. Los eventos pueden contener solo metadatos o contenido intermedio sin `finishReason`. El flujo termina en EOF sin añadir un marcador `[DONE]`.
+
 ## Parámetros de ruta
 
 <ParamField path="model" type="string" required>
@@ -19,9 +20,9 @@ Variante SSE nativa y en streaming de Gemini `generateContent`. TokenLab conserv
 
 ## Cuerpo de la solicitud
 
-Igual que [Generar contenido](/api-reference/gemini/generate-content).
+Igual que [Generar contenido](/es/api-reference/gemini/generate-content).
 
-`generationConfig.candidateCount`, las combinaciones de herramientas y los campos futuros se reenvían sin cambios al upstream; TokenLab no impone un límite propio para streaming.
+La compatibilidad con `generationConfig.candidateCount`, herramientas, tipos de medios y otros campos opcionales depende del modelo elegido.
 
 ## Respuesta
 
@@ -29,7 +30,7 @@ Devuelve un flujo de objetos JSON, cada uno de los cuales contiene una respuesta
 
 <RequestExample>
 ```bash cURL
-curl -X POST "https://api.tokenlab.sh/v1beta/models/gemini-2.5-pro:streamGenerateContent?key=sk-your-api-key" \
+curl -N -X POST "https://api.tokenlab.sh/v1beta/models/gemini-2.5-pro:streamGenerateContent?key=sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
     "contents": [
@@ -53,7 +54,10 @@ model = genai.GenerativeModel("gemini-2.5-pro")
 response = model.generate_content("Tell me a story", stream=True)
 
 for chunk in response:
-    print(chunk.text, end="")
+    for candidate in chunk.candidates:
+        for part in candidate.content.parts:
+            if part.text:
+                print(part.text, end="")
 ```
 
 ```javascript JavaScript
@@ -74,7 +78,7 @@ const decoder = new TextDecoder();
 while (true) {
   const { done, value } = await reader.read();
   if (done) break;
-  console.log(decoder.decode(value));
+  console.log(decoder.decode(value, { stream: true }));
 }
 ```
 

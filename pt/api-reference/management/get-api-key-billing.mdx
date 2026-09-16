@@ -12,15 +12,17 @@ Este endpoint retorna agregados de faturamento baseados em consumo para a chave 
 
 ## Notas
 
-- Os campos monetários aceitam apenas USD. Entradas em `CNY` foram descontinuadas e retornam `400 currency_retired`.
+- Os campos monetários aceitam apenas USD.
 
 - Recargas, faturas e outros registros financeiros em nível de organização ficam de fora.
 
 ## Exemplo
 
+Aceita os mesmos filtros de modelo, fornecedor, cena e data que o [uso da chave API](/pt/api-reference/management/get-api-key-usage). Retorna totais sem paginação.
+
 <RequestExample>
 ```bash cURL
-curl -X GET "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/billing?startDate=2026-01-01&endDate=2026-01-31" \
+curl -X GET "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/billing?startDate=2026-07-01&endDate=2026-07-31" \
   -H "Authorization: Bearer mt-your-management-token"
 ```
 </RequestExample>
@@ -49,7 +51,8 @@ Esta página fornece o esquema OpenAPI e exemplos de requisições para copiar. 
     ],
     "expires_at": "2026-12-31T23:59:59.000Z",
     "last_used_at": "2026-07-08T03:12:45.000Z",
-    "created_at": "2026-07-01T10:00:00.000Z"
+    "created_at": "2026-07-01T10:00:00.000Z",
+    "delivery_policy": null
   },
   "summary": {
     "total_requests": 1,

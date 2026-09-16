@@ -15,13 +15,26 @@ Kết nối OpenAI của Prompt flow hỗ trợ `base_url` tùy chỉnh. Hãy đ
 **Độ tin cậy hỗ trợ**: Đường dẫn tương thích với OpenAI được hỗ trợ
 </Note>
 
-## Tạo kết nối
+## Cài đặt
 
 ```bash
-pf connection create \
-  --file ./my_chatbot/openai.yaml \
-  --set api_key=sk-your-tokenlab-key base_url=https://api.tokenlab.sh/v1 \
-  --name open_ai_connection
+pip install promptflow promptflow-tools
+```
+
+## Tạo kết nối
+
+Lưu kết nối bên dưới vào `openai.yaml`. Lệnh sẽ yêu cầu nhập API key cục bộ. Trong nút OpenAI, đặt ID mô hình TokenLab vào `inputs.model`; `deployment_name` dành cho Azure OpenAI.
+
+```yaml
+$schema: https://azuremlschemas.azureedge.net/promptflow/latest/OpenAIConnection.schema.json
+name: open_ai_connection
+type: open_ai
+base_url: https://api.tokenlab.sh/v1
+api_key: "<user-input>"
+```
+
+```bash
+pf connection create --file openai.yaml
 ```
 
 ## Lưu ý về Flow
@@ -29,11 +42,18 @@ pf connection create \
 Trong tệp `flow.dag.yaml` của bạn, hãy giữ tên kết nối khớp với lệnh ở trên:
 
 ```yaml
-connection: open_ai_connection
-deployment_name: claude-sonnet-5
+nodes:
+  - name: chat
+    type: llm
+    source:
+      type: code
+      path: chat.jinja2
+    inputs:
+      model: claude-sonnet-5
+    api: chat
+    connection: open_ai_connection
 ```
 
-Một số template của Prompt flow gọi giá trị này là `deployment_name` vì các template đó cũng hỗ trợ các triển khai Azure OpenAI. Với TokenLab, hãy sử dụng ID mô hình của TokenLab.
 
 ## Lưu ý về Endpoint
 

@@ -26,7 +26,7 @@ playground: simple
 
 ## 說明
 
-- 金額欄位僅支援 USD。`CNY` 輸入已停用，並會回傳 `400 currency_retired`。
+- 金額欄位僅支援 USD。
 
 - 回應支援分頁。
 - 回應只包含公開 billing 與 reporting 欄位。
@@ -37,7 +37,7 @@ playground: simple
 
 <RequestExample>
 ```bash cURL
-curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page=1&limit=20&scene=video&startDate=2026-03-01&endDate=2026-03-31" \
+curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page=1&limit=20&scene=chat&startDate=2026-07-01&endDate=2026-07-31" \
   -H "Authorization: Bearer mt-your-management-token"
 ```
 </RequestExample>
@@ -66,7 +66,8 @@ curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page
     ],
     "expires_at": "2026-12-31T23:59:59.000Z",
     "last_used_at": "2026-07-08T03:12:45.000Z",
-    "created_at": "2026-07-01T10:00:00.000Z"
+    "created_at": "2026-07-01T10:00:00.000Z",
+    "delivery_policy": null
   },
   "items": [
     {
@@ -88,7 +89,10 @@ curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page
       "cache_write_tokens_1h": 0,
       "cost": 0.0012,
       "cost_decimal": "0.0012",
-      "created_at": "2026-07-08T03:15:00.000Z"
+      "created_at": "2026-07-08T03:15:00.000Z",
+      "requested_policy": null,
+      "resolved_tier": null,
+      "charged_price_basis": null
     }
   ],
   "pagination": {
@@ -188,6 +192,9 @@ curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page
 <ResponseField name="items[].cache_write_tokens_1h" type="number">1 小時快取寫入 token 數。</ResponseField>
 <ResponseField name="items[].cost" type="number">以 JSON 數字回傳的 USD 費用，供顯示使用。</ResponseField>
 <ResponseField name="items[].cost_decimal" type="string">以十進位字串回傳的 USD 精確費用。</ResponseField>
+<ResponseField name="items[].requested_policy" type="string | null">`auto`, `verified`, `official`, `null`. 請求的交付策略；未記錄時為 `null`。</ResponseField>
+<ResponseField name="items[].resolved_tier" type="string | null">`verified`, `official`, `null`. 實際使用的交付層級；未記錄時為 `null`。</ResponseField>
+<ResponseField name="items[].charged_price_basis" type="object | null">實際採用的價格和計費用量；未記錄時為 `null`。</ResponseField>
 <ResponseField name="items[].created_at" type="string">用量明細的 ISO 時間戳記。</ResponseField>
 <ResponseField name="summary.total_requests" type="number">請求總數。</ResponseField>
 <ResponseField name="summary.total_cost" type="number">以 JSON 數字回傳的 USD 總費用，供顯示使用。</ResponseField>

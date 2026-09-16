@@ -5,108 +5,23 @@ description: "One API for chat, images, video, audio, and more"
 
 ## Build with TokenLab
 
-TokenLab gives you one API key for chat, image, video, audio, embedding, and other AI models. Use the model format you need, share one balance across models, and pay only for what you use.
-
-<CardGroup cols={2}>
-  <Card title="One API key" icon="key">
-    Use the same key across chat, image, video, audio, embedding, and rerank models.
-  </Card>
-  <Card title="Use the format you need" icon="shuffle">
-    Keep an OpenAI-compatible client, or use Anthropic and Gemini formats when their native behavior matters.
-  </Card>
-  <Card title="Clear prices" icon="tags">
-    The Models page shows the current TokenLab price and billing unit for each model.
-  </Card>
-  <Card title="Pay as you go" icon="coins">
-    One balance works across models. There is no subscription.
-  </Card>
-</CardGroup>
+TokenLab connects your application or coding tool to AI models with one API key and a shared balance. Choose a model and its supported API format; requests are charged at the published price.
 
 ## What you can build
 
-The catalog changes as models are added or retired. Check `/v1/models` or the Models page for current availability and prices.
+Use the current [Models catalog](https://tokenlab.sh/en/models) for model IDs, availability, supported formats, and prices.
 
-| Capability | Description | Example models |
-|---|---|---|
-| Chat and reasoning | Text generation, planning, and tools | `gpt-5.4`, `claude-sonnet-4-6` |
-| Vision and multimodal | Image understanding and multimodal chat | `gpt-4o`, `claude-sonnet-4-6`, `gemini-3.5-flash` |
-| Image generation and editing | Text-to-image and image editing | `gpt-image-2`, `flux-pro` |
-| Video generation | Text-to-video, image-to-video, reference video, and motion control | `veo3.1`, `wan-2.7`, `kling-3.0-video`, `happyhorse-1.0` |
-| Audio and realtime | TTS, transcription, audio translation, and realtime WebSocket sessions | `gpt-4o-mini-tts`, `whisper-1`, `gpt-realtime` |
-| Embeddings and rerank | Text vectorization and reranking | `text-embedding-3-small`, `qwen3-vl-rerank` |
-| Translation | Text translation and WebSocket speech translation workflows | `doubao-seed-translation`, `gpt-realtime-translate` |
-| Music & 3D | Music and 3D asset generation | `suno-music`, `tripo-h3.1` |
-| Worlds | World generation, status polling, and media asset workflows | Use `/v1/worlds/generations` and the Models API for current availability |
-
-## Choose the Request Format
-
-Use `/v1/chat/completions` with an OpenAI-compatible client. Choose Anthropic or Gemini format only when you need behavior specific to that API.
-
-<CodeGroup>
-
-```bash cURL
-curl https://api.tokenlab.sh/v1/chat/completions \
-  -H "Authorization: Bearer sk-your-api-key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "gpt-5.6-terra",
-    "messages": [
-      {"role": "user", "content": "Explain what TokenLab does in one sentence."}
-    ]
-  }'
-```
-
-```python Python
-from openai import OpenAI
-
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
-
-response = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": "Explain what TokenLab does in one sentence."}]
-)
-
-print(response.choices[0].message.content)
-```
-
-```javascript JavaScript
-import OpenAI from 'openai';
-
-const client = new OpenAI({
-  apiKey: 'sk-your-api-key',
-  baseURL: 'https://api.tokenlab.sh/v1'
-});
-
-const response = await client.chat.completions.create({
-  model: 'gpt-5.6-terra',
-  messages: [{ role: 'user', content: 'Explain what TokenLab does in one sentence.' }],
-});
-
-console.log(response.choices[0].message.content);
-```
-
-<Note>
-Use `POST /v1/responses` only when you explicitly need Responses-specific behavior. It is not the default compatibility path across all models.
-</Note>
-
-</CodeGroup>
-
-## More to explore
-
-<CardGroup cols={2}>
-  <Card title="API formats" icon="layers" href="/guides/api-formats">
-    Choose between OpenAI-compatible, Anthropic, Gemini, and Responses formats.
-  </Card>
-  <Card title="Errors for coding agents" icon="wand-magic-sparkles" href="/guides/agent-first-api">
-    Use stable error codes and suggestions to recover from failed requests.
-  </Card>
-  <Card title="Tools and SDKs" icon="toolbox" href="/guides/ide-sdk-compatibility">
-    Connect popular SDKs, coding tools, frameworks, and chat apps.
-  </Card>
-</CardGroup>
+| Capability | Description |
+|---|---|
+| Chat and reasoning | Text generation, planning, and tools |
+| Vision and multimodal | Image understanding and multimodal chat |
+| Image generation and editing | Text-to-image and image editing |
+| Video generation | Text-to-video, image-to-video, reference video, and motion control |
+| Audio and realtime | TTS, transcription, audio translation, and realtime WebSocket sessions |
+| Embeddings and rerank | Text vectorization and reranking |
+| Translation | Text translation and WebSocket speech translation workflows |
+| Music & 3D | Music and 3D asset generation |
+| Worlds | World generation, status polling, and media asset workflows |
 
 ## Keep going
 

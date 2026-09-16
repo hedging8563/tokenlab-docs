@@ -13,7 +13,7 @@ Trên thực tế, điều đó có nghĩa là:
 - chọn các model mà ứng dụng có thể sử dụng trong quy trình chat tiêu chuẩn
 
 <Note>
-Các ứng dụng chat thông thường thường **hướng tới chat-completions**, không phải là các client WebSocket cho Codex Responses. Đối với Codex CLI/App, Cursor hoặc các công cụ lập trình khác cần hành vi cụ thể của Responses, hãy sử dụng các hướng dẫn tích hợp chuyên biệt thay thế.
+Cài đặt riêng của từng ứng dụng bên dưới nêu rõ API khi cần lựa chọn. Một số ứng dụng chọn Responses theo mô hình. Hãy dùng mô hình hỗ trợ API mà ứng dụng sử dụng; các công cụ lập trình có hướng dẫn tích hợp riêng.
 </Note>
 
 <Note>
@@ -62,81 +62,46 @@ Nếu một ứng dụng yêu cầu **URL endpoint đầy đủ** thay vì URL c
     ```
 
     **LobeChat Cloud**
-    1. Mở **Settings** → **AI Service Provider**
+    1. Mở **Settings** → **AI Providers**
     2. Chọn **OpenAI**
     3. Nhập API key TokenLab của bạn
     4. Đặt endpoint tùy chỉnh thành `https://api.tokenlab.sh/v1`
+
+    Bật và chọn một mô hình rồi gửi tin nhắn kiểm tra. LobeChat có thể tự động dùng Responses cho một số mô hình GPT, vì vậy hãy chọn mô hình TokenLab hỗ trợ API được sử dụng.
   </Tab>
 
   <Tab title="Cherry Studio">
-    1. Mở **Settings** → **Model Provider**
-    2. Thêm một nhà cung cấp **OpenAI-compatible**
-    3. Nhập:
-       - **Name**: TokenLab
-       - **API Base URL**: `https://api.tokenlab.sh/v1`
-       - **API Key**: `sk-your-tokenlab-key`
-    4. Thêm các model bạn muốn sử dụng
+    Làm theo [hướng dẫn thiết lập Cherry Studio](/vi/integrations/cherry-studio) để cấu hình kết nối, chọn mô hình và gửi tin nhắn kiểm tra đầu tiên.
   </Tab>
 
   <Tab title="Chatbox">
-    1. Mở **Settings** → **AI Model**
-    2. Chọn **OpenAI API Compatible**
-    3. Nhập:
-       - **API Host**: `https://api.tokenlab.sh/v1`
-       - **API Key**: `sk-your-tokenlab-key`
-       - **Model**: `gpt-5.4-mini` hoặc `claude-sonnet-5`
+    Làm theo [hướng dẫn thiết lập Chatbox](/vi/integrations/chatbox) để cấu hình kết nối, chọn mô hình và gửi tin nhắn kiểm tra đầu tiên.
   </Tab>
 
   <Tab title="TypingMind">
-    1. Mở **Settings**
-    2. Chọn **Custom Endpoint**
-    3. Nhập:
-       - **Endpoint URL**: `https://api.tokenlab.sh/v1/chat/completions`
-       - **API Key**: `sk-your-tokenlab-key`
-    4. Cấu hình các model bạn muốn hiển thị
+    1. Mở **Models** → **Add Custom Models**.
+    2. Nhập:
+       - **Name**: TokenLab
+       - **Endpoint**: `https://api.tokenlab.sh/v1/chat/completions`
+       - **Model ID / Context length**: Sao chép chính xác ID mô hình và độ dài ngữ cảnh từ [Mô hình TokenLab](https://tokenlab.sh/vi/models).
+       - **Custom Headers**: `Authorization: Bearer sk-your-tokenlab-key`
+    3. Nhấp **Test**, rồi **Add Model**. Chọn mô hình mới và gửi tin nhắn kiểm tra.
   </Tab>
 
   <Tab title="Open WebUI">
-    1. Mở **Admin Settings** → **Connections**
-    2. Thêm một kết nối **OpenAI-compatible**
-    3. Nhập:
-       - **Base URL**: `https://api.tokenlab.sh/v1`
-       - **API Key**: `sk-your-tokenlab-key`
-    4. Lưu và chọn các model bạn muốn hiển thị
+    Làm theo [hướng dẫn thiết lập Open WebUI](/vi/integrations/open-webui) để cấu hình kết nối, chọn mô hình và gửi tin nhắn kiểm tra đầu tiên.
   </Tab>
 
   <Tab title="DeepChat">
-    1. Mở **Settings** -> **Model Provider**
-    2. Thêm một nhà cung cấp tương thích OpenAI
-    3. Nhập:
-       - **Base URL**: `https://api.tokenlab.sh/v1`
-       - **API Key**: `sk-your-tokenlab-key`
-       - **Model**: `gpt-5.4-mini`
-    4. Lưu và chạy thử nghiệm chat
+    Làm theo [hướng dẫn thiết lập DeepChat](/vi/integrations/deepchat) để cấu hình kết nối, chọn mô hình và gửi tin nhắn kiểm tra đầu tiên.
   </Tab>
 
   <Tab title="Jan">
-    1. Mở **Settings** -> **Providers**
-    2. Thêm một nhà cung cấp OpenAI từ xa tương thích
-    3. Nhập:
-       - **Provider name**: TokenLab
-       - **Base URL**: `https://api.tokenlab.sh/v1`
-       - **API Key**: `sk-your-tokenlab-key`
-    4. Chọn `gpt-5.4-mini` hoặc model TokenLab khác
+    Làm theo [hướng dẫn thiết lập Jan](/vi/integrations/jan) để cấu hình kết nối, chọn mô hình và gửi tin nhắn kiểm tra đầu tiên.
   </Tab>
 
   <Tab title="LibreChat">
-    Thêm một endpoint tương thích OpenAI vào cấu hình nhà cung cấp LibreChat của bạn và trỏ nó đến:
-
-    ```yaml
-    customEndpoints:
-      - name: TokenLab
-        apiKey: '${OPENAI_API_KEY}'
-        baseURL: 'https://api.tokenlab.sh/v1'
-        models:
-          default: ['gpt-5.6-luna', 'gpt-5.6-terra', 'claude-sonnet-5']
-          fetch: false
-    ```
+    Làm theo [hướng dẫn thiết lập LibreChat](/vi/integrations/librechat) để cấu hình kết nối, chọn mô hình và gửi tin nhắn kiểm tra đầu tiên.
   </Tab>
 </Tabs>
 

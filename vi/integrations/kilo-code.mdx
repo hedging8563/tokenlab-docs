@@ -20,11 +20,13 @@ description: "Kết nối Kilo Code và Kilo CLI với TokenLab"
 Cài kênh pre-release của **Kilo Code** trong VS Code hoặc cài CLI:
 
 ```bash
-npm install -g @kilocode/cli
+npm install -g @kilocode/cli@7.7.2
 kilo --version
 ```
 
 Mở **Settings → Providers → Custom provider**.
+
+Lưu cục bộ nhà cung cấp, mô hình và cấu hình kết nối hiện tại trước khi sửa. Các tùy chọn này đổi mô hình đang dùng; khôi phục giá trị cũ khi hoàn tất. Giữ nguyên tài khoản đã đăng nhập và quyền công cụ. Không ghi đè kết nối tương thích OpenAI khác khi chưa có bản sao lưu có thể khôi phục.
 
 | Trường | Giá trị |
 |---|---|
@@ -39,18 +41,17 @@ Kilo tự phát hiện mô hình qua `/v1/models`. Sau khi lưu, chọn `tokenla
 
 ## Cấu hình CLI
 
-Lưu Key trong biến môi trường và chỉnh tệp toàn cục đáng tin cậy `~/.config/kilo/kilo.jsonc`:
+Làm theo bước terminal trong [bắt đầu nhanh](/vi/quickstart) cho macOS, Linux, WSL hoặc Windows PowerShell để đặt `TOKENLAB_API_KEY` mà không ghi khóa vào lịch sử lệnh. Mở Kilo từ terminal đó. Khi dùng lâu dài, hãy dùng trình quản lý bí mật cục bộ, không thêm khóa dạng văn bản vào hồ sơ shell.
 
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
+Trước khi chạy Kilo **7.7.2**, sao lưu cấu hình toàn cục đang dùng và kiểm tra `permission.bash`. Phiên bản này thêm `bash: "allow"` vào cấu hình cũ thiếu quy tắc tường minh đó, kể cả khi `permission["*"]` là `deny`. Giữ rõ quy tắc shell hiện tại trong tệp toàn cục: nếu quy tắc ký tự đại diện cũ là `deny`, gộp `"bash": "deny"` vào đối tượng `permission` và giữ các quy tắc khác. Tệp nhà cung cấp riêng bên dưới không ngăn quá trình chuyển đổi này.
+
+Lưu cấu hình vào tệp riêng `~/.config/kilo/tokenlab.jsonc`. Nếu đã đặt `XDG_CONFIG_HOME`, dùng `kilo/tokenlab.jsonc` trong thư mục đó. Giữ nguyên `kilo.json` / `kilo.jsonc` thông thường, tài khoản, mô hình mặc định và quyền. Tệp riêng chỉ được tải khi lần khởi chạy đó chọn nó bằng `KILO_CONFIG`. Nếu tệp hoặc tên nhà cung cấp đã được dùng, chọn tên khác và sửa lệnh tương ứng.
 
 ```jsonc
 {
   "$schema": "https://app.kilo.ai/config.json",
-  "model": "openai-compatible/kimi-k3",
   "provider": {
-    "openai-compatible": {
+    "tokenlab": {
       "options": {
         "apiKey": "{env:TOKENLAB_API_KEY}",
         "baseURL": "https://api.tokenlab.sh/v1"
@@ -61,18 +62,46 @@ export TOKENLAB_API_KEY="sk-your-tokenlab-key"
           "tool_call": true,
           "reasoning": true,
           "modalities": {
-            "input": ["text", "image"],
-            "output": ["text"]
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
           },
           "limit": {
             "context": 1048576,
             "output": 131072
           }
         }
-      }
+      },
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "TokenLab"
     }
   }
 }
 ```
 
-Khởi động lại Kilo rồi chạy `kilo models`. `{env:...}` chỉ được phân giải trong cấu hình toàn cục hoặc được quản lý đáng tin cậy. Không ghi Key thật vào cấu hình dự án có thể được đưa lên Git.
+<CodeGroup>
+```bash macOS / Linux / WSL
+KILO_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/kilo/tokenlab.jsonc" kilo models tokenlab
+KILO_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/kilo/tokenlab.jsonc" kilo --model tokenlab/kimi-k3
+```
+
+```powershell Windows PowerShell
+$previous = @{}
+$previous['KILO_CONFIG'] = [Environment]::GetEnvironmentVariable('KILO_CONFIG', 'Process')
+try {
+  $env:KILO_CONFIG = (Join-Path $(if ($env:XDG_CONFIG_HOME) { $env:XDG_CONFIG_HOME } else { Join-Path $HOME '.config' }) 'kilo/tokenlab.jsonc')
+  kilo models tokenlab
+  kilo --model tokenlab/kimi-k3
+} finally {
+  foreach ($name in $previous.Keys) {
+    [Environment]::SetEnvironmentVariable($name, $previous[$name], 'Process')
+  }
+}
+```
+</CodeGroup>
+
+Lưu thiết lập hoặc liệt kê mô hình không xác nhận khóa hợp lệ hay yêu cầu đã hoàn tất. Prompt dùng số dư TokenLab. Kiểm tra phản hồi và [bản ghi tương ứng](https://tokenlab.sh/dashboard/runs?section=requests) trước khi thử công cụ; yêu cầu phụ cũng có thể được tính phí.

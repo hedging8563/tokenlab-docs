@@ -5,7 +5,7 @@ description: "Guardrailsを使用してTokenLabモデルの出力を検証する
 
 ## 概要
 
-Guardrailsは、そのLLM APIインターフェースと互換性のあるあらゆる呼び出し可能オブジェクト（callable）をラップできます。TokenLabの場合、OpenAI SDKをTokenLabのベースURLで構成し、チャット補完の呼び出し可能オブジェクトをガードに渡します。
+TokenLab の Base URL で OpenAI SDK を設定し、JSON を要求して、返されたテキストを `Guard.parse` で検証します。
 
 <Note>
 **タイプ**: 検証および構造化出力フレームワーク
@@ -14,6 +14,12 @@ Guardrailsは、そのLLM APIインターフェースと互換性のあるあら
 
 **サポートの信頼性**: サポートされているOpenAI互換パス
 </Note>
+
+## インストール
+
+```bash
+pip install guardrails-ai openai
+```
 
 ## 環境設定
 
@@ -43,11 +49,17 @@ client = OpenAI(
     base_url="https://api.tokenlab.sh/v1",
 )
 
-raw_output, validated_output, *rest = guard(
-    llm_api=client.chat.completions.create,
+response = client.chat.completions.create(
     model="claude-sonnet-5",
-    messages=[{"role": "user", "content": "What kind of pet should I get?"}],
+    response_format={"type": "json_object"},
+    messages=[{
+        "role": "user",
+        "content": "Suggest a pet. Return only JSON with string fields pet_type and name.",
+    }],
 )
+
+outcome = guard.parse(response.choices[0].message.content)
+print(outcome.validated_output)
 ```
 
 ## エンドポイントに関する注意点

@@ -19,7 +19,7 @@ description: "يعرض عوالم World Labs Marble المكتملة التي ت
 </ParamField>
 
 <ParamField body="status" type="string">
-  مرشح حالة اختياري. يعيد TokenLab worlds مكتملة عند `SUCCEEDED`؛ الحالات الأخرى تخص نقطة مهام الإنشاء.
+  مرشح اختياري: `SUCCEEDED` أو `PENDING` أو `RUNNING` أو `FAILED`. تعرض هذه النقطة العوالم المكتملة؛ وتعيد القيم الثلاث الأخرى قائمة فارغة. استعلم عن مهمة التوليد لمتابعة التقدم.
 </ParamField>
 
 <ParamField body="model" type="string">
@@ -56,7 +56,7 @@ description: "يعرض عوالم World Labs Marble المكتملة التي ت
   مصفوفة سجلات world.
 </ResponseField>
 
-<ResponseField name="next_page_token" type="string">
+<ResponseField name="next_page_token" type="string | null">
   رمز الصفحة التالية أو `null`.
 </ResponseField>
 

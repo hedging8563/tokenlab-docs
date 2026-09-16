@@ -6,14 +6,14 @@ description: "入力テキストを表現する embedding ベクトルを作成�
 
 ## リクエストボディ
 
-**同期リクエストのタイムアウト:** この非チャットエンドポイントは、ルーティング先モデルの処理完了を待ちます。大きな入力、長い音声、大きなバッチは一般的な 30s のクライアント既定値を超えることがあるため、HTTP クライアントのタイムアウトは少なくとも `120s` に設定してください。
+入力が大きい場合、HTTP クライアントのタイムアウトを少なくとも `120s` に設定してください。処理完了後にレスポンスを返します。
 
 <ParamField body="model" type="string" required>
   使用する embedding モデルの ID（例: `text-embedding-3-small`）。
 </ParamField>
 
 <ParamField body="input" type="string | array" required>
-  embedding 化する入力テキスト。文字列または文字列の配列を指定できます。
+  入力は文字列または文字列の配列です。トークン入力に対応するモデルでは、単一のトークン列に `number[]`、複数の列に `number[][]` も指定できます。
 </ParamField>
 
 <ParamField body="encoding_format" type="string" default="float">
@@ -30,11 +30,7 @@ description: "入力テキストを表現する embedding ベクトルを作成�
 
 ## 利用可能なモデル
 
-| モデル | 次元 | 説明 |
-|-------|------------|-------------|
-| `text-embedding-3-large` | 3072 | 最高品質 |
-| `text-embedding-3-small` | 1536 | バランス型 |
-| `text-embedding-ada-002` | 1536 | レガシー |
+`GET /v1/models?recommended_for=embedding` で現在のモデルと次元数を確認できます。
 
 ## レスポンス
 
@@ -48,7 +44,7 @@ description: "入力テキストを表現する embedding ベクトルを作成�
   各オブジェクトには以下が含まれます:
   - `object` (string): `embedding`
   - `index` (integer): 入力配列内のインデックス
-  - `embedding` (array): embedding ベクトル
+  - `embedding` (array | string): `float` は数値ベクトル、`base64` は Base64 文字列を返します。
 </ResponseField>
 
 <ResponseField name="model" type="string">
@@ -129,6 +125,10 @@ print_r(array_slice($data['data'][0]['embedding'], 0, 5));
 ```
 </RequestExample>
 
+<Note>
+読みやすくするため、例のベクトルは短縮しています。
+</Note>
+
 <ResponseExample>
 ```json Response
 {
@@ -137,7 +137,7 @@ print_r(array_slice($data['data'][0]['embedding'], 0, 5));
     {
       "object": "embedding",
       "index": 0,
-      "embedding": [0.0023, -0.0194, 0.0081, ...]
+      "embedding": [0.0023, -0.0194, 0.0081]
     }
   ],
   "model": "text-embedding-3-small",

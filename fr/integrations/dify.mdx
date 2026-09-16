@@ -1,22 +1,12 @@
 ---
 title: "Dify"
-description: "Intégrez TokenLab avec Dify en utilisant le fournisseur OpenAI et une URL de base personnalisée"
+description: "Intégrez TokenLab avec Dify en utilisant le fournisseur OpenAI-API-compatible et une URL de base personnalisée"
 ---
 
 ## Aperçu
 
-Dify fonctionne bien avec TokenLab grâce à son flux de fournisseur de modèles compatible avec OpenAI.
+Utilisez le plugin de fournisseur de modèles **OpenAI-API-compatible** pour connecter Dify à TokenLab. Réglez le type de modèle sur **LLM**, **Completion mode** sur **Chat** et **API Type** sur **Chat Completions API**. Ce guide utilise Chat Completions.
 
-Il s'agit d'un chemin d'intégration orienté vers les complétions de chat. Cela ne doit pas être interprété comme une garantie que Dify expose les mêmes réponses ou le même comportement WebSocket que les intégrations Codex dédiées.
-
-Pour les versions actuelles de Dify, le chemin le plus sûr est généralement le suivant :
-- choisir le fournisseur **OpenAI** intégré
-- définir votre clé API TokenLab
-- définir une URL de base personnalisée `https://api.tokenlab.sh/v1`
-
-<Note>
-Certaines versions plus anciennes de Dify exposent cela en tant que `OpenAI-API-compatible` au lieu du fournisseur `OpenAI` intégré avec un champ d'URL de base personnalisée. Si votre interface Dify semble différente, utilisez le flux de fournisseur personnalisé compatible OpenAI le plus proche disponible dans cette version.
-</Note>
 
 ## Prérequis
 
@@ -37,8 +27,8 @@ Certaines versions plus anciennes de Dify exposent cela en tant que `OpenAI-API-
   <Step title="Ouvrir les fournisseurs de modèles">
     Dans Dify, allez dans **Paramètres** → **Fournisseurs de modèles**
   </Step>
-  <Step title="Sélectionner OpenAI">
-    Ouvrez les paramètres du fournisseur **OpenAI**. Si votre version de Dify ne propose pas d'URL de base personnalisée ici, utilisez plutôt l'option de fournisseur personnalisé compatible OpenAI exposée par cette version.
+  <Step title="Sélectionner OpenAI-API-compatible">
+    Ouvrez **OpenAI-API-compatible**. Si ce fournisseur est absent, installez son plugin depuis Dify Marketplace. Choisissez **Add model** pour saisir les paramètres TokenLab.
   </Step>
   <Step title="Saisir les paramètres TokenLab">
     Utilisez ces valeurs :
@@ -46,7 +36,10 @@ Certaines versions plus anciennes de Dify exposent cela en tant que `OpenAI-API-
     | Champ | Valeur |
     |-------|-------|
     | Clé API | `sk-your-tokenlab-key` |
-    | URL de base API / URL de base personnalisée | `https://api.tokenlab.sh/v1` |
+    | Model type | LLM |
+    | Completion mode | Chat |
+    | API Type | Chat Completions API |
+    | API Base URL | `https://api.tokenlab.sh/v1` |
   </Step>
   <Step title="Ajouter des modèles">
     Ajoutez les modèles que vous souhaitez utiliser, par exemple :
@@ -62,7 +55,7 @@ Certaines versions plus anciennes de Dify exposent cela en tant que `OpenAI-API-
 
 ### Étape 3 : Tester la connexion
 
-1. Choisissez un modèle tel que `gpt-5-mini` ou `gpt-4o`
+1. Sélectionnez un modèle que vous avez ajouté, comme `gpt-5.4-mini`.
 2. Envoyez un prompt de test
 3. Confirmez que Dify reçoit une réponse valide
 
@@ -86,16 +79,16 @@ Ensuite, définissez-le comme modèle d'embedding par défaut dans les paramètr
 ## Bonnes pratiques
 
 <AccordionGroup>
-  <Accordion title="Commencez avec le fournisseur OpenAI intégré">
-    Dans les versions plus récentes de Dify, le fournisseur OpenAI intégré avec une URL de base personnalisée est généralement la configuration la plus propre pour TokenLab.
+  <Accordion title="Le plugin OpenAI comme alternative">
+    Le plugin distinct **OpenAI** peut être utilisé pour les modèles pris en charge par son catalogue. Réglez son URL de base personnalisée sur `https://api.tokenlab.sh/v1` et **API Protocol** sur **Chat Completions** ; la valeur par défaut peut être Responses. Ce n’est pas un ancien nom d’OpenAI-API-compatible et il n’accepte pas tous les ID de modèle personnalisés.
   </Accordion>
 
   <Accordion title="Utilisez des modèles moins coûteux pour l'itération">
     Utilisez `gpt-5.4-mini`, `gemini-3.5-flash` ou `deepseek-v4-flash` pendant vos itérations, puis basculez les flux de travail plus lourds vers des modèles plus puissants uniquement lorsque nécessaire.
   </Accordion>
 
-  <Accordion title="N'oubliez pas que Dify est généralement orienté vers les complétions de chat">
-    La plupart des flux Dify utilisent un comportement de chat compatible OpenAI. Si vous avez besoin de réponses spécifiques à Codex ou d'un comportement WebSocket, utilisez plutôt les intégrations Codex dédiées.
+  <Accordion title="Cette configuration utilise Chat Completions">
+    Conservez **Completion mode = Chat** et **API Type = Chat Completions API** pour cette configuration. Responses est une option d’API distincte ; ce guide ne la configure pas et ne configure pas de connexions WebSocket.
   </Accordion>
 </AccordionGroup>
 

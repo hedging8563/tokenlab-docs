@@ -4,7 +4,8 @@ openapi: "POST /v1/responses"
 description: "Tạo một phản hồi theo định dạng Responses API của OpenAI"
 ---
 
-Responses là giao thức phản hồi có trạng thái gốc của OpenAI. TokenLab chỉ cung cấp khi chi tiết mô hình công bố định dạng Responses và có tuyến upstream cùng giao thức; không suy luận từ tên mô hình hoặc nhà cung cấp và không fallback sang Chat Completions. TokenLab giữ nguyên hình dạng JSON, gồm trường chưa biết, `null` tường minh và mảng rỗng, rồi chuyển tiếp theo best-effort.
+Dùng endpoint này khi `accepted_request_formats` trong chi tiết mô hình chứa `openai_responses`. Yêu cầu và phản hồi sử dụng định dạng Responses API. Các trường tùy chọn và giá trị được hỗ trợ phụ thuộc vào mô hình đã chọn.
+
 ## Nội dung yêu cầu
 
 <ParamField body="model" type="string" required>
@@ -21,7 +22,7 @@ Responses là giao thức phản hồi có trạng thái gốc của OpenAI. Tok
   - `function_call`: Một yêu cầu gọi hàm
   - `function_call_output`: Kết quả từ một cuộc gọi hàm
 
-  Đối với đầu vào đa phương thức, `message.content` có thể là một chuỗi văn bản thuần hoặc một mảng các khối nội dung. Đối với các mô hình có khả năng xử lý hình ảnh như các biến thể GPT-5.4, truyền hình ảnh dưới dạng các khối `input_image` thay vì nhúng URL hoặc chuỗi Base64 trực tiếp vào văn bản thuần.
+  Đối với đầu vào đa phương thức, `message.content` có thể là một chuỗi văn bản thuần hoặc một mảng các khối nội dung. Đối với các mô hình có khả năng xử lý hình ảnh như các biến thể GPT-5.6 Terra, truyền hình ảnh dưới dạng các khối `input_image` thay vì nhúng URL hoặc chuỗi Base64 trực tiếp vào văn bản thuần.
 
   Ví dụ các khối nội dung:
   - `{ "type": "input_text", "text": "Describe this image" }`
@@ -37,12 +38,12 @@ Responses là giao thức phản hồi có trạng thái gốc của OpenAI. Tok
   Số token tối đa để sinh.
 </ParamField>
 
-<ParamField body="temperature" type="number" default="1">
-  Nhiệt độ sampling trong khoảng 0 đến 2.
+<ParamField body="temperature" type="number">
+  Nhiệt độ lấy mẫu. Các giá trị được hỗ trợ và giá trị mặc định phụ thuộc vào mô hình đã chọn.
 </ParamField>
 
 <ParamField body="tools" type="array">
-  Danh sách công cụ mô hình có thể gọi. TokenLab chuyển tiếp định nghĩa gốc mà không dùng allowlist cục bộ; upstream được chọn quyết định loại và tổ hợp được hỗ trợ.
+  Các công cụ mô hình có thể gọi. Loại và tổ hợp được hỗ trợ phụ thuộc vào mô hình đã chọn.
 </ParamField>
 
 <ParamField body="stream" type="boolean" default="false">
@@ -57,12 +58,20 @@ Responses là giao thức phản hồi có trạng thái gốc của OpenAI. Tok
   Có lưu phản hồi để truy xuất sau hay không.
 </ParamField>
 
+<ParamField body="background" type="boolean" default="false">
+  Yêu cầu thực thi bất đồng bộ. Khả năng hỗ trợ phụ thuộc vào mô hình đã chọn.
+</ParamField>
+
+<ParamField body="prompt" type="object">
+  Tham chiếu đến mẫu prompt có thể tái sử dụng và các biến.
+</ParamField>
+
 <ParamField body="metadata" type="object">
   Metadata để đính kèm vào phản hồi cho mục đích theo dõi.
 </ParamField>
 
 <ParamField body="text" type="object">
-  Các tuỳ chọn cấu hình sinh văn bản. Hành vi cho `text.format` phụ thuộc vào mô hình được chọn và đường dẫn được định tuyến; không được đảm bảo đồng nhất trên mọi mô hình.
+  Cài đặt đầu ra văn bản. Khả năng hỗ trợ `text.format` phụ thuộc vào mô hình đã chọn.
 </ParamField>
 
 <ParamField body="parallel_tool_calls" type="boolean" default="true">
@@ -74,9 +83,7 @@ Responses là giao thức phản hồi có trạng thái gốc của OpenAI. Tok
 </ParamField>
 
 <ParamField body="reasoning" type="object">
-  Cấu hình reasoning cho các mô hình có hỗ trợ reasoning như các biến thể thuộc họ GPT-5.
-
-  - `effort` (string): Mức độ nỗ lực reasoning (`low`, `medium`, `high`)
+  Các tùy chọn suy luận, gồm `effort`, phụ thuộc vào mô hình đã chọn.
 </ParamField>
 
 ## Phản hồi
@@ -93,6 +100,10 @@ Responses là giao thức phản hồi có trạng thái gốc của OpenAI. Tok
   Dấu thời Unix khi phản hồi được tạo.
 </ResponseField>
 
+<ResponseField name="status" type="string">
+  Trạng thái phản hồi: `queued`, `in_progress`, `completed`, `incomplete`, `failed` hoặc `cancelled`. Kiểm tra trường này ngay cả khi yêu cầu HTTP thành công.
+</ResponseField>
+
 <ResponseField name="output" type="array">
   Danh sách các mục đầu ra do mô hình sinh ra.
 </ResponseField>
@@ -100,6 +111,13 @@ Responses là giao thức phản hồi có trạng thái gốc của OpenAI. Tok
 <ResponseField name="usage" type="object">
   Thống kê sử dụng token.
 </ResponseField>
+
+## Các endpoint liên quan
+
+- `GET /v1/responses/{id}` lấy phản hồi đã lưu và hỗ trợ `include`, `include_obfuscation`, `stream` và `starting_after`.
+- `DELETE /v1/responses/{id}` xóa phản hồi đã lưu. Thao tác này không hủy việc tạo nội dung.
+- `POST /v1/responses/compact` trả về đối tượng `response.compaction`.
+- Các endpoint hủy, input-items và input-tokens hiện chưa được cung cấp.
 
 <RequestExample>
 ```bash cURL
@@ -268,14 +286,17 @@ Sử dụng các mô hình có khả năng xử lý hình ảnh bằng cách đ�
 {
   "id": "resp_abc123",
   "object": "response",
-  "created": 1706000000,
+  "created_at": 1706000000,
+  "status": "completed",
   "model": "gpt-5.6-terra",
   "output": [
     {
+      "id": "msg_abc123",
       "type": "message",
+      "status": "completed",
       "role": "assistant",
       "content": [
-        {"type": "text", "text": "Hello! How can I help you today?"}
+        {"type": "output_text", "text": "Hello! How can I help you today?", "annotations": []}
       ]
     }
   ],

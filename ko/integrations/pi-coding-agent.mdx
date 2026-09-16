@@ -8,11 +8,13 @@ description: "Pi와 TokenLab를 함께 사용합니다. Pi는 OpenAI, Anthropic,
 [Pi 공식 설치 안내](https://pi.dev/)를 사용하세요. npm 패키지는 `@earendil-works/pi-coding-agent`입니다. Windows는 [셸 설정](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/windows.md)을 확인하세요. 기본 셸은 Git Bash입니다. 설치된 경우 건너뜁니다.
 
 ```bash
-npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+npm install -g --ignore-scripts @earendil-works/pi-coding-agent@0.85.1
 pi --version
 ```
 
-아래 내용을 `~/.pi/agent/models.json` 또는 `PI_CODING_AGENT_DIR` 디렉터리의 같은 파일에 병합하세요. 백업하고 다른 제공자를 유지합니다. 시작 환경에 `TOKENLAB_API_KEY`를 설정하고 키를 대화에 붙여 넣지 마세요. Base URL 환경 변수만으로 제공자가 만들어지지는 않습니다.
+아래 설정은 **Pi 0.85.1**에서 확인했습니다. 다른 버전은 해당 공식 문서에 따라 별도로 확인해야 합니다.
+
+`~/.pi/agent/models.json`을 백업한 후 `providers`의 기존 항목 뒤에 `tokenlab`을 추가하세요. 파일이 없을 때만 새로 만듭니다. 비어 있지 않은 `PI_CODING_AGENT_DIR`은 `models.json` 디렉터리를 지정합니다. 제공자 순서, `settings.json`, 계정, 기본 모델 필드와 권한을 유지하세요. 설정이나 저장된 계정에 `tokenlab`이 있으면 다른 이름을 사용하고 실행 명령도 바꾸세요. [빠른 시작](/ko/quickstart)의 macOS, Linux, WSL 또는 Windows PowerShell 절차로 실행 환경에 `TOKENLAB_API_KEY`를 설정하고 키를 대화에 붙여 넣지 마세요.
 
 ```json
 {
@@ -29,11 +31,18 @@ pi --version
 
 `"$TOKENLAB_API_KEY"`의 `$`는 필수입니다. 생략하면 문자열 그대로 사용됩니다. Chat Completions와 도구 호출을 지원하는 현재 모델을 선택하고 용량, 이미지 및 추론 설정은 해당 모델 정보를 따르세요.
 
+선택 사항: Python 3.11+의 [복구 가능한 Pi 설정 도구](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/skills/tokenlab-api-integration/references/pi_setup.md)로 변경 사항을 미리 보고 적용하거나 원본 파일을 복원할 수 있습니다. TokenLab Skills 플러그인 **0.1.2**에는 새 스크립트가 포함되어 있습니다. 독립 Skill도 스크립트가 포함된 버전으로 업데이트하면 사용할 수 있습니다. 기존 플러그인 또는 독립 Skill 설치는 [README 업데이트 안내](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/README.md#update-an-existing-installation)에 따라 업데이트하고 스크립트가 있는지 확인하세요. 이 페이지의 수동 설정만으로도 완료할 수 있습니다.
+
 ## 검증 및 복구
 
-`pi --list-models`를 실행하고 Pi의 `/model`에서 `tokenlab/gpt-5.6-luna`를 선택합니다. 선택기는 `models.json`을 다시 읽습니다. 모델 등록과 자격 증명의 존재를 확인할 뿐 인증이나 호출 성공을 입증하지 않습니다.
+같은 터미널과 Agent 디렉터리에서 로드를 확인한 뒤 이번 세션에 사용할 TokenLab을 명시적으로 선택하세요. `TOKENLAB_API_KEY`가 없으면 제공자가 목록에서 숨겨질 수 있습니다. 목록은 등록과 자격 증명 존재만 확인하며 키 유효성이나 API 성공을 입증하지 않습니다.
 
-짧은 텍스트 요청도 TokenLab 잔액을 사용합니다. 응답과 [요청 기록](https://tokenlab.sh/dashboard/runs?section=requests)을 확인한 뒤 도구를 시험하세요. 복구할 때는 이전 제공자를 선택하고 추가한 TokenLab 항목만 제거합니다.
+```bash
+pi --list-models tokenlab
+pi --provider tokenlab --model gpt-5.6-luna
+```
+
+프롬프트를 보내면 TokenLab 잔액을 사용합니다. 도구를 시험하기 전에 응답과 [요청 기록](https://tokenlab.sh/dashboard/runs?section=requests)을 확인하세요. 수동 설정을 되돌릴 때는 추가한 제공자 항목만 제거하고 다른 설정과 계정을 유지하세요.
 
 ## Skills 및 MCP
 

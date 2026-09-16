@@ -13,6 +13,8 @@ description: "將 Hermes Agent 接入 TokenLab"
 
 先確認 Hermes 目錄：若設定了 `HERMES_HOME`，使用該目錄；否則為 `~/.hermes`（Windows：`%USERPROFILE%\.hermes`）。備份 `config.yaml` 後合併以下項目，保留其他設定。此範例使用 Chat Completions，請選擇目前支援此格式及工具呼叫的模型。
 
+先備份目前設定。只新增 TokenLab 項目，保留既有供應商、帳戶、預設模型與權限。如果名稱已被使用，另選名稱並同步修改指令。還原時只移除本次新增的項目，或還原其原始備份。
+
 ```yaml
 providers:
   tokenlab:
@@ -20,16 +22,17 @@ providers:
     key_env: TOKENLAB_API_KEY
     transport: chat_completions
     default_model: gpt-5.6-luna
-model:
-  provider: custom:tokenlab
-  default: gpt-5.6-luna
 ```
 
 在 [API 金鑰](https://tokenlab.sh/dashboard/api?tab=keys)建立金鑰，再於本機將 `TOKENLAB_API_KEY` 存入 Hermes 目錄的 `.env` 或啟動 Hermes 的程序環境。請勿將金鑰貼入對話或供應商 YAML。
 
 ## 先檢查設定，再發出請求
 
-執行 `hermes config get model.provider` 與 `hermes config get model.default`，應顯示 `custom:tokenlab` 與所選模型。接著建立新對話；既有對話可能保留原模型。設定檢查不代表金鑰有效或呼叫成功。
+執行 `hermes config get providers.tokenlab.api` 檢查新增供應商，應顯示 `https://api.tokenlab.sh/v1`。保留原有 `model` 區段，以以下指令明確指定供應商與模型並開啟新工作階段；不加這些選項正常啟動時仍使用原預設設定。讀取設定不能驗證金鑰有效性。
+
+```bash
+hermes chat --provider custom:tokenlab --model gpt-5.6-luna
+```
 
 準備好使用 TokenLab 餘額後，發送簡短文字請求，核對回覆及[請求記錄](https://tokenlab.sh/dashboard/runs?section=requests)，再嘗試唯讀工具任務。輔助模型及選用工具可能使用其他供應商或金鑰。
 

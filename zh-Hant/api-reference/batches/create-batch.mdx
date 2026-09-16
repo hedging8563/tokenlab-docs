@@ -14,7 +14,7 @@ description: "從上傳的輸入檔案創建一個與OpenAI兼容的批次作業
 - `completion_window` 目前為 `24h`。
 - 輸出順序不保證；始終通過 `custom_id` 進行匹配。
 - 批次項目內不支持串流。
-- 目前支援的批次項目端點是 `/v1/chat/completions` 和 `/v1/embeddings`；在原生 Responses 批次執行器可用之前，`/v1/responses` 批次作業會被拒絕。
+- 支援的批次項目端點為 `/v1/chat/completions` 和 `/v1/embeddings`，不支援 `/v1/responses`。
 
 ## 範例
 
@@ -39,7 +39,6 @@ curl -X POST "https://api.tokenlab.sh/v1/batches" \
 
 - 使用 `custom_id` 進行冪等的下游對帳。
 - 只有在工作者完成批次後，才會期望 `output_file_id` 和 `error_file_id`。
-- 批次定價可能與同步定價不同，因為適用 `isBatchRequest=true` 的折扣規則。
 
 ## 回應範例
 

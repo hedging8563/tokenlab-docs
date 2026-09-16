@@ -6,13 +6,15 @@ description: "Cancele uma tarefa compatível com Seedance em fila ou ainda cance
 
 ## Visão geral
 
-Estes endpoints são para equipes que já usam o formato de tarefa Seedance no estilo Volc. A autenticação usa sua API key Bearer da TokenLab. O ID retornado começa com `cgt-`; consulte o status até que `status` seja `succeeded`, `failed`, `cancelled` ou `expired`.
+Solicite o cancelamento com uma chave de API TokenLab Bearer e o ID `cgt-...`. O cancelamento é tentado e só pode ser concluído enquanto a tarefa ainda for cancelável.
 
 Veja também [Modelos de vídeo Seedance 2.0](/pt/guides/seedance-2-video) e [Geração de vídeo](/pt/guides/video-generation).
 
 ## Formato da resposta
 
 Uma solicitação de cancelamento bem-sucedida retorna HTTP 200 com corpo vazio. Consulte a tarefa depois se precisar confirmar o status final.
+
+Se a tarefa terminou, falhou, expirou ou deixou de ser cancelável, o endpoint retorna um erro. Consulte a tarefa para confirmar seu estado. Uma tarefa cancelada não tem resultado de vídeo.
 
 ## Exemplo
 

@@ -6,14 +6,14 @@ description: "Sesi giriş diline transkribe eder"
 
 ## İstek Gövdesi
 
-**Senkron istek zaman aşımı:** Bu chat dışı endpoint, yönlendirilen modelin tamamlanmasını bekler. Büyük girdiler, uzun sesler veya büyük batch’ler yaygın 30s istemci varsayılanlarını aşabilir; bu yüzden HTTP istemcisi zaman aşımını en az `120s` olarak ayarlayın.
+Transkripsiyon metni doğrudan döndürebilir veya HTTP `200`, `id` ve `status` ile asenkron bir görevi kabul edebilir. Kabul edilen görev için `poll_url` adresini izleyin ya da `/v1/tasks/{id}` sorgulayın. Uzun sesin senkron işlenmesinde en az `120s` zaman aşımı kullanın.
 
 <ParamField body="file" type="file" required>
-  Transkribe edilecek ses dosyası. Desteklenen formatlar: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, webm.
+  Transkribe edilecek ses dosyası. Desteklenen formatlar: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, webm. Maksimum dosya boyutu: 25 MB.
 </ParamField>
 
 <ParamField body="model" type="string" default="whisper-1">
-  Kullanılacak model. Şu anda yalnızca `whisper-1` desteklenmektedir.
+  Transkripsiyon model ID’si; örneğin `whisper-1` veya `gpt-4o-transcribe`. Güncel seçenekleri `GET /v1/models?recommended_for=stt` ile bulun.
 </ParamField>
 
 <ParamField body="language" type="string">
@@ -25,18 +25,20 @@ description: "Sesi giriş diline transkribe eder"
 </ParamField>
 
 <ParamField body="response_format" type="string" default="json">
-  Çıktı formatı: `json`, `text`, `srt`, `verbose_json`, `vtt`.
+  Çıktı biçimi. Whisper `json`, `text`, `srt`, `verbose_json` ve `vtt` destekler; diğer modeller farklı seçenekler sunabilir. Model ayrıntılarını kontrol edin.
 </ParamField>
 
-<ParamField body="temperature" type="number" default="0">
-  Örnekleme temperature değeri (0 ile 1 arası).
+<ParamField body="temperature" type="number">
+  0 ile 1 arasında örnekleme sıcaklığı; yalnızca bu parametreyi destekleyen modeller için.
 </ParamField>
 
 <ParamField body="timestamp_granularities" type="array">
-  Zaman damgası ayrıntı düzeyi: `word` ve/veya `segment`. `verbose_json` gerektirir.
+  Model destekliyorsa `word` ve/veya `segment`. Whisper için `response_format=verbose_json` gerekir. Multipart isteklerde birden fazla değer için `timestamp_granularities[]` alanını tekrarlayın.
 </ParamField>
 
 ## Yanıt
+
+Aşağıdaki alanlar JSON transkripsiyon veya çeviri yanıtlarını açıklar. `text`, `srt` ve `vtt`, JSON nesnesi yerine ham metin veya altyazı döndürür. Ek alanlar modele ve çıktı biçimine bağlıdır.
 
 <ResponseField name="text" type="string">
   Transkribe edilen metin.
@@ -45,7 +47,7 @@ description: "Sesi giriş diline transkribe eder"
 `verbose_json` için:
 
 <ResponseField name="task" type="string">
-  Her zaman `transcribe`.
+  Döndürüldüğünde görev adı; örneğin `transcribe`.
 </ResponseField>
 
 <ResponseField name="language" type="string">
@@ -62,6 +64,24 @@ description: "Sesi giriş diline transkribe eder"
 
 <ResponseField name="words" type="array">
   Kelime düzeyinde zaman damgaları (istenirse).
+</ResponseField>
+
+Kabul edilen asenkron transkripsiyon görevi, metin yerine aşağıdaki alanları döndürür:
+
+<ResponseField name="id" type="string">
+  Görev ID'si.
+</ResponseField>
+
+<ResponseField name="task_id" type="string">
+  Uygun olduğunda dönen asenkron görev kimliği takma adı.
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Görev durumu: `pending`, `processing`, `completed` veya `failed`.
+</ResponseField>
+
+<ResponseField name="poll_url" type="string">
+  Oluşturma yanıtı sağladığında tercih edilen yoklama URL’si.
 </ResponseField>
 
 <RequestExample>
@@ -155,9 +175,18 @@ echo $data['text'];
       "start": 0.0,
       "end": 2.5,
       "text": "Hello, this is a test",
-      "tokens": [...]
+      "tokens": [50364, 2425, 11]
     }
   ]
+}
+```
+
+```json HTTP 200 (async)
+{
+  "id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "task_id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "status": "pending",
+  "poll_url": "/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 }
 ```
 </ResponseExample>
@@ -167,8 +196,11 @@ echo $data['text'];
 Sesi İngilizceye çevirmek için translations endpoint'ini kullanın:
 
 ```python
-response = client.audio.translations.create(
-    model="whisper-1",
-    file=audio_file
-)
+with open("audio.mp3", "rb") as audio_file:
+    response = client.audio.translations.create(
+        model="whisper-1",
+        file=audio_file
+    )
+
+print(response.text)
 ```

@@ -26,7 +26,7 @@ Nếu truyền đồng thời `startDate` và `endDate`, thì `startDate` phải
 
 ## Lưu ý
 
-- Các trường tiền tệ chỉ hỗ trợ USD. Dữ liệu nhập `CNY` đã bị ngừng hỗ trợ và trả về `400 currency_retired`.
+- Các trường tiền tệ chỉ hỗ trợ USD.
 
 - Phản hồi có phân trang.
 - Phản hồi chỉ bao gồm các trường chi phí và báo cáo công khai.
@@ -37,7 +37,7 @@ Nếu truyền đồng thời `startDate` và `endDate`, thì `startDate` phải
 
 <RequestExample>
 ```bash cURL
-curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page=1&limit=20&scene=video&startDate=2026-03-01&endDate=2026-03-31" \
+curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page=1&limit=20&scene=chat&startDate=2026-07-01&endDate=2026-07-31" \
   -H "Authorization: Bearer mt-your-management-token"
 ```
 </RequestExample>
@@ -66,7 +66,8 @@ Trang này cung cấp schema OpenAPI và các ví dụ yêu cầu có thể sao 
     ],
     "expires_at": "2026-12-31T23:59:59.000Z",
     "last_used_at": "2026-07-08T03:12:45.000Z",
-    "created_at": "2026-07-01T10:00:00.000Z"
+    "created_at": "2026-07-01T10:00:00.000Z",
+    "delivery_policy": null
   },
   "items": [
     {
@@ -88,7 +89,10 @@ Trang này cung cấp schema OpenAPI và các ví dụ yêu cầu có thể sao 
       "cache_write_tokens_1h": 0,
       "cost": 0.0012,
       "cost_decimal": "0.0012",
-      "created_at": "2026-07-08T03:15:00.000Z"
+      "created_at": "2026-07-08T03:15:00.000Z",
+      "requested_policy": null,
+      "resolved_tier": null,
+      "charged_price_basis": null
     }
   ],
   "pagination": {
@@ -188,6 +192,9 @@ Trang này cung cấp schema OpenAPI và các ví dụ yêu cầu có thể sao 
 <ResponseField name="items[].cache_write_tokens_1h" type="number">Số token ghi bộ nhớ đệm 1 giờ.</ResponseField>
 <ResponseField name="items[].cost" type="number">Chi phí bằng USD dưới dạng số JSON để hiển thị.</ResponseField>
 <ResponseField name="items[].cost_decimal" type="string">Chi phí chính xác bằng USD dưới dạng chuỗi thập phân.</ResponseField>
+<ResponseField name="items[].requested_policy" type="string | null">`auto`, `verified`, `official`, `null`. Chính sách cung cấp được yêu cầu, nếu đã ghi nhận.</ResponseField>
+<ResponseField name="items[].resolved_tier" type="string | null">`verified`, `official`, `null`. Mức cung cấp đã sử dụng, nếu đã ghi nhận.</ResponseField>
+<ResponseField name="items[].charged_price_basis" type="object | null">Giá áp dụng và lượng tính phí, nếu đã ghi nhận.</ResponseField>
 <ResponseField name="items[].created_at" type="string">Dấu thời gian ISO của dòng sử dụng.</ResponseField>
 <ResponseField name="summary.total_requests" type="number">Tổng số yêu cầu.</ResponseField>
 <ResponseField name="summary.total_cost" type="number">Tổng chi phí bằng USD dưới dạng số JSON để hiển thị.</ResponseField>

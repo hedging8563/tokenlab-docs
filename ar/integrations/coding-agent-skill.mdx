@@ -3,6 +3,12 @@ title: "✨ مهارة تكامل TokenLab API"
 description: "ثبّت مهارة تكامل TokenLab API المُحدّثة وعلّم وكلاء البرمجة اكتشاف النماذج وقراءة العقود العامة والتعافي من أخطاء API."
 ---
 
+```text
+اقرأ هذه الصفحة وأضف TokenLab Skill إلى الوكيل الحالي. تحقق أولًا من الإصدار والإعدادات النشطة، واحتفظ بالحسابات والمزوّدين والصلاحيات والإعدادات القائمة. انسخ الملفات احتياطيًا واعرض التغييرات. سأدخل مفتاح API محليًا؛ لا تطلبه أو تعرضه في المحادثة. تحقق أولًا من تحميل الإعدادات، واشرح أي اختبار مدفوع قبل تنفيذه.
+https://docs.tokenlab.sh/ar/integrations/coding-agent-skill
+```
+
+
 <Note>
 تشرح هذه الصفحة مهارة `tokenlab-api-integration` المشتركة والمُحدّثة. التوزيع الرسمي موجود في [hedging8563/tokenlab-skills](https://github.com/hedging8563/tokenlab-skills)، حيث يحتفظ المستودع العام بهذه المهارة فقط بشكل مقصود.
 </Note>
@@ -70,11 +76,7 @@ npx skills add https://github.com/hedging8563/tokenlab-skills --skill tokenlab-a
 
 ## سير عمل Agent الموصى به
 
-1. ابدأ بأصغر مثال يعمل ويطابق لغة المستخدم وعائلة API المطلوبة.
-2. عندما يكون اختيار النموذج مفتوحًا، استدعِ `/v1/models` أو `https://api.tokenlab.sh/llms.txt` قبل تثبيت نموذج في الكود.
-3. لأعمال غير المحادثة، استدعِ `/v1/models?recommended_for=<scene>` حيث تكون `<scene>` واحدة من `image` أو `video` أو `music` أو `3d` أو `tts` أو `stt` أو `embedding` أو `rerank` أو `translation`.
-4. قبل تعديل طلب غير محادثة فشل، اقرأ `/v1/models/:model` ووافق `supported_operations` و`supported_parameters` و`request_endpoint`, `request_endpoint_by_operation` و`request_shape_mode` و`recommended_request`.
-5. إذا أعادت API خطأ Agent-First، استخدم الحقول المنظمة لتصحيح الطلب ولا تعِد المحاولة إلا إذا كان الخطأ retryable.
+اقرأ قائمة النماذج الحالية ثم `tokenlab.accepted_request_formats` وحقول الطلب المعلنة للنموذج المختار. حافظ على التنسيق نفسه للمحادثة واستدعاءات الأدوات؛ لا تتحول الحقول تلقائيًا بين التنسيقات. لا تغيّر النموذج أو البروتوكول المختار من تلقاء نفسك عند حدوث خطأ.
 
 ## مثال محادثة بسيط
 
@@ -86,12 +88,12 @@ from openai import OpenAI
 
 client = OpenAI(
     api_key=os.environ["TOKENLAB_API_KEY"],
-    base_url="https://api.tokenlab.sh/v1"
+    base_url="https://api.tokenlab.sh/v1",
 )
 
 response = client.chat.completions.create(
-    model="gpt-4o-mini",
-    messages=[{"role": "user", "content": "Hello!"}]
+    model="gpt-5.6-luna",
+    messages=[{"role": "user", "content": "Hello!"}],
 )
 
 print(response.choices[0].message.content)
@@ -114,19 +116,19 @@ python app.py
 curl https://api.tokenlab.sh/llms.txt
 
 # عرض النماذج
-curl "https://api.tokenlab.sh/v1/models" -H "Authorization: Bearer sk-KEY"
-curl "https://api.tokenlab.sh/v1/models?category=image" -H "Authorization: Bearer sk-KEY"
+curl "https://api.tokenlab.sh/v1/models" -H "Authorization: Bearer $TOKENLAB_API_KEY"
+curl "https://api.tokenlab.sh/v1/models?category=image" -H "Authorization: Bearer $TOKENLAB_API_KEY"
 
 # قوائم مختصرة مرتبة لغير المحادثة
-curl "https://api.tokenlab.sh/v1/models?recommended_for=image" -H "Authorization: Bearer sk-KEY"
-curl "https://api.tokenlab.sh/v1/models?recommended_for=video" -H "Authorization: Bearer sk-KEY"
-curl "https://api.tokenlab.sh/v1/models?recommended_for=translation" -H "Authorization: Bearer sk-KEY"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=image" -H "Authorization: Bearer $TOKENLAB_API_KEY"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=video" -H "Authorization: Bearer $TOKENLAB_API_KEY"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=translation" -H "Authorization: Bearer $TOKENLAB_API_KEY"
 
 # اقرأ تفاصيل النموذج لنموذج واحد قبل إعادة محاولة طلب غير محادثة
-curl "https://api.tokenlab.sh/v1/models/gpt-image-2" -H "Authorization: Bearer sk-KEY"
+curl "https://api.tokenlab.sh/v1/models/gpt-image-2" -H "Authorization: Bearer $TOKENLAB_API_KEY"
 
 # تفاصيل التسعير فقط
-curl "https://api.tokenlab.sh/v1/models/gpt-image-2/pricing" -H "Authorization: Bearer sk-KEY"
+curl "https://api.tokenlab.sh/v1/models/gpt-image-2/pricing" -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```
 
 ## اختيار البروتوكول الأصلي
@@ -141,12 +143,7 @@ curl "https://api.tokenlab.sh/v1/models/gpt-image-2/pricing" -H "Authorization: 
 
 تتضمن الأخطاء حقولًا يمكن لوكلاء البرمجة تحليلها من دون استخراج النص من الوثائق:
 
-| الخطأ | حقول مفيدة | إجراء agent |
-|---|---|---|
-| اسم النموذج غير صحيح | `did_you_mean`, `suggestions`, `hint` | أعِد المحاولة بالنموذج المصحح أو ببديل مقترح |
-| الرصيد غير كافٍ | `balance_usd`, `estimated_cost_usd`, `suggestions` | اطلب موافقة أو انتقل إلى نموذج ميسور التكلفة |
-| حد معدل أو عدم توفر مؤقت | `retryable`, `retry_after`, `alternatives` | انتظر ثم أعد المحاولة أو اختر بديلًا من القائمة |
-| طلب غير متوافق مع الاستخدام غير الحواري | `supported_operations`, `supported_parameters`, `request_endpoint`, `request_endpoint_by_operation`, `request_shape_mode`, `recommended_request` | أعد بناء الطلب من تفاصيل النموذج، وأعد خطأً واضحًا للحقول التي تغيّر المقصود |
+اعتمد أولًا على حالة HTTP وحقل الخطأ `code`. يمكن الاستفادة من `did_you_mean` لتصحيح اسم النموذج، لكن لا تغيّر النموذج دون اختيار المستخدم. عند `429` اتبع `Retry-After` أو `retry_after`، ولا تعد المحاولة إلا إذا سمح الخطأ بذلك وكان القرار صريحًا. أصلح أخطاء التحقق والمصادقة والرصيد والصلاحيات أولًا. إذا انتهت مهلة طلب إنشاء، فتحقق من وجود مهمة سابقة قبل إرساله مجددًا.
 
 ## عائلات API المدعومة
 
@@ -204,21 +201,4 @@ curl "https://api.tokenlab.sh/v1/models/gpt-image-2/pricing" -H "Authorization: 
 
 ## الموارد
 
-<CardGroup cols={2}>
-  <Card title="Agent-First API" icon="robot" href="/ar/guides/agent-first-api">
-    تلميحات أخطاء منظمة وسلوك الاسترداد
-  </Card>
-  <Card title="وثائق API" icon="book" href="https://docs.tokenlab.sh">
-    إعداد خاص بكل endpoint وAPI Reference
-  </Card>
-  <Card title="النماذج" icon="sparkles" href="https://tokenlab.sh/ar/models">
-    تصفح النماذج المتاحة
-  </Card>
-  <Card title="llms.txt" icon="file-lines" href="https://api.tokenlab.sh/llms.txt">
-    نظرة عامة على API قابلة للقراءة آليًا للوكلاء
-  </Card>
-</CardGroup>
-
-<Info>
-لديك أسئلة؟ استخدم [GitHub Issues](https://github.com/hedging8563/tokenlab-skills/issues) أو تواصل عبر [support@tokenlab.sh](mailto:support@tokenlab.sh).
-</Info>
+لأسئلة API أو الحساب، استخدم [الدعم داخل التطبيق](https://tokenlab.sh/dashboard/support)، وراجع المعاينة ثم أرسل صراحة. لطلب معين، ابدأ من [الطلبات](https://tokenlab.sh/dashboard/runs) و[دليل التحقيق](/ar/guides/observability-troubleshooting). أبلغ عن عيوب Skill نفسها في [GitHub Issues](https://github.com/hedging8563/tokenlab-skills/issues).

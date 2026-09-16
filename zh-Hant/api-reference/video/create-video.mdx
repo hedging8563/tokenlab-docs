@@ -32,7 +32,7 @@ import VideoModelContractNote from "../../snippets/generated/video-model-contrac
 
 <VideoModelContractNote />
 
-<ParamField body="prompt" type="string" required>
+<ParamField body="prompt" type="string">
   要生成影片的文字描述。大多數公開影片模型都需要這個欄位。
 </ParamField>
 
@@ -53,7 +53,7 @@ import VideoModelContractNote from "../../snippets/generated/video-model-contrac
 </ParamField>
 
 <ParamField body="material_asset_id" type="string">
-  [建立素材](/zh-Hant/api-reference/video/create-material-asset)或自動圖片準備流程回傳的 TokenLab Seedance 素材 ID。素材變為 `ACTIVE` 後，可在能夠使用 TokenLab 素材庫的 Seedance 模型中使用。
+  [建立素材](/zh-Hant/api-reference/video/create-material-asset)回傳的 TokenLab Seedance 素材 ID。素材變為 `ACTIVE` 後，可在能夠使用 TokenLab 素材庫的 Seedance 模型中使用。
 </ParamField>
 
 <ParamField body="material_asset_ids" type="array">
@@ -61,7 +61,7 @@ import VideoModelContractNote from "../../snippets/generated/video-model-contrac
 </ParamField>
 
 <Info>
-當所選 Seedance 模型可使用 TokenLab 素材庫時，TokenLab 會在生成前將圖片欄位（`image`、`image_url`、`image_urls`、`reference_images`、`start_image`、`end_image`）準備為可重複使用素材。如果 60 秒內仍未準備完成，API 會回傳 `409 seedance_material_preparing` 和 `auto_material_asset_ids`；請在這些素材變為 `ACTIVE` 後重試。如果所選模型暫不可使用素材庫，一般圖片輸入仍走常規圖片路徑；明確傳入素材 ID 會安全失敗，並回傳可重試的素材可用性錯誤。
+一般圖片 URL 作為圖片輸入，不會自動建立可重複使用素材。需要重複使用時，先透過素材 API 建立，再使用 TokenLab 素材 ID 或 `asset://asset-YYYYMMDDHHMMSS-xxxxx` URI。明確指定素材後若收到 `409 seedance_material_preparing`，請查詢回應中的 `inactive_asset_ids`，待素材變為 `ACTIVE` 後重試。
 </Info>
 
 
@@ -70,7 +70,7 @@ import VideoModelContractNote from "../../snippets/generated/video-model-contrac
 </ParamField>
 
 <ParamField body="kling_elements" type="array">
-  `kling-3.0-video` 的元素引用定義，僅支援帶圖片條件的請求。可定義 1-3 個元素；每個元素包含 `name`、可選 `description`，以及 2-4 個圖片 URL 的 `element_input_urls`。在 `prompt` 中用 `@name` 引用元素。不要將 `kling_elements` 與 `output_audio=true` 組合使用；使用元素引用時請省略 `output_audio` 或設為 `false`。
+  僅當所選模型目前的公開詳情列出 `kling_elements` 時使用。請求需包含圖片輸入與 1–3 個元素；每個元素包含 `name`、選填 `description` 和 2–4 個 `element_input_urls`，並在 `prompt` 中以 `@name` 引用。不能與 `output_audio=true` 組合。
 </ParamField>
 
 <ParamField body="video_url" type="string">
@@ -243,6 +243,10 @@ curl -X POST "https://api.tokenlab.sh/v1/videos/generations" \
 
 ## 回應
 
+<Note>
+結果、錯誤、時間戳記與模型欄位僅在任務提供時回傳。
+</Note>
+
 <ResponseField name="id" type="string">
   規範非同步任務 ID。
 </ResponseField>
@@ -260,7 +264,7 @@ curl -X POST "https://api.tokenlab.sh/v1/videos/generations" \
 </ResponseField>
 
 <ResponseField name="status" type="string">
-  初始狀態：`pending`。
+  任務狀態：`pending`、`processing`、`completed`、`failed`。
 </ResponseField>
 
 <ResponseField name="created" type="integer">
@@ -283,7 +287,7 @@ curl -X POST "https://api.tokenlab.sh/v1/videos/generations" \
   當任務生成多個輸出時，可能出現影片陣列。
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="error" type="string | object">
   任務失敗時返回的錯誤訊息或結構化錯誤物件。
 </ResponseField>
 
@@ -351,38 +355,14 @@ response = requests.post(
         "operation": "image-to-video",
         "image_url": "https://example.com/image.jpg",
         "duration": 6,
-        "aspect_ratio": "16:9"
+        "resolution": "768p"
     }
 )
 ```
 
 ## Kling 3.0 元素引用
 
-需要元素引用時，請在 `kling-3.0-video` 請求中傳入 `kling_elements`。請求需要包含圖片條件輸入（`image_url`、`image_urls`、`start_image` 或 `end_image`），並在提示詞中用 `@name` 引用對應元素。
-
-```python
-response = requests.post("https://api.tokenlab.sh/v1/videos/generations",
-    headers=headers,
-    json={
-        "model": "kling-3.0-video",
-        "prompt": "Place @hero_bag on a studio turntable with soft product lighting.",
-        "operation": "image-to-video",
-        "image_url": "https://example.com/studio-start.png",
-        "duration": 5,
-        "resolution": "720p",
-        "kling_elements": [
-            {
-                "name": "hero_bag",
-                "description": "black leather handbag",
-                "element_input_urls": [
-                    "https://example.com/bag-front.png",
-                    "https://example.com/bag-side.png"
-                ]
-            }
-        ]
-    }
-)
-```
+僅當所選模型目前的公開詳情列出 `kling_elements` 時使用。請求需包含圖片輸入與 1–3 個元素；每個元素包含 `name`、選填 `description` 和 2–4 個 `element_input_urls`，並在 `prompt` 中以 `@name` 引用。不能與 `output_audio=true` 組合。
 
 ## 參考圖生影片
 
@@ -418,7 +398,6 @@ response = requests.post(
     headers={"Authorization": "Bearer sk-your-api-key"},
     json={
         "model": "viduq2-pro",
-        "prompt": "Smooth transition from day to night",
         "operation": "start-end-to-video",
         "start_image": "https://example.com/day.jpg",
         "end_image": "https://example.com/night.jpg",
@@ -431,7 +410,7 @@ response = requests.post(
 
 ## 影片轉影片
 
-對於 `grok-imagine-video` 的 video-to-video，請在 `video_url` 中傳入公開 HTTPS `.mp4` URL。TokenLab 會把它轉換為 xAI REST 的 `video.url` 請求體。你可以將 `resolution` 設為 `480p` 或 `720p`；此編輯流程不接受 `duration` 與 `aspect_ratio`。
+`grok-imagine-video` 的 `video-to-video` 使用公網 HTTPS `.mp4` 的 `video_url` 與編輯提示詞 `prompt`。此操作請省略 `resolution`、`duration` 和 `aspect_ratio`。
 
 當模型接受現有影片作為主要輸入時，請使用 `operation=video-to-video`。
 
@@ -443,8 +422,7 @@ response = requests.post(
         "model": "grok-imagine-video",
         "operation": "video-to-video",
         "video_url": "https://example.com/source.mp4",
-        "prompt": "Enhance the clip while preserving the original motion.",
-        "resolution": "720p"
+        "prompt": "Enhance the clip while preserving the original motion."
     }
 )
 ```
@@ -473,11 +451,9 @@ response = requests.post(
 公開影片模型庫存與支援操作會持續變化。接入某個模型特定流程前，請以 [Models API](/zh-Hant/api-reference/models/list-models) 確認目前支援情況：
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \
-  -H "Authorization: Bearer sk-your-api-key"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=video"
 
-curl "https://api.tokenlab.sh/v1/models/veo3.1" \
-  -H "Authorization: Bearer sk-your-api-key"
+curl "https://api.tokenlab.sh/v1/models/veo3.1"
 ```
 
 依賴模型特定操作或欄位前，請讀取單模型詳情回應。`audio-to-video`、`video-extension` 等操作屬於模型特定能力；請在那裡確認即時可用性，不要依賴本頁的靜態範例。

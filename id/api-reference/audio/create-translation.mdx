@@ -8,16 +8,20 @@ description: "Menerjemahkan audio ke dalam teks bahasa Inggris"
 
 Menerjemahkan audio dalam bahasa apa pun yang didukung ke dalam teks bahasa Inggris. Tidak seperti transcription, endpoint ini selalu menghasilkan teks bahasa Inggris terlepas dari bahasa input.
 
+<Note>
+  Endpoint ini menerjemahkan audio ke bahasa Inggris. Jangan kirim `language`; terjemahan audio tidak mendukung parameter ini dan dapat mengembalikan `unsupported_parameter`. Untuk terjemahan teks, gunakan `POST /v1/translations`; `recommended_for=translation` merujuk ke API teks tersebut.
+</Note>
+
 ## Isi Permintaan
 
-**Timeout permintaan sinkron:** endpoint non-chat ini menunggu model yang dirutekan selesai. Input besar, audio panjang, atau batch besar dapat melebihi default client umum 30s, jadi atur timeout HTTP client Anda minimal `120s`.
+Respons dikembalikan setelah terjemahan selesai. Untuk audio panjang, atur batas waktu HTTP setidaknya `120s`.
 
 <ParamField body="file" type="file" required>
   File audio yang akan diterjemahkan. Format yang didukung: `flac`, `mp3`, `mp4`, `mpeg`, `mpga`, `m4a`, `ogg`, `wav`, `webm`. Ukuran file maksimum adalah 25 MB.
 </ParamField>
 
 <ParamField body="model" type="string" default="whisper-1">
-  Model yang akan digunakan. Saat ini hanya `whisper-1` yang didukung.
+  ID model terjemahan audio, misalnya `whisper-1`. Pastikan detail model terkini mendukung `POST /v1/audio/translations`.
 </ParamField>
 
 <ParamField body="prompt" type="string">
@@ -25,14 +29,16 @@ Menerjemahkan audio dalam bahasa apa pun yang didukung ke dalam teks bahasa Ingg
 </ParamField>
 
 <ParamField body="response_format" type="string" default="json">
-  Format output. Opsi: `json`, `text`, `srt`, `verbose_json`, `vtt`.
+  Format keluaran. Whisper mendukung `json`, `text`, `srt`, `verbose_json`, dan `vtt`; model lain dapat mendukung pilihan berbeda. Periksa detail model.
 </ParamField>
 
 <ParamField body="temperature" type="number">
-  Temperature sampling, antara 0 dan 1. Nilai yang lebih tinggi seperti 0.8 menghasilkan output yang lebih acak, sedangkan nilai yang lebih rendah seperti 0.2 membuat output lebih terfokus dan deterministik.
+  Temperatur sampling dari 0 hingga 1, hanya untuk model yang mendukung parameter ini.
 </ParamField>
 
 ## Respons
+
+Field berikut menjelaskan respons JSON transkripsi atau terjemahan. `text`, `srt`, dan `vtt` mengembalikan teks atau subtitel mentah, bukan objek JSON. Field tambahan bergantung pada model dan format keluaran.
 
 <ResponseField name="text" type="string">
   Teks terjemahan dalam bahasa Inggris.
@@ -41,7 +47,7 @@ Menerjemahkan audio dalam bahasa apa pun yang didukung ke dalam teks bahasa Ingg
 Untuk format `verbose_json`, response juga mencakup:
 
 <ResponseField name="language" type="string">
-  Bahasa yang terdeteksi dari audio input.
+  Label bahasa dalam respons, jika tersedia.
 </ResponseField>
 
 <ResponseField name="duration" type="number">
@@ -130,7 +136,6 @@ echo $data['text'];
 ```json verbose_json
 {
   "task": "translate",
-  "language": "german",
   "duration": 8.470000267028809,
   "text": "Hello, my name is Wolfgang and I come from Germany. Where are you from?",
   "segments": [
@@ -158,7 +163,3 @@ echo $data['text'];
 | Bahasa output | Selalu bahasa Inggris | Sama seperti input |
 | Kasus penggunaan | Mengonversi audio berbahasa asing ke bahasa Inggris | Mempertahankan bahasa asli |
 | Parameter bahasa | Tidak berlaku | Petunjuk opsional |
-
-<Note>
-  Endpoint translation secara otomatis mendeteksi bahasa sumber dan menerjemahkannya ke bahasa Inggris. Parameter `language` dari transcription diabaikan.
-</Note>

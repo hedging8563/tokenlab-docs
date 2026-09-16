@@ -10,7 +10,7 @@ Dùng `DELETE /v1/tasks/{id}` để hủy một tác vụ bất đồng bộ ch�
 
 ## Tác vụ được hỗ trợ
 
-Việc hủy được hỗ trợ cho các tác vụ video Seedance đang trong hàng đợi khi provider được chọn cho tác vụ đó hỗ trợ hủy. Các model hỗ trợ gồm `seedance-1.5-pro`, `seedance-2.0` và `seedance-2.0-fast`. Tác vụ đã ở trạng thái `processing`/running không thể hủy. Tác vụ đã hoàn tất, thất bại, hết hạn hoặc không được hỗ trợ vẫn có thể truy vấn để đối soát trạng thái và billing.
+Có thể hủy tác vụ Seedance đang chờ dùng `seedance-1.5-pro`, `seedance-2.0`, `seedance-2.0-fast` hoặc `seedance-2.5` nếu tác vụ hỗ trợ hủy. Không thể hủy tác vụ đã chạy hoặc ở trạng thái cuối. Có thể tra cứu trạng thái khi bản ghi tác vụ công khai còn được lưu.
 
 ## Tham số đường dẫn
 

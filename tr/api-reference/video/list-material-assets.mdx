@@ -8,10 +8,12 @@ Kimliği doğrulanmış organizasyona ait materyal varlıklarını listeleyin. B
 
 Yalnızca `status` değeri `ACTIVE` olan varlıkları kullanın. Video oluştururken dönen TokenLab materyal varlığı `id` değerini kullanın.
 
+`project_name`, kimliği doğrulanmış organizasyon içindeki kaynakları ayırır. Varsayılanı `default` değeridir; ilgili grup ve varlıklarda büyük/küçük harfe duyarlı aynı değeri kullanın. POST/PUT için JSON gövdesinde, GET/DELETE için sorgu parametresi olarak gönderin.
+
 ## Örnek İstek
 
 ```bash
-curl "https://api.tokenlab.sh/v1/videos/assets?library_type=aigc_avatar&group_id=group-20260720123456-vrt01&page_size=20" \
+curl "https://api.tokenlab.sh/v1/videos/assets?library_type=aigc_avatar&group_id=group-20260720123456-vrt01&page_size=20&project_name=default" \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```
 
@@ -23,6 +25,7 @@ curl "https://api.tokenlab.sh/v1/videos/assets?library_type=aigc_avatar&group_id
     {
       "id": "asset-20260720123456-qn7wr",
       "object": "seedance.material_asset",
+      "project_name": "default",
       "group_id": "group-20260720123456-vrt01",
       "library_type": "aigc_avatar",
       "asset_name": "Front view",

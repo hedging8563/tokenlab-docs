@@ -6,10 +6,12 @@ description: "Supprime un actif matériel Seedance appartenant à l'organisation
 
 Supprime un actif matériel. Cela ne supprime pas le groupe de matériel contenant. Après la suppression, l'ID de l'actif ne peut plus être utilisé en tant que `material_asset_id`.
 
+`project_name` isole les ressources au sein de l’organisation authentifiée. Sa valeur par défaut est `default` ; utilisez la même valeur, sensible à la casse, pour les groupes et ressources associés. Envoyez-la dans le corps JSON pour POST/PUT et dans les paramètres de requête pour GET/DELETE.
+
 ## Exemple de requête
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr \
+curl "https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr?project_name=default" \
   -X DELETE \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```

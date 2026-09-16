@@ -13,7 +13,7 @@ description: "إنشاء تنويع من صورة معينة"
 **مهلة الطلبات المتزامنة:** قد يعيد بعض مزودي الصور الذين يتم التوجيه إليهم الصورة النهائية inline وينتظرون اكتمال التوليد. قد تستغرق طلبات الدقة العالية أو الجودة العالية ما يقارب دقيقة أو أكثر، لذا اضبط مهلة عميل HTTP على `120s` على الأقل. إذا احتوت استجابة الإنشاء على `status: "pending"` أو `task_id` أو `poll_url`، فاتبع `poll_url` المُعاد بدلًا من الانتظار.
 
 <ParamField body="image" type="file" required>
-  الصورة المستخدمة كأساس للتنويع. يجب أن تكون ملف PNG صالح، أقل من 50MB، ومربعة.
+  صورة مصدر بصيغة multipart. يجب ألا يتجاوز الملف وجسم الطلب الكامل 50 MiB لكل منهما. تعتمد الصيغ والأبعاد على النموذج المختار، ويجب أن تذكر تفاصيله الحالية `/v1/images/variations` صراحةً.
 </ParamField>
 
 <ParamField body="model" type="string" required>
@@ -21,14 +21,14 @@ description: "إنشاء تنويع من صورة معينة"
 </ParamField>
 
 <ParamField body="n" type="integer" default="1">
-  عدد الصور المراد إنشاؤها. يجب أن يكون بين 1 و 10.
+  عدد الصور المطلوب إنشاؤها (1-10، بحسب النموذج).
 </ParamField>
 
 <ParamField body="size" type="string">
   حجم الصور المُنشأة للمسارات القديمة المتوافقة مع variation. تعتمد القيم المدعومة على النموذج المحدد.
 </ParamField>
 
-<ParamField body="response_format" type="string" default="url">
+<ParamField body="response_format" type="string">
   تنسيق إرجاع الصور المُنشأة. يجب أن يكون `url` أو `b64_json`.
 </ParamField>
 

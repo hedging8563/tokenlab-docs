@@ -15,13 +15,19 @@ https://api.tokenlab.sh
 
 ## 認証
 
-すべてのAPIエンドポイントは Bearer トークンによる認証が必要です:
+モデルへのリクエストには TokenLab API キーを使用します。標準の認証ヘッダーは次のとおりです。
 
 ```bash
 Authorization: Bearer sk-your-api-key
 ```
 
+`GET /v1/models`、`GET /v1/models/{model}`、`GET /v1/pricing` は公開されており、キーは不要です。Anthropic Messages は `x-api-key` も、Gemini は Bearer に加えて `x-goog-api-key` または `?key=` も受け付けます。`/v1/management/*` には管理トークン（`mt-...`）が必要です。
+
 APIキーは[ダッシュボード](https://tokenlab.sh/dashboard)から取得してください。
+
+<Note>
+生成リクエストは `X-TokenLab-Delivery-Policy: auto | verified | official` を受け付けます。ヘッダー、API キー設定、ワークスペース既定値の順に優先されます。`auto` は TokenLab Verified を優先し、必要に応じて Official を使用します。課金は完了した方式に基づきます。`verified` は TokenLab 価格、`official` はモデル提供元の公開価格を基にし、実際の料金は TokenLab の表示に従います。Realtime はキーまたはワークスペース設定を使い、クエリでの上書きはできません。不正なヘッダーは `400`、利用できない方式は `503 delivery_tier_unavailable` とリクエスト ID を返します。
+</Note>
 
 <Warning>
 **Interactive Playground について**: このドキュメントサイト上のプレイグラウンドはデモ目的のみで提供されており、APIキーの入力には対応していません。APIをテストするには、次のいずれかを使用してください:
@@ -56,7 +62,7 @@ APIキーは[ダッシュボード](https://tokenlab.sh/dashboard)から取得�
 | `/v1/images/generations/{id}` | GET | タスクベースの画像レスポンス向けの画像タスクステータスパス |
 
 <Info>
-一部の画像モデルは結果をインラインで返す場合があり、また別のものはタスクベースのレスポンスを返します。ルーティングされたプロバイダパスによってはどちらの挙動もあり得ます。create レスポンスに `poll_url` が含まれている場合は、それに従ってください。
+画像モデルは完成画像または非同期タスクを返します。レスポンスに `poll_url` がある場合、その URL でタスクを確認してください。
 </Info>
 
 ### 音声
@@ -142,7 +148,7 @@ Gemini エンドポイントは、標準の Bearer トークンに加え `?key=`
 
 ## レスポンス形式
 
-すべてのレスポンスは一貫した形式に従います:
+各エンドポイントは対応する API 形式を保ちます。以下の成功・エラー例は Chat Completions 形式です。
 
 ### 成功レスポンス
 
@@ -152,7 +158,7 @@ Gemini エンドポイントは、標準の Bearer トークンに加え `?key=`
   "object": "chat.completion",
   "created": 1234567890,
   "model": "gpt-5.6-terra",
-  "choices": [...],
+  "choices": [{"index": 0, "message": {"role": "assistant", "content": "Hello!"}, "finish_reason": "stop"}],
   "usage": {
     "prompt_tokens": 10,
     "completion_tokens": 20,
@@ -193,7 +199,7 @@ TokenLab は、公開レスポンス本文でプロバイダー、チャンネ�
 | ロール | リクエスト/分 |
 |------|-------------|
 | ユーザー | 1,000 |
-| パートナー | 300 |
+| パートナー | 10,000 |
 | VIP | 10,000 |
 
 <Note>

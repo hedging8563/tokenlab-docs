@@ -15,11 +15,22 @@ If the create response included `poll_url`, prefer calling that exact URL for po
 
 You can also poll public image task IDs such as `ldtask_...` at `/v1/images/{id}`. This compatibility alias uses the same authorization, ownership checks, billing headers, terminal snapshots, and response shape as `/v1/images/generations/{id}`.
 
-
-If the task no longer exists or is no longer available in the public task record, TokenLab returns `async_task_not_found` with the message `Task not found or no longer available.`
+An expired or unavailable public task can return `404 async_task_not_found`. If task ownership cannot be established for the current API key, the response is `403 task_not_owned`.
 </Info>
 
 ## Response
+
+<Note>
+Fields describing results, errors, timestamps, and the model are returned when available for the task.
+</Note>
+
+<ResponseField name="id" type="string">
+  Canonical async task identifier.
+</ResponseField>
+
+<ResponseField name="poll_url" type="string">
+  Preferred polling URL when the create response supplies one.
+</ResponseField>
 
 <ResponseField name="created" type="integer">
   Unix timestamp of creation.
@@ -38,10 +49,10 @@ If the task no longer exists or is no longer available in the public task record
 
   Each object contains:
   - `url` (string): URL of the generated image
-  - `revised_prompt` (string): The prompt used for generation
+  - `revised_prompt` (string): Optional prompt revision, when the selected model returns one
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="error" type="string | object">
   Error message (only present when `status` is `failed`).
 </ResponseField>
 
@@ -59,6 +70,7 @@ response = requests.get(
     headers={"Authorization": "Bearer sk-your-api-key"}
 )
 
+response.raise_for_status()
 data = response.json()
 print(f"Status: {data['status']}")
 
@@ -76,6 +88,7 @@ const response = await fetch(
   }
 );
 
+if (!response.ok) throw new Error(`HTTP ${response.status}`);
 const data = await response.json();
 console.log(`Status: ${data.status}`);
 
@@ -93,12 +106,7 @@ if (data.status === 'completed') {
   "task_id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "poll_url": "/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "status": "pending",
-  "data": [
-    {
-      "url": "",
-      "revised_prompt": "a beautiful sunset over mountains"
-    }
-  ]
+  "data": []
 }
 ```
 
@@ -134,7 +142,7 @@ if (data.status === 'completed') {
 ## Check Interval
 
 <Tip>
-Check every 3–5 seconds and stop when the task reaches a final status.
+Check every 3–5 seconds while the status is `pending` or `processing`, and stop at `completed` or `failed`.
 </Tip>
 
 ```python
@@ -148,7 +156,8 @@ def poll_image_task(task_id, api_key, max_wait=300, interval=3):
 
     start_time = time.time()
     while time.time() - start_time < max_wait:
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=30)
+        response.raise_for_status()
         data = response.json()
 
         if data["status"] == "completed":

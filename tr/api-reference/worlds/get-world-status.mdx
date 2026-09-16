@@ -6,6 +6,10 @@ description: "World Labs Marble dünya üretim görevinin durumunu ve sonucunu a
 
 World Labs Marble üretim görevinin durumunu kontrol etmek için bu endpointi poll edin. Oluşturma yanıtı `poll_url` içeriyorsa tam olarak o URLyi kullanmayı tercih edin.
 
+<Info>
+Süresi dolmuş veya kullanılamayan bir görev `404 async_task_not_found` döndürebilir. Geçerli API anahtarının görev sahipliği doğrulanamazsa yanıt `403 task_not_owned` olur.
+</Info>
+
 ## Yol Parametreleri
 
 <ParamField path="id" type="string" required>
@@ -13,6 +17,8 @@ World Labs Marble üretim görevinin durumunu kontrol etmek için bu endpointi p
 </ParamField>
 
 ## Yanıt
+
+Başarılı durum yanıtında yalnızca `id` ve `status` zorunludur. Görev takma adları, işlem ID’leri, dünya varlıkları, açıklamalar, maliyet ve metin türündeki `error` mevcut olduğunda döner. Tamamlanan görev, tüm varlık URL’lerinin bulunduğunu garanti etmez.
 
 <ResponseField name="id" type="string">
   Genel görev IDsi.
@@ -59,7 +65,7 @@ World Labs Marble üretim görevinin durumunu kontrol etmek için bu endpointi p
 </ResponseField>
 
 <ResponseField name="cost" type="object">
-  Varsa `total_credits` dahil upstream operation maliyet ayrıntıları.
+  Varsa `total_credits` dahil üretim maliyet bilgileri. Faturalanan tutar için kullanım kayıtlarına bakın.
 </ResponseField>
 
 <ResponseField name="error" type="string">
@@ -68,7 +74,7 @@ World Labs Marble üretim görevinin durumunu kontrol etmek için bu endpointi p
 
 <RequestExample>
 ```bash cURL
-curl "https://api.tokenlab.sh/v1/worlds/generations/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" \
+curl --fail-with-body "https://api.tokenlab.sh/v1/worlds/generations/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 
@@ -83,6 +89,7 @@ while True:
         f"https://api.tokenlab.sh/v1/worlds/generations/{task_id}",
         headers={"Authorization": "Bearer sk-your-api-key"},
     )
+    response.raise_for_status()
     result = response.json()
     if result["status"] in ["completed", "failed", "timeout"]:
         print(result)
@@ -96,7 +103,8 @@ const response = await fetch(`https://api.tokenlab.sh/v1/worlds/generations/${ta
   headers: { Authorization: 'Bearer sk-your-api-key' }
 });
 
+if (!response.ok) throw new Error(await response.text());
 const result = await response.json();
-console.log(result.status, result.world_marble_url);
+console.log(result);
 ```
 </RequestExample>

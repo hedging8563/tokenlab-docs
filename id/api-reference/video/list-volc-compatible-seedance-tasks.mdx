@@ -6,17 +6,29 @@ description: "Cantumkan tugas kompatibel Seedance terbaru di organisasi saat ini
 
 ## Ringkasan
 
-Endpoint ini ditujukan untuk tim yang sudah memakai bentuk tugas Seedance bergaya Volc. Autentikasi memakai TokenLab Bearer API key. ID tugas yang dikembalikan diawali `cgt-`; polling status sampai `status` menjadi `succeeded`, `failed`, `cancelled`, atau `expired`.
+Daftar tugas kompatibel terbaru di Workspace yang diautentikasi dengan TokenLab Bearer API key. Tanpa `filter.task_ids`, kueri mencakup tujuh hari terakhir; ID yang tepat mengkueri tugas tersebut secara langsung.
 
 Lihat juga [Model Video Seedance 2.0](/id/guides/seedance-2-video) dan [Pembuatan Video](/id/guides/video-generation).
 
 ## Bentuk respons
 
-Respons daftar mengembalikan `items` dan `total`. Filter yang didukung adalah `filter.status`, `filter.task_ids`, `filter.model`, dan `filter.service_tier`, dengan `page_num` dan `page_size` untuk paginasi.
+- `page_num`: default `1`, bilangan bulat dari `1` hingga `500`.
+- `page_size`: default `20`, bilangan bulat dari `1` hingga `500`.
+- `filter.status`: `queued`, `running`, `succeeded`, `failed`, `cancelled`, `expired`.
+- `filter.task_ids`: Ulangi parameter ini untuk beberapa ID tugas yang tepat. Jangan gabungkan dengan koma.
+- `filter.model`: Pengenal model.
+- `filter.service_tier`: `default`, `flex`.
+
+Respons berisi `items` dan `total` untuk hasil yang difilter. Setiap item memakai bentuk respons pengambilan tugas. Gunakan endpoint pengambilan untuk memperbarui status tugas yang diketahui.
 
 ## Contoh
 
 ```bash
 curl "https://api.tokenlab.sh/api/v3/contents/generations/tasks?page_num=1&page_size=20&filter.status=succeeded" \
+  -H "Authorization: Bearer $TOKENLAB_API_KEY"
+```
+
+```bash
+curl "https://api.tokenlab.sh/api/v3/contents/generations/tasks?filter.task_ids=cgt-20260102030405-a1b2c" \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```

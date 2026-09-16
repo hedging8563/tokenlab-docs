@@ -18,11 +18,11 @@ TokenLab varlığın sahibini kaydeder. Bu medya varlığını yalnızca aynı o
   Medya türü: `image` veya `video`.
 </ParamField>
 
-<ParamField body="extension" type="string">
+<ParamField body="extension" type="string | null">
   `png`, `jpg` veya `mp4` gibi isteğe bağlı uzantı.
 </ParamField>
 
-<ParamField body="metadata" type="object">
+<ParamField body="metadata" type="object | null">
   Upstream medya varlığıyla saklanan isteğe bağlı metadata nesnesi.
 </ParamField>
 
@@ -34,6 +34,14 @@ TokenLab varlığın sahibini kaydeder. Bu medya varlığını yalnızca aynı o
 
 <ResponseField name="upload_info.upload_url" type="string">
   İkili dosyanın yükleneceği imzalı upstream URL.
+</ResponseField>
+
+<ResponseField name="upload_info.upload_method" type="string">
+  Döndürülürse, ikili dosyayı `upload_info.upload_url` adresine yüklemek için kullanılacak HTTP yöntemi.
+</ResponseField>
+
+<ResponseField name="upload_info.required_headers" type="object">
+  Döndürülürse, ikili dosya yüklemesinde gönderilmesi gereken başlıklar.
 </ResponseField>
 
 <RequestExample>

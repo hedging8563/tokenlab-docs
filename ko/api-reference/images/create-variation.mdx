@@ -13,7 +13,7 @@ description: "주어진 이미지의 변형을 생성합니다"
 **동기 요청 타임아웃:** 일부 라우팅된 이미지 제공자는 생성이 완료될 때까지 기다린 뒤 최종 이미지를 inline 으로 반환합니다. 고해상도 또는 고품질 요청은 1분 안팎이거나 그 이상 걸릴 수 있으므로 HTTP 클라이언트 타임아웃을 최소 `120s` 로 설정하세요. 생성 응답에 `status: "pending"`, `task_id`, 또는 `poll_url` 이 포함되어 있으면 반환된 `poll_url` 을 따라 폴링하세요.
 
 <ParamField body="image" type="file" required>
-  변형의 기반으로 사용할 이미지. 유효한 PNG 파일이어야 하며, 50MB 미만이고 정사각형이어야 합니다.
+  Multipart 원본 이미지입니다. 파일과 전체 요청 본문은 각각 50 MiB 이하여야 합니다. 지원 형식과 크기는 모델에 따라 다르며 현재 모델 상세 정보에 `/v1/images/variations`가 명시되어 있어야 합니다.
 </ParamField>
 
 <ParamField body="model" type="string" required>
@@ -21,14 +21,14 @@ description: "주어진 이미지의 변형을 생성합니다"
 </ParamField>
 
 <ParamField body="n" type="integer" default="1">
-  생성할 이미지 수. 1에서 10 사이여야 합니다.
+  생성할 이미지 수입니다 (1-10, 모델에 따라 다름).
 </ParamField>
 
 <ParamField body="size" type="string">
   기존 variation 호환 라우트에서 생성되는 이미지 크기입니다. 지원 값은 선택한 모델에 따라 달라집니다.
 </ParamField>
 
-<ParamField body="response_format" type="string" default="url">
+<ParamField body="response_format" type="string">
   생성된 이미지가 반환되는 형식. `url` 또는 `b64_json`이어야 합니다.
 </ParamField>
 

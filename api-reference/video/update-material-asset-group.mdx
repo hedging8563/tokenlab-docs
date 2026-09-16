@@ -6,6 +6,8 @@ description: "Updates a Seedance material group owned by the current organizatio
 
 Update the display name, description, or metadata for a material group. For managed real-person groups, the verified person mapping remains unchanged.
 
+`project_name` isolates resources within the authenticated organization. It defaults to `default`; use the same case-sensitive value for related groups and assets. Send it in the JSON body for POST/PUT and in the query string for GET/DELETE.
+
 ## Example Request
 
 ```bash
@@ -13,7 +15,7 @@ curl https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01 
   -X PUT \
   -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"group_name":"Updated references","description":"Images approved for summer videos"}'
+  -d '{"group_name":"Updated references","description":"Images approved for summer videos","project_name":"default"}'
 ```
 
 ## Example Response
@@ -22,6 +24,7 @@ curl https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01 
 {
   "id": "group-20260720123456-vrt01",
   "object": "seedance.material_asset_group",
+  "project_name": "default",
   "library_type": "aigc_avatar",
   "group_name": "Updated references",
   "description": "Images approved for summer videos",

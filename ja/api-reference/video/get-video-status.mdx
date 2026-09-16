@@ -13,10 +13,14 @@ description: "ビデオ生成タスクのステータスと結果を取得しま
 <Info>
 作成レスポンスが `poll_url` を返す場合は、その正確な URL を呼び出してください。これが `/v1/tasks/{id}` を指す場合は、それを正準の固定ステータスエンドポイントとして扱ってください。
 
-タスクが存在しない、または公開された非同期タスク契約を通じて解決できない場合、TokenLab は `async_task_not_found` を返し、メッセージ `Task not found or no longer available.` を返します。
+期限切れまたは利用できない公開タスクでは `404 async_task_not_found` が返る場合があります。現在の API キーでタスクの所有権を確認できない場合は `403 task_not_owned` が返ります。
 </Info>
 
 ## レスポンス
+
+<Note>
+結果、エラー、タイムスタンプ、モデルのフィールドはタスクで利用可能な場合に返されます。
+</Note>
 
 <ResponseField name="id" type="string">
   正準の非同期タスク識別子。
@@ -54,7 +58,7 @@ description: "ビデオ生成タスクのステータスと結果を取得しま
   生成タスクが複数の出力を返す場合の複数ビデオペイロード。
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="error" type="string | object">
   エラーメッセージ（失敗時）。
 </ResponseField>
 
@@ -88,6 +92,7 @@ while True:
         headers={"Authorization": "Bearer sk-your-api-key"}
     )
 
+    response.raise_for_status()
     data = response.json()
     print(f"Status: {data['status']}")
 
@@ -111,6 +116,7 @@ async function pollForVideo() {
       { headers: { 'Authorization': 'Bearer sk-your-api-key' } }
     );
 
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${await response.text()}`);
     const data = await response.json();
     console.log(`Status: ${data.status}`);
 
@@ -145,7 +151,9 @@ func main() {
         req.Header.Set("Authorization", "Bearer sk-your-api-key")
 
         client := &http.Client{}
-        resp, _ := client.Do(req)
+        resp, err := client.Do(req)
+        if err != nil { panic(err) }
+        if resp.StatusCode >= 400 { panic(fmt.Sprintf("HTTP %d", resp.StatusCode)) }
 
         var result map[string]interface{}
         json.NewDecoder(resp.Body).Decode(&result)
@@ -181,7 +189,11 @@ while (true) {
     ]);
 
     $response = curl_exec($ch);
+    $httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
+    if ($response === false || $httpStatus >= 400) {
+        throw new RuntimeException("HTTP request failed: {$httpStatus}");
+    }
 
     $data = json_decode($response, true);
     echo "Status: {$data['status']}\n";
@@ -260,6 +272,7 @@ while (true) {
 - `failed` ステータスを適切に処理する
 
 ```python
+import requests
 import time
 
 def wait_for_video(task_id, max_wait=600, interval=5):
@@ -271,6 +284,7 @@ def wait_for_video(task_id, max_wait=600, interval=5):
             f"https://api.tokenlab.sh/v1/tasks/{task_id}",
             headers={"Authorization": "Bearer sk-your-api-key"}
         )
+        response.raise_for_status()
         data = response.json()
 
         if data["status"] == "completed":

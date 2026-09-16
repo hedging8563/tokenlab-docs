@@ -18,6 +18,10 @@ Nếu phản hồi create bao gồm `poll_url`, hãy gọi chính xác path đó
 
 ## Phản hồi
 
+<Note>
+Các trường kết quả, lỗi, thời gian và model được trả về khi tác vụ cung cấp chúng.
+</Note>
+
 <ResponseField name="id" type="string">
   Định danh tác vụ.
 </ResponseField>
@@ -54,13 +58,33 @@ Nếu phản hồi create bao gồm `poll_url`, hãy gọi chính xác path đó
   URL asset kết quả khi tác vụ hoàn tất và tạo ra một video.
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="video" type="object">
+  Payload video đơn với `url`, `duration`, `width`, và `height` khi có.
+</ResponseField>
+
+<ResponseField name="videos" type="array">
+  Nhiều payload video khi tác vụ tạo trả về hơn một kết quả.
+</ResponseField>
+
+<ResponseField name="created" type="integer">
+  Dấu thời gian tạo.
+</ResponseField>
+
+<ResponseField name="updated" type="integer">
+  Dấu thời gian cập nhật cuối cùng.
+</ResponseField>
+
+<ResponseField name="model" type="string">
+  Mô hình được sử dụng cho tác vụ.
+</ResponseField>
+
+<ResponseField name="error" type="string | object">
   Thông báo lỗi khi tác vụ thất bại.
 </ResponseField>
 
 ## Hành vi lỗi
 
-Nếu tác vụ không còn tồn tại, đã hết hạn hoặc không còn có trong bản ghi tác vụ công khai, TokenLab trả về:
+Tác vụ công khai đã hết hạn hoặc không khả dụng có thể trả `404 async_task_not_found`. Nếu không xác nhận được quyền sở hữu cho API key hiện tại, phản hồi là `403 task_not_owned`.
 
 ```json
 {

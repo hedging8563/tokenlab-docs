@@ -1,7 +1,7 @@
 ---
 title: "Subir Archivo"
 openapi: "POST /v1/files"
-description: "Sube un archivo de entrada en formato JSONL para su posterior creación por lotes."
+description: "Sube un archivo de lote, una referencia de imagen o un archivo en formato Anthropic."
 ---
 
 ## Descripción General
@@ -43,7 +43,6 @@ Utilice el panel interactivo de OpenAPI arriba para el esquema exacto.
 
 - Use `custom_id` para la reconciliación idempotente en downstream.
 - Espere `output_file_id` y `error_file_id` solo después de que el trabajador finalice el lote.
-- Los precios por lotes pueden diferir de los precios sincrónicos porque se aplican las reglas de descuento de `isBatchRequest=true`.
 ## Entradas de archivos de imagen
 
 La misma ruta `/v1/files` también puede subir archivos de imagen de referencia para `/v1/images/edits`.

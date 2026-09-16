@@ -24,7 +24,7 @@ irm https://claude.ai/install.ps1 | iex
 특별히 npm 패키지가 필요한 경우 다음을 사용하세요:
 
 ```bash
-npm install -g @anthropic-ai/claude-code
+npm install -g @anthropic-ai/claude-code@2.1.263
 ```
 
 <Warning>
@@ -33,35 +33,39 @@ Claude Code에 `sudo npm install -g`를 사용하지 마세요.
 
 ## 구성
 
-### 환경 변수
+[빠른 시작](/ko/quickstart)의 macOS, Linux, WSL 또는 Windows PowerShell 절차로 키를 명령 기록에 남기지 않고 `TOKENLAB_API_KEY`를 설정한 뒤 같은 터미널에서 Claude Code를 실행하세요. 계속 사용하려면 로컬 비밀 관리 도구를 이용하고 셸 프로필에 평문 키를 추가하지 마세요.
 
-다음 환경 변수를 설정하세요:
+이 변수는 이번 시작에만 적용되며 저장된 계정, 기본 모델과 권한은 유지됩니다. 이전 구성을 사용하려면 이 변수 없이 정상적으로 시작하세요. 셸 프로필에 저장하지 마세요.
 
-```bash
-export ANTHROPIC_API_KEY="sk-your-tokenlab-key"
-export ANTHROPIC_BASE_URL="https://api.tokenlab.sh"
+이 실행 경로는 Claude Code **2.1.263**과 `ANTHROPIC_AUTH_TOKEN`의 Bearer 인증을 사용합니다. Base URL에는 `/v1`을 붙이지 마세요. 저장된 `env`, 자격 증명 도우미, 클라우드 제공자 설정이나 관리 정책이 인증에 영향을 줄 수 있으므로 시작 전에 확인하세요. 충돌하면 계정을 삭제하거나 정책을 완화하지 말고 아래 도우미를 사용하세요. `/status`에서 모델과 권한을 확인하세요.
+
+<CodeGroup>
+```bash macOS / Linux / WSL
+ANTHROPIC_BASE_URL=https://api.tokenlab.sh ANTHROPIC_AUTH_TOKEN="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" ANTHROPIC_API_KEY= claude --model claude-sonnet-4-6
 ```
 
-영구적으로 적용하려면 이를 shell profile(`~/.bashrc`, `~/.zshrc` 등)에 추가하세요.
-
-<Note>
-TokenLab의 경우 `ANTHROPIC_BASE_URL`은 `/v1` suffix 없이 `https://api.tokenlab.sh`로 유지하세요. 이는 Anthropic 스타일 endpoint 형식 및 Claude Code에 문서화된 unified gateway pattern과 일치합니다.
-</Note>
-
-### 구성 파일
-
-또는 `~/.claude/settings.json`을 생성하거나 편집하세요:
-
-설정을 백업하고 병합하며 기존 계정과 권한을 덮어쓰지 마세요. `ANTHROPIC_API_KEY`는 `X-Api-Key`, `ANTHROPIC_AUTH_TOKEN`은 Bearer token을 보냅니다. 인증 경로를 명확히 선택하세요. `/status`로 모델과 설정 출처를 확인하지만 유료 요청 성공을 증명하지는 않습니다. 짧은 유료 테스트 후 응답과 TokenLab 기록을 비교합니다. 복구 시 추가 설정만 되돌리세요. [설정 우선순위](https://code.claude.com/docs/en/settings)를 참고하세요.
-
-```json
-{
-  "env": {
-    "ANTHROPIC_API_KEY": "sk-your-tokenlab-key",
-    "ANTHROPIC_BASE_URL": "https://api.tokenlab.sh"
+```powershell Windows PowerShell
+if (-not $env:TOKENLAB_API_KEY) { throw 'Set TOKENLAB_API_KEY first' }
+$previous = @{}
+$previous['ANTHROPIC_BASE_URL'] = [Environment]::GetEnvironmentVariable('ANTHROPIC_BASE_URL', 'Process')
+$previous['ANTHROPIC_AUTH_TOKEN'] = [Environment]::GetEnvironmentVariable('ANTHROPIC_AUTH_TOKEN', 'Process')
+$previous['ANTHROPIC_API_KEY'] = [Environment]::GetEnvironmentVariable('ANTHROPIC_API_KEY', 'Process')
+try {
+  $env:ANTHROPIC_BASE_URL = 'https://api.tokenlab.sh'
+  $env:ANTHROPIC_AUTH_TOKEN = $env:TOKENLAB_API_KEY
+  $env:ANTHROPIC_API_KEY = ''
+  claude --model claude-sonnet-4-6
+} finally {
+  foreach ($name in $previous.Keys) {
+    [Environment]::SetEnvironmentVariable($name, $previous[$name], 'Process')
   }
 }
 ```
+</CodeGroup>
+
+선택 사항: Python 3.11+의 [복구 가능한 Claude Code 설정 도구](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/skills/tokenlab-api-integration/references/claude_setup.md)로 변경 사항을 미리 보고 적용하거나 원본 파일을 복원할 수 있습니다. TokenLab Skills 플러그인 **0.1.2**에는 새 스크립트가 포함되어 있습니다. 독립 Skill도 스크립트가 포함된 버전으로 업데이트하면 사용할 수 있습니다. 기존 플러그인 또는 독립 Skill 설치는 [README 업데이트 안내](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/README.md#update-an-existing-installation)에 따라 업데이트하고 스크립트가 있는지 확인하세요. 이 페이지의 수동 설정만으로도 완료할 수 있습니다.
+
+설정 저장이나 모델 목록은 키 유효성이나 요청 완료를 검증하지 않습니다. 프롬프트는 TokenLab 잔액을 사용합니다. 도구를 시험하기 전에 응답과 해당 [요청 기록](https://tokenlab.sh/dashboard/runs?section=requests)을 확인하세요. 보조 요청도 청구될 수 있습니다.
 
 ## 사용법
 
@@ -69,11 +73,10 @@ TokenLab의 경우 `ANTHROPIC_BASE_URL`은 `/v1` suffix 없이 `https://api.toke
 
 ```bash
 # Start an interactive session
-claude
+ANTHROPIC_BASE_URL=https://api.tokenlab.sh ANTHROPIC_AUTH_TOKEN="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" ANTHROPIC_API_KEY= claude --model claude-sonnet-4-6
 
 # Run a single command
-claude "Explain this code" < main.py
-
+ANTHROPIC_BASE_URL=https://api.tokenlab.sh ANTHROPIC_AUTH_TOKEN="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" ANTHROPIC_API_KEY= claude --model claude-sonnet-4-6 "Explain this code" < main.py
 ```
 
 필요한 경우 설치를 확인하세요:
@@ -98,19 +101,7 @@ TokenLab는 모든 Claude 모델을 지원합니다:
 `--model` 플래그로 모델을 지정하세요:
 
 ```bash
-claude --model claude-sonnet-4-6 "Review this PR"
-```
-
-또는 구성에서 기본값을 설정하세요:
-
-```json
-{
-  "env": {
-    "ANTHROPIC_API_KEY": "sk-your-tokenlab-key",
-    "ANTHROPIC_BASE_URL": "https://api.tokenlab.sh"
-  },
-  "model": "claude-sonnet-5"
-}
+ANTHROPIC_BASE_URL=https://api.tokenlab.sh ANTHROPIC_AUTH_TOKEN="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" ANTHROPIC_API_KEY= claude --model claude-sonnet-4-6 "Review this PR"
 ```
 
 ## 확장된 사고
@@ -118,7 +109,7 @@ claude --model claude-sonnet-4-6 "Review this PR"
 복잡한 추론 작업에는 extended thinking이 지원되는 모델을 사용하세요:
 
 ```bash
-claude --model claude-opus-4-6 "Design a microservices architecture for..."
+ANTHROPIC_BASE_URL=https://api.tokenlab.sh ANTHROPIC_AUTH_TOKEN="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" ANTHROPIC_API_KEY= claude --model claude-opus-4-6 "Design a microservices architecture for..."
 ```
 
 ## 문제 해결
@@ -132,9 +123,6 @@ claude --model claude-opus-4-6 "Design a microservices architecture for..."
     TokenLab API 키가 `sk-`로 시작하고 충분한 잔액이 있는지 확인하세요.
   </Accordion>
 
-  <Accordion title="Gateway에는 Authorization bearer token이 필요합니다">
-    Claude Code의 gateway mode는 `ANTHROPIC_AUTH_TOKEN`도 지원합니다. 의도적으로 gateway auth 동작을 전환한 경우가 아니라면, 표준 TokenLab 설정에서는 계속 `ANTHROPIC_API_KEY`를 사용하세요.
-  </Accordion>
 
   <Accordion title="모델을 찾을 수 없음">
     모델 이름이 올바른지 확인하세요. `claude-sonnet-4-6` 형식을 사용하세요.

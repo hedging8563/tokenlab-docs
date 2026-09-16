@@ -5,19 +5,7 @@ description: "OpenAI Codex CLI konfigurieren, um die TokenLab API zu verwenden"
 
 ## Übersicht
 
-
-
-<Note>
-**Typ**: Codierwerkzeug
-
-**Primärer Pfad**: OpenAI Responses (erweiterter optionaler Pfad)
-
-**Unterstützung**: Unterstützt mit Modell-/Pfad-Einschränkungen
-</Note>
-
-OpenAI Codex ist ein Open-Source-Kommandozeilenwerkzeug (CLI), das als leichtgewichtiger Coding-Agent dient und in der Lage ist, Code im Terminal zu lesen, zu ändern und auszuführen. Es basiert auf GPT-Modellen und ist für Code-Generierung optimiert.
-
-Für TokenLab kann Codex CLI `/v1/responses` verwenden, aber Sie sollten dies als einen erweiterten Kompatibilitätspfad behandeln. Einige Responses-only-Funktionen sind nicht für jedes Modell und jeden gerouteten Pfad garantiert.
+Codex CLI verbindet sich über `/v1/responses` mit TokenLab. Beim gewählten Modell muss `tokenlab.accepted_request_formats` den Wert `openai_responses` enthalten; Funktionen können je nach Modell variieren.
 
 Remote Compaction in Codex CLI wird über `POST /v1/responses/compact` unterstützt. Codex sendet bei `/compact` und Auto-Compact das aktuelle Sitzungs-`model` in `body.model`, daher muss das gewünschte Modell auf dem Responses-Pfad verfügbar sein. Konfigurieren Sie nicht `/v1/compact`.
 
@@ -28,7 +16,7 @@ Folgen Sie der [CLI-Anleitung](https://learn.chatgpt.com/docs/codex/cli) für ma
 ## Installation
 
 ```bash
-npm install -g @openai/codex
+npm install -g @openai/codex@0.149.0
 ```
 
 Installation verifizieren:
@@ -41,33 +29,11 @@ codex --version
 
 ### Schritt 1: API-Schlüssel setzen
 
-**Temporär (aktuelle Sitzung):**
+Setzen Sie `TOKENLAB_API_KEY` mit den Terminal-Schritten im [Schnellstart](/de/quickstart) für macOS, Linux, WSL oder Windows PowerShell, ohne den Schlüssel im Befehlsverlauf zu speichern. Starten Sie Codex in diesem Terminal. Verwenden Sie für dauerhaften Zugriff einen lokalen Secret-Manager statt eines Klartextschlüssels im Shell-Profil.
 
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
+### Schritt 2: tokenlab.config.toml konfigurieren
 
-**Dauerhafte Konfiguration:**
-
-In `~/.bashrc`, `~/.zshrc` oder `~/.bash_profile` hinzufügen:
-
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
-
-Dann neu laden:
-
-```bash
-source ~/.zshrc  # or source ~/.bashrc
-```
-
-### Schritt 2: config.toml konfigurieren
-
-Fügen Sie diese Einstellungen in Ihre benutzerweite `~/.codex/config.toml` ein, ohne die gesamte Datei zu ersetzen. Behalten Sie andere Provider, Konten, Sandbox-Einstellungen und Genehmigungsregeln bei. Provider- und Authentifizierungseinstellungen gehören in die Benutzerkonfiguration, nicht in die `.codex/config.toml` eines Projekts. Siehe [offizielle Konfigurationsanleitung](https://learn.chatgpt.com/docs/config-file/config-advanced#custom-model-providers).
-
-Für den bisherigen Standardanbieter speichern Sie ab Codex 0.134.0 das Beispiel in `~/.codex/tokenlab.config.toml` und starten `codex --profile tokenlab`. Bei angepasstem `CODEX_HOME` gilt dessen Verzeichnis. Verwenden Sie keine alte `[profiles.tokenlab]`-Tabelle, überschreiben Sie nicht `auth.json` und ändern Sie weder Anmeldung noch Genehmigungen. Ohne dieses Profil starten stellt die vorige Auswahl wieder her.
-
-Wählen Sie in jeder Befehlsgruppe unten **TokenLab-Profil** für `tokenlab.config.toml`. Verwenden Sie **TokenLab als Standard** nur, wenn Sie die Einstellungen in `config.toml` eingefügt haben. Ein einfaches `codex` verwendet die Standardkonfiguration und übernimmt kein Profil aus einer vorherigen Sitzung.
+Verwenden Sie mit Codex **0.149.0** eine separate `tokenlab.config.toml` im aktiven `CODEX_HOME` (normalerweise `~/.codex`). Erstellen Sie sie nur bei freiem Namen oder sichern Sie ein bestehendes TokenLab-Profil vor Änderungen. `codex --profile tokenlab` lädt das Profil ausdrücklich; `config.toml`, `auth.json`, Konten und Berechtigungsregeln bleiben unverändert. Verwenden Sie keine alte Tabelle `[profiles.tokenlab]`. Ohne dieses Profil startet Ihre gewohnte Konfiguration. Siehe [offizielle Profilkonfiguration](https://learn.chatgpt.com/docs/config-file/config-advanced#profiles).
 
 ```toml
 model_provider = "tokenlab"
@@ -92,54 +58,32 @@ Erstellen Sie die gewählte Konfigurationsdatei, falls sie noch nicht existiert.
 Aktuelles Codex nutzt `wire_api = "responses"`, nicht `chat/completions`. Lassen Sie `requires_openai_auth` weg oder setzen Sie es auf false, damit dieser Anbieter `env_key` verwendet.
 
 <Note>
-TokenLab leitet unbekannte Responses-Felder bestmöglich weiter, ohne die Anfrage stillschweigend auf Chat Completions herabzustufen. Der ausgewählte Upstream entscheidet, ob ein Feld oder eine Kombination unterstützt wird.
+Responses-Anfragen werden nicht in Chat Completions umgewandelt. Optionale und zukünftige Felder hängen vom gewählten Modell ab.
 </Note>
 
 ## Grundlegende Verwendung
 
 **Interaktiven Modus starten:**
 
-<CodeGroup>
-```bash TokenLab-Profil
+```bash
 codex --profile tokenlab
 ```
 
-```bash TokenLab als Standard
-codex
-```
-</CodeGroup>
-
 **Direkter Befehl:**
 
-<CodeGroup>
-```bash TokenLab-Profil
+```bash
 codex --profile tokenlab "Fix the bug in main.py line 42"
 ```
 
-```bash TokenLab als Standard
-codex "Fix the bug in main.py line 42"
-```
-</CodeGroup>
-
 **Modell angeben:**
 
-<CodeGroup>
-```bash TokenLab-Profil
+```bash
 codex --profile tokenlab -m gpt-5.6-sol "Build a REST API server"
 ```
 
-```bash TokenLab als Standard
-codex -m gpt-5.6-sol "Build a REST API server"
-```
-</CodeGroup>
+## Modell auswählen
 
-## Empfohlene Modelle
-
-| Modell | Am besten für |
-|--------|---------------|
-| `gpt-5.6-sol` | Beste Standardwahl für Coding und Reasoning |
-| `gpt-5-mini` | Schnellere, günstigere Fallback-Option für Coding-Workflows |
-| `claude-sonnet-4-6` | Code-Review, Dokumentation |
+Wählen Sie ein Modell, dessen aktuelle `tokenlab.accepted_request_formats` den Wert `openai_responses` enthalten. Vergleichen Sie Modelle anhand Ihrer Aufgaben und prüfen Sie aktuelle Preise auf der [Modellseite](https://tokenlab.sh/de/models).
 
 ## Interaktive Befehle
 
@@ -167,71 +111,41 @@ Starten Sie Codex und führen Sie `/status` aus, um das aktive Modell und die Be
 
 Führen Sie den folgenden Befehl erst aus, wenn Sie eine echte Anfrage senden möchten. Dabei wird Ihr TokenLab-Guthaben verwendet. Prüfen Sie die Antwort und den zugehörigen Eintrag unter [Anfragen](https://tokenlab.sh/dashboard/runs?section=requests). Eine gesetzte Variable oder ein erfolgreicher Start allein bestätigt keine erfolgreiche Anfrage.
 
-<CodeGroup>
-```bash TokenLab-Profil
+```bash
 codex --profile tokenlab "Reply only with OK. Do not use tools or modify files."
 ```
-
-```bash TokenLab als Standard
-codex "Reply only with OK. Do not use tools or modify files."
-```
-</CodeGroup>
 
 ## Häufige Anwendungsfälle
 
 **Code-Review:**
 
-<CodeGroup>
-```bash TokenLab-Profil
+```bash
 git diff | codex --profile tokenlab "Review these code changes"
 ```
 
-```bash TokenLab als Standard
-git diff | codex "Review these code changes"
-```
-</CodeGroup>
-
 **Commit-Nachrichten generieren:**
 
-<CodeGroup>
-```bash TokenLab-Profil
+```bash
 git diff --staged | codex --profile tokenlab "Generate a commit message for these changes"
 ```
 
-```bash TokenLab als Standard
-git diff --staged | codex "Generate a commit message for these changes"
-```
-</CodeGroup>
-
 **Fehler beheben:**
 
-<CodeGroup>
-```bash TokenLab-Profil
+```bash
 codex --profile tokenlab "Fix the TypeScript errors in src/components/"
 ```
 
-```bash TokenLab als Standard
-codex "Fix the TypeScript errors in src/components/"
-```
-</CodeGroup>
-
 **Code erklären:**
 
-<CodeGroup>
-```bash TokenLab-Profil
+```bash
 cat main.py | codex --profile tokenlab "Explain what this code does"
 ```
-
-```bash TokenLab als Standard
-cat main.py | codex "Explain what this code does"
-```
-</CodeGroup>
 
 ## Fehlerbehebung
 
 <AccordionGroup>
   <Accordion title="Verbindungsfehler">
-    - Überprüfen Sie, ob `base_url` in config.toml genau `https://api.tokenlab.sh/v1` ist
+    - Überprüfen Sie, ob `base_url` in tokenlab.config.toml genau `https://api.tokenlab.sh/v1` ist
     - Prüfen Sie die Netzwerkverbindung
     - Stellen Sie sicher, dass kein Proxy stört
   </Accordion>

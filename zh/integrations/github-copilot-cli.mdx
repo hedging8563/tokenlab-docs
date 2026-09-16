@@ -11,22 +11,41 @@ description: "通过 BYOK 将 GitHub Copilot CLI 连接到 TokenLab"
 ## 安装
 
 ```bash
-npm install -g @github/copilot
+npm install -g @github/copilot@1.0.85
 copilot --version
 ```
 
-npm 安装需要 Node.js 22 或更高版本。GitHub 当前要求有效的 Copilot 方案；组织账号还需管理员启用 Copilot CLI 策略。
+npm 安装需要 Node.js 22 或更高版本。
 
 ## 配置 TokenLab
 
-```bash
-export COPILOT_PROVIDER_TYPE="openai"
-export COPILOT_PROVIDER_BASE_URL="https://api.tokenlab.sh/v1"
-export COPILOT_PROVIDER_API_KEY="sk-your-tokenlab-key"
-export COPILOT_MODEL="kimi-k3"
+按[快速开始](/zh/quickstart)中 macOS、Linux、WSL 或 Windows PowerShell 的终端步骤设置 `TOKENLAB_API_KEY`，避免把密钥写进命令历史，然后从同一终端启动 Copilot CLI。长期使用请通过本地密钥管理器提供密钥，不要把明文密钥追加到 shell 配置文件。
 
-copilot
+这些变量仅用于本次启动，保留已保存的账户、默认模型与权限。正常启动时不附加这些变量，即可继续使用原设置；不要将它们写入 shell 配置文件。
+
+<CodeGroup>
+```bash macOS / Linux / WSL
+COPILOT_PROVIDER_TYPE=openai COPILOT_PROVIDER_BASE_URL=https://api.tokenlab.sh/v1 COPILOT_PROVIDER_API_KEY="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" copilot --model kimi-k3
 ```
+
+```powershell Windows PowerShell
+if (-not $env:TOKENLAB_API_KEY) { throw 'Set TOKENLAB_API_KEY first' }
+$previous = @{}
+$previous['COPILOT_PROVIDER_TYPE'] = [Environment]::GetEnvironmentVariable('COPILOT_PROVIDER_TYPE', 'Process')
+$previous['COPILOT_PROVIDER_BASE_URL'] = [Environment]::GetEnvironmentVariable('COPILOT_PROVIDER_BASE_URL', 'Process')
+$previous['COPILOT_PROVIDER_API_KEY'] = [Environment]::GetEnvironmentVariable('COPILOT_PROVIDER_API_KEY', 'Process')
+try {
+  $env:COPILOT_PROVIDER_TYPE = 'openai'
+  $env:COPILOT_PROVIDER_BASE_URL = 'https://api.tokenlab.sh/v1'
+  $env:COPILOT_PROVIDER_API_KEY = $env:TOKENLAB_API_KEY
+  copilot --model kimi-k3
+} finally {
+  foreach ($name in $previous.Keys) {
+    [Environment]::SetEnvironmentVariable($name, $previous[$name], 'Process')
+  }
+}
+```
+</CodeGroup>
 
 | 变量 | TokenLab 值 |
 |---|---|
@@ -50,3 +69,5 @@ Copilot CLI 要求模型同时支持流式输出和工具调用。`kimi-k3` 支�
 <Warning>
 不要把 API 密钥 提交到 Git 跟踪的脚本或配置文件。任何出现在终端历史、截图或日志中的 Key 都应立即轮换。
 </Warning>
+
+保存设置或列出模型不能证明密钥有效或请求完成。发送提示词会使用 TokenLab 余额；先核对回复及对应[请求记录](https://tokenlab.sh/dashboard/runs?section=requests)，再尝试工具，辅助请求也可能计费。

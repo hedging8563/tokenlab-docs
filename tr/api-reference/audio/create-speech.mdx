@@ -6,12 +6,12 @@ description: "Girdi metninden ses üretir"
 
 ## İstek Gövdesi
 
-**Senkron istek zaman aşımı:** Bu chat dışı endpoint, yönlendirilen modelin tamamlanmasını bekler. Büyük girdiler, uzun sesler veya büyük batch’ler yaygın 30s istemci varsayılanlarını aşabilir; bu yüzden HTTP istemcisi zaman aşımını en az `120s` olarak ayarlayın.
+Yanıt biçimi seçilen modele ve `stream_format` değerine bağlıdır. Uzun girdiler için HTTP zaman aşımını en az `120s` olarak ayarlayın.
 
-Desteklenen isteğe bağlı alanlar model ailesine göre değişir. TokenLab bu alan matrisini yönlendirmeden önce doğrular: OpenAI TTS `voice`, `instructions`, `response_format`, `stream_format` ve `speed` kabul eder; MiniMax speech `voice`, `voice_id`, `response_format`, `stream_format` ve `speed` kabul eder; Gemini TTS `prompt`, `language_code`, `voice`, `response_format`, `stream_format`, `speed` ve `temperature` kabul eder; daha dar Vidu/Kling tarzı TTS rotaları yalnızca `input` ve `stream_format` kabul edebilir. `user` dahil bilinmeyen üst seviye alanlar yok sayılmaz, `400 unsupported_parameter` döndürür.
+İsteğe bağlı alanlar, sesler, çıktı biçimleri ve SSE desteği modele bağlıdır. Göndermeden önce `GET /v1/models/{model}` ile kontrol edin. Desteklenmeyen parametreler `400 unsupported_parameter` döndürebilir.
 
 <ParamField body="model" type="string" default="tts-1">
-  TTS modeli. Örnekler: `tts-1`, `gpt-4o-mini-tts`, `speech-02-hd` ve `gemini-2.5-flash-tts`. Güncel liste için `GET /v1/models?recommended_for=tts` sorgulayın.
+  TTS model ID’si. Güncel seçenekleri `GET /v1/models?recommended_for=tts` ile bulun.
 </ParamField>
 
 <ParamField body="input" type="string" required>
@@ -23,7 +23,7 @@ Desteklenen isteğe bağlı alanlar model ailesine göre değişir. TokenLab bu 
 </ParamField>
 
 <ParamField body="voice_id" type="string">
-  MiniMax uyumlu speech modelleri için sağlayıcıya özgü ses seçici.
+  Uyumlu MiniMax konuşma modelleri gibi bu parametreyi destekleyen modeller için ses ID’si.
 </ParamField>
 
 <ParamField body="instructions" type="string">
@@ -56,7 +56,7 @@ Desteklenen isteğe bağlı alanlar model ailesine göre değişir. TokenLab bu 
 
 ## Yanıt
 
-İstenen formatta ses dosyasını döndürür.
+`stream_format=audio` ses baytlarını döndürür. `stream_format=sse` destekleyen modeller `text/event-stream` döndürür; yanıtın tamamını ses dosyası olarak kaydetmek yerine olayları ayrıştırın.
 
 <RequestExample>
 ```bash cURL
@@ -134,6 +134,8 @@ file_put_contents('speech.mp3', $audio);
 
 ## Ses Örnekleri
 
+Kullanılabilir sesler modele bağlıdır. Aşağıdaki adlar örnektir; tüm TTS modellerinin ortak ses listesi değildir.
+
 | Ses | Açıklama |
 |-------|-------------|
 | `alloy` | Nötr, dengeli |
@@ -158,5 +160,9 @@ file_put_contents('speech.mp3', $audio);
 
 ## Önemli alanlar
 
-<ResponseField name="Content-Type" type="string">API tarafından dönen event veya message type.</ResponseField>
-<ResponseField name="body" type="binary">Ham yanıt gövdesi. JSON olarak parse etmeden doğrudan kaydedin.</ResponseField>
+<ResponseField name="Content-Type" type="string">
+  HTTP yanıtının medya türü: ses biçimi veya SSE için `text/event-stream`.
+</ResponseField>
+<ResponseField name="body" type="binary | SSE">
+  `audio` için ses baytları, `sse` için olay akışı. Ayrıştırıcıyı `Content-Type` ve istenen moda göre seçin.
+</ResponseField>

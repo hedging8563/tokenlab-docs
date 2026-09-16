@@ -81,7 +81,8 @@ Les tâches non prises en charge renvoient `400 unsupported_task_cancel`. Les t�
 
 | Symptôme | Cause probable | Que vérifier |
 |----------|----------------|---------------|
-| `async_task_not_found` | La tâche est inconnue, expirée, inaccessible à cette clé API, ou n'est pas une tâche asynchrone publique | Confirmez la propriété de la clé API et le `task_id` public stocké |
+| `404 async_task_not_found` | La tâche a expiré ou n’est plus disponible | Vérifiez les valeurs enregistrées de `task_id` et `poll_url` |
+| `403 task_not_owned` | L’appartenance de la tâche à l’espace de travail actuel ne peut pas être confirmée | Vérifiez l’espace de travail ou l’organisation associé à la clé API |
 | La tâche ne semble jamais se terminer | Le client continue d'interroger la mauvaise URL ou s'est arrêté avant l'état terminal | Utilisez `poll_url` ou `/v1/tasks/{id}` et inspectez le dernier état |
 | URL finale des médias manquante | La tâche n'est pas terminée, ou le travail en amont s'est terminé sans sortie utilisable | Continuez à interroger jusqu'à l'état terminal, puis gérez la sortie manquante comme échouée |
 | L'utilisateur voit des doublons | Le chemin de réessai a créé une nouvelle tâche après un délai d'attente ou un rafraîchissement | Dédupliquez par votre propre ID de travail et `task_id` stocké |

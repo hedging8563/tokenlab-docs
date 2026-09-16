@@ -8,10 +8,10 @@ description: "クエリに対する関連性に基づいてドキュメントを
 
 ## リクエストボディ
 
-**同期リクエストのタイムアウト:** この非チャットエンドポイントは、ルーティング先モデルの処理完了を待ちます。大きな入力、長い音声、大きなバッチは一般的な 30s のクライアント既定値を超えることがあるため、HTTP クライアントのタイムアウトは少なくとも `120s` に設定してください。
+入力が大きい場合、HTTP クライアントのタイムアウトを少なくとも `120s` に設定してください。処理完了後にレスポンスを返します。
 
 <ParamField body="model" type="string" required>
-  使用するリランカーモデルの ID（例：`qwen3-vl-rerank`、`qwen3-vl-rerank`）。
+  使用するリランカーモデルの ID（例：`qwen3-vl-rerank`）。
 </ParamField>
 
 <ParamField body="query" type="string" required>
@@ -23,7 +23,7 @@ description: "クエリに対する関連性に基づいてドキュメントを
 </ParamField>
 
 <ParamField body="top_n" type="integer">
-  返す上位結果の数です。既定ではすべての documents を返します。`1` 以上、かつ `documents.length` 以下である必要があります。将来プロバイダーがより厳しい公開制限を示した場合、TokenLab はここに記録して適用します。
+  返す上位結果数。`1` 以上、`documents.length` 以下です。省略時の件数は選択したモデルに依存します。
 </ParamField>
 
 <ParamField body="return_documents" type="boolean" default="false">
@@ -37,16 +37,16 @@ description: "クエリに対する関連性に基づいてドキュメントを
 
   各結果には以下が含まれます：
   - `index` (integer): 元のドキュメントのインデックス
-  - `relevance_score` (number): 関連性スコア (0-1)
+  - `relevance_score` (number): 関連性スコア。範囲は選択したモデルによって異なります。
   - `document` (string): 元のテキスト（`return_documents=true` の場合）
 </ResponseField>
 
 <ResponseField name="model" type="string">
-  再ランク付けに使用されたモデル。
+  再ランク付けに使用されたモデル。 利用可能な場合に返されます。
 </ResponseField>
 
 <ResponseField name="usage" type="object">
-  トークン使用統計。
+  トークン使用統計。 利用可能な場合に返されます。
 </ResponseField>
 
 <RequestExample>

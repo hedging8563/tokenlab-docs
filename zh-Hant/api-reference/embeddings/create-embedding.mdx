@@ -6,14 +6,14 @@ description: "建立表示輸入文字的 embedding 向量"
 
 ## 請求主體
 
-**同步請求逾時：** 這個非聊天端點會等待路由到的模型完成處理。大型輸入、長音訊或大量批次可能超過常見的 30s 用戶端預設逾時，因此請將 HTTP 用戶端逾時設定為至少 `120s`。
+輸入較多時，請將 HTTP 用戶端逾時設為至少 `120s`；端點會在處理完成後回傳。
 
 <ParamField body="model" type="string" required>
   要使用的 embedding 模型 ID（例如：`text-embedding-3-small`）。
 </ParamField>
 
 <ParamField body="input" type="string | array" required>
-  要進行 embedding 的輸入文字。可以是字串或字串陣列。
+  要轉換的文字，可以是字串或字串陣列。支援 token 輸入的模型也可接收 `number[]`（一組 token）或 `number[][]`（多組 token）。
 </ParamField>
 
 <ParamField body="encoding_format" type="string" default="float">
@@ -30,11 +30,7 @@ description: "建立表示輸入文字的 embedding 向量"
 
 ## 可用模型
 
-| 模型 | 維度 | 說明 |
-|-------|------------|-------------|
-| `text-embedding-3-large` | 3072 | 最佳品質 |
-| `text-embedding-3-small` | 1536 | 平衡 |
-| `text-embedding-ada-002` | 1536 | 舊版 |
+透過 `GET /v1/models?recommended_for=embedding` 取得目前模型與維度資訊。
 
 ## 回應
 
@@ -48,7 +44,7 @@ description: "建立表示輸入文字的 embedding 向量"
   每個物件包含：
   - `object` (string)：`embedding`
   - `index` (integer)：輸入陣列中的索引
-  - `embedding` (array)：embedding 向量
+  - `embedding` (array | string): `float` 回傳數值向量，`base64` 回傳 Base64 字串。
 </ResponseField>
 
 <ResponseField name="model" type="string">
@@ -129,6 +125,10 @@ print_r(array_slice($data['data'][0]['embedding'], 0, 5));
 ```
 </RequestExample>
 
+<Note>
+範例中的向量已縮短，方便閱讀。
+</Note>
+
 <ResponseExample>
 ```json Response
 {
@@ -137,7 +137,7 @@ print_r(array_slice($data['data'][0]['embedding'], 0, 5));
     {
       "object": "embedding",
       "index": 0,
-      "embedding": [0.0023, -0.0194, 0.0081, ...]
+      "embedding": [0.0023, -0.0194, 0.0081]
     }
   ],
   "model": "text-embedding-3-small",

@@ -5,6 +5,8 @@ description: "Find your request limit and recover from a 429 response"
 
 Your account tier determines how many API requests you can send each minute. When you reach the limit, the API returns `429 rate_limit_exceeded` and a `Retry-After` header.
 
+The limits below are the standard tier values and may change with the active configuration. For authenticated requests, these limits are enforced per API key. Public discovery endpoints such as `GET /v1/models` have separate limits. On a 429, use the returned `X-RateLimit-Limit` and `Retry-After` values instead of assuming a copied table is the active limit.
+
 ## Account limits
 
 | Tier | Requests per minute |
@@ -44,11 +46,11 @@ import random
 import time
 from openai import RateLimitError
 
-def chat_with_rate_limit_retry(client, messages, attempts=4):
+def chat_with_rate_limit_retry(client, model, messages, attempts=4):
     for attempt in range(attempts):
         try:
-            return client.chat.completions.create(
-                model="gpt-5.6-luna",
+            return client.with_options(max_retries=0).chat.completions.create(
+                model=model,
                 messages=messages,
             )
         except RateLimitError as exc:

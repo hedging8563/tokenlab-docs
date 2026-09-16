@@ -9,10 +9,10 @@ description: "الحصول على مهمة توافق Seedance باستخدام 
 استخدم معرف `cgt-...` الذي تم إرجاعه بواسطة عملية الإنشاء. قم بإجراء استطلاع (Poll) كل بضع ثوانٍ طالما أن المهمة في حالة `queued` أو `running`. توقف عندما تصبح المهمة `succeeded` أو `failed` أو `cancelled` أو `expired`.
 
 <Warning>
-لا تقم بإعادة استخدام enum المهمة الموحد v1 أو هيكل الاستجابة هنا. يستخدم `/v1/tasks/{id}` حالات `pending` و `processing` و `completed` و `failed`؛ بينما تستخدم نقطة النهاية v3 هذه الـ enum الرسمي المذكور أعلاه. في كائن JSON الخاص بـ v3، يكون `duration` عبارة عن سلسلة نصية (string) عند وجوده، ويتم حذف `error` ما لم تفشل المهمة. يجب على عميل Go الصارم تعريف `Duration` كـ `string` مع وسم JSON `duration,omitempty`، والتوقف عند كل حالة نهائية لـ v3.
+لا تقم بإعادة استخدام enum المهمة الموحد v1 أو هيكل الاستجابة هنا. يستخدم `/v1/tasks/{id}` حالات `pending` و `processing` و `completed` و `failed`؛ بينما تستخدم نقطة النهاية v3 هذه الـ enum الرسمي المذكور أعلاه. في كائن JSON الخاص بـ v3، يكون `duration` عبارة عن سلسلة نصية (string) عند وجوده، ويكون `error` حقلًا اختياريًا لتفاصيل الخطأ المتاحة. يجب على عميل Go الصارم تعريف `Duration` كـ `string` مع وسم JSON `duration,omitempty`، والتوقف عند كل حالة نهائية لـ v3.
 </Warning>
 
-راجع أيضاً [نماذج فيديو Seedance 2.0](/guides/seedance-2-video) و [توليد الفيديو](/guides/video-generation).
+راجع أيضاً [نماذج فيديو Seedance 2.0](/ar/guides/seedance-2-video) و [توليد الفيديو](/ar/guides/video-generation).
 
 ## قيم الحالة
 
@@ -32,7 +32,7 @@ description: "الحصول على مهمة توافق Seedance باستخدام 
 - `content.last_frame_url`: موجود فقط عند طلبه وتوفره.
 - `usage`: استهلاك الـ token عند توفره.
 - `created_at` و `updated_at`: الطوابع الزمنية للمهمة.
-- `error`: موجود فقط عند فشل المهمة؛ يتم حذفه في المهام غير الفاشلة.
+- `error`: تفاصيل خطأ اختيارية عند توفرها. افحص `error.code` و`error.message`، ولا تستنتج وجود الحقل من `status` وحده.
 
 لا تضيف الاستجابة أبداً حقول TokenLab مثل `progress` أو `return_last_frame` أو `watermark` أو `priority` أو `camera_fixed`.
 

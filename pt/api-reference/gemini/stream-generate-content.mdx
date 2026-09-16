@@ -4,7 +4,8 @@ openapi: "POST /v1beta/models/{model}:streamGenerateContent"
 description: "Realiza o stream da geração de conteúdo usando o formato da API Google Gemini"
 ---
 
-Variante SSE nativa e em streaming do Gemini `generateContent`. O TokenLab preserva eventos, ordem e campos do upstream; eventos apenas com metadados, chunks intermediários sem `finishReason` e EOF natural são válidos. Não adiciona o marcador `[DONE]` de Chat Completions nem faz fallback para Chat.
+Versão SSE de Gemini `generateContent`. Os eventos podem conter apenas metadados ou conteúdo intermediário sem `finishReason`. O fluxo termina em EOF sem acrescentar um marcador `[DONE]`.
+
 ## Parâmetros de Caminho
 
 <ParamField path="model" type="string" required>
@@ -19,9 +20,9 @@ Variante SSE nativa e em streaming do Gemini `generateContent`. O TokenLab prese
 
 ## Corpo da Requisição
 
-Igual a [Gerar Conteúdo](/api-reference/gemini/generate-content).
+Igual a [Gerar Conteúdo](/pt/api-reference/gemini/generate-content).
 
-`generationConfig.candidateCount`, combinações de ferramentas e campos futuros são encaminhados sem alteração ao upstream; o TokenLab não impõe limite próprio de streaming.
+O suporte a `generationConfig.candidateCount`, ferramentas, tipos de mídia e outros campos opcionais depende do modelo escolhido.
 
 ## Resposta
 
@@ -29,7 +30,7 @@ Retorna um stream de objetos JSON, cada um contendo uma resposta parcial.
 
 <RequestExample>
 ```bash cURL
-curl -X POST "https://api.tokenlab.sh/v1beta/models/gemini-2.5-pro:streamGenerateContent?key=sk-your-api-key" \
+curl -N -X POST "https://api.tokenlab.sh/v1beta/models/gemini-2.5-pro:streamGenerateContent?key=sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
     "contents": [
@@ -53,7 +54,10 @@ model = genai.GenerativeModel("gemini-2.5-pro")
 response = model.generate_content("Tell me a story", stream=True)
 
 for chunk in response:
-    print(chunk.text, end="")
+    for candidate in chunk.candidates:
+        for part in candidate.content.parts:
+            if part.text:
+                print(part.text, end="")
 ```
 
 ```javascript JavaScript
@@ -74,7 +78,7 @@ const decoder = new TextDecoder();
 while (true) {
   const { done, value } = await reader.read();
   if (done) break;
-  console.log(decoder.decode(value));
+  console.log(decoder.decode(value, { stream: true }));
 }
 ```
 

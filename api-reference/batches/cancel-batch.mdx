@@ -4,11 +4,7 @@ openapi: "POST /v1/batches/{batch_id}/cancel"
 description: "Cancel a batch that has not finished."
 ---
 
-## Overview
-
-You can request cancellation while a batch is queued or running. After the response changes to `cancelling`, retrieve the batch to get its final status.
-
-## Example
+Request cancellation of a queued or running batch. The response contains its current status: cancellation may still be in progress or may already be complete. A batch that has already finished keeps its existing terminal status. If the returned status is not terminal, retrieve the batch again to check the result.
 
 <RequestExample>
 ```bash cURL
@@ -16,8 +12,6 @@ curl -X POST "https://api.tokenlab.sh/v1/batches/batch_abc123/cancel" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 </RequestExample>
-
-## Response example
 
 <ResponseExample>
 ```json 200 OK
@@ -30,7 +24,5 @@ curl -X POST "https://api.tokenlab.sh/v1/batches/batch_abc123/cancel" \
 ```
 </ResponseExample>
 
-## Important fields
-
 <ResponseField name="id" type="string">Batch ID.</ResponseField>
-<ResponseField name="status" type="string">`cancelling` after the request is accepted.</ResponseField>
+<ResponseField name="status" type="string">Current batch status. Do not assume every successful cancellation request returns `cancelling`.</ResponseField>

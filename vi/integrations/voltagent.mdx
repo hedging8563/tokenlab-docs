@@ -15,6 +15,12 @@ VoltAgent chấp nhận trực tiếp các mô hình ngôn ngữ AI SDK. Hãy c�
 **Độ tin cậy hỗ trợ**: Hỗ trợ đường dẫn tương thích với OpenAI
 </Note>
 
+## Cài đặt
+
+```bash
+npm install @voltagent/core@2 ai@6 @ai-sdk/openai@3 zod
+```
+
 ## Môi trường
 
 ```bash
@@ -35,7 +41,7 @@ const tokenlab = createOpenAI({
 const agent = new Agent({
   name: "tokenlab-agent",
   instructions: "Answer concisely.",
-  model: tokenlab("claude-sonnet-5"),
+  model: tokenlab.chat("claude-sonnet-5"),
 });
 ```
 

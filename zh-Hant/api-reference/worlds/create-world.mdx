@@ -6,12 +6,12 @@ description: "建立一個 World Labs Marble 世界生成任務"
 
 使用 World Labs Marble 生成可探索的 3D 世界。這是一個非同步 API：建立回應會返回任務識別，以及用於查詢狀態的 `poll_url`。
 
-支援的模型為 `marble-1.0`、`marble-1.1` 與 `marble-1.1-plus`。World Labs 文件中也列出 `marble-1.0-draft`，但 TokenLab 目前尚未在此端點開放 draft 生成。
+透過 [Models API](/zh-Hant/api-reference/models/list-models) 選擇目前可用的 Marble 模型。
 
 ## 請求主體
 
 <ParamField body="model" type="string" default="marble-1.0">
-  要使用的 Marble 模型：`marble-1.0`、`marble-1.1` 或 `marble-1.1-plus`。
+  透過 [Models API](/zh-Hant/api-reference/models/list-models) 選擇目前可用的 Marble 模型。
 </ParamField>
 
 <ParamField body="prompt" type="string">
@@ -55,7 +55,7 @@ description: "建立一個 World Labs Marble 世界生成任務"
 </ParamField>
 
 <ParamField body="permission" type="object">
-  可選的 World Labs 權限物件。
+  可選的可見性與存取設定：`public`、`allow_id_access`、`allowed_readers` 和 `allowed_writers`。`public: true` 請求建立公開可見的 World。
 </ParamField>
 
 ## 回應
@@ -94,11 +94,7 @@ description: "建立一個 World Labs Marble 世界生成任務"
 
 ## 計費
 
-World Labs 按 credits 計費。TokenLab 會先按請求類型的最大值預扣，並在完成的 operation 返回 `cost.total_credits` 時按實際 credits 結算。標準 Marble 請求最多 1,600 credits。`marble-1.1-plus` 請求最多 3,100 credits。
-
-## 範圍
-
-這些管理端點涵蓋 TokenLab 歸屬的媒體資產和已完成生成的 worlds。TokenLab 仍不開放 `marble-1.0-draft` 生成或獨立 pano/depth 工具。
+透過 [Pricing API](/zh-Hant/api-reference/pricing/get-pricing) 查詢目前價格。實際扣費以用量紀錄為準；回傳的 `cost.total_credits` 是生成用量，不是貨幣金額。
 
 <RequestExample>
 ```bash cURL

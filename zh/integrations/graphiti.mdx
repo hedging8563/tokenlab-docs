@@ -8,6 +8,12 @@ description: "将 TokenLab 用作兼容 OpenAI 的 Graphiti LLM 提供商"
 在 Graphiti 的 `OpenAIGenericClient` 中填写 TokenLab `/v1` 地址、API 密钥和模型 ID 即可。
 
 
+## 安装
+
+```bash
+pip install graphiti-core httpx
+```
+
 ## 环境
 
 ```bash
@@ -29,7 +35,10 @@ llm_config = LLMConfig(
     base_url="https://api.tokenlab.sh/v1",
 )
 
-llm_client = OpenAIGenericClient(config=llm_config)
+llm_client = OpenAIGenericClient(
+    config=llm_config,
+    structured_output_mode="json_object",
+)
 ```
 
 将 `llm_client` 与你的图数据库和嵌入器配置一起传入 `Graphiti(...)` 实例中。

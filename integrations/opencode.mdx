@@ -30,7 +30,7 @@ OpenCode can use TokenLab through a custom OpenAI-compatible provider. Add the T
 [OpenCode](https://opencode.ai/docs/)
 
 ```bash
-npm install -g opencode-ai
+npm install -g opencode-ai@1.18.31
 ```
 
 Verify installation:
@@ -43,22 +43,13 @@ opencode --version
 
 ### Step 1: Set Environment Variables
 
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
-
-For permanent configuration, add to `~/.bashrc` or `~/.zshrc`:
-
-```bash
-echo 'export TOKENLAB_API_KEY="sk-your-tokenlab-key"' >> ~/.zshrc
-source ~/.zshrc
-```
+Use the [Quickstart](/quickstart) terminal instructions for macOS, Linux, WSL, or Windows PowerShell to set `TOKENLAB_API_KEY` without putting the key in command history. Launch OpenCode from that terminal. For persistent use, use your local secret manager; do not append a plaintext key to your shell profile.
 
 ### Step 2: Configure OpenCode
 
-OpenCode's current docs recommend configuring providers through `opencode.json` or `opencode.jsonc`. For TokenLab, use a custom provider instead of overloading the built-in `openai` provider:
+The configuration below was checked with **OpenCode 1.18.31**. Other versions need their own verification against the official documentation.
 
-This example uses the supported V1 provider shape. Merge it into `~/.config/opencode/opencode.json` and keep existing providers and permissions. V2 can read supported V1 settings; do not mix V2 fields inside this provider entry. See the [official migration guide](https://opencode.ai/v2/docs/migrate-v1/). Use `/models` to confirm registration, then check a paid test against TokenLab Requests. To undo, select your previous model and remove only this entry.
+Create a separate `~/.config/opencode/tokenlab.jsonc` file with the configuration below. If `XDG_CONFIG_HOME` is set, use `opencode/tokenlab.jsonc` under that directory. Keep the normal `opencode.json` / `opencode.jsonc`, accounts, default model and permissions unchanged: this separate file is loaded only for an invocation that selects it with `OPENCODE_CONFIG`. If the file or provider name already belongs to another setup, choose a different file/name and adjust the commands.
 
 ```jsonc
 {
@@ -80,34 +71,46 @@ This example uses the supported V1 provider shape. Merge it into `~/.config/open
         }
       }
     }
-  },
-  "model": "tokenlab/gpt-5.6-terra"
+  }
 }
 ```
 
 <Note>
-Use `@ai-sdk/openai-compatible` for chat-completions style compatibility. If you specifically need a provider path built on `/v1/responses`, OpenCode's provider docs recommend switching the package to `@ai-sdk/openai`.
+This configuration uses `@ai-sdk/openai-compatible` for Chat Completions. Choose a current model whose details support Chat Completions and the tools you need; do not infer support for another protocol or version from this example.
 </Note>
+
+Optional: the [reversible OpenCode setup helper](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/skills/tokenlab-api-integration/references/opencode_setup.md) provides preview, apply and original-file restoration with Python 3.11+. TokenLab Skills plugin **0.1.2** includes these scripts; a standalone Skill installation can also be used after updating to a version that contains them. For an existing plugin or standalone Skill installation, follow the [README update instructions](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/README.md#update-an-existing-installation) and confirm the script is present. The manual configuration here remains usable without the helper.
 
 ## Basic Usage
 
-**Start interactive mode:**
+Set the key using Quickstart, then load this file and select the model explicitly for this invocation. Substitute your actual path and provider name if customized. Keep any existing `OPENCODE_CONFIG` or inline `OPENCODE_CONFIG_CONTENT` setup in a separate launch environment; project and managed settings may still take precedence.
 
-```bash
-opencode
+<CodeGroup>
+```bash macOS / Linux / WSL
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode models tokenlab
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode --model tokenlab/gpt-5.6-terra
 ```
 
-**Run with a prompt:**
-
-```bash
-opencode run "Explain this codebase"
+```powershell Windows PowerShell
+$tokenlabConfigRoot = if ($env:XDG_CONFIG_HOME) { $env:XDG_CONFIG_HOME } else { Join-Path $HOME '.config' }
+$previousConfig = $env:OPENCODE_CONFIG
+try {
+  $env:OPENCODE_CONFIG = Join-Path $tokenlabConfigRoot 'opencode/tokenlab.jsonc'
+  opencode models tokenlab
+  opencode --model tokenlab/gpt-5.6-terra
+} finally {
+  if ($null -eq $previousConfig) {
+    Remove-Item Env:OPENCODE_CONFIG -ErrorAction SilentlyContinue
+  } else {
+    $env:OPENCODE_CONFIG = $previousConfig
+  }
+}
 ```
+</CodeGroup>
 
-**Specify model:**
+Model discovery checks local loading, not key validity or a successful live request. A prompt uses TokenLab balance and OpenCode may send separately billed auxiliary requests, such as title generation. Check the reply and the matching [request records](https://tokenlab.sh/dashboard/runs?section=requests).
 
-```bash
-opencode run --model tokenlab/gpt-5.6-terra "Fix the bugs in main.py"
-```
+To use your ordinary setup, launch without this layer. Do not persist `OPENCODE_CONFIG` in your shell profile for this guide. To undo the manual setup, remove only the separate file you created, or restore its backup if it existed before.
 
 ## Choose a Model
 
@@ -118,25 +121,25 @@ Copy a current coding model ID from the [Models page](https://tokenlab.sh/en/mod
 **Analyze code:**
 
 ```bash
-opencode run "What does this function do?" < src/utils.ts
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode run --model tokenlab/gpt-5.6-terra "What does this function do?" < src/utils.ts
 ```
 
 **Generate code:**
 
 ```bash
-opencode run "Create a REST API with Express"
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode run --model tokenlab/gpt-5.6-terra "Create a REST API with Express"
 ```
 
 **Review changes:**
 
 ```bash
-git diff | opencode run "Review these changes"
+git diff | OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode run --model tokenlab/gpt-5.6-terra "Review these changes"
 ```
 
 **Fix errors:**
 
 ```bash
-opencode run "Fix the TypeScript errors in this project"
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode run --model tokenlab/gpt-5.6-terra "Fix the TypeScript errors in this project"
 ```
 
 ## Interactive Commands

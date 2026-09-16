@@ -3,6 +3,12 @@ title: "✨ TokenLab API 整合技能"
 description: "安裝維護中的 TokenLab API 整合技能，讓 coding agent 能探索模型、讀取対応状況並從 API 錯誤中恢復。"
 ---
 
+```text
+讀取本頁並將 TokenLab Skill 加入我目前的 agent。先檢查已安裝版本及目前設定，保留既有帳戶、提供者、權限與其他設定。備份檔案並展示變更。API key 由我在本機輸入，不得在對話中索取或顯示。先驗證設定載入；執行任何付費測試前，先說明測試。
+https://docs.tokenlab.sh/zh-Hant/integrations/coding-agent-skill
+```
+
+
 <Note>
 本頁說明維護中的共用 `tokenlab-api-integration` skill。規範分發源位於 [hedging8563/tokenlab-skills](https://github.com/hedging8563/tokenlab-skills)，公開 repository 有意只保留這個 skill。
 </Note>
@@ -70,11 +76,7 @@ npx skills add https://github.com/hedging8563/tokenlab-skills --skill tokenlab-a
 
 ## 建議的 Agent 工作流程
 
-1. 先產生符合使用者語言與 API 家族的最小可執行範例。
-2. 模型選擇未確定時，先呼叫 `/v1/models` 或 `https://api.tokenlab.sh/llms.txt`，不要硬編碼。
-3. 非聊天任務先呼叫 `/v1/models?recommended_for=<scene>`，其中 `<scene>` 可為 `image`、`video`、`music`、`3d`、`tts`、`stt`、`embedding`、`rerank` 或 `translation`。
-4. 修改失敗的非聊天請求前，讀取 `/v1/models/:model`，並對齊 `supported_operations`、`supported_parameters`、`request_endpoint`, `request_endpoint_by_operation`、`request_shape_mode` 和 `recommended_request`。
-5. 如果 API 返回 Agent-First 錯誤，使用結構化欄位修正請求；只有 `retryable` 表示可重試時才重試。
+先讀取目前模型清單，再讀取所選模型的 `tokenlab.accepted_request_formats` 與公開請求欄位。同一對話與工具呼叫保持相同格式；不同格式的欄位不會自動轉換。保留使用者選定的模型，不要因錯誤自行改模型或協定。
 
 ## 最小聊天範例
 
@@ -86,12 +88,12 @@ from openai import OpenAI
 
 client = OpenAI(
     api_key=os.environ["TOKENLAB_API_KEY"],
-    base_url="https://api.tokenlab.sh/v1"
+    base_url="https://api.tokenlab.sh/v1",
 )
 
 response = client.chat.completions.create(
-    model="gpt-4o-mini",
-    messages=[{"role": "user", "content": "Hello!"}]
+    model="gpt-5.6-luna",
+    messages=[{"role": "user", "content": "Hello!"}],
 )
 
 print(response.choices[0].message.content)
@@ -114,19 +116,19 @@ python app.py
 curl https://api.tokenlab.sh/llms.txt
 
 # 列出模型
-curl "https://api.tokenlab.sh/v1/models" -H "Authorization: Bearer sk-KEY"
-curl "https://api.tokenlab.sh/v1/models?category=image" -H "Authorization: Bearer sk-KEY"
+curl "https://api.tokenlab.sh/v1/models" -H "Authorization: Bearer $TOKENLAB_API_KEY"
+curl "https://api.tokenlab.sh/v1/models?category=image" -H "Authorization: Bearer $TOKENLAB_API_KEY"
 
 # 非聊天場景推薦列表
-curl "https://api.tokenlab.sh/v1/models?recommended_for=image" -H "Authorization: Bearer sk-KEY"
-curl "https://api.tokenlab.sh/v1/models?recommended_for=video" -H "Authorization: Bearer sk-KEY"
-curl "https://api.tokenlab.sh/v1/models?recommended_for=translation" -H "Authorization: Bearer sk-KEY"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=image" -H "Authorization: Bearer $TOKENLAB_API_KEY"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=video" -H "Authorization: Bearer $TOKENLAB_API_KEY"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=translation" -H "Authorization: Bearer $TOKENLAB_API_KEY"
 
 # 非聊天請求重試前讀取單一模型対応状況
-curl "https://api.tokenlab.sh/v1/models/gpt-image-2" -H "Authorization: Bearer sk-KEY"
+curl "https://api.tokenlab.sh/v1/models/gpt-image-2" -H "Authorization: Bearer $TOKENLAB_API_KEY"
 
 # 僅價格詳情
-curl "https://api.tokenlab.sh/v1/models/gpt-image-2/pricing" -H "Authorization: Bearer sk-KEY"
+curl "https://api.tokenlab.sh/v1/models/gpt-image-2/pricing" -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```
 
 ## 原生協定選擇
@@ -141,12 +143,7 @@ curl "https://api.tokenlab.sh/v1/models/gpt-image-2/pricing" -H "Authorization: 
 
 錯誤回應包含 coding agent 可直接解析的欄位：
 
-| 錯誤 | 有用欄位 | Agent 處理方式 |
-|---|---|---|
-| 模型名稱錯誤 | `did_you_mean`, `suggestions`, `hint` | 使用修正後的模型或推薦替代項重試 |
-| 餘額不足 | `balance_usd`, `estimated_cost_usd`, `suggestions` | 請求使用者確認，或切換到可負擔模型 |
-| 速率限制或暫時不可用 | `retryable`, `retry_after`, `alternatives` | 等待後重試，或選擇列出的替代模型 |
-| 非聊天請求不相容 | `supported_operations`, `supported_parameters`, `request_endpoint`, `request_endpoint_by_operation`, `request_shape_mode`, `recommended_request` | 依模型詳細資訊重建請求；對會改變意圖的欄位傳回明確錯誤 |
+以 HTTP 狀態和錯誤 `code` 為主要依據。模型名稱錯誤時可參考 `did_you_mean`，但未經使用者選擇不得切換模型。遇到 `429`，依 `Retry-After` 或 `retry_after` 等待；只有錯誤允許且已明確決定重試時才重試。驗證、鑑權、餘額及權限錯誤需要先修正，不要直接重送。建立請求逾時時，先查詢是否已有任務，避免重複建立。
 
 ## 支援的 API 家族
 
@@ -204,21 +201,4 @@ curl "https://api.tokenlab.sh/v1/models/gpt-image-2/pricing" -H "Authorization: 
 
 ## 資源
 
-<CardGroup cols={2}>
-  <Card title="Agent-First API" icon="robot" href="/zh-Hant/guides/agent-first-api">
-    結構化錯誤提示和恢復行為
-  </Card>
-  <Card title="API 文件" icon="book" href="https://docs.tokenlab.sh">
-    端點設定和 API Reference
-  </Card>
-  <Card title="模型" icon="sparkles" href="https://tokenlab.sh/zh-TW/models">
-    瀏覽可用模型
-  </Card>
-  <Card title="llms.txt" icon="file-lines" href="https://api.tokenlab.sh/llms.txt">
-    面向 agents 的機器可讀 API 概覽
-  </Card>
-</CardGroup>
-
-<Info>
-有問題？請使用 [GitHub Issues](https://github.com/hedging8563/tokenlab-skills/issues) 或聯絡 [support@tokenlab.sh](mailto:support@tokenlab.sh)。
-</Info>
+API 或帳戶問題請使用[站內支援](https://tokenlab.sh/dashboard/support)，核對預覽後明確提交。個別請求請從[請求記錄](https://tokenlab.sh/dashboard/runs)及[調查指南](/zh-Hant/guides/observability-troubleshooting)開始。Skill 本身的缺陷請回報至 [GitHub Issues](https://github.com/hedging8563/tokenlab-skills/issues)。

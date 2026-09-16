@@ -14,12 +14,12 @@ TokenLab 在 `GET /v1/realtime` 提供即時 WebSocket 端點，可用於端點�
 
 瀏覽器或行動端應把長期 API Key 保留在服務端。此端點不會簽發短期 Realtime client secret。
 
-<Note>Agent 應先透過 `/v1/models` 找到支援 realtime 的模型，再開啟 socket。</Note>
+<Note>從 `/v1/models` 選擇目前即時模型，查詢 `/v1/models/{model}` 確認後設定 `TOKENLAB_REALTIME_MODEL`。工作階段事件與設定以模型為準。下方 JSON 範例是一般 HTTP GET 的回應，不是 WebSocket 工作階段事件。</Note>
 
 ## 連線
 
 <ParamField query="model" type="string" required>
-  即時模型 ID。請選擇対応状況中包含 realtime 支援的模型。
+  即時模型 ID。請選擇模型詳情中包含 realtime 支援的模型。
 </ParamField>
 
 <ParamField header="Authorization" type="string" required>
@@ -30,20 +30,28 @@ TokenLab 在 `GET /v1/realtime` 提供即時 WebSocket 端點，可用於端點�
 ```javascript JavaScript
 import WebSocket from 'ws';
 
-const socket = new WebSocket('wss://api.tokenlab.sh/v1/realtime?model=gpt-realtime', {
-  headers: { Authorization: 'Bearer sk-your-api-key' }
+const model = process.env.TOKENLAB_REALTIME_MODEL;
+const apiKey = process.env.TOKENLAB_API_KEY;
+if (!model || !apiKey) {
+  throw new Error('Set TOKENLAB_REALTIME_MODEL and TOKENLAB_API_KEY');
+}
+
+const url = new URL('wss://api.tokenlab.sh/v1/realtime');
+url.searchParams.set('model', model);
+const socket = new WebSocket(url, {
+  headers: { Authorization: `Bearer ${apiKey}` }
 });
 
 socket.on('open', () => {
-  socket.send(JSON.stringify({
-    type: 'session.update',
-    session: { modalities: ['text', 'audio'] }
-  }));
+  console.log('Realtime connection open');
 });
 
 socket.on('message', (data) => {
   console.log('realtime event', data.toString());
 });
+
+socket.on('error', (error) => console.error(error.message));
+socket.on('close', (code) => console.log('Realtime connection closed', code));
 ```
 
 ```bash cURL
@@ -65,19 +73,20 @@ TokenLab 會在你的用戶端與所選即時模型之間轉發 WebSocket 訊息
 ## 回應範例
 
 <ResponseExample>
-```json Connected
+```json HTTP GET
 {
-  "type": "session.created",
-  "session": {
-    "id": "sess_abc123",
-    "model": "gpt-realtime",
-    "modalities": ["text", "audio"]
-  }
+  "object": "realtime.endpoint",
+  "websocket_url": "/v1/realtime?model={model}",
+  "protocol": "tokenlab_realtime_proxy"
 }
 ```
 </ResponseExample>
 
 ## 重要欄位
+
+<ResponseField name="object" type="string">一般 HTTP GET 回應的物件類型，固定為 `realtime.endpoint`。</ResponseField>
+<ResponseField name="websocket_url" type="string">一般 HTTP GET 回傳的 WebSocket 相對連線路徑：`/v1/realtime?model={model}`。將 `{model}` 替換為所選模型的 ID。</ResponseField>
+<ResponseField name="protocol" type="string">一般 HTTP GET 回傳的協定識別碼，固定為 `tokenlab_realtime_proxy`。</ResponseField>
 
 <ResponseField name="type" type="string">API 返回的事件或訊息類型。</ResponseField>
 <ResponseField name="session.id" type="string">透過 realtime 連線收到的不透明標識符。請放入支援日誌以便排障；它不是 REST session URL。</ResponseField>

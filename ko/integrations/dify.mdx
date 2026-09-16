@@ -1,22 +1,12 @@
 ---
 title: "Dify"
-description: "OpenAI 공급자 및 사용자 지정 기본 URL을 사용하여 TokenLab과 Dify 통합하기"
+description: "OpenAI-API-compatible 공급자 및 사용자 지정 기본 URL을 사용하여 TokenLab과 Dify 통합하기"
 ---
 
 ## 개요
 
-Dify는 OpenAI 호환 모델 공급자 흐름을 통해 TokenLab과 원활하게 작동합니다.
+**OpenAI-API-compatible** 모델 공급자 플러그인으로 Dify를 TokenLab에 연결합니다. 모델 유형은 **LLM**, **Completion mode**는 **Chat**, **API Type**은 **Chat Completions API**로 설정합니다. 이 가이드는 Chat Completions를 사용합니다.
 
-이 통합 경로는 채팅 완성(chat-completions) 지향적입니다. Dify가 전용 Codex 통합과 동일한 응답(Responses) 또는 WebSocket 동작을 노출한다고 보장하지는 않습니다.
-
-현재 Dify 버전에서 가장 안전한 방법은 다음과 같습니다:
-- 내장된 **OpenAI** 공급자 선택
-- TokenLab API 키 설정
-- 사용자 지정 기본 URL을 `https://api.tokenlab.sh/v1`으로 설정
-
-<Note>
-일부 구형 Dify 빌드에서는 사용자 지정 기본 URL 필드가 있는 내장 `OpenAI` 공급자 대신 `OpenAI-API-compatible`로 노출될 수 있습니다. Dify UI가 다르게 보인다면 해당 버전에서 사용 가능한 가장 유사한 OpenAI 호환 사용자 지정 공급자 흐름을 사용하십시오.
-</Note>
 
 ## 사전 요구 사항
 
@@ -37,8 +27,8 @@ Dify는 OpenAI 호환 모델 공급자 흐름을 통해 TokenLab과 원활하게
   <Step title="모델 공급자 열기">
     Dify에서 **설정(Settings)** → **모델 공급자(Model Providers)**로 이동합니다.
   </Step>
-  <Step title="OpenAI 선택">
-    **OpenAI** 공급자 설정을 엽니다. Dify 버전에서 사용자 지정 기본 URL을 제공하지 않는 경우, 해당 버전에서 노출되는 OpenAI 호환 사용자 지정 공급자 옵션을 대신 사용하십시오.
+  <Step title="OpenAI-API-compatible 선택">
+    **OpenAI-API-compatible**을 엽니다. 없다면 Dify Marketplace에서 이 모델 공급자 플러그인을 설치하세요. **Add model**을 선택하고 TokenLab 설정을 입력합니다.
   </Step>
   <Step title="TokenLab 설정 입력">
     다음 값을 사용하십시오:
@@ -46,7 +36,10 @@ Dify는 OpenAI 호환 모델 공급자 흐름을 통해 TokenLab과 원활하게
     | 필드 | 값 |
     |-------|-------|
     | API Key | `sk-your-tokenlab-key` |
-    | API Base URL / Custom Base URL | `https://api.tokenlab.sh/v1` |
+    | Model type | LLM |
+    | Completion mode | Chat |
+    | API Type | Chat Completions API |
+    | API Base URL | `https://api.tokenlab.sh/v1` |
   </Step>
   <Step title="모델 추가">
     사용하려는 모델을 추가합니다. 예:
@@ -62,7 +55,7 @@ Dify는 OpenAI 호환 모델 공급자 흐름을 통해 TokenLab과 원활하게
 
 ### 3단계: 연결 테스트
 
-1. `gpt-5-mini` 또는 `gpt-4o`와 같은 모델을 하나 선택합니다.
+1. `gpt-5.4-mini`처럼 추가한 모델을 선택합니다.
 2. 테스트 프롬프트를 보냅니다.
 3. Dify가 유효한 응답을 받는지 확인합니다.
 
@@ -86,16 +79,16 @@ RAG 및 지식 베이스 인덱싱을 위해 다음과 같은 임베딩 모델�
 ## 모범 사례
 
 <AccordionGroup>
-  <Accordion title="내장 OpenAI 공급자로 시작하기">
-    최신 Dify 버전에서는 사용자 지정 기본 URL을 사용하는 내장 OpenAI 공급자가 일반적으로 TokenLab을 위한 가장 깔끔한 설정입니다.
+  <Accordion title="대안으로 OpenAI 플러그인 사용">
+    별도의 **OpenAI** 플러그인은 해당 카탈로그에서 지원하는 모델에 사용할 수 있습니다. 사용자 지정 기본 URL은 `https://api.tokenlab.sh/v1`, **API Protocol**은 **Chat Completions**로 설정하세요. 기본값은 Responses일 수 있습니다. 이 플러그인은 OpenAI-API-compatible의 이전 이름이 아니며 모든 사용자 지정 모델 ID를 허용하지는 않습니다.
   </Accordion>
 
   <Accordion title="반복 작업 시 저렴한 모델 사용">
     반복 작업 중에는 `gpt-5.4-mini`, `gemini-3.5-flash` 또는 `deepseek-v4-flash`를 사용하고, 필요한 경우에만 더 강력한 모델로 전환하십시오.
   </Accordion>
 
-  <Accordion title="Dify는 일반적으로 채팅 완성 지향적임을 기억하세요">
-    대부분의 Dify 흐름은 OpenAI 호환 채팅 동작을 사용합니다. Codex 전용 응답이나 WebSocket 동작이 필요한 경우 Dify 대신 전용 Codex 통합을 사용하십시오.
+  <Accordion title="이 설정은 Chat Completions를 사용합니다">
+    이 설정에서는 **Completion mode = Chat**과 **API Type = Chat Completions API**를 유지하세요. Responses는 별도 API 옵션이며, 이 가이드에서는 해당 옵션이나 WebSocket 연결을 설정하지 않습니다.
   </Accordion>
 </AccordionGroup>
 

@@ -5,25 +5,28 @@ description: "Portkey GatewayでTokenLabをアップストリームプロバイ�
 
 ## 概要
 
-Portkey Gatewayは、アップストリームプロバイダーとしてTokenLabにリクエストをルーティングできます。最も安全なデフォルト設定はOpenAI互換のチャット補完（chat completions）です。お使いのPortkeyのバージョンでTokenLab向けのパスが公開されている場合は、Responsesを使用してください。
+Portkey で TokenLab を OpenAI 互換のカスタムホストとして設定します。Responses は、使用中の Portkey バージョンがカスタム Responses エンドポイントに対応している場合にのみ使用してください。
 
 ## プロバイダー値
 
 | フィールド | 値 |
 |-------|-------|
-| Provider | `tokenlab` |
-| Base URL | `https://api.tokenlab.sh/v1` |
+| Provider | `openai` |
+| Custom Host | `https://api.tokenlab.sh/v1` |
 | API key | `sk-your-tokenlab-key` |
-| デフォルトモデル | `gpt-5.4-mini` |
+| モデル | 現在利用可能な TokenLab モデル ID |
 
 ## チャット補完 (Chat Completions)
 
 OpenAI互換のチャットリクエストにTokenLabを使用します：
 
+この例には稼働中のセルフホスト版 Portkey Gateway が必要です。ゲートウェイ URL を実際のデプロイ先に置き換えてください。Portkey Cloud を使う場合は、Portkey API キーを `x-portkey-api-key` ヘッダーでも送信します。[Portkey の設定ガイド](https://portkey.ai/docs/api-reference/inference-api/headers)を参照してください。
+
 ```bash
 curl https://your-portkey-gateway.example/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -H "x-portkey-provider: tokenlab" \
+  -H "x-portkey-provider: openai" \
+  -H "x-portkey-custom-host: https://api.tokenlab.sh/v1" \
   -H "Authorization: Bearer sk-your-tokenlab-key" \
   -d '{
     "model": "gpt-5.6-luna",
@@ -33,8 +36,8 @@ curl https://your-portkey-gateway.example/v1/chat/completions \
 
 ## Responses
 
-お使いのPortkeyビルドがTokenLabのResponsesをルーティングしている場合は、`/v1/responses` に対して `gpt-5.5`、`gpt-5.4`、または `gpt-5.4-mini` を使用してください。
+使用中の Portkey バージョンがカスタム Responses URL に対応している場合は、[モデルページ](https://tokenlab.sh/ja/models)で現在利用可能な Responses 対応モデルを選び、`/v1/responses` を使用してください。
 
 ## ネイティブエンドポイントに関する注意
 
-TokenLabは、Anthropic MessagesおよびGemini互換のエンドポイントも直接公開しています。これらをPortkey経由で使用できるかどうかは、デプロイされているバージョンにおけるPortkeyのプロバイダーおよびエンドポイントのサポート状況に依存します。
+Anthropic Messages と Gemini を Portkey 経由で使用できるのは、使用中の Portkey バージョンがそれらの形式のカスタム URL に対応している場合のみです。

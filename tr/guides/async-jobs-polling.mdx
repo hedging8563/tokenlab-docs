@@ -81,7 +81,8 @@ Desteklenmeyen görevler `400 unsupported_task_cancel` döndürür. Zaten çalı
 
 | Belirti | Muhtemel neden | Kontrol edilecekler |
 |---------|----------------|---------------------|
-| `async_task_not_found` | Görev bilinmiyor, süresi dolmuş, bu API anahtarına erişilemez veya genel bir asenkron görev değil | API anahtarı sahipliğini ve saklanan genel `task_id`'yi doğrulayın |
+| `404 async_task_not_found` | Görevin süresi dolmuş veya görev artık kullanılamıyor | Kaydedilen `task_id` ve `poll_url` değerlerini kontrol edin |
+| `403 task_not_owned` | Görevin mevcut çalışma alanına ait olduğu doğrulanamıyor | API anahtarına bağlı çalışma alanını veya kuruluşu kontrol edin |
 | Görev asla tamamlanmıyor gibi görünüyor | İstemci yanlış URL'yi sorgulamaya devam ediyor veya terminal durumdan önce durdu | `poll_url` veya `/v1/tasks/{id}` kullanın ve en son durumu kontrol edin |
 | Nihai medya URL'si eksik | Görev tamamlanmamış veya yukarı akış işi kullanılabilir çıktı olmadan tamamlanmış | Terminal olana kadar sorgulamaya devam edin, ardından eksik çıktıyı başarısız olarak yönetin |
 | Kullanıcı kopyaları görüyor | Yeniden deneme yolu zaman aşımından veya yenilemeden sonra yeni bir görev oluşturdu | Kendi iş kimliğiniz ve saklanan `task_id` ile çoğaltmayı önleyin |

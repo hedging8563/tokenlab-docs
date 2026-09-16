@@ -15,6 +15,12 @@ Graphiti hỗ trợ các endpoint `/v1` tương thích với OpenAI thông qua `
 **Độ tin cậy hỗ trợ**: Đường dẫn tương thích với OpenAI đã được hỗ trợ
 </Note>
 
+## Cài đặt
+
+```bash
+pip install graphiti-core httpx
+```
+
 ## Môi trường
 
 ```bash
@@ -36,7 +42,10 @@ llm_config = LLMConfig(
     base_url="https://api.tokenlab.sh/v1",
 )
 
-llm_client = OpenAIGenericClient(config=llm_config)
+llm_client = OpenAIGenericClient(
+    config=llm_config,
+    structured_output_mode="json_object",
+)
 ```
 
 Truyền `llm_client` vào instance `Graphiti(...)` của bạn cùng với cấu hình cơ sở dữ liệu đồ thị và bộ nhúng (embedder) của bạn.

@@ -15,13 +15,19 @@ https://api.tokenlab.sh
 
 ## Kimlik Doğrulama
 
-Tüm API uç noktaları Bearer token kullanılarak kimlik doğrulaması gerektirir:
+Model istekleri TokenLab API anahtarı kullanır. Standart kimlik doğrulama başlığı şöyledir:
 
 ```bash
 Authorization: Bearer sk-your-api-key
 ```
 
+`GET /v1/models`, `GET /v1/models/{model}` ve `GET /v1/pricing` herkese açıktır ve anahtar gerektirmez. Anthropic Messages ayrıca `x-api-key`, Gemini ise Bearer dışında `x-goog-api-key` veya `?key=` kabul eder. `/v1/management/*` bir yönetim tokenı (`mt-...`) gerektirir.
+
 API anahtarınızı [Kontrol Paneli](https://tokenlab.sh/dashboard) üzerinden alın.
+
+<Note>
+Üretim istekleri `X-TokenLab-Delivery-Policy: auto | verified | official` kabul eder. Başlık, API anahtarı ayarından; anahtar ayarı da çalışma alanı varsayılanından önceliklidir. `auto` önce TokenLab Verified, gerektiğinde Official kullanır; ücret, isteği tamamlayan yönteme göre belirlenir. `verified` TokenLab fiyatlarını, `official` üreticinin açık fiyatlarını esas alır; geçerli ücret TokenLab’da gösterilendir. Realtime anahtar veya çalışma alanı ayarını kullanır, sorgu ile değiştirilemez. Geçersiz başlık `400`, kullanılamayan yöntem ise `503 delivery_tier_unavailable` ve istek kimliği döndürür.
+</Note>
 
 <Warning>
 **Etkileşimli Playground Hakkında**: Bu dokümantasyon sitesindeki playground yalnızca gösterim amaçlıdır ve API anahtarı girilmesine izin vermez. API'yi test etmek için lütfen:
@@ -56,7 +62,7 @@ API anahtarınızı [Kontrol Paneli](https://tokenlab.sh/dashboard) üzerinden a
 | `/v1/images/generations/{id}` | GET | Görev tabanlı görsel yanıtlar için görsel görev durumu yolu |
 
 <Info>
-Bazı görsel modeller sonuçları doğrudan döndürebilir, bazıları görev tabanlı yanıtlar verebilir ve bazıları yönlendirilen sağlayıcı yoluna bağlı olarak her iki şekilde davranabilir. Create yanıtı `poll_url` içeriyorsa, tam olarak onu izleyin.
+Görsel modeller tamamlanmış bir görsel veya asenkron görev döndürebilir. Yanıtta `poll_url` varsa görevi sorgulamak için bu URL’yi kullanın.
 </Info>
 
 ### Ses
@@ -142,7 +148,7 @@ Gemini uç noktaları, standart Bearer token'a ek olarak `?key=` sorgu parametre
 
 ## Yanıt Formatı
 
-Tüm yanıtlar tutarlı bir format izler:
+Her uç nokta kendi API biçimini korur. Aşağıdaki başarı ve hata örnekleri Chat Completions biçimindedir.
 
 ### Başarılı Yanıt
 
@@ -152,7 +158,7 @@ Tüm yanıtlar tutarlı bir format izler:
   "object": "chat.completion",
   "created": 1234567890,
   "model": "gpt-5.6-terra",
-  "choices": [...],
+  "choices": [{"index": 0, "message": {"role": "assistant", "content": "Hello!"}, "finish_reason": "stop"}],
   "usage": {
     "prompt_tokens": 10,
     "completion_tokens": 20,

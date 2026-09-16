@@ -6,12 +6,12 @@ description: "Membuat tugas pembuatan dunia World Labs Marble"
 
 Buat dunia 3D yang dapat dijelajahi dengan World Labs Marble. API ini asinkron: respons create mengembalikan identitas tugas dan `poll_url` untuk memeriksa status.
 
-Model yang didukung adalah `marble-1.0`, `marble-1.1`, dan `marble-1.1-plus`. World Labs mendokumentasikan `marble-1.0-draft`, tetapi TokenLab belum mengekspos draft generation di endpoint ini.
+Pilih model Marble yang tersedia saat ini melalui [Models API](/id/api-reference/models/list-models).
 
 ## Isi Permintaan
 
 <ParamField body="model" type="string" default="marble-1.0">
-  Model Marble yang digunakan: `marble-1.0`, `marble-1.1`, atau `marble-1.1-plus`.
+  Pilih model Marble yang tersedia saat ini melalui [Models API](/id/api-reference/models/list-models).
 </ParamField>
 
 <ParamField body="prompt" type="string">
@@ -55,7 +55,7 @@ Model yang didukung adalah `marble-1.0`, `marble-1.1`, dan `marble-1.1-plus`. Wo
 </ParamField>
 
 <ParamField body="permission" type="object">
-  Objek permission World Labs opsional.
+  Pengaturan visibilitas dan akses opsional: `public`, `allow_id_access`, `allowed_readers`, dan `allowed_writers`. `public: true` meminta world yang dapat dilihat publik.
 </ParamField>
 
 ## Respons
@@ -94,11 +94,7 @@ Model yang didukung adalah `marble-1.0`, `marble-1.1`, dan `marble-1.1-plus`. Wo
 
 ## Harga
 
-World Labs menagih dalam credits. TokenLab melakukan pre-deduct maksimum sesuai tipe request dan menyelesaikan berdasarkan `cost.total_credits` dari operation yang selesai jika tersedia. Request Marble standar hingga 1.600 credits. `marble-1.1-plus` hingga 3.100 credits.
-
-## Cakupan
-
-Endpoint manajemen ini mencakup aset media milik TokenLab dan world selesai. TokenLab masih belum mengekspos generasi `marble-1.0-draft` atau alat pano/depth mandiri.
+Lihat [Pricing API](/id/api-reference/pricing/get-pricing) untuk tarif saat ini. Jumlah tagihan tercantum dalam catatan penggunaan; nilai `cost.total_credits` yang dikembalikan adalah penggunaan generasi, bukan jumlah uang.
 
 <RequestExample>
 ```bash cURL

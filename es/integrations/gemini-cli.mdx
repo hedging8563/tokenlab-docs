@@ -3,82 +3,68 @@ title: "Gemini CLI"
 description: "Configura Google Gemini CLI para usar la API de TokenLab"
 ---
 
-## Resumen
 
-Google Gemini CLI es una herramienta de línea de comandos para interactuar con los modelos de Gemini. TokenLab proporciona un punto de conexión compatible que te permite usar Gemini CLI con acceso a cientos de modelos.
+## Descripción general
 
-
-<Warning>
-Esta integración debe tratarse como experimental: Gemini CLI no documenta actualmente un flujo estable con una URL base personalizada al estilo TokenLab. Si necesita una integración de TokenLab realmente compatible, prefiera Codex CLI, Claude Code u OpenCode.
-</Warning>
-
-## Requisitos del sistema
-
-- **Node.js**: Versión 20.0+
-- **SO**: Windows 10/11, macOS 10.15+, Ubuntu 20.04+ o Debian 10+
+Gemini CLI **0.60.0** documenta `GOOGLE_GEMINI_BASE_URL` para autenticación con clave API. Usa el endpoint nativo Gemini de TokenLab con un modelo actual que admita `gemini_generate_content`. Consulta la [configuración oficial](https://geminicli.com/docs/reference/configuration/) y la [autenticación](https://geminicli.com/docs/get-started/authentication/). Esto no dirige una suscripción Google a través de TokenLab.
 
 ## Instalación
 
 ```bash
-npm install -g @google/gemini-cli
-```
-
-Verifica la instalación:
-
-```bash
+npm install -g @google/gemini-cli@0.60.0
 gemini --version
 ```
 
 ## Configuración
 
-### Paso 1: Obtén tu API Key
+Sigue los pasos de terminal de [inicio rápido](/es/quickstart) para macOS, Linux, WSL o Windows PowerShell y define `TOKENLAB_API_KEY` sin dejar la clave en el historial. Inicia Gemini CLI desde esa terminal. Para uso persistente, utiliza un gestor local de secretos; no añadas la clave en texto plano al perfil del shell.
 
-1. Inicia sesión en el [TokenLab Dashboard](https://tokenlab.sh/dashboard)
-2. Navega a [API Keys](https://tokenlab.sh/dashboard/api)
-3. Crea y copia tu API key (formato: `sk-...`)
+Conserva tu inicio de sesión de Google y configuración actual. Para TokenLab, elige una raíz de configuración libre como `~/.gemini-tokenlab` (`$HOME` en PowerShell) y crea su carpeta `.gemini`. Copia tu `.gemini/settings.json` y los archivos de políticas necesarios a sus ubicaciones correspondientes, conservando permisos, sandbox y otros ajustes. Combina el siguiente campo de autenticación solo en esa copia; crea el archivo si no existe. No copies cachés OAuth ni borres credenciales originales. Respeta las políticas de autenticación administradas.
 
-### Paso 2: Configura las variables de entorno
-
-**Temporal (sesión actual):**
-
-```bash
-export GEMINI_API_KEY="sk-your-tokenlab-key"
-export GOOGLE_GEMINI_BASE_URL="https://api.tokenlab.sh"
+```json
+{
+  "security": {
+    "auth": {
+      "selectedType": "gemini-api-key"
+    }
+  }
+}
 ```
 
-**Configuración permanente:**
-
-Añade a tu archivo de configuración de shell:
-
-<Tabs>
-  <Tab title="Bash">
-    ```bash
-    echo 'export GEMINI_API_KEY="sk-your-tokenlab-key"' >> ~/.bashrc
-    echo 'export GOOGLE_GEMINI_BASE_URL="https://api.tokenlab.sh"' >> ~/.bashrc
-    source ~/.bashrc
-    ```
-  </Tab>
-  <Tab title="Zsh">
-    ```bash
-    echo 'export GEMINI_API_KEY="sk-your-tokenlab-key"' >> ~/.zshrc
-    echo 'export GOOGLE_GEMINI_BASE_URL="https://api.tokenlab.sh"' >> ~/.zshrc
-    source ~/.zshrc
-    ```
-  </Tab>
-  <Tab title="Fish">
-    ```bash
-    set -Ux GEMINI_API_KEY "sk-your-tokenlab-key"
-    set -Ux GOOGLE_GEMINI_BASE_URL "https://api.tokenlab.sh"
-    ```
-  </Tab>
-</Tabs>
-
-<Warning>
-Reinicia tu terminal después de la configuración para que los cambios surtan efecto.
-</Warning>
-
-<Note>
-**Limitación conocida**: En algunos casos, Gemini CLI puede no respetar `GOOGLE_GEMINI_BASE_URL` si existe una sesión de Google en caché. Si experimentas problemas de conexión, intenta limpiar la caché de la CLI o iniciar una nueva sesión de terminal.
-</Note>
-
 ## Uso
+
+El inicio siguiente usa `~/.gemini-tokenlab/.gemini/settings.json`. Ajusta la ruta si elegiste otra raíz. Confirma el directorio de trabajo mediante el aviso de confianza habitual y conserva las políticas de aprobación de herramientas. El modelo se selecciona explícitamente para esta sesión.
+
+<CodeGroup>
+```bash macOS / Linux / WSL
+GEMINI_CLI_HOME="$HOME/.gemini-tokenlab" GEMINI_API_KEY="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" GOOGLE_GEMINI_BASE_URL=https://api.tokenlab.sh gemini --model gemini-3.5-flash
+```
+
+```powershell Windows PowerShell
+if (-not $env:TOKENLAB_API_KEY) { throw 'Set TOKENLAB_API_KEY first' }
+$previous = @{}
+$previous['GEMINI_CLI_HOME'] = [Environment]::GetEnvironmentVariable('GEMINI_CLI_HOME', 'Process')
+$previous['GEMINI_API_KEY'] = [Environment]::GetEnvironmentVariable('GEMINI_API_KEY', 'Process')
+$previous['GOOGLE_GEMINI_BASE_URL'] = [Environment]::GetEnvironmentVariable('GOOGLE_GEMINI_BASE_URL', 'Process')
+try {
+  $env:GEMINI_CLI_HOME = (Join-Path $HOME '.gemini-tokenlab')
+  $env:GEMINI_API_KEY = $env:TOKENLAB_API_KEY
+  $env:GOOGLE_GEMINI_BASE_URL = 'https://api.tokenlab.sh'
+  gemini --model gemini-3.5-flash
+} finally {
+  foreach ($name in $previous.Keys) {
+    [Environment]::SetEnvironmentVariable($name, $previous[$name], 'Process')
+  }
+}
+```
+</CodeGroup>
+
+Estas variables se aplican solo a este inicio; se conservan la cuenta, el modelo predeterminado y los permisos guardados. Inicia normalmente sin ellas para usar tu configuración anterior. No las guardes en el perfil del shell.
+
+## Verificación
+
+Guardar ajustes o listar modelos no verifica la clave ni una solicitud completada. Un prompt utiliza saldo TokenLab. Comprueba la respuesta y su [registro correspondiente](https://tokenlab.sh/dashboard/runs?section=requests) antes de probar herramientas; las solicitudes auxiliares también pueden facturarse.
+
+```text
+Reply only with TOKENLAB_CONNECTION_OK. Do not use tools or modify files.
+```

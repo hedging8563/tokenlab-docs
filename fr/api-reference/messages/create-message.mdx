@@ -16,8 +16,8 @@ URL de base pour le SDK Anthropic : `https://api.tokenlab.sh` (sans suffixe `/v1
 
 ## En-têtes de requête
 
-<ParamField header="x-api-key" type="string" required>
-  Votre clé API TokenLab. Alternative au token Bearer.
+<ParamField header="x-api-key" type="string">
+  Votre clé API TokenLab. Envoyez soit `x-api-key`, soit `Authorization: Bearer <API_KEY>`.
 </ParamField>
 
 <ParamField header="anthropic-version" type="string" required>
@@ -26,8 +26,12 @@ URL de base pour le SDK Anthropic : `https://api.tokenlab.sh` (sans suffixe `/v1
 
 ## Corps de la requête
 
+<Note>
+Les paramètres facultatifs pris en charge, leurs valeurs acceptées et leurs valeurs par défaut dépendent du modèle choisi. Consultez les [détails du modèle](/fr/api-reference/models/get-model) avant de définir les options d’échantillonnage, de raisonnement ou d’outils.
+</Note>
+
 <ParamField body="model" type="string" required>
-  ID du modèle Claude (par ex., `claude-sonnet-4-6` ou `claude-opus-4-6`).
+  ID d’un modèle prenant en charge le format `anthropic_messages`. Consultez les [détails du modèle](/fr/api-reference/models/get-model) pour ses capacités actuelles.
 </ParamField>
 
 <ParamField body="messages" type="array" required>
@@ -38,12 +42,12 @@ URL de base pour le SDK Anthropic : `https://api.tokenlab.sh` (sans suffixe `/v1
   Nombre maximal de tokens à générer.
 </ParamField>
 
-<ParamField body="system" type="string">
-  Prompt système (séparé du tableau messages).
+<ParamField body="system" type="string | array">
+  Prompt système sous forme de chaîne ou de tableau de blocs de contenu, séparé du tableau `messages`.
 </ParamField>
 
-<ParamField body="temperature" type="number" default="1">
-  Température d’échantillonnage (0-1).
+<ParamField body="temperature" type="number">
+  Température d’échantillonnage. La prise en charge, les valeurs autorisées et la valeur par défaut dépendent du modèle choisi. Omettez ce champ pour utiliser sa valeur par défaut.
 </ParamField>
 
 <ParamField body="stream" type="boolean" default="false">
@@ -51,10 +55,7 @@ URL de base pour le SDK Anthropic : `https://api.tokenlab.sh` (sans suffixe `/v1
 </ParamField>
 
 <ParamField body="thinking" type="object">
-  Configuration de la réflexion étendue (Claude Opus 4.5).
-
-  - `type` (string) : `"enabled"` pour activer
-  - `budget_tokens` (integer) : Budget de tokens pour la réflexion
+  Configuration native de la réflexion. Les modes, budgets et combinaisons avec les autres paramètres pris en charge dépendent du modèle choisi.
 </ParamField>
 
 <ParamField body="tools" type="array">
@@ -62,7 +63,7 @@ URL de base pour le SDK Anthropic : `https://api.tokenlab.sh` (sans suffixe `/v1
 </ParamField>
 
 <ParamField body="tool_choice" type="object">
-  Comment le modèle doit utiliser les outils. Options : `auto`, `any`, `tool` (outil spécifique).
+  Objet natif de sélection d’outils, par exemple `{"type":"auto"}`. Les types pris en charge dépendent du modèle choisi.
 </ParamField>
 
 <ParamField body="top_p" type="number">
@@ -96,7 +97,7 @@ URL de base pour le SDK Anthropic : `https://api.tokenlab.sh` (sans suffixe `/v1
 </ResponseField>
 
 <ResponseField name="content" type="array">
-  Tableau de blocs de contenu (text, thinking, tool_use).
+  Tableau de blocs de contenu, par exemple `text`, `thinking` ou `tool_use`.
 </ResponseField>
 
 <ResponseField name="model" type="string">
@@ -104,7 +105,7 @@ URL de base pour le SDK Anthropic : `https://api.tokenlab.sh` (sans suffixe `/v1
 </ResponseField>
 
 <ResponseField name="stop_reason" type="string">
-  Pourquoi la génération s’est arrêtée (`end_turn`, `max_tokens`, `tool_use`).
+  Motif d’arrêt de la génération, par exemple `end_turn`, `max_tokens`, `stop_sequence` ou `tool_use`.
 </ResponseField>
 
 <ResponseField name="usage" type="object">
@@ -315,9 +316,19 @@ Pour les modèles Claude avec prise en charge de la vision, placez les images da
 
 ## Exemple de réflexion étendue
 
+Définissez `TOKENLAB_THINKING_MODEL` sur un modèle prenant en charge la réflexion manuelle avec `type: "enabled"` et `budget_tokens`. Ajustez les deux budgets de tokens aux limites de ce modèle. D’autres modèles peuvent nécessiter une configuration de réflexion différente.
+
 ```python
+import os
+from anthropic import Anthropic
+
+client = Anthropic(
+    api_key="sk-your-api-key",
+    base_url="https://api.tokenlab.sh"
+)
+
 message = client.messages.create(
-    model="claude-opus-5",
+    model=os.environ["TOKENLAB_THINKING_MODEL"],
     max_tokens=16000,
     thinking={
         "type": "enabled",

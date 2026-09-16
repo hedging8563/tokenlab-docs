@@ -4,7 +4,8 @@ openapi: "POST /v1beta/models/{model}:generateContent"
 description: "使用 Google Gemini API 格式生成内容"
 ---
 
-该接口使用 Gemini 的请求和响应格式，不会转换成 Chat Completions。ProtoJSON 的 lowerCamelCase 与 proto 的 snake_case 字段名都可以使用；可选字段是否生效取决于所选模型。
+使用 Gemini Models API 返回的模型，以 Gemini 请求和响应格式调用。支持 ProtoJSON lowerCamelCase 和对应的 proto snake_case 字段名；可选字段和取值以所选模型为准。
+
 ## 路径参数
 
 <ParamField path="model" type="string" required>
@@ -27,7 +28,7 @@ Gemini 端点支持多种身份验证方法：
 ## 请求体
 
 <ParamField body="contents" type="array" required>
-  对话内容，包含 `role` 和 `parts`。媒体字段可以使用 `inlineData` / `inline_data` 或 `fileData` / `file_data`。TokenLab 创建的 Files 或 Cache ID 只能在所属工作区使用。
+  对话内容，包含 `parts` 和可选的 `role`。媒体字段使用 `inlineData` / `inline_data` 或 `fileData` / `file_data`。TokenLab 创建的 Files 和 Cache ID 只能在所属工作区使用。
 </ParamField>
 
 <ParamField body="systemInstruction" type="object">
@@ -35,7 +36,7 @@ Gemini 端点支持多种身份验证方法：
 </ParamField>
 
 <ParamField body="generationConfig" type="object">
-  Gemini 生成设置，包括 `maxOutputTokens`、`candidateCount` 和 `thinkingConfig`。lowerCamelCase 与对应的 snake_case 名称都可以使用；取值范围以所选模型为准。
+  生成设置包括 `temperature`、`topP`、`topK`、`maxOutputTokens`、`stopSequences`、`candidateCount`、`responseModalities`、`responseMimeType`、`responseSchema` 和 `thinkingConfig`，也支持对应的 snake_case 名称。取值范围与组合以所选模型为准。
 </ParamField>
 
 <ParamField body="safetySettings" type="array">
@@ -87,11 +88,11 @@ print(response.text)
 ```javascript JavaScript
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI("sk-your-api-key", {
-  baseUrl: "https://api.tokenlab.sh"
-});
-
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
+const genAI = new GoogleGenerativeAI("sk-your-api-key");
+const model = genAI.getGenerativeModel(
+  { model: "gemini-2.5-pro" },
+  { baseUrl: "https://api.tokenlab.sh" }
+);
 const result = await model.generateContent("Hello, Gemini!");
 
 console.log(result.response.text());

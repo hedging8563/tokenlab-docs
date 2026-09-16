@@ -8,7 +8,7 @@ Xếp hạng lại các tài liệu bằng cách sử dụng các mô hình tư�
 
 ## Nội dung yêu cầu
 
-**Timeout cho yêu cầu đồng bộ:** endpoint không phải chat này chờ model được định tuyến hoàn tất. Input lớn, audio dài, hoặc batch lớn có thể vượt quá mặc định 30s phổ biến của client, vì vậy hãy đặt timeout của HTTP client ít nhất là `120s`.
+Với đầu vào lớn, đặt thời gian chờ của máy khách HTTP ít nhất `120s`. Phản hồi trả về sau khi xử lý hoàn tất.
 
 <ParamField body="model" type="string" required>
   ID của mô hình reranker cần sử dụng (ví dụ: `qwen3-vl-rerank`).
@@ -23,7 +23,7 @@ Xếp hạng lại các tài liệu bằng cách sử dụng các mô hình tư�
 </ParamField>
 
 <ParamField body="top_n" type="integer">
-  Số lượng kết quả hàng đầu cần trả về. Mặc định là tất cả tài liệu. Phải tối thiểu là `1` và không được lớn hơn `documents.length`. Hiện TokenLab chưa áp dụng giới hạn công khai thấp hơn theo từng provider; nếu giới hạn này thay đổi, trang này sẽ được cập nhật trước khi áp dụng.
+  Số kết quả hàng đầu, từ `1` đến `documents.length`. Nếu bỏ qua, mô hình được chọn quyết định số lượng.
 </ParamField>
 
 <ParamField body="return_documents" type="boolean" default="false">
@@ -37,16 +37,16 @@ Xếp hạng lại các tài liệu bằng cách sử dụng các mô hình tư�
 
   Mỗi kết quả bao gồm:
   - `index` (integer): Chỉ mục tài liệu gốc
-  - `relevance_score` (number): Điểm số liên quan (0-1)
+  - `relevance_score` (number): Điểm liên quan. Phạm vi phụ thuộc vào mô hình được chọn.
   - `document` (string): Văn bản gốc (nếu `return_documents=true`)
 </ResponseField>
 
 <ResponseField name="model" type="string">
-  Mô hình được sử dụng để xếp hạng lại.
+  Mô hình được sử dụng để xếp hạng lại. Trả về khi có sẵn.
 </ResponseField>
 
 <ResponseField name="usage" type="object">
-  Thống kê mức sử dụng token.
+  Thống kê mức sử dụng token. Trả về khi có sẵn.
 </ResponseField>
 
 <RequestExample>

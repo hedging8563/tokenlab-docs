@@ -21,7 +21,7 @@ OpenCode adalah asisten coding AI open-source yang berjalan di terminal Anda. In
 [OpenCode](https://opencode.ai/docs/)
 
 ```bash
-npm install -g opencode-ai
+npm install -g opencode-ai@1.18.31
 ```
 
 Verifikasi instalasi:
@@ -34,22 +34,13 @@ opencode --version
 
 ### Langkah 1: Atur Environment Variable
 
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
-
-Untuk konfigurasi permanen, tambahkan ke `~/.bashrc` atau `~/.zshrc`:
-
-```bash
-echo 'export TOKENLAB_API_KEY="sk-your-tokenlab-key"' >> ~/.zshrc
-source ~/.zshrc
-```
+Ikuti langkah terminal [panduan cepat](/id/quickstart) untuk macOS, Linux, WSL, atau Windows PowerShell guna mengatur `TOKENLAB_API_KEY` tanpa menulis kunci ke riwayat perintah. Jalankan OpenCode dari terminal tersebut. Untuk penggunaan berkelanjutan, gunakan pengelola rahasia lokal, bukan kunci teks biasa di profil shell.
 
 ### Langkah 2: Konfigurasikan OpenCode
 
-Dokumentasi OpenCode saat ini merekomendasikan konfigurasi penyedia melalui `opencode.json` atau `opencode.jsonc`. Untuk TokenLab, gunakan penyedia kustom alih-alih menimpa penyedia bawaan `openai`:
+Konfigurasi berikut telah diperiksa dengan **OpenCode 1.18.31**. Versi lain perlu diverifikasi sendiri berdasarkan dokumentasi resminya.
 
-Contoh memakai format V1 yang didukung. Gabungkan ke `~/.config/opencode/opencode.json` dan pertahankan penyedia serta izin. V2 membaca V1 yang didukung; jangan campur format dalam satu penyedia. Lihat [panduan migrasi](https://opencode.ai/v2/docs/migrate-v1/). Periksa `/models`, lalu cocokkan uji berbayar dengan catatan TokenLab. Untuk membatalkan, pilih model lama dan hapus entri ini saja.
+Simpan konfigurasi di file terpisah `~/.config/opencode/tokenlab.jsonc`. Jika `XDG_CONFIG_HOME` diatur, gunakan `opencode/tokenlab.jsonc` di direktori tersebut. Pertahankan `opencode.json` / `opencode.jsonc` biasa, akun, model default, dan izin. File terpisah ini hanya dimuat saat peluncuran memilihnya melalui `OPENCODE_CONFIG`. Jika file atau nama penyedia sudah dipakai, pilih nama lain dan sesuaikan perintah.
 
 ```jsonc
 {
@@ -71,34 +62,46 @@ Contoh memakai format V1 yang didukung. Gabungkan ke `~/.config/opencode/opencod
         }
       }
     }
-  },
-  "model": "tokenlab/gpt-5.6-terra"
+  }
 }
 ```
 
 <Note>
-Gunakan `@ai-sdk/openai-compatible` untuk kompatibilitas gaya chat-completions. Jika Anda secara khusus membutuhkan jalur penyedia yang dibangun di atas `/v1/responses`, dokumentasi OpenCode merekomendasikan untuk mengganti package menjadi `@ai-sdk/openai`.
+Konfigurasi ini mengirim Chat Completions melalui `@ai-sdk/openai-compatible`. Periksa dukungan Chat Completions dan alat yang diperlukan pada detail model saat ini. Contoh ini tidak membuktikan kompatibilitas protokol atau versi lain.
 </Note>
+
+Opsional: [helper konfigurasi OpenCode yang dapat dipulihkan](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/skills/tokenlab-api-integration/references/opencode_setup.md) menyediakan pratinjau, penerapan, dan pemulihan file asli dengan Python 3.11+. Plugin TokenLab Skills **0.1.2** menyertakan skrip ini; Skill mandiri juga dapat digunakan setelah diperbarui ke versi yang memuatnya. Untuk plugin atau Skill mandiri yang sudah terpasang, ikuti [petunjuk pembaruan README](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/README.md#update-an-existing-installation) dan pastikan skrip tersedia. Konfigurasi manual di halaman ini tetap dapat digunakan tanpa helper.
 
 ## Penggunaan Dasar
 
-**Mulai mode interaktif:**
+Atur kunci sesuai panduan cepat, lalu muat file hanya untuk peluncuran ini dan pilih model secara eksplisit. Sesuaikan path serta nama penyedia kustom. Pertahankan pengaturan `OPENCODE_CONFIG` atau `OPENCODE_CONFIG_CONTENT` yang sudah ada dalam lingkungan peluncuran terpisah; pengaturan proyek atau terkelola masih dapat memiliki prioritas.
 
-```bash
-opencode
+<CodeGroup>
+```bash macOS / Linux / WSL
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode models tokenlab
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode --model tokenlab/gpt-5.6-terra
 ```
 
-**Jalankan dengan prompt:**
-
-```bash
-opencode run "Explain this codebase"
+```powershell Windows PowerShell
+$tokenlabConfigRoot = if ($env:XDG_CONFIG_HOME) { $env:XDG_CONFIG_HOME } else { Join-Path $HOME '.config' }
+$previousConfig = $env:OPENCODE_CONFIG
+try {
+  $env:OPENCODE_CONFIG = Join-Path $tokenlabConfigRoot 'opencode/tokenlab.jsonc'
+  opencode models tokenlab
+  opencode --model tokenlab/gpt-5.6-terra
+} finally {
+  if ($null -eq $previousConfig) {
+    Remove-Item Env:OPENCODE_CONFIG -ErrorAction SilentlyContinue
+  } else {
+    $env:OPENCODE_CONFIG = $previousConfig
+  }
+}
 ```
+</CodeGroup>
 
-**Tentukan model:**
+Daftar model memeriksa pemuatan lokal, bukan validitas kunci atau keberhasilan permintaan langsung. Prompt memakai saldo TokenLab dan OpenCode dapat mengirim permintaan tambahan yang ditagih terpisah, seperti pembuatan judul. Periksa respons dan [catatan permintaan terkait](https://tokenlab.sh/dashboard/runs?section=requests).
 
-```bash
-opencode run --model tokenlab/gpt-5.6-terra "Fix the bugs in main.py"
-```
+Jalankan tanpa file ini untuk memakai pengaturan biasa. Jangan menyimpan `OPENCODE_CONFIG` dalam profil shell untuk panduan ini. Untuk membatalkan konfigurasi manual, hapus hanya file terpisah yang baru dibuat atau pulihkan cadangannya jika sudah ada sebelumnya.
 
 ## Model yang Tersedia
 
@@ -115,25 +118,25 @@ opencode run --model tokenlab/gpt-5.6-terra "Fix the bugs in main.py"
 **Analisis kode:**
 
 ```bash
-opencode run "What does this function do?" < src/utils.ts
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode run --model tokenlab/gpt-5.6-terra "What does this function do?" < src/utils.ts
 ```
 
 **Hasilkan kode:**
 
 ```bash
-opencode run "Create a REST API with Express"
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode run --model tokenlab/gpt-5.6-terra "Create a REST API with Express"
 ```
 
 **Review perubahan:**
 
 ```bash
-git diff | opencode run "Review these changes"
+git diff | OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode run --model tokenlab/gpt-5.6-terra "Review these changes"
 ```
 
 **Perbaiki error:**
 
 ```bash
-opencode run "Fix the TypeScript errors in this project"
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode run --model tokenlab/gpt-5.6-terra "Fix the TypeScript errors in this project"
 ```
 
 ## Perintah Interaktif

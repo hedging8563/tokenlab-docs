@@ -1,139 +1,20 @@
 ---
 title: "コーディングエージェントのモデル選択"
-description: "各コーディングタスクに最適なモデルを選択——比較表、推奨、設定"
+description: "タスク、必要なコンテキスト、速度、実際の費用に基づいてモデルを選びます。"
 ---
 
-## コーディング向けモデル比較
+タスク、必要なコンテキスト、速度、実際の費用に基づいてモデルを選びます。
 
-| モデル | 速度 | コード品質 | コスト | コンテキストウィンドウ | 最適な用途 |
-|-------|------|----------|------|-------------------|----------|
-| `claude-opus-4-6` | 中程度 | 優秀 | $$$$ | 200K | アーキテクチャ、複雑なリファクタリング |
-| `gpt-5.4` | 中程度 | 優秀 | $$$$ | 200K | 複雑な推論、計画 |
-| `claude-sonnet-4-6` | 高速 | 非常に良い | $$$ | 200K | 一般的なコーディング、レビュー |
-| `gemini-3.1-pro-preview` | 高速 | 非常に良い | $$$ | 1M | 大規模コードベース分析 |
-| `gpt-5-mini` | 非常に高速 | 良い | $$ | 128K | クイック編集、補完 |
-| `gemini-3.5-flash` | 非常に高速 | 良い | $$ | 1M | 高速イテレーション、検索 |
-| `deepseek-v4-pro` | 中程度 | 非常に良い | $ | 1M | 推論重視タスク |
-| `deepseek-v4-flash` | 高速 | 良い | $ | 1M | 一括生成、ボイラープレート |
+最新の ID、料金、コンテキスト上限、`tokenlab.accepted_request_formats` は[モデルページ](https://tokenlab.sh/ja/models)で確認してください。モデル名だけではプロトコルやツールへの対応は判断できません。
 
+同じリポジトリ状態、指示、ツールで候補を比較します。結果の正確さ、回帰、不必要な変更、所要時間、完了したタスクあたりの費用を評価します。小さな修正に大規模なリファクタリングと同じコンテキストは必要ありません。
 
-新しいコーディング向けプールでは、大きなコンテキストのエージェント作業に `minimax-m3`、高速なコーディングループに `kimi-k2.7-code-highspeed`、OpenAI Chat 互換リクエストに `deepseek-v4-pro` / `deepseek-v4-flash`、`glm-5.2`、`step-3.7-flash`、`mimo-v2.5-pro` も検討してください。
+クライアントでモデルを明示的に選択してください。モデル変更は料金やツール、出力に影響するため、確認を得ます。各クライアントのガイドに従い、既存のアカウントや権限を保持してください。
 
-## タスク別推奨
+## 設定と関連ガイド
 
-<AccordionGroup>
-  <Accordion title="コード生成 / スキャフォールディング">
-    **推奨**: `claude-sonnet-4-6`、`gemini-3.1-pro-preview`
-
-    クリーンで構造化されたコードを生成。複雑なマルチファイルスキャフォールディングには `claude-opus-4-6` を検討。
-
-    予算代替: `deepseek-v4-flash` はボイラープレートを低コストで処理。
-  </Accordion>
-
-  <Accordion title="コードレビュー / リファクタリング">
-    **推奨**: `claude-sonnet-4-6`、`deepseek-v4-pro`
-
-    `deepseek-v4-pro` は思考連鎖アプローチで微妙な問題を検出でき、コスト効率が高い。
-
-    セキュリティレビュー: `claude-opus-4-6` または `gpt-5.4`。
-  </Accordion>
-
-  <Accordion title="バグ修正 / デバッグ">
-    **推奨**: `claude-sonnet-4-6`、`gpt-5-mini`
-
-    バグ修正は通常スコープが明確。スタンダードモデルで十分。複雑なマルチファイルバグにのみプレミアムモデルを使用。
-  </Accordion>
-
-  <Accordion title="アーキテクチャ設計">
-    **推奨**: `claude-opus-4-6`、`gpt-5.4`
-
-    アーキテクチャ決定は最強の推論能力から恩恵を受けます。頻度は低いが影響は大きい。
-  </Accordion>
-
-  <Accordion title="クイック編集 / タブ補完">
-    **推奨**: `gpt-5-mini`、`gemini-3.5-flash`
-
-    インタラクティブ使用では速度が重要。高速レスポンスの予算モデルが最適。
-  </Accordion>
-</AccordionGroup>
-
-## TokenLab のプロバイダー選択
-
-### 選択戦略
-
-| 戦略 | 動作 | 最適な用途 |
-|------|------|----------|
-| **PRIORITY** | 最高優先度の利用可能プロバイダーを使用 | 信頼性重視 |
-| **COST** | 最低コストの利用可能プロバイダーを使用 | コスト重視 |
-
-### 自動再試行
-
-```
-リクエスト: claude-sonnet-4-6
-  → Provider A（プライマリ）: 503エラー
-  → Provider B（再試行）: ✓ 成功
-```
-
-### ネイティブ API 形式
-
-選択したモデルがネイティブ API 形式に対応している場合、TokenLab はその形式を使用して互換性を高められます:
-
-| モデルファミリー | API Format | Base URL |
-|-------------|------------|----------|
-| Claude | Anthropic Messages | `https://api.tokenlab.sh` |
-| GPT | OpenAI Responses | `https://api.tokenlab.sh/v1` |
-| Gemini | Gemini Native API | `https://api.tokenlab.sh` または `https://api.tokenlab.sh/v1beta`（クライアントのパスに応じて） |
-| DeepSeek | OpenAI Chat | `https://api.tokenlab.sh/v1` |
-
-Claude Code は強い Anthropic-native パスです。Gemini-native API も存在しますが、Gemini CLI 自体は依然として best-effort な互換パスであり、長期的に安定したワークフローとしては扱うべきではありません。
-
-## ツールごとの設定
-
-<AccordionGroup>
-  <Accordion title="Claude Code">
-    ```bash
-    export ANTHROPIC_API_KEY="sk-your-tokenlab-key"
-    export ANTHROPIC_BASE_URL="https://api.tokenlab.sh"
-    ```
-    モデル選択: `claude --model claude-sonnet-4-6`
-
-    [完全ガイド →](/ja/integrations/claude-code)
-  </Accordion>
-
-  <Accordion title="Cursor">
-    Settings → Models:
-    - API Key: `sk-your-tokenlab-key`
-    - Base URL: `https://api.tokenlab.sh/v1`
-
-    [完全ガイド →](/ja/integrations/cursor)
-  </Accordion>
-
-  <Accordion title="Codex CLI">
-    ```bash
-    export OPENAI_API_KEY="sk-your-tokenlab-key"
-    export OPENAI_BASE_URL="https://api.tokenlab.sh/v1"
-    ```
-    [完全ガイド →](/ja/integrations/codex-cli)
-  </Accordion>
-
-  <Accordion title="Gemini CLI">
-    ```bash
-    export GEMINI_API_KEY="sk-your-tokenlab-key"
-    export GOOGLE_GEMINI_BASE_URL="https://api.tokenlab.sh"
-    ```
-
-    この経路は Gemini CLI の公式連携ではなく、best-effort な互換経路として扱ってください.
-    [完全ガイド →](/ja/integrations/gemini-cli)
-  </Accordion>
-
-  <Accordion title="OpenCode">
-    ```json
-    {
-      "provider": "openai",
-      "apiKey": "sk-your-tokenlab-key",
-      "baseURL": "https://api.tokenlab.sh/v1"
-    }
-    ```
-    [完全ガイド →](/ja/integrations/opencode)
-  </Accordion>
-</AccordionGroup>
+- [Claude Code](/ja/integrations/claude-code)
+- [Codex CLI](/ja/integrations/codex-cli)
+- [Cursor](/ja/integrations/cursor)
+- [OpenCode](/ja/integrations/opencode)
+- [実際の利用データで費用を管理](/ja/guides/coding-agent-cost)

@@ -26,9 +26,8 @@ Si `startDate` et `endDate` sont fournis ensemble, `startDate` doit être antér
 
 ## Notes
 
-- Les champs monétaires prennent uniquement en charge l’USD. Les entrées `CNY` sont abandonnées et renvoient `400 currency_retired`.
+- Les champs monétaires prennent uniquement en charge l’USD.
 
-- Les champs monétaires sont réservés au USD. Les entrées `CNY` sont obsolètes et renvoient `400 currency_retired`.
 
 - La réponse est paginée.
 - La réponse ne contient que des champs publics de billing et de reporting.
@@ -39,7 +38,7 @@ Si `startDate` et `endDate` sont fournis ensemble, `startDate` doit être antér
 
 <RequestExample>
 ```bash cURL
-curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page=1&limit=20&scene=video&startDate=2026-03-01&endDate=2026-03-31" \
+curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page=1&limit=20&scene=chat&startDate=2026-07-01&endDate=2026-07-31" \
   -H "Authorization: Bearer mt-your-management-token"
 ```
 </RequestExample>
@@ -68,7 +67,8 @@ Cette page fournit le schéma OpenAPI et des exemples de requêtes à copier. En
     ],
     "expires_at": "2026-12-31T23:59:59.000Z",
     "last_used_at": "2026-07-08T03:12:45.000Z",
-    "created_at": "2026-07-01T10:00:00.000Z"
+    "created_at": "2026-07-01T10:00:00.000Z",
+    "delivery_policy": null
   },
   "items": [
     {
@@ -90,7 +90,10 @@ Cette page fournit le schéma OpenAPI et des exemples de requêtes à copier. En
       "cache_write_tokens_1h": 0,
       "cost": 0.0012,
       "cost_decimal": "0.0012",
-      "created_at": "2026-07-08T03:15:00.000Z"
+      "created_at": "2026-07-08T03:15:00.000Z",
+      "requested_policy": null,
+      "resolved_tier": null,
+      "charged_price_basis": null
     }
   ],
   "pagination": {
@@ -190,6 +193,9 @@ Cette page fournit le schéma OpenAPI et des exemples de requêtes à copier. En
 <ResponseField name="items[].cache_write_tokens_1h" type="number">Nombre de tokens d’écriture du cache sur une heure.</ResponseField>
 <ResponseField name="items[].cost" type="number">Coût en USD renvoyé sous forme de nombre JSON pour l’affichage.</ResponseField>
 <ResponseField name="items[].cost_decimal" type="string">Coût exact en USD renvoyé sous forme de chaîne décimale.</ResponseField>
+<ResponseField name="items[].requested_policy" type="string | null">`auto`, `verified`, `official`, `null`. Politique de livraison demandée, si enregistrée.</ResponseField>
+<ResponseField name="items[].resolved_tier" type="string | null">`verified`, `official`, `null`. Niveau de livraison utilisé, si enregistré.</ResponseField>
+<ResponseField name="items[].charged_price_basis" type="object | null">Prix appliqué et quantité facturable, si enregistrés.</ResponseField>
 <ResponseField name="items[].created_at" type="string">Horodatage ISO de la ligne d’utilisation.</ResponseField>
 <ResponseField name="summary.total_requests" type="number">Nombre total de requêtes.</ResponseField>
 <ResponseField name="summary.total_cost" type="number">Coût total en USD renvoyé sous forme de nombre JSON pour l’affichage.</ResponseField>

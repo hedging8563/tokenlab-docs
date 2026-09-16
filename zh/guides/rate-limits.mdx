@@ -5,6 +5,8 @@ description: "查看每分钟请求数上限，正确处理 429 响应"
 
 账户层级决定每分钟可以发送多少次 API 请求。达到上限后，API 会返回 `429 rate_limit_exceeded`，并通过 `Retry-After` 告诉客户端需要等待多久。
 
+下表是标准等级限额，当前配置可能调整这些数值。需鉴权请求的这些限额按 API Key 执行。`GET /v1/models` 等公开发现接口另有独立限额。收到 429 时，以返回的 `X-RateLimit-Limit` 和 `Retry-After` 为准，不要把复制的表格当作当前实际限额。
+
 ## 账户限额
 
 | 层级 | 每分钟请求数 |
@@ -44,11 +46,11 @@ import random
 import time
 from openai import RateLimitError
 
-def chat_with_rate_limit_retry(client, messages, attempts=4):
+def chat_with_rate_limit_retry(client, model, messages, attempts=4):
     for attempt in range(attempts):
         try:
-            return client.chat.completions.create(
-                model="gpt-5.6-luna",
+            return client.with_options(max_retries=0).chat.completions.create(
+                model=model,
                 messages=messages,
             )
         except RateLimitError as exc:

@@ -10,11 +10,15 @@ description: "تحميل أصل مادي خاص بـ Seedance إلى مجموع�
 
 | النوع | المدخلات المدعومة |
 |------|-----------------|
-| صورة | `jpeg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`؛ نسبة العرض إلى الارتفاع `(0.4, 2.5)`؛ العرض والارتفاع `(300, 6000)` بكسل؛ أقل من 30 ميجابايت. |
-| فيديو | `mp4`, `mov`؛ `480p`, `720p`, أو `1080p`؛ 2-15 ثانية؛ نسبة العرض إلى الارتفاع `[0.4, 2.5]`؛ العرض والارتفاع `[300, 6000]` بكسل؛ إجمالي البكسلات بين 409600 و 2068676؛ حتى 200 ميجابايت؛ 24-60 إطاراً في الثانية. |
-| صوت | `aac`, `wav`, `mp3`؛ 2-15 ثانية؛ حتى 15 ميجابايت. |
+| صورة | `jpeg`, `jpg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`; ≤30 MiB; العرض والارتفاع `[300, 6000]` px; نسبة العرض إلى الارتفاع `[0.4, 2.5]`. |
+| فيديو | `mp4`, `mov`; ≤200 MiB. |
+| صوت | `aac`, `wav`, `mp3`; ≤15 MiB. |
+
+يتحقق TokenLab من رابط المصدر ونوع الوسائط وحجم الملف وأبعاد الصور القابلة للقراءة. قبول الاستيراد لا يعني أن الأصل جاهز: انتظر `ACTIVE` وافحص `error_message` عند فشل المعالجة. تُفحص شروط الوسائط والوجوه الأخرى أثناء المعالجة.
 
 عملية الإنشاء غير متزامنة. قم بإجراء استعلام (Poll) لـ [الحصول على أصل مادي (Material Asset)](/ar/api-reference/video/get-material-asset) حتى تصبح `status` هي `ACTIVE`. بالنسبة لمجموعات الأشخاص الحقيقيين، ترتبط كل مجموعة بشخص واحد تم التحقق منه؛ قد تفشل عمليات التحميل التي تحتوي على وجوه متعددة أو وجه لا يطابق الشخص الذي تم التحقق منه.
+
+يعزل `project_name` الموارد داخل المؤسسة المصادق عليها. قيمته الافتراضية `default`؛ استخدم القيمة نفسها مع مراعاة حالة الأحرف للمجموعات والأصول المرتبطة. أرسله في جسم JSON مع POST/PUT وفي معاملات الاستعلام مع GET/DELETE.
 
 ## مثال على الطلب
 
@@ -22,7 +26,7 @@ description: "تحميل أصل مادي خاص بـ Seedance إلى مجموع�
 curl https://api.tokenlab.sh/v1/videos/assets \
   -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"library_type":"aigc_avatar","group_id":"group-20260720123456-vrt01","asset_url":"https://example.com/reference.png","asset_type":"Image","asset_name":"Front view"}'
+  -d '{"library_type":"aigc_avatar","group_id":"group-20260720123456-vrt01","asset_url":"https://example.com/reference.png","asset_type":"Image","asset_name":"Front view","project_name":"default"}'
 ```
 
 ## مثال على الاستجابة
@@ -31,6 +35,7 @@ curl https://api.tokenlab.sh/v1/videos/assets \
 {
   "id": "asset-20260720123456-qn7wr",
   "object": "seedance.material_asset",
+  "project_name": "default",
   "group_id": "group-20260720123456-vrt01",
   "library_type": "aigc_avatar",
   "asset_name": "Front view",

@@ -39,8 +39,8 @@ Nur `message` und `type` sind in OpenAI-kompatiblen Fehlern, die von TokenLab er
 
 | Code | Bedeutung | Was zu ändern ist |
 | --- | --- | --- |
-| `invalid_api_key` | Der API-Key fehlt oder ist nicht gültig | Authorization-Header und Key-Wert überprüfen |
-| `expired_api_key` | Der Key ist abgelaufen oder wurde widerrufen | Aktiven Key erstellen oder auswählen |
+| `invalid_api_key` | Der API-Schlüssel fehlt, ist ungültig, inaktiv oder widerrufen | Authorization-Header und Key-Wert überprüfen |
+| `expired_api_key` | Der API-Schlüssel ist abgelaufen | Aktiven Key erstellen oder auswählen |
 | `insufficient_balance` | Das Kontoguthaben deckt die Anfrage nicht ab | Guthaben aufladen, Anfrage reduzieren oder günstigeres Modell wählen |
 | `quota_exceeded` | Der API-Key hat sein eigenes Limit erreicht | Limit des Keys erhöhen oder anderen autorisierten Key verwenden |
 | `model_not_allowed` | Der Key kann das angeforderte Modell nicht verwenden | Modellliste des Keys aktualisieren oder erlaubtes Modell wählen |
@@ -65,43 +65,10 @@ Einige OpenAI-kompatible Fehler enthalten optionale Felder wie `did_you_mean`, `
 
 Speichern Sie bei der Erstellung von Bildern, Videos, Musik, 3D-Inhalten und Welten die Task-ID, sobald sie zurückgegeben wird. Wenn eine Erstellungsanfrage ein Timeout hat, überprüfen Sie den Aufgabenverlauf, bevor Sie eine weitere Erstellungsanfrage senden.
 
-## Python-Beispiel
-
-```python
-import random
-import time
-from openai import OpenAI, APIConnectionError, APIStatusError, RateLimitError
-
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1",
-)
-
-def chat(messages, model="gpt-5.6-luna", attempts=3):
-    for attempt in range(attempts):
-        try:
-            return client.chat.completions.create(
-                model=model,
-                messages=messages,
-            )
-        except RateLimitError as exc:
-            if attempt == attempts - 1:
-                raise
-            retry_after = exc.response.headers.get("Retry-After")
-            wait = float(retry_after) if retry_after else (2 ** attempt + random.random())
-            time.sleep(wait)
-        except APIStatusError as exc:
-            if exc.status_code < 500 or attempt == attempts - 1:
-                raise
-            time.sleep(2 ** attempt + random.random())
-        except APIConnectionError:
-            if attempt == attempts - 1:
-                raise
-            time.sleep(2 ** attempt + random.random())
-```
-
 ## Die Request ID beibehalten
 
 Antwort-Header enthalten eine Request ID zur Nachverfolgung. Speichern Sie diese zusammen mit dem Endpunkt, dem Modell, der Zeit und Ihrer eigenen Benutzer- oder Job-ID. Speichern Sie bei asynchronen Arbeiten auch `task_id` und `billing_transaction_id`, sofern vorhanden.
 
 Wenn Sie den Support kontaktieren, fügen Sie diese IDs und ein redigiertes Beispiel bei. Senden Sie niemals API-Keys, Management-Token, private Medien, signierte URLs oder vollständige private Prompts.
+
+[Von der Anfrage zur Untersuchung und zum Support](/de/guides/observability-troubleshooting)

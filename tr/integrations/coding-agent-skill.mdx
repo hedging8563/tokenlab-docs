@@ -3,6 +3,12 @@ title: "✨ TokenLab API Entegrasyon Skill’i"
 description: "Bakımı sürdürülen TokenLab API entegrasyon skill’ini kurun ve coding agent’lara model keşfi, model details okuma ve API hatalarından toparlanma yolunu öğretin."
 ---
 
+```text
+Bu sayfayı okuyup TokenLab Skill’i mevcut aracıma ekleyin. Önce kurulu sürümü ve etkin yapılandırmayı kontrol edin. Mevcut hesapları, sağlayıcıları, izinleri ve ayarları koruyun. Dosyaları yedekleyip değişiklikleri gösterin. API anahtarını yerel olarak gireceğim; sohbette istemeyin veya göstermeyin. Önce yapılandırmanın yüklendiğini doğrulayın ve ücretli testleri çalıştırmadan önce açıklayın.
+https://docs.tokenlab.sh/tr/integrations/coding-agent-skill
+```
+
+
 <Note>
 Bu sayfa bakımı sürdürülen ortak `tokenlab-api-integration` skill’ini açıklar. Kanonik dağıtım [hedging8563/tokenlab-skills](https://github.com/hedging8563/tokenlab-skills) içindedir; public repository bilinçli olarak yalnızca bu skill’i tutar.
 </Note>
@@ -70,11 +76,7 @@ API keys değerlerini prompt’lara veya kaynak dosyalara yapıştırmayın. Ski
 
 ## Önerilen Agent iş akışı
 
-1. Kullanıcının istediği dil ve API ailesiyle eşleşen en küçük çalışan örnekle başlayın.
-2. Model seçimi açıksa bir modeli hard-code etmeden önce `/v1/models` veya `https://api.tokenlab.sh/llms.txt` çağırın.
-3. Non-chat işlerde `/v1/models?recommended_for=<scene>` çağırın; `<scene>` `image`, `video`, `music`, `3d`, `tts`, `stt`, `embedding`, `rerank` veya `translation` olabilir.
-4. Başarısız non-chat isteği değiştirmeden önce `/v1/models/:model` okuyun ve `supported_operations`, `supported_parameters`, `request_endpoint`, `request_endpoint_by_operation`, `request_shape_mode`, `recommended_request` ile hizalayın.
-5. API Agent-First hata döndürürse isteği yapılandırılmış alanlarla düzeltin ve yalnızca hata retryable ise yeniden deneyin.
+Güncel model listesini, ardından seçilen modelin `tokenlab.accepted_request_formats` ve açık istek alanlarını okuyun. Konuşma ve araç çağrılarında aynı biçimi koruyun; alanlar biçimler arasında otomatik dönüştürülmez. Hata olduğunda seçilmiş modeli veya protokolü kendiliğinizden değiştirmeyin.
 
 ## Minimum chat örneği
 
@@ -86,12 +88,12 @@ from openai import OpenAI
 
 client = OpenAI(
     api_key=os.environ["TOKENLAB_API_KEY"],
-    base_url="https://api.tokenlab.sh/v1"
+    base_url="https://api.tokenlab.sh/v1",
 )
 
 response = client.chat.completions.create(
-    model="gpt-4o-mini",
-    messages=[{"role": "user", "content": "Hello!"}]
+    model="gpt-5.6-luna",
+    messages=[{"role": "user", "content": "Hello!"}],
 )
 
 print(response.choices[0].message.content)
@@ -114,19 +116,19 @@ Eskimiş paket listeleri yerine canlı keşfi tercih edin:
 curl https://api.tokenlab.sh/llms.txt
 
 # Modelleri listele
-curl "https://api.tokenlab.sh/v1/models" -H "Authorization: Bearer sk-KEY"
-curl "https://api.tokenlab.sh/v1/models?category=image" -H "Authorization: Bearer sk-KEY"
+curl "https://api.tokenlab.sh/v1/models" -H "Authorization: Bearer $TOKENLAB_API_KEY"
+curl "https://api.tokenlab.sh/v1/models?category=image" -H "Authorization: Bearer $TOKENLAB_API_KEY"
 
 # Sıralı non-chat kısa listeleri
-curl "https://api.tokenlab.sh/v1/models?recommended_for=image" -H "Authorization: Bearer sk-KEY"
-curl "https://api.tokenlab.sh/v1/models?recommended_for=video" -H "Authorization: Bearer sk-KEY"
-curl "https://api.tokenlab.sh/v1/models?recommended_for=translation" -H "Authorization: Bearer sk-KEY"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=image" -H "Authorization: Bearer $TOKENLAB_API_KEY"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=video" -H "Authorization: Bearer $TOKENLAB_API_KEY"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=translation" -H "Authorization: Bearer $TOKENLAB_API_KEY"
 
 # Non-chat isteği tekrar denemeden önce tek modelin model details bilgisini oku
-curl "https://api.tokenlab.sh/v1/models/gpt-image-2" -H "Authorization: Bearer sk-KEY"
+curl "https://api.tokenlab.sh/v1/models/gpt-image-2" -H "Authorization: Bearer $TOKENLAB_API_KEY"
 
 # Yalnızca fiyat ayrıntısı
-curl "https://api.tokenlab.sh/v1/models/gpt-image-2/pricing" -H "Authorization: Bearer sk-KEY"
+curl "https://api.tokenlab.sh/v1/models/gpt-image-2/pricing" -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```
 
 ## Native protokol seçimi
@@ -141,12 +143,7 @@ Protokol uç noktaları Chat Completions için `/v1/chat/completions`, Responses
 
 Hatalar, coding agent’ların dokümanı kazımadan ayrıştırabileceği alanlar içerir:
 
-| Hata | Yararlı alanlar | Agent eylemi |
-|---|---|---|
-| Yanlış model adı | `did_you_mean`, `suggestions`, `hint` | Düzeltilmiş modelle veya önerilen bir alternatifle yeniden deneyin |
-| Yetersiz bakiye | `balance_usd`, `estimated_cost_usd`, `suggestions` | Onay isteyin veya uygun maliyetli bir modele geçin |
-| Hız sınırı veya geçici kullanılamama | `retryable`, `retry_after`, `alternatives` | Bekleyin, yeniden deneyin veya listelenen bir alternatifi seçin |
-| Sohbet dışı istek uyumsuzluğu | `supported_operations`, `supported_parameters`, `request_endpoint`, `request_endpoint_by_operation`, `request_shape_mode`, `recommended_request` | İsteği model ayrıntılarına göre yeniden oluşturun ve amacı değiştiren alanlar için açık bir hata döndürün |
+Önce HTTP durumunu ve hata `code` alanını kullanın. Yanlış ad için `did_you_mean` yol gösterebilir; kullanıcı seçmeden modeli değiştirmeyin. `429` için `Retry-After` veya `retry_after` değerine uyun; yalnızca hata izin verdiğinde ve yeniden deneme açıkça seçildiğinde tekrar deneyin. Doğrulama, kimlik doğrulama, bakiye ve izin hatalarını önce düzeltin. Oluşturma isteği zaman aşımına uğrarsa tekrar göndermeden önce mevcut görevi kontrol edin.
 
 ## Desteklenen API aileleri
 
@@ -204,21 +201,4 @@ Hatalar, coding agent’ların dokümanı kazımadan ayrıştırabileceği alanl
 
 ## Kaynaklar
 
-<CardGroup cols={2}>
-  <Card title="Agent-First API" icon="robot" href="/tr/guides/agent-first-api">
-    Yapılandırılmış hata ipuçları ve toparlama davranışı
-  </Card>
-  <Card title="API dokümantasyonu" icon="book" href="https://docs.tokenlab.sh">
-    Endpoint özelinde kurulum ve API Reference
-  </Card>
-  <Card title="Modeller" icon="sparkles" href="https://tokenlab.sh/tr/models">
-    Kullanılabilir modelleri inceleyin
-  </Card>
-  <Card title="llms.txt" icon="file-lines" href="https://api.tokenlab.sh/llms.txt">
-    Agents için makine tarafından okunabilir API özeti
-  </Card>
-</CardGroup>
-
-<Info>
-Sorular için [GitHub Issues](https://github.com/hedging8563/tokenlab-skills/issues) kullanın veya [support@tokenlab.sh](mailto:support@tokenlab.sh) ile iletişime geçin.
-</Info>
+API veya hesap sorunlarında [uygulama içi Desteği](https://tokenlab.sh/dashboard/support) kullanın; önizlemeyi kontrol edip açıkça gönderin. Belirli bir istek için [İstekler](https://tokenlab.sh/dashboard/runs) ve [inceleme kılavuzundan](/tr/guides/observability-troubleshooting) başlayın. Skill hatalarını [GitHub Issues](https://github.com/hedging8563/tokenlab-skills/issues) üzerinden bildirin.

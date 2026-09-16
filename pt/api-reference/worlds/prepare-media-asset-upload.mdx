@@ -18,11 +18,11 @@ TokenLab registra o proprietário da mídia. Somente a mesma organização pode 
   Tipo de mídia: `image` ou `video`.
 </ParamField>
 
-<ParamField body="extension" type="string">
+<ParamField body="extension" type="string | null">
   Extensão opcional como `png`, `jpg` ou `mp4`.
 </ParamField>
 
-<ParamField body="metadata" type="object">
+<ParamField body="metadata" type="object | null">
   Objeto opcional de metadados salvo com a mídia upstream.
 </ParamField>
 
@@ -34,6 +34,14 @@ TokenLab registra o proprietário da mídia. Somente a mesma organização pode 
 
 <ResponseField name="upload_info.upload_url" type="string">
   URL upstream assinada para envio do arquivo binário.
+</ResponseField>
+
+<ResponseField name="upload_info.upload_method" type="string">
+  Método HTTP para enviar o arquivo binário a `upload_info.upload_url`, quando retornado.
+</ResponseField>
+
+<ResponseField name="upload_info.required_headers" type="object">
+  Cabeçalhos a incluir no envio do arquivo binário, quando retornados.
 </ResponseField>
 
 <RequestExample>

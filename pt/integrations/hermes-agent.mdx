@@ -13,6 +13,8 @@ O [guia oficial](https://hermes-agent.nousresearch.com/docs/getting-started/inst
 
 Use o diretório `HERMES_HOME`, se definido; caso contrário, `~/.hermes` (Windows: `%USERPROFILE%\.hermes`). Faça uma cópia de `config.yaml` e mescle as entradas abaixo sem substituir as outras configurações. Escolha um modelo atual com Chat Completions e chamadas de ferramentas.
 
+Faça backup da configuração ativa. Adicione apenas a entrada TokenLab e preserve provedores, contas, modelo padrão e permissões existentes. Se o nome já estiver em uso, escolha outro e ajuste os comandos. Para desfazer, remova apenas a entrada adicionada ou restaure seu backup anterior.
+
 ```yaml
 providers:
   tokenlab:
@@ -20,16 +22,17 @@ providers:
     key_env: TOKENLAB_API_KEY
     transport: chat_completions
     default_model: gpt-5.6-luna
-model:
-  provider: custom:tokenlab
-  default: gpt-5.6-luna
 ```
 
 Crie uma chave em [Chaves API](https://tokenlab.sh/dashboard/api?tab=keys). Salve-a localmente como `TOKENLAB_API_KEY` no `.env` do diretório Hermes ou no ambiente do processo que o inicia. Não cole a chave em conversas nem no YAML do provedor.
 
 ## Verificar antes de enviar
 
-Execute `hermes config get model.provider` e `hermes config get model.default`: devem mostrar `custom:tokenlab` e o modelo escolhido. Inicie uma nova sessão; sessões existentes podem manter o modelo anterior. A verificação não confirma a chave nem uma chamada bem-sucedida.
+Confira o provedor com `hermes config get providers.tokenlab.api`; o resultado deve ser `https://api.tokenlab.sh/v1`. Preserve a seção `model` existente. Inicie uma nova sessão com o provedor e modelo explícitos abaixo; sem essas opções, o padrão anterior continua em uso. Essa inspeção não valida a chave.
+
+```bash
+hermes chat --provider custom:tokenlab --model gpt-5.6-luna
+```
 
 Quando quiser usar saldo do TokenLab, envie um texto curto e confira a resposta e seu [registro de solicitação](https://tokenlab.sh/dashboard/runs?section=requests). Depois teste uma ferramenta somente de leitura. Modelos auxiliares e ferramentas opcionais podem ter outros provedores ou chaves.
 

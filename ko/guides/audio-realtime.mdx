@@ -28,7 +28,7 @@ curl "https://api.tokenlab.sh/v1/models?recommended_for=stt" \
 
 ## 동기 오디오 요청
 
-음성, 전사, 번역은 HTTP 요청에서 직접 반환됩니다. 큰 입력은 일반적인 클라이언트 timeout보다 오래 걸릴 수 있으므로 넉넉한 timeout과 request ID 저장을 권장합니다.
+음성 합성은 HTTP 응답으로 오디오를 반환합니다. 전사와 번역은 최종 텍스트 또는 접수된 작업을 반환할 수 있습니다. 최종 텍스트 대신 작업 ID와 상태가 있으면 ID를 저장하고 완료 또는 실패까지 `poll_url`을 조회하세요. 큰 파일에는 충분한 제한 시간을 설정하고 Request ID를 보관하세요.
 
 ```bash
 curl -X POST "https://api.tokenlab.sh/v1/audio/speech" \
@@ -48,14 +48,27 @@ WebSocket을 열 때 query string에 model을, Authorization header에 API key�
 
 이 가이드는 WebSocket 하위 집합만 다룹니다. TokenLab은 현재 OpenAI Realtime REST client secret, translation client secret, Calls, legacy beta session 관리 엔드포인트를 제공하지 않습니다.
 
+아래 서버 예제를 실행하려면 `ws`를 설치하고 상세 계약에 `/v1/realtime`이 명시된 현재 모델을 `TOKENLAB_REALTIME_MODEL`로 설정하세요. `TOKENLAB_API_KEY`는 서버 환경에서 제공합니다. 이름만으로 실시간 지원을 판단하지 마세요.
+
+```bash
+npm install ws
+```
+
 ```javascript
 import WebSocket from 'ws';
 
-const socket = new WebSocket('wss://api.tokenlab.sh/v1/realtime?model=gpt-realtime', {
-  headers: { Authorization: 'Bearer sk-your-api-key' }
-});
+const model = process.env.TOKENLAB_REALTIME_MODEL;
+const apiKey = process.env.TOKENLAB_API_KEY;
+if (!model || !apiKey) throw new Error('Set TOKENLAB_REALTIME_MODEL and TOKENLAB_API_KEY');
 
+const url = new URL('wss://api.tokenlab.sh/v1/realtime');
+url.searchParams.set('model', model);
+const socket = new WebSocket(url, {
+  headers: { Authorization: `Bearer ${apiKey}` },
+});
 socket.on('message', (event) => console.log(event.toString()));
+socket.on('error', (error) => console.error(error.message));
+process.once('SIGINT', () => socket.close(1000, 'Client stopped'));
 ```
 
 ## 상태 처리

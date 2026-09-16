@@ -81,7 +81,8 @@ Las tareas no soportadas devuelven `400 unsupported_task_cancel`. Las tareas que
 
 | Síntoma | Causa probable | Qué verificar |
 |---------|----------------|---------------|
-| `async_task_not_found` | La tarea es desconocida, ha expirado, es inaccesible para esta clave API, o no es una tarea pública asíncrona | Confirma la propiedad de la clave API y el `task_id` público almacenado |
+| `404 async_task_not_found` | La tarea ha caducado o ya no está disponible | Comprueba los valores guardados de `task_id` y `poll_url` |
+| `403 task_not_owned` | No se puede confirmar que la tarea pertenezca al espacio de trabajo actual | Comprueba el espacio de trabajo o la organización asociados a la clave API |
 | La tarea nunca parece terminar | El cliente sigue consultando la URL incorrecta o se detuvo antes del estado terminal | Usa `poll_url` o `/v1/tasks/{id}` e inspecciona el estado más reciente |
 | URL final de medios faltante | La tarea no está completada, o el trabajo ascendente se completó sin salida utilizable | Sigue consultando hasta el estado terminal, luego maneja la salida faltante como fallida |
 | El usuario ve duplicados | La ruta de reintento creó una nueva tarea después de un tiempo de espera o refresco | Deduplica por tu propio ID de trabajo y `task_id` almacenado |

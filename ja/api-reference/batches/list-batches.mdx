@@ -32,7 +32,6 @@ curl -X GET "https://api.tokenlab.sh/v1/batches?limit=20" \
 
 - 冪等性のある下流の調整には`custom_id`を使用してください。
 - ワーカーがバッチを最終化した後にのみ`output_file_id`と`error_file_id`を期待してください。
-- バッチの価格は、`isBatchRequest=true`の割引ルールが適用されるため、同期価格とは異なる場合があります。
 
 ## レスポンス例
 
@@ -40,7 +39,10 @@ curl -X GET "https://api.tokenlab.sh/v1/batches?limit=20" \
 ```json 200 OK
 {
   "object": "list",
-  "data": [{ "id": "batch_abc123", "object": "batch", "status": "completed" }]
+  "data": [{ "id": "batch_abc123", "object": "batch", "status": "completed" }],
+  "first_id": "batch_abc123",
+  "last_id": "batch_abc123",
+  "has_more": false
 }
 ```
 </ResponseExample>
@@ -50,3 +52,4 @@ curl -X GET "https://api.tokenlab.sh/v1/batches?limit=20" \
 <ResponseField name="object" type="string">レスポンスの object type です。</ResponseField>
 <ResponseField name="data" type="array">このレスポンスで返されるリストまたは payload です。</ResponseField>
 <ResponseField name="status" type="string">このリソースの現在のライフサイクル状態です。</ResponseField>
+<ResponseField name="has_more" type="boolean">`has_more` が true の場合、続きの結果があります。</ResponseField>

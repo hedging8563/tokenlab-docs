@@ -6,12 +6,12 @@ description: "Crée une tâche de génération de monde World Labs Marble"
 
 Générez des mondes 3D explorables avec World Labs Marble. Cette API est asynchrone : les réponses de création renvoient une identité de tâche et une `poll_url` pour vérifier l’état.
 
-Les modèles pris en charge sont `marble-1.0`, `marble-1.1` et `marble-1.1-plus`. World Labs documente aussi `marble-1.0-draft`, mais TokenLab n’expose pas encore la génération draft sur cet endpoint.
+Choisissez un modèle Marble actuellement disponible via la [Models API](/fr/api-reference/models/list-models).
 
 ## Corps de la requête
 
 <ParamField body="model" type="string" default="marble-1.0">
-  Modèle Marble à utiliser : `marble-1.0`, `marble-1.1` ou `marble-1.1-plus`.
+  Choisissez un modèle Marble actuellement disponible via la [Models API](/fr/api-reference/models/list-models).
 </ParamField>
 
 <ParamField body="prompt" type="string">
@@ -55,7 +55,7 @@ Les modèles pris en charge sont `marble-1.0`, `marble-1.1` et `marble-1.1-plus`
 </ParamField>
 
 <ParamField body="permission" type="object">
-  Objet permission World Labs optionnel.
+  Paramètres facultatifs de visibilité et d’accès : `public`, `allow_id_access`, `allowed_readers` et `allowed_writers`. `public: true` demande un monde visible publiquement.
 </ParamField>
 
 ## Réponse
@@ -94,11 +94,7 @@ Les modèles pris en charge sont `marble-1.0`, `marble-1.1` et `marble-1.1-plus`
 
 ## Tarification
 
-World Labs facture en credits. TokenLab pré-déduit le maximum du type de requête, puis règle selon `cost.total_credits` de l’operation terminée lorsqu’il est disponible. Les requêtes Marble standard vont jusqu’à 1 600 credits. `marble-1.1-plus` va jusqu’à 3 100 credits.
-
-## Périmètre
-
-Ces endpoints de gestion couvrent les médias appartenant à TokenLab et les Worlds générés terminés. TokenLab n’expose toujours pas la génération `marble-1.0-draft` ni les outils pano/depth autonomes.
+Consultez la [Pricing API](/fr/api-reference/pricing/get-pricing) pour les tarifs actuels. Le montant facturé figure dans vos relevés d’utilisation ; la valeur `cost.total_credits` renvoyée décrit l’utilisation de génération, pas un montant monétaire.
 
 <RequestExample>
 ```bash cURL

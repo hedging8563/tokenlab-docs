@@ -4,7 +4,8 @@ openapi: "POST /v1/responses"
 description: "OpenAI Responses API 형식을 사용하여 응답을 생성합니다"
 ---
 
-Responses는 OpenAI의 네이티브 상태 유지 응답 프로토콜입니다. TokenLab는 모델 상세가 Responses 형식을 공개하고 동일 프로토콜 upstream 경로가 있을 때만 이 진입점을 제공합니다. 모델명이나 공급자명으로 추론하지 않으며 Chat Completions로 fallback하지 않습니다. 알 수 없는 필드, 명시적 `null`, 빈 배열을 포함한 JSON 형태를 보존해 best-effort로 전달합니다.
+모델 상세의 `accepted_request_formats`에 `openai_responses`가 포함되어 있으면 이 엔드포인트를 사용할 수 있습니다. 요청과 응답은 Responses API 형식을 사용합니다. 선택 필드와 지원 값은 모델에 따라 다릅니다.
+
 ## 요청 본문
 
 <ParamField body="model" type="string" required>
@@ -21,7 +22,7 @@ Responses는 OpenAI의 네이티브 상태 유지 응답 프로토콜입니다. 
   - `function_call`: 함수 호출 요청
   - `function_call_output`: 함수 호출의 출력
 
-  멀티모달 입력의 경우, `message.content`는 일반 문자열이거나 콘텐츠 블록의 배열일 수 있습니다. GPT-5.4 계열과 같이 이미지 지원 모델의 경우, URL이나 Base64 문자열을 일반 텍스트에 직접 포함시키지 말고 이미지를 `input_image` 블록으로 전달하세요.
+  멀티모달 입력의 경우, `message.content`는 일반 문자열이거나 콘텐츠 블록의 배열일 수 있습니다. GPT-5.6 Terra 계열과 같이 이미지 지원 모델의 경우, URL이나 Base64 문자열을 일반 텍스트에 직접 포함시키지 말고 이미지를 `input_image` 블록으로 전달하세요.
 
   예시 콘텐츠 블록:
   - `{ "type": "input_text", "text": "Describe this image" }`
@@ -37,12 +38,12 @@ Responses는 OpenAI의 네이티브 상태 유지 응답 프로토콜입니다. 
   생성할 최대 토큰 수입니다.
 </ParamField>
 
-<ParamField body="temperature" type="number" default="1">
-  샘플링 온도 (0에서 2 사이).
+<ParamField body="temperature" type="number">
+  샘플링 온도입니다. 지원 값과 기본값은 선택한 모델에 따라 다릅니다.
 </ParamField>
 
 <ParamField body="tools" type="array">
-  모델이 호출할 수 있는 도구 목록입니다. TokenLab는 로컬 allowlist 없이 네이티브 정의를 전달하며 지원되는 유형과 조합은 선택된 upstream이 결정합니다.
+  모델이 호출할 수 있는 도구입니다. 지원 유형과 조합은 선택한 모델에 따라 다릅니다.
 </ParamField>
 
 <ParamField body="stream" type="boolean" default="false">
@@ -57,12 +58,20 @@ Responses는 OpenAI의 네이티브 상태 유지 응답 프로토콜입니다. 
   나중에 검색하기 위해 응답을 저장할지 여부입니다.
 </ParamField>
 
+<ParamField body="background" type="boolean" default="false">
+  비동기 실행을 요청합니다. 지원 여부는 선택한 모델에 따라 다릅니다.
+</ParamField>
+
+<ParamField body="prompt" type="object">
+  재사용 가능한 프롬프트 템플릿과 변수에 대한 참조입니다.
+</ParamField>
+
 <ParamField body="metadata" type="object">
   추적 목적으로 응답에 첨부할 메타데이터입니다.
 </ParamField>
 
 <ParamField body="text" type="object">
-  텍스트 생성 구성 옵션입니다. `text.format`의 동작은 선택한 모델 및 라우팅된 경로에 따라 달라지며, 모든 모델에서 동일하게 보장되지 않습니다.
+  텍스트 출력 설정입니다. `text.format` 지원 여부는 선택한 모델에 따라 다릅니다.
 </ParamField>
 
 <ParamField body="parallel_tool_calls" type="boolean" default="true">
@@ -74,9 +83,7 @@ Responses는 OpenAI의 네이티브 상태 유지 응답 프로토콜입니다. 
 </ParamField>
 
 <ParamField body="reasoning" type="object">
-  GPT-5 계열과 같은 추론 지원 모델을 위한 추론 구성입니다.
-
-  - `effort` (string): 추론 노력 수준 (`low`, `medium`, `high`)
+  `effort`를 포함한 추론 옵션은 선택한 모델에 따라 다릅니다.
 </ParamField>
 
 ## 응답
@@ -93,6 +100,10 @@ Responses는 OpenAI의 네이티브 상태 유지 응답 프로토콜입니다. 
   응답이 생성된 Unix 타임스탬프입니다.
 </ResponseField>
 
+<ResponseField name="status" type="string">
+  응답 상태: `queued`, `in_progress`, `completed`, `incomplete`, `failed`, `cancelled`. HTTP 요청이 성공해도 이 필드를 확인하세요.
+</ResponseField>
+
 <ResponseField name="output" type="array">
   모델이 생성한 출력 항목들의 목록입니다.
 </ResponseField>
@@ -100,6 +111,13 @@ Responses는 OpenAI의 네이티브 상태 유지 응답 프로토콜입니다. 
 <ResponseField name="usage" type="object">
   토큰 사용 통계입니다.
 </ResponseField>
+
+## 관련 엔드포인트
+
+- `GET /v1/responses/{id}` 저장된 응답을 조회하며 `include`, `include_obfuscation`, `stream`, `starting_after`를 지원합니다.
+- `DELETE /v1/responses/{id}` 저장된 응답을 삭제합니다. 생성을 취소하지는 않습니다.
+- `POST /v1/responses/compact` `response.compaction` 객체를 반환합니다.
+- 취소, input-items, input-tokens 엔드포인트는 현재 제공되지 않습니다.
 
 <RequestExample>
 ```bash cURL
@@ -268,14 +286,17 @@ print_r($data['output']);
 {
   "id": "resp_abc123",
   "object": "response",
-  "created": 1706000000,
+  "created_at": 1706000000,
+  "status": "completed",
   "model": "gpt-5.6-terra",
   "output": [
     {
+      "id": "msg_abc123",
       "type": "message",
+      "status": "completed",
       "role": "assistant",
       "content": [
-        {"type": "text", "text": "Hello! How can I help you today?"}
+        {"type": "output_text", "text": "Hello! How can I help you today?", "annotations": []}
       ]
     }
   ],

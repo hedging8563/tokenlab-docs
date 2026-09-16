@@ -12,15 +12,17 @@ Bu uç nokta, seçilen API anahtarı için tüketime dayalı faturalandırma top
 
 ## Notlar
 
-- Parasal alanlar yalnızca USD’yi destekler. `CNY` girişleri kullanımdan kaldırılmıştır ve `400 currency_retired` döndürür.
+- Parasal alanlar yalnızca USD’yi destekler.
 
 - Yükleme, fatura ve kuruluş düzeyindeki diğer finansal kayıtlar dahil değildir.
 
 ## Örnek
 
+[API anahtarı kullanımı](/tr/api-reference/management/get-api-key-usage) ile aynı model, sağlayıcı, senaryo ve tarih filtrelerini destekler. Sayfalama olmadan toplamları döndürür.
+
 <RequestExample>
 ```bash cURL
-curl -X GET "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/billing?startDate=2026-01-01&endDate=2026-01-31" \
+curl -X GET "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/billing?startDate=2026-07-01&endDate=2026-07-31" \
   -H "Authorization: Bearer mt-your-management-token"
 ```
 </RequestExample>
@@ -49,7 +51,8 @@ Bu sayfa OpenAPI şemasını ve kopyalanabilir istek örneklerini sunar. Yöneti
     ],
     "expires_at": "2026-12-31T23:59:59.000Z",
     "last_used_at": "2026-07-08T03:12:45.000Z",
-    "created_at": "2026-07-01T10:00:00.000Z"
+    "created_at": "2026-07-01T10:00:00.000Z",
+    "delivery_policy": null
   },
   "summary": {
     "total_requests": 1,

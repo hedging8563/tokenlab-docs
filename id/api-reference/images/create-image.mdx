@@ -19,10 +19,9 @@ Untuk pembuatan gambar dengan `gpt-image-2`, parameter publik yang didukung adal
 Google Gemini tidak memakai kontrak selector yang sama:
 
 - `gemini-3.1-flash-image`, `gemini-3-pro-image`, dan `nano-banana-pro` mendukung `aspect_ratio` plus `resolution` (`1k`, `2k`, `4k`) untuk operasi publik text-to-image dan image-edit/image-to-image.
-- `nano-banana-2` mendukung `aspect_ratio` plus `resolution` (`1k`, `2k`, `4k`) hanya untuk text-to-image dalam kontrak TokenLab saat ini.
+- `nano-banana-2` mendukung `aspect_ratio` dan `resolution` (`1k`, `2k`, `4k`) untuk text-to-image dan image-to-image.
 - `gemini-2.5-flash-image`, `nano-banana`, dan `nano-banana-edit` mendukung `aspect_ratio` tetapi tidak menyediakan pemilihan `resolution` publik.
 - Untuk request Nano Banana dengan gambar referensi, gunakan `nano-banana-edit` atau `nano-banana-pro` pada endpoint ini (`/v1/images/generations`) dengan `operation: "image-to-image"` dan `image_urls`. Jangan kirim request gambar referensi Nano Banana ke `/v1/images/edits`.
-- Untuk request Nano Banana image-to-image, `nano-banana-pro` dapat menyertakan `resolution` (`1k`, `2k`, `4k`); `nano-banana-edit` harus menghilangkannya. `nano-banana` dan `nano-banana-2` adalah model text-to-image dalam detail model saat ini.
 - Gambar referensi pada endpoint ini dapat dikirim sebagai JSON `image_url` / `image_urls`, atau sebagai file multipart `image`. `/v1/images/generations` tidak menerima `images[]` atau `file_id`; referensi `/v1/files` hanya untuk model `/v1/images/edits` yang mendokumentasikan `images[].file_id`.
 
 Untuk keluarga gambar Google, utamakan `aspect_ratio` dan hanya kirim `resolution` jika model secara eksplisit mendukungnya.
@@ -61,7 +60,7 @@ Model gambar xAI Grok Imagine (`grok-imagine-image`, `grok-imagine-image-quality
   Jumlah gambar yang dibuat (1-10, tergantung model).
 </ParamField>
 
-<ParamField body="size" type="string" default="1024x1024">
+<ParamField body="size" type="string">
   Ukuran gambar. Gunakan untuk keluarga gambar bergaya OpenAI dan model lain yang menerima ukuran piksel presisi.
 
   Untuk `gpt-image-2`, `size` menerima `auto` atau `WIDTHxHEIGHT`. Dimensi kustom harus berupa kelipatan 16 pada kedua sisi, sisi terpanjang maksimal `3840px`, rasio sisi panjang/sisi pendek maksimal `3:1`, dan total piksel harus berada antara `655,360` dan `8,294,400`. `aspect_ratio` dan `resolution` saat ini bukan bagian dari detail model TokenLab untuk `gpt-image-2`.
@@ -76,19 +75,17 @@ Model gambar xAI Grok Imagine (`grok-imagine-image`, `grok-imagine-image-quality
 </ParamField>
 
 <ParamField body="resolution" type="string">
-  Pemilih resolusi output yang bergantung pada model.
-
-  Didukung pada `gemini-3.1-flash-image` dan `gemini-3-pro-image` untuk text-to-image dan image-edit, pada `nano-banana-pro` untuk text-to-image dan image-to-image, serta pada `nano-banana-2` hanya untuk text-to-image. Nilai tipikal adalah `1k`, `2k`, dan `4k`. Jangan kirim parameter ini ke keluarga gambar Gemini yang hanya menerima rasio kecuali modelnya mendokumentasikannya secara eksplisit. Untuk model gambar xAI Grok Imagine, gunakan `1k` atau `2k`.
+  Resolusi bergantung pada model. `gemini-3.1-flash-image`, `gemini-3-pro-image`, `nano-banana-2`, dan `nano-banana-pro` mendukung `1k`, `2k`, `4k`; model gambar Grok Imagine mendukung `1k` dan `2k`. Kirim field ini hanya jika model dan operasi yang dipilih mendukungnya secara eksplisit.
 </ParamField>
 
-<ParamField body="quality" type="string" default="standard">
+<ParamField body="quality" type="string">
   Kualitas gambar. Model GPT Image seperti `gpt-image-2` memakai `auto`, `low`, `medium`, atau `high`. Keluarga gambar lain dapat memakai nilai khusus provider; periksa metadata model sebelum mengirim nilai non-default.
 </ParamField>
 
 <ParamField body="response_format" type="string" default="url">
   Format respons: `url` atau `b64_json`. Default-nya `url`.
 
-  Untuk `gpt-image-2` melalui Azure Official atau layanan yang kompatibel dengan Azure, TokenLab menerima hasil gambar sebagai `b64_json`. Untuk request `url`, TokenLab mengunggah setiap gambar ke CDN lalu mengembalikan `data[].url`. Jika CDN tidak tersedia atau upload gagal, request gagal dan tidak diubah menjadi respons Base64. Untuk `b64_json`, Base64 mentah dikembalikan.
+  `url` mengembalikan URL gambar di `data[].url`; `b64_json` mengembalikan data gambar Base64 di `data[].b64_json`.
 </ParamField>
 
 <ParamField body="async" type="boolean" default="false">
@@ -116,7 +113,7 @@ Model gambar xAI Grok Imagine (`grok-imagine-image`, `grok-imagine-image-quality
 
   Setiap object berisi:
   - `url` (string): URL gambar yang dihasilkan
-  - `b64_json` (string): Gambar terenkripsi Base64 (jika diminta)
+  - `b64_json` (string): Gambar yang dikodekan Base64 (jika diminta)
   - `revised_prompt` (string): Revisi prompt opsional jika model yang dipilih mengembalikannya
 </ResponseField>
 
@@ -159,8 +156,7 @@ curl -X POST "https://api.tokenlab.sh/v1/images/generations" \
     "model": "gemini-3-pro-image",
     "prompt": "A cinematic portrait of a white cat sitting on a rainy windowsill",
     "aspect_ratio": "16:9",
-    "resolution": "2k",
-    "n": 1
+    "resolution": "2k"
   }'
 ```
 
@@ -175,9 +171,7 @@ client = OpenAI(
 response = client.images.generate(
     model="gemini-3-pro-image",
     prompt="A cinematic portrait of a white cat sitting on a rainy windowsill",
-    aspect_ratio="16:9",
-    resolution="2k",
-    n=1
+    extra_body={"aspect_ratio": "16:9", "resolution": "2k"}
 )
 
 print(response.data[0].url)
@@ -195,8 +189,7 @@ const response = await client.images.generate({
   model: 'gemini-3-pro-image',
   prompt: 'A cinematic portrait of a white cat sitting on a rainy windowsill',
   aspect_ratio: '16:9',
-  resolution: '2k',
-  n: 1
+  resolution: '2k'
 });
 
 console.log(response.data[0].url);
@@ -217,8 +210,7 @@ curl_setopt_array($ch, [
         'model' => 'gemini-3-pro-image',
         'prompt' => 'A cinematic portrait of a white cat sitting on a rainy windowsill',
         'aspect_ratio' => '16:9',
-        'resolution' => '2k',
-        'n' => 1
+        'resolution' => '2k'
     ])
 ]);
 
@@ -295,15 +287,7 @@ curl -X POST "https://api.tokenlab.sh/v1/images/generations" \
 
 ## Model Tersedia
 
-Ini adalah contoh model saat ini, bukan katalog tetap. Gunakan `GET /v1/models?recommended_for=image` atau halaman Models untuk ketersediaan dan harga terbaru.
-
-| Model | Tipe | Fitur |
-|-------|------|-------|
-| `gpt-image-2` | Inline atau berbasis task | Model GPT Image berbasis harga token, ukuran fleksibel |
-| `flux-pro` | Sering berbasis task | Fotorealistik, kualitas tinggi |
-| `nano-banana-pro` | Sering berbasis task | Workflow gambar referensi dan output resolusi tinggi |
-| `grok-imagine-image` | Sering berbasis task | Generasi gambar xAI dengan pilihan rasio aspek dan resolusi |
-| `ideogram-v3` | Sering berbasis task | Rendering teks yang kuat |
+Gunakan `GET /v1/models?recommended_for=image` untuk model gambar, kemampuan, dan harga saat ini.
 
 Jangan hard-code model sebagai selalu sinkron atau selalu asinkron. Jika response create mengembalikan `status: "pending"`, ikuti `poll_url` dan polling sampai selesai.
 

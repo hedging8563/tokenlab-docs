@@ -12,11 +12,14 @@ Retorna as chaves API de usuário da organização associada ao token de gerenci
 
 ## Notas
 
-- Os campos monetários aceitam apenas USD. Entradas em `CNY` foram descontinuadas e retornam `400 currency_retired`.
+- Os campos monetários aceitam apenas USD.
 
 - As chaves gerenciadas pelo sistema são excluídas.
 
 ## Exemplo
+
+<ParamField query="page" type="integer" default="1">Número da página a partir de 1.</ParamField>
+<ParamField query="limit" type="integer" default="50">Tamanho da página de 1 a 100.</ParamField>
 
 <RequestExample>
 ```bash cURL
@@ -51,7 +54,8 @@ Esta página fornece o esquema OpenAPI e exemplos de requisições para copiar. 
       ],
       "expires_at": "2026-12-31T23:59:59.000Z",
       "last_used_at": "2026-07-08T03:12:45.000Z",
-      "created_at": "2026-07-01T10:00:00.000Z"
+      "created_at": "2026-07-01T10:00:00.000Z",
+      "delivery_policy": null
     }
   ],
   "pagination": {
@@ -72,12 +76,13 @@ Esta página fornece o esquema OpenAPI e exemplos de requisições para copiar. 
 <ResponseField name="data[].id" type="string">Identificador da chave de API usado em chamadas subsequentes da API de Gerenciamento.</ResponseField>
 <ResponseField name="data[].name" type="string">Nome de exibição da chave de API.</ResponseField>
 <ResponseField name="data[].key_prefix" type="string">Prefixo de chave não secreto para exibição e suporte.</ResponseField>
-<ResponseField name="data[].status" type="string">Um dos valores `active`, `inactive` ou `revoked`.</ResponseField>
+<ResponseField name="data[].status" type="string">Um dos valores `active`, `inactive`, `suspended` ou `revoked`.</ResponseField>
 <ResponseField name="data[].limit_amount" type="number | null">Limite de gastos em USD como número JSON para exibição. `null` significa ilimitado.</ResponseField>
 <ResponseField name="data[].limit_amount_decimal" type="string | null">Limite de gastos exato em USD como string decimal. `null` significa ilimitado.</ResponseField>
 <ResponseField name="data[].used_amount" type="number">Gasto de uso acumulado em USD como número JSON para exibição.</ResponseField>
 <ResponseField name="data[].used_amount_decimal" type="string">Gasto de uso acumulado exato em USD como string decimal.</ResponseField>
 <ResponseField name="data[].models" type="string[]">Lista de modelos permitidos por chave. Um array vazio significa que não há restrição adicional de modelo no nível da chave.</ResponseField>
+<ResponseField name="data[].delivery_policy" type="string | null">`auto`, `verified`, `official`, `null`. `null` herda a política de entrega do espaço de trabalho.</ResponseField>
 <ResponseField name="data[].expires_at" type="string | null">Carimbo de data/hora ISO em que a chave expira, ou `null` quando não há expiração.</ResponseField>
 <ResponseField name="data[].last_used_at" type="string | null">Carimbo de data/hora ISO do uso mais recente, ou `null` quando nunca foi usada.</ResponseField>
 <ResponseField name="data[].created_at" type="string">Carimbo de data/hora ISO de criação.</ResponseField>

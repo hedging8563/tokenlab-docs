@@ -37,7 +37,6 @@ curl -X GET "https://api.tokenlab.sh/v1/files/file_abc123/content" \
 
 - استخدم `custom_id` للتسوية اللاحقة غير القابلة للتكرار.
 - توقع `output_file_id` و `error_file_id` فقط بعد أن ينهي العامل الدفعة.
-- قد تختلف أسعار الدفعة عن الأسعار المتزامنة لأن قواعد خصم `isBatchRequest=true` تنطبق.
 
 ## أنواع المحتوى
 
@@ -54,5 +53,5 @@ curl -X GET "https://api.tokenlab.sh/v1/files/file_abc123/content" \
 
 ## حقول مهمة
 
-<ResponseField name="body" type="binary|string">جسم الاستجابة الخام. احفظه مباشرة ولا تحلله كـ JSON.</ResponseField>
-<ResponseField name="custom_id" type="string">معرّف لاستخدامه في الطلبات اللاحقة والدعم.</ResponseField>
+<ResponseField name="body" type="binary|string">محتوى الملف. احفظه أو حلله وفقًا لـ `Content-Type`؛ وحلل JSONL سطرًا بسطر.</ResponseField>
+<ResponseField name="custom_id" type="string">معرّف يربط عنصر إدخال الدفعة بنتيجته.</ResponseField>

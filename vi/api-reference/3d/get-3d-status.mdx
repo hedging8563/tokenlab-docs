@@ -9,8 +9,7 @@ Thực hiện poll endpoint này để kiểm tra trạng thái của tác vụ 
 <Info>
 Nếu phản hồi tạo bao gồm `poll_url`, hãy ưu tiên chính URL đó khi polling. `id` và `task_id` nên được coi là cùng một định danh của tác vụ bất đồng bộ.
 
-
-Nếu tác vụ không còn tồn tại hoặc không còn có thể được phân giải thông qua hợp đồng tác vụ bất đồng bộ công khai, TokenLab trả về `async_task_not_found` với thông điệp `Task not found or no longer available.`
+Tác vụ công khai đã hết hạn hoặc không khả dụng có thể trả `404 async_task_not_found`. Nếu không xác nhận được quyền sở hữu cho API key hiện tại, phản hồi là `403 task_not_owned`.
 </Info>
 
 ## Tham số đường dẫn
@@ -21,12 +20,20 @@ Nếu tác vụ không còn tồn tại hoặc không còn có thể được ph
 
 ## Phản hồi
 
+<Note>
+Các trường kết quả, lỗi, thời gian và model được trả về khi tác vụ cung cấp chúng.
+</Note>
+
 <ResponseField name="id" type="string">
   ID tác vụ.
 </ResponseField>
 
 <ResponseField name="task_id" type="string">
   Bí danh của mã tác vụ bất đồng bộ khi có sẵn.
+</ResponseField>
+
+<ResponseField name="poll_url" type="string">
+  URL polling ưu tiên khi có sẵn.
 </ResponseField>
 
 <ResponseField name="status" type="string">
@@ -49,7 +56,7 @@ Nếu tác vụ không còn tồn tại hoặc không còn có thể được ph
   URL để tải xuống mô hình định dạng FBX (khi có sẵn).
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="error" type="string | object">
   Thông báo lỗi (khi thất bại).
 </ResponseField>
 
@@ -68,8 +75,10 @@ task_id = "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 while True:
     response = requests.get(
         f"https://api.tokenlab.sh/v1/tasks/{task_id}",
-        headers={"Authorization": "Bearer sk-your-api-key"}
+        headers={"Authorization": "Bearer sk-your-api-key"},
+        timeout=30
     )
+    response.raise_for_status()
     result = response.json()
 
     if result["status"] == "completed":
@@ -92,18 +101,21 @@ async function pollFor3DModel() {
       { headers: { 'Authorization': 'Bearer sk-your-api-key' } }
     );
 
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const result = await response.json();
 
     if (result.status === 'completed') {
       console.log(`3D Model URL: ${result.model_url}`);
       return result.model_url;
     } else if (result.status === 'failed') {
-      throw new Error(result.error);
+      throw new Error(JSON.stringify(result.error));
     }
 
     await new Promise(r => setTimeout(r, 5000));
   }
 }
+
+pollFor3DModel().catch(console.error);
 ```
 
 ```go Go
@@ -125,17 +137,23 @@ func main() {
         req.Header.Set("Authorization", "Bearer sk-your-api-key")
 
         client := &http.Client{}
-        resp, _ := client.Do(req)
+        resp, err := client.Do(req)
+        if err != nil { panic(err) }
+        if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+            resp.Body.Close()
+            panic(fmt.Sprintf("HTTP %d", resp.StatusCode))
+        }
 
         var result map[string]interface{}
-        json.NewDecoder(resp.Body).Decode(&result)
+        err = json.NewDecoder(resp.Body).Decode(&result)
         resp.Body.Close()
+        if err != nil { panic(err) }
 
         if result["status"] == "completed" {
             fmt.Printf("3D Model URL: %s\n", result["model_url"])
             break
         } else if result["status"] == "failed" {
-            fmt.Printf("Error: %s\n", result["error"])
+            fmt.Printf("Error: %v\n", result["error"])
             break
         }
 
@@ -159,7 +177,12 @@ while (true) {
     ]);
 
     $response = curl_exec($ch);
+    $httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
     curl_close($ch);
+    if ($response === false || $httpStatus < 200 || $httpStatus >= 300) {
+        throw new RuntimeException("HTTP {$httpStatus}: {$curlError}");
+    }
 
     $result = json_decode($response, true);
 
@@ -167,7 +190,7 @@ while (true) {
         echo "3D Model URL: {$result['model_url']}\n";
         break;
     } elseif ($result['status'] === 'failed') {
-        echo "Error: {$result['error']}\n";
+        echo "Error: " . json_encode($result['error']) . "\n";
         break;
     }
 

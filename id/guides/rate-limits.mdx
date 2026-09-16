@@ -1,31 +1,11 @@
 ---
-title: "Batas Rate"
-description: "Memahami dan menangani batas rate"
+title: "Batas permintaan"
+description: "Batas permintaan"
 ---
 
-## Ringkasan
+Nilai bawaan per menit adalah User 1.000, Partner 10.000, dan VIP 10.000; konfigurasi aktual dapat berbeda. Untuk permintaan yang memerlukan autentikasi, batas ini berlaku per kunci API. Endpoint penemuan publik seperti `GET /v1/models` memiliki batas terpisah. Saat 429, gunakan `X-RateLimit-Limit` dan `Retry-After`, bukan tabel salinan.
 
-TokenLab menerapkan batas rate untuk memastikan penggunaan yang adil dan stabilitas platform. Batas bervariasi berdasarkan tier akun.
-
-## Tier Batas Rate
-
-| Tier | Requests/min | Deskripsi |
-|------|-------------|-------------|
-| **User** | 1,000 | Tier default untuk semua akun |
-| **Partner** | 10,000 | Untuk partner integrasi |
-| **VIP** | 10,000 | Pengguna dengan volume tinggi |
-
-<Note>
-  Batas rate dapat berubah. Hubungi support@tokenlab.sh untuk batas kustom.
-</Note>
-
-## Respons Batas Rate
-
-Ketika Anda melampaui batas rate, API mengembalikan status code `429` dengan header `Retry-After` yang menunjukkan berapa lama harus menunggu sebelum mencoba lagi.
-
-## Batas Rate Terlampaui
-
-Ketika Anda melampaui batas, Anda akan menerima respons `429`:
+## 429 / Retry-After
 
 ```json
 {
@@ -39,118 +19,30 @@ Ketika Anda melampaui batas, Anda akan menerima respons `429`:
 }
 ```
 
-Respons menyertakan header `Retry-After`:
+```http
+Retry-After: 8
 ```
-Retry-After: 60  # Seconds to wait before retrying
-```
 
-## Menangani Batas Rate
-
-### Backoff eksponensial
-
-Terapkan exponential backoff untuk percobaan ulang otomatis:
+Tunggu sejumlah detik pada `Retry-After`; jika tidak ada, gunakan backoff eksponensial dengan jitter. Contoh berikut membatasi empat percobaan, menonaktifkan retry SDK, dan mempertahankan model pilihan.
 
 ```python
+import random
 import time
-from openai import OpenAI, RateLimitError
+from openai import RateLimitError
 
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
-
-def make_request_with_backoff(messages, max_retries=5):
-    for attempt in range(max_retries):
+def chat_with_rate_limit_retry(client, model, messages, attempts=4):
+    for attempt in range(attempts):
         try:
-            return client.chat.completions.create(
-                model="gpt-5.6-terra",
-                messages=messages
+            return client.with_options(max_retries=0).chat.completions.create(
+                model=model,
+                messages=messages,
             )
-        except RateLimitError as e:
-            if attempt == max_retries - 1:
+        except RateLimitError as exc:
+            if attempt == attempts - 1:
                 raise
-
-            wait_time = 2 ** attempt  # 1, 2, 4, 8, 16 seconds
-            print(f"Rate limited. Waiting {wait_time}s...")
-            time.sleep(wait_time)
+            header = exc.response.headers.get("Retry-After")
+            wait = float(header) if header else min(30, 2 ** attempt + random.random())
+            time.sleep(wait)
 ```
 
-### Antrean Request
-
-Untuk aplikasi dengan volume tinggi, terapkan antrean request:
-
-```python
-import asyncio
-from collections import deque
-
-class RateLimitedClient:
-    def __init__(self, requests_per_minute=1000):
-        self.rpm = requests_per_minute
-        self.interval = 60 / requests_per_minute
-        self.last_request = 0
-
-    async def request(self, messages):
-        # Wait if needed to respect rate limit
-        now = asyncio.get_event_loop().time()
-        wait_time = max(0, self.last_request + self.interval - now)
-        if wait_time > 0:
-            await asyncio.sleep(wait_time)
-
-        self.last_request = asyncio.get_event_loop().time()
-        return await self.client.chat.completions.create(
-            model="gpt-5.6-terra",
-            messages=messages
-        )
-```
-
-### Pemrosesan Batch
-
-Untuk operasi massal, proses dalam batch dengan jeda:
-
-```python
-def process_batch(items, batch_size=50, delay=1):
-    results = []
-    for i in range(0, len(items), batch_size):
-        batch = items[i:i + batch_size]
-        for item in batch:
-            result = client.chat.completions.create(
-                model="gpt-5.6-terra",
-                messages=[{"role": "user", "content": item}]
-            )
-            results.append(result)
-        time.sleep(delay)  # Pause between batches
-    return results
-```
-
-## Praktik Terbaik
-
-<AccordionGroup>
-  <Accordion title="Pantau penggunaan Anda">
-    Lacak header batas rate untuk tetap berada di bawah batas secara proaktif.
-  </Accordion>
-
-  <Accordion title="Terapkan caching">
-    Cache respons untuk request yang identik guna mengurangi panggilan API.
-  </Accordion>
-
-  <Accordion title="Gunakan model yang sesuai">
-    Model yang lebih cepat (seperti gpt-5-mini) memungkinkan throughput yang lebih tinggi.
-  </Accordion>
-
-  <Accordion title="Hubungi kami untuk batas yang lebih tinggi">
-    Jika Anda memerlukan batas yang lebih tinggi, hubungi support@tokenlab.sh.
-  </Accordion>
-</AccordionGroup>
-
-## Meningkatkan Tier Anda
-
-Untuk mengajukan peningkatan tier:
-
-1. Masuk ke [Dashboard](https://tokenlab.sh/dashboard) Anda
-2. Buka **Settings → Account**
-3. Hubungi support dengan use case Anda
-
-Atau kirim email ke support@tokenlab.sh dengan:
-- Email akun Anda
-- Perkiraan volume request
-- Deskripsi use case
+Batasi konkurensi, antrekan lonjakan, dan cache hanya hasil yang aman digunakan kembali. Jangan ulangi error validasi, autentikasi, izin, atau saldo. Model lebih cepat tidak menambah batas. Untuk penyesuaian, kirim akun, perkiraan volume, dan penggunaan ke support@tokenlab.sh.

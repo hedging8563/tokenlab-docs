@@ -9,23 +9,19 @@ description: "Translates audio into English text"
 Translates audio in any supported language into English text. Unlike transcription, this endpoint always outputs English text regardless of the input language.
 
 <Note>
-This page documents **audio translation** (`POST /v1/audio/translations`). For **text translation**, use `POST /v1/translations`.
-</Note>
-
-<Note>
-Do not use `recommended_for=translation` for this endpoint. That recommendation scene is reserved for text translation models on `POST /v1/translations`.
+  This endpoint translates audio into English. Do not send `language`; it is not supported for audio translation and can return `unsupported_parameter`. For text translation, use `POST /v1/translations`; `recommended_for=translation` refers to that text API.
 </Note>
 
 ## Request Body
 
-This endpoint returns after translation finishes. For longer audio, set your HTTP client timeout to at least `120s`.
+Translation returns when processing finishes. For longer audio, allow an HTTP client timeout of at least `120s`.
 
 <ParamField body="file" type="file" required>
   The audio file to translate. Supported formats: `flac`, `mp3`, `mp4`, `mpeg`, `mpga`, `m4a`, `ogg`, `wav`, `webm`. Maximum file size is 25 MB.
 </ParamField>
 
 <ParamField body="model" type="string" default="whisper-1">
-  The model to use. Currently only `whisper-1` is supported.
+  Audio translation model ID, such as `whisper-1`. Confirm that its current model details support `POST /v1/audio/translations`.
 </ParamField>
 
 <ParamField body="prompt" type="string">
@@ -33,14 +29,16 @@ This endpoint returns after translation finishes. For longer audio, set your HTT
 </ParamField>
 
 <ParamField body="response_format" type="string" default="json">
-  The format of the output. Options: `json`, `text`, `srt`, `verbose_json`, `vtt`.
+  Output format. Whisper supports `json`, `text`, `srt`, `verbose_json`, and `vtt`; other models may support a different subset. Check the selected model's details.
 </ParamField>
 
 <ParamField body="temperature" type="number">
-  The sampling temperature, between 0 and 1. Higher values like 0.8 produce more random output, while lower values like 0.2 make output more focused and deterministic.
+  Sampling temperature from 0 to 1, only for models that support this parameter.
 </ParamField>
 
 ## Response
+
+The fields below describe JSON transcript or translation responses. `text`, `srt`, and `vtt` return raw text or subtitles rather than a JSON object. Additional fields depend on the model and output format.
 
 <ResponseField name="text" type="string">
   The translated text in English.
@@ -49,7 +47,7 @@ This endpoint returns after translation finishes. For longer audio, set your HTT
 For `verbose_json` format, the response also includes:
 
 <ResponseField name="language" type="string">
-  The detected language of the input audio.
+  Language label reported in the response, when provided.
 </ResponseField>
 
 <ResponseField name="duration" type="number">
@@ -138,7 +136,6 @@ echo $data['text'];
 ```json verbose_json
 {
   "task": "translate",
-  "language": "german",
   "duration": 8.470000267028809,
   "text": "Hello, my name is Wolfgang and I come from Germany. Where are you from?",
   "segments": [
@@ -166,7 +163,3 @@ echo $data['text'];
 | Output language | Always English | Same as input |
 | Use case | Convert foreign audio to English | Preserve original language |
 | Language parameter | Not applicable | Optional hint |
-
-<Note>
-  The translation endpoint automatically detects the source language and translates to English. The `language` parameter from transcription is ignored.
-</Note>

@@ -18,6 +18,10 @@ create レスポンスに `poll_url` が含まれている場合は、正確に�
 
 ## レスポンス
 
+<Note>
+結果、エラー、タイムスタンプ、モデルのフィールドはタスクで利用可能な場合に返されます。
+</Note>
+
 <ResponseField name="id" type="string">
   標準的な非同期タスク識別子。
 </ResponseField>
@@ -59,10 +63,10 @@ create レスポンスに `poll_url` が含まれている場合は、正確に�
 </ResponseField>
 
 <ResponseField name="videos" type="array">
-  上流が複数出力を返す場合の複数の動画ペイロード。
+  タスクが複数出力を返す場合の複数の動画ペイロード。
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="error" type="string | object">
   タスクが失敗したときのエラーメッセージ。
 </ResponseField>
 
@@ -80,7 +84,7 @@ create レスポンスに `poll_url` が含まれている場合は、正確に�
 
 ## エラー時の挙動
 
-タスクが存在しない、期限切れ、または公開されている async-task 契約を通じて解決できない場合、TokenLab は次を返します:
+期限切れまたは利用できない公開タスクでは `404 async_task_not_found` が返る場合があります。現在の API キーでタスクの所有権を確認できない場合は `403 task_not_owned` が返ります。
 
 ```json
 {

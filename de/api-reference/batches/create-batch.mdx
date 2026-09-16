@@ -14,7 +14,7 @@ Dieser Endpunkt ist Teil von TokenLab's OpenAI-kompatibler Batch-API. Batch-Jobs
 - `completion_window` beträgt derzeit `24h`.
 - Die Ausgabereihenfolge ist nicht garantiert; immer nach `custom_id` abgleichen.
 - Streaming wird innerhalb von Batch-Elementen nicht unterstützt.
-- Unterstützte Batch-Element-Endpunkte sind derzeit `/v1/chat/completions` und `/v1/embeddings`; `/v1/responses`-Batch-Jobs werden abgelehnt, bis ein nativer Responses-Batch-Executor verfügbar ist.
+- Unterstützte Endpunkte für Batch-Elemente sind `/v1/chat/completions` und `/v1/embeddings`. `/v1/responses` wird nicht unterstützt.
 
 ## Beispiel
 
@@ -39,7 +39,6 @@ Verwenden Sie das interaktive OpenAPI-Panel oben für das genaue Schema.
 
 - Verwenden Sie `custom_id` für idempotente nachgelagerte Abgleiche.
 - Erwarten Sie `output_file_id` und `error_file_id` erst, nachdem der Worker den Batch abgeschlossen hat.
-- Die Preisgestaltung für Batches kann von der synchronen Preisgestaltung abweichen, da die Rabattregeln für `isBatchRequest=true` gelten.
 
 ## Antwortbeispiel
 

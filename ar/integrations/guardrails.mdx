@@ -5,7 +5,7 @@ description: "التحقق من مخرجات نموذج TokenLab باستخدا�
 
 ## نظرة عامة
 
-يمكن لـ Guardrails تغليف أي كائن قابل للاستدعاء (callable) متوافق مع واجهة برمجة تطبيقات LLM الخاصة به. بالنسبة لـ TokenLab، قم بتهيئة OpenAI SDK باستخدام عنوان URL الأساسي لـ TokenLab وقم بتمرير كائن chat completions القابل للاستدعاء إلى الـ guard الخاص بك.
+اضبط OpenAI SDK باستخدام Base URL الخاص بـ TokenLab، واطلب JSON، ثم تحقق من النص المُعاد باستخدام `Guard.parse`.
 
 <Note>
 **النوع**: إطار عمل للتحقق والمخرجات المهيكلة
@@ -14,6 +14,12 @@ description: "التحقق من مخرجات نموذج TokenLab باستخدا�
 
 **مستوى دعم الموثوقية**: مسار متوافق مع OpenAI مدعوم
 </Note>
+
+## التثبيت
+
+```bash
+pip install guardrails-ai openai
+```
 
 ## البيئة
 
@@ -43,11 +49,17 @@ client = OpenAI(
     base_url="https://api.tokenlab.sh/v1",
 )
 
-raw_output, validated_output, *rest = guard(
-    llm_api=client.chat.completions.create,
+response = client.chat.completions.create(
     model="claude-sonnet-5",
-    messages=[{"role": "user", "content": "What kind of pet should I get?"}],
+    response_format={"type": "json_object"},
+    messages=[{
+        "role": "user",
+        "content": "Suggest a pet. Return only JSON with string fields pet_type and name.",
+    }],
 )
+
+outcome = guard.parse(response.choices[0].message.content)
+print(outcome.validated_output)
 ```
 
 ## ملاحظات حول نقاط النهاية (Endpoint Notes)

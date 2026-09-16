@@ -4,7 +4,8 @@ openapi: "POST /v1/responses"
 description: "使用 OpenAI Responses API 格式建立回應"
 ---
 
-Responses 是 OpenAI 原生的有狀態回應協議。只有模型詳情公開 Responses 格式且存在同協議 upstream 路徑時，TokenLab 才提供此入口；不會依模型名或供應商名推斷，也絕不回落 Chat Completions。TokenLab 會保留未知欄位、明確的 `null`、空陣列等 JSON 形狀，並 best-effort 透傳。
+模型詳情中的 `accepted_request_formats` 包含 `openai_responses` 時，可以使用此介面。請求與回應使用 Responses API 格式，可選欄位及其值取決於所選模型。
+
 ## 請求主體
 
 <ParamField body="model" type="string" required>
@@ -21,7 +22,7 @@ Responses 是 OpenAI 原生的有狀態回應協議。只有模型詳情公開 R
   - `function_call`: 一個函式呼叫請求
   - `function_call_output`: 函式呼叫的輸出
 
-  對於多模態輸入，`message.content` 可以是純字串或內容區塊的陣列。對於支援影像的模型（例如 GPT-5.4 變體），請將影像作為 `input_image` 區塊傳遞，而非將 URL 或 Base64 字串直接嵌入純文字中。
+  對於多模態輸入，`message.content` 可以是純字串或內容區塊的陣列。對於支援影像的模型（例如 GPT-5.6 Terra 變體），請將影像作為 `input_image` 區塊傳遞，而非將 URL 或 Base64 字串直接嵌入純文字中。
 
   範例內容區塊：
   - `{ "type": "input_text", "text": "Describe this image" }`
@@ -37,12 +38,12 @@ Responses 是 OpenAI 原生的有狀態回應協議。只有模型詳情公開 R
   可生成的最大 token 數。
 </ParamField>
 
-<ParamField body="temperature" type="number" default="1">
-  抽樣溫度，範圍 0 到 2。
+<ParamField body="temperature" type="number">
+  取樣溫度。支援的值與預設值取決於所選模型。
 </ParamField>
 
 <ParamField body="tools" type="array">
-  模型可呼叫的工具清單。TokenLab 不維護本地 allowlist，而是原樣轉發原生工具定義；支援的類型與組合由選中的 upstream 決定。
+  模型可以呼叫的工具。支援的類型與組合取決於所選模型。
 </ParamField>
 
 <ParamField body="stream" type="boolean" default="false">
@@ -57,12 +58,20 @@ Responses 是 OpenAI 原生的有狀態回應協議。只有模型詳情公開 R
   是否儲存回應以便日後擷取。
 </ParamField>
 
+<ParamField body="background" type="boolean" default="false">
+  請求非同步執行，是否支援取決於所選模型。
+</ParamField>
+
+<ParamField body="prompt" type="object">
+  可重用提示詞範本及變數的參照。
+</ParamField>
+
 <ParamField body="metadata" type="object">
   附加至回應的 metadata 以供追蹤使用。
 </ParamField>
 
 <ParamField body="text" type="object">
-  文字生成的設定選項。`text.format` 的行為取決於所選模型與路由路徑；各模型之間不保證一致。
+  文字輸出設定。是否支援 `text.format` 取決於所選模型。
 </ParamField>
 
 <ParamField body="parallel_tool_calls" type="boolean" default="true">
@@ -74,9 +83,7 @@ Responses 是 OpenAI 原生的有狀態回應協議。只有模型詳情公開 R
 </ParamField>
 
 <ParamField body="reasoning" type="object">
-  針對支援推理的模型（例如 GPT-5 系列變體）的推理設定。
-
-  - `effort` (string): 推理努力等級（`low`, `medium`, `high`）
+  推理選項（包括 `effort`）取決於所選模型。
 </ParamField>
 
 ## 回應
@@ -93,6 +100,10 @@ Responses 是 OpenAI 原生的有狀態回應協議。只有模型詳情公開 R
   回應建立的 Unix 時間戳。
 </ResponseField>
 
+<ResponseField name="status" type="string">
+  回應狀態：`queued`、`in_progress`、`completed`、`incomplete`、`failed` 或 `cancelled`。即使 HTTP 請求成功，也要檢查此欄位。
+</ResponseField>
+
 <ResponseField name="output" type="array">
   模型產生的輸出項目清單。
 </ResponseField>
@@ -100,6 +111,13 @@ Responses 是 OpenAI 原生的有狀態回應協議。只有模型詳情公開 R
 <ResponseField name="usage" type="object">
   Token 使用統計。
 </ResponseField>
+
+## 相關端點
+
+- `GET /v1/responses/{id}` 取得已儲存的回應，支援 `include`、`include_obfuscation`、`stream` 與 `starting_after`。
+- `DELETE /v1/responses/{id}` 刪除已儲存的回應，不會取消生成。
+- `POST /v1/responses/compact` 傳回 `response.compaction` 物件。
+- 目前不提供取消、input-items 或 input-tokens 端點。
 
 <RequestExample>
 ```bash cURL
@@ -268,14 +286,17 @@ print_r($data['output']);
 {
   "id": "resp_abc123",
   "object": "response",
-  "created": 1706000000,
+  "created_at": 1706000000,
+  "status": "completed",
   "model": "gpt-5.6-terra",
   "output": [
     {
+      "id": "msg_abc123",
       "type": "message",
+      "status": "completed",
       "role": "assistant",
       "content": [
-        {"type": "text", "text": "Hello! How can I help you today?"}
+        {"type": "output_text", "text": "Hello! How can I help you today?", "annotations": []}
       ]
     }
   ],

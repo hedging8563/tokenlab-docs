@@ -4,7 +4,7 @@ openapi: "POST /api/v3"
 description: "10 個火山相容素材與素材群組 Action 的介面參考。"
 ---
 
-這些 Action 讓既有火山素材用戶端保留 Action 名稱、`Version=2024-01-01`、PascalCase JSON、篩選、排序、分頁及 `ResponseMetadata + Result` 信封。TokenLab 只替換端點與驗證方式。
+這些介面支援下列素材 Action 和欄位，使用 TokenLab Bearer 驗證及 `ResponseMetadata + Result` 回應結構。
 
 ## 端點與驗證
 
@@ -23,7 +23,7 @@ Content-Type: application/json
 | Action | 目標 | JSON |
 | --- | --- | --- |
 | `CreateAssetGroup` | 建立一般素材群組 | `Name`; `Description`; `GroupType: "AIGC"`; `ProjectName` |
-| `ListAssetGroups` | 列出專案內的素材群組 | `Filter`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
+| `ListAssetGroups` | 列出專案內的素材群組 | `Filter.GroupIds`; `Filter.GroupType`; `Filter.Name`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
 | `GetAssetGroup` | 取得單一素材群組 | `Id`; `ProjectName` |
 | `UpdateAssetGroup` | 修改素材群組名稱或描述 | `Id`; `Name`; `Description`; `ProjectName` |
 | `DeleteAssetGroup` | 刪除素材群組及其中素材 | `Id`; `ProjectName` |
@@ -57,12 +57,14 @@ curl 'https://api.tokenlab.sh/?Action=CreateAssetGroup&Version=2024-01-01' \
 | Action | 目標 | JSON |
 | --- | --- | --- |
 | `CreateAsset` | 匯入一個公開圖片、影片或音訊 URL | `GroupId`; `URL`; `Name`; `AssetType`; `ProjectName` |
-| `ListAssets` | 列出專案內的素材 | `Filter`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
+| `ListAssets` | 列出專案內的素材 | `Filter.GroupIds`; `Filter.GroupType`; `Filter.Statuses`; `Filter.Name`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
 | `GetAsset` | 取得素材及暫時 URL | `Id`; `ProjectName` |
 | `UpdateAsset` | 重新命名素材 | `Id`; `Name`; `ProjectName` |
 | `DeleteAsset` | 刪除單一素材 | `Id`; `ProjectName` |
 
 `AssetType` 支援 `Image`、`Video` 和 `Audio`。目標群組決定素材屬於一般 `AIGC` 或已驗證的 `LivenessFace`。
+
+請使用 TokenLab 素材 ID。`CreateAsset` 在處理完成前回傳 `Result.Id`；輪詢 `GetAsset`，直到 `Result.Status` 為 `Active` 或 `Failed`。`ListAssets` 也支援 `SortBy: "GroupId"`。
 
 ### 建立素材
 
@@ -119,7 +121,7 @@ curl 'https://api.tokenlab.sh/?Action=CreateAsset&Version=2024-01-01' \
 }
 ```
 
-`InvalidCredential`, `InvalidVersion`, `InvalidParameter`, `NotFound`, `Conflict`, `MethodNotAllowed`, `InternalError`.
+`InvalidCredential`, `InvalidVersion`, `InvalidParameter`, `NotFound`, `Conflict`, `OperationDenied`, `MethodNotAllowed`, `InternalError`.
 
 ## REST 替代介面
 

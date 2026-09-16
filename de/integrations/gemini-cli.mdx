@@ -3,176 +3,68 @@ title: "Gemini CLI"
 description: "Konfigurieren Sie das Google Gemini CLI zur Verwendung der TokenLab API"
 ---
 
-## Übersicht
 
-Das Google Gemini CLI ist ein Befehlszeilen-Tool zur Interaktion mit Gemini-Modellen. TokenLab bietet einen kompatiblen Endpunkt, der es Ihnen ermöglicht, das Gemini CLI mit Zugriff auf über 300 Modelle zu nutzen.
+## Überblick
 
-
-<Warning>
-Dies ist nur eine experimentelle Kompatibilitätslösung: Gemini CLI dokumentiert derzeit keinen stabilen TokenLab-ähnlichen Custom-Base-URL-Workflow. Wenn Sie eine unterstützte TokenLab-Terminalintegration benötigen, verwenden Sie bevorzugt Codex CLI, Claude Code oder OpenCode.
-</Warning>
-
-## Systemanforderungen
-
-- **Node.js**: Version 20.0+
-- **Betriebssystem**: Windows 10/11, macOS 10.15+, Ubuntu 20.04+ oder Debian 10+
+Gemini CLI **0.60.0** dokumentiert `GOOGLE_GEMINI_BASE_URL` für die API-Schlüssel-Authentifizierung. Nutzen Sie den nativen Gemini-Endpunkt von TokenLab mit einem aktuellen Modell, das `gemini_generate_content` unterstützt. Siehe [Konfigurationsreferenz](https://geminicli.com/docs/reference/configuration/) und [Authentifizierung](https://geminicli.com/docs/get-started/authentication/). Ein Google-Abonnement wird damit nicht über TokenLab geleitet.
 
 ## Installation
 
 ```bash
-npm install -g @google/gemini-cli
-```
-
-Installation überprüfen:
-
-```bash
+npm install -g @google/gemini-cli@0.60.0
 gemini --version
 ```
 
 ## Konfiguration
 
-### Schritt 1: API-Key abrufen
+Setzen Sie `TOKENLAB_API_KEY` mit den Terminal-Schritten im [Schnellstart](/de/quickstart) für macOS, Linux, WSL oder Windows PowerShell, ohne den Schlüssel im Befehlsverlauf zu speichern. Starten Sie Gemini CLI in diesem Terminal. Verwenden Sie für dauerhaften Zugriff einen lokalen Secret-Manager statt eines Klartextschlüssels im Shell-Profil.
 
-1. Melden Sie sich im [TokenLab Dashboard](https://tokenlab.sh/dashboard) an
-2. Navigieren Sie zu [API Keys](https://tokenlab.sh/dashboard/api)
-3. Erstellen und kopieren Sie Ihren API-Key (Format: `sk-...`)
+Erhalten Sie Ihre Google-Anmeldung und bisherige Konfiguration. Wählen Sie für TokenLab ein unbenutztes Konfigurationsverzeichnis wie `~/.gemini-tokenlab` (`$HOME` in PowerShell) und erstellen Sie darin `.gemini`. Kopieren Sie die bisherige `.gemini/settings.json` und benötigte Richtliniendateien an die entsprechenden Stellen; erhalten Sie Berechtigungen, Sandbox und andere Einstellungen. Ergänzen Sie nur in dieser Kopie das folgende Authentifizierungsfeld, oder erstellen Sie die Datei, falls keine existiert. Kopieren Sie keine OAuth-Caches und löschen Sie keine bisherigen Zugangsdaten. Beachten Sie verwaltete Authentifizierungsregeln.
 
-### Schritt 2: Umgebungsvariablen festlegen
-
-**Temporär (aktuelle Sitzung):**
-
-```bash
-export GEMINI_API_KEY="sk-your-tokenlab-key"
-export GOOGLE_GEMINI_BASE_URL="https://api.tokenlab.sh"
+```json
+{
+  "security": {
+    "auth": {
+      "selectedType": "gemini-api-key"
+    }
+  }
+}
 ```
 
-**Permanente Konfiguration:**
+## Verwendung
 
-Fügen Sie dies zu Ihrer Shell-Konfigurationsdatei hinzu:
+Der folgende Start verwendet `~/.gemini-tokenlab/.gemini/settings.json`. Passen Sie abweichende Verzeichnisse an. Bestätigen Sie das Arbeitsverzeichnis über Geminis normale Vertrauensabfrage und behalten Sie Werkzeugfreigaben bei. Das Modell wird für diese Sitzung explizit gewählt.
 
-<Tabs>
-  <Tab title="Bash">
-    ```bash
-    echo 'export GEMINI_API_KEY="sk-your-tokenlab-key"' >> ~/.bashrc
-    echo 'export GOOGLE_GEMINI_BASE_URL="https://api.tokenlab.sh"' >> ~/.bashrc
-    source ~/.bashrc
-    ```
-  </Tab>
-  <Tab title="Zsh">
-    ```bash
-    echo 'export GEMINI_API_KEY="sk-your-tokenlab-key"' >> ~/.zshrc
-    echo 'export GOOGLE_GEMINI_BASE_URL="https://api.tokenlab.sh"' >> ~/.zshrc
-    source ~/.zshrc
-    ```
-  </Tab>
-  <Tab title="Fish">
-    ```bash
-    set -Ux GEMINI_API_KEY "sk-your-tokenlab-key"
-    set -Ux GOOGLE_GEMINI_BASE_URL "https://api.tokenlab.sh"
-    ```
-  </Tab>
-</Tabs>
-
-<Warning>
-Starten Sie Ihr Terminal nach der Konfiguration neu, damit die Änderungen wirksam werden.
-</Warning>
-
-<Note>
-**Bekannte Einschränkung**: In einigen Fällen ignoriert das Gemini CLI möglicherweise `GOOGLE_GEMINI_BASE_URL`, wenn eine Google-Sitzung im Cache gespeichert ist. Wenn Verbindungsprobleme auftreten, versuchen Sie, den CLI-Cache zu leeren oder eine neue Terminal-Sitzung zu starten.
-</Note>
-
-## Grundlegende Nutzung
-
-Starten Sie das Gemini CLI aus Ihrem Projektverzeichnis:
-
-```bash
-cd your-project
-gemini
+<CodeGroup>
+```bash macOS / Linux / WSL
+GEMINI_CLI_HOME="$HOME/.gemini-tokenlab" GEMINI_API_KEY="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" GOOGLE_GEMINI_BASE_URL=https://api.tokenlab.sh gemini --model gemini-3.5-flash
 ```
 
-Beim ersten Ausführen werden Sie:
-1. Ein Theme auswählen
-2. Den Sicherheitshinweis bestätigen
-3. Dem Arbeitsverzeichnis vertrauen
-
-## Verfügbare Modelle
-
-| Modell | Beschreibung |
-|-------|-------------|
-| `gemini-2.5-pro` | Leistungsfähigstes Gemini-Modell |
-| `gemini-3.5-flash` | Schnell, effizient für die meisten Aufgaben |
-| `gemini-3.1-flash-lite` | Aktuelles leichtgewichtiges Gemini-Modell |
-
-## Häufige Befehle
-
-**Eine Frage stellen:**
-
+```powershell Windows PowerShell
+if (-not $env:TOKENLAB_API_KEY) { throw 'Set TOKENLAB_API_KEY first' }
+$previous = @{}
+$previous['GEMINI_CLI_HOME'] = [Environment]::GetEnvironmentVariable('GEMINI_CLI_HOME', 'Process')
+$previous['GEMINI_API_KEY'] = [Environment]::GetEnvironmentVariable('GEMINI_API_KEY', 'Process')
+$previous['GOOGLE_GEMINI_BASE_URL'] = [Environment]::GetEnvironmentVariable('GOOGLE_GEMINI_BASE_URL', 'Process')
+try {
+  $env:GEMINI_CLI_HOME = (Join-Path $HOME '.gemini-tokenlab')
+  $env:GEMINI_API_KEY = $env:TOKENLAB_API_KEY
+  $env:GOOGLE_GEMINI_BASE_URL = 'https://api.tokenlab.sh'
+  gemini --model gemini-3.5-flash
+} finally {
+  foreach ($name in $previous.Keys) {
+    [Environment]::SetEnvironmentVariable($name, $previous[$name], 'Process')
+  }
+}
 ```
-> What is the best way to structure a React app?
+</CodeGroup>
+
+Diese Variablen gelten nur für diesen Start. Gespeicherte Konten, Standardmodell und Berechtigungen bleiben bestehen. Starten Sie ohne die Variablen für Ihre bisherige Konfiguration; speichern Sie sie nicht im Shell-Profil.
+
+## Prüfen
+
+Gespeicherte Einstellungen oder eine Modellliste bestätigen weder den Schlüssel noch einen abgeschlossenen Aufruf. Ein Prompt verwendet TokenLab-Guthaben. Prüfen Sie Antwort und [zugehörigen Anfrageeintrag](https://tokenlab.sh/dashboard/runs?section=requests), bevor Sie Werkzeuge testen; auch Hilfsanfragen können berechnet werden.
+
+```text
+Reply only with TOKENLAB_CONNECTION_OK. Do not use tools or modify files.
 ```
-
-**Code analysieren:**
-
-```
-> Explain the code in src/main.ts
-```
-
-**Code generieren:**
-
-```
-> Create a Python function to parse JSON files
-```
-
-**Änderungen überprüfen:**
-
-```
-> Review the recent git changes and suggest improvements
-```
-
-## Konfiguration überprüfen
-
-```bash
-# Umgebungsvariablen prüfen
-echo $GEMINI_API_KEY
-echo $GOOGLE_GEMINI_BASE_URL
-
-# Verbindung testen
-gemini
-```
-
-## Fehlerbehebung
-
-<AccordionGroup>
-  <Accordion title="Verbindungsfehler">
-    - Überprüfen Sie, ob `GOOGLE_GEMINI_BASE_URL` auf `https://api.tokenlab.sh` gesetzt ist
-    - Hinweis: Kein `/v1`-Suffix für den Gemini-Endpunkt
-    - Netzwerkverbindung prüfen
-  </Accordion>
-
-  <Accordion title="Authentifizierung fehlgeschlagen">
-    - Überprüfen Sie, ob die Umgebungsvariable `GEMINI_API_KEY` gesetzt ist
-    - Prüfen Sie, ob der Key mit `sk-` beginnt
-    - Stellen Sie sicher, dass der Key im TokenLab-Dashboard aktiv ist
-  </Accordion>
-
-  <Accordion title="Modell nicht verfügbar">
-    - Prüfen Sie die Verfügbarkeit der Gemini-Modelle unter [tokenlab.sh/en/models](https://tokenlab.sh/de/models)
-    - Versuchen Sie eine andere Gemini-Modellvariante
-  </Accordion>
-</AccordionGroup>
-
-## Bewährte Praktiken
-
-<AccordionGroup>
-  <Accordion title="Im Projektverzeichnis verwenden">
-    Führen Sie das Gemini CLI immer aus dem Projekt-Root-Verzeichnis aus, um ein besseres Kontextverständnis zu ermöglichen.
-  </Accordion>
-
-  <Accordion title="Verzeichnissen vorsichtig vertrauen">
-    Vertrauen Sie nur Verzeichnissen, die Ihnen gehören. Das Gemini CLI kann Dateien lesen und ändern.
-  </Accordion>
-
-  <Accordion title="Generierten Code überprüfen">
-    Überprüfen Sie KI-generierten Code immer, bevor Sie ihn in Ihr Projekt übernehmen.
-  </Accordion>
-</AccordionGroup>

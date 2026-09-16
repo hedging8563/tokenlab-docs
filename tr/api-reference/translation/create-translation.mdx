@@ -15,8 +15,7 @@ Bu endpoint, ses dosyası alan ve her zaman İngilizce metin çıkaran [Ses Çev
 Agent akışları için önce güncel önerilen çeviri modellerini keşfedin:
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=translation" \
-  -H "Authorization: Bearer sk-your-api-key"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=translation"
 ```
 
 Ardından seçilen modeli açıkça `/v1/translations` endpoint'ine gönderin.
@@ -82,13 +81,7 @@ curl -X POST "https://api.tokenlab.sh/v1/translations" \
 ```
 
 ```python Python
-from openai import OpenAI
 import requests
-
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
 
 response = requests.post(
     "https://api.tokenlab.sh/v1/translations",

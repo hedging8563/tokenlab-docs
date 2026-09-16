@@ -9,7 +9,7 @@ Seedance materyalleri kuruluş içinde yeniden kullanılabilen görsel, video ve
 
 | Amaç | Gerekli akış |
 | --- | --- |
-| Bir görsel URL’sini bir kez kullanmak | URL’yi doğrudan video isteğinde gönderin; uyumlu model materyali otomatik hazırlar |
+| Bir görsel URL’sini bir kez kullanmak | URL’yi desteklenen görsel alanında gönderin; yeniden kullanılabilir materyal kimliği oluşmaz |
 | Avatar, ürün veya stili yeniden kullanmak | `aigc_avatar` grubu ve materyal oluşturun, `ACTIVE` durumunu bekleyin ve ID’yi kullanın |
 | Gerçek kişiyi yeniden kullanmak | Görsel doğrulamayı tamamlayın, `GroupId` alın, materyal oluşturun, `ACTIVE` durumunu bekleyin ve ID’yi kullanın |
 | Volcengine materyal istemcisini taşımak | Action şeklini koruyup Volcengine uyumlu referansı kullanın: [Materyal Action’ları (Volcengine uyumlu)](/tr/api-reference/video/volc-compatible-material-actions) |
@@ -27,11 +27,13 @@ Seedance materyalleri, video oluşturma sırasında daha sonra seçilebilen, org
 
 `group_id` ve materyal varlığı `id` değerlerini ayrı tutun. `group_id` yüklemeleri düzenlemek içindir; materyal varlığı `id` ise video oluşturma içindir. Bir video isteği `Seedance material asset not found or not accessible` hatası döndürürse, `group_id` değil, bir materyal varlığı `id` değeri gönderdiğinizden; varlığın aynı organizasyona ait olduğundan, silinmediğinden ve `status: "ACTIVE"` durumunda olduğundan emin olun.
 
-## Otomatik Görsel Materyalleri
+## Görsel URL’leri ve yeniden kullanılabilir materyaller
 
-Seçilen Seedance modeli TokenLab materyal kitaplığını kullanabiliyorsa, görsel URL’lerini veya desteklenen inline data URL’lerini doğrudan `image`, `image_url`, `image_urls`, `reference_images`, `start_image` ya da `end_image` alanlarında gönderebilirsiniz. TokenLab bu görselleri kuruluşun varsayılan sanal avatar materyal grubuna aktarır ve ilk kare, son kare veya referans görsel rollerini korur.
+Seçilen modelin desteklediği görsel alanlarında herkese açık HTTP(S) URL’leri veya desteklenen data URL’lerini gönderin. Bunlar normal medya girdisi olarak işlenir ve otomatik olarak yeniden kullanılabilir materyal kimliği oluşturmaz.
 
-Materyaller 60 saniye içinde `ACTIVE` olursa oluşturma aynı istekte devam eder. Aksi halde API, `auto_material_asset_ids` ile `409 seedance_material_preparing` döndürür; bu materyaller `ACTIVE` olana kadar sorgulayın ve ardından `material_asset_id` veya `material_asset_ids` ile tekrar deneyin. Seçilen model materyal kitaplığını kullanamıyorsa normal görsel URL’leri veya data URL’leri standart görsel yolunda kalır; açık materyal ID’leri yeniden denenebilir materyal kullanılabilirliği hatasıyla güvenli şekilde başarısız olur. Mevcut sanal avatar ve gerçek kişi materyal ID’leri olduğu gibi kullanılır ve yeniden içe aktarılmaz.
+Yeniden kullanmak için materyal API’siyle varlık oluşturun, `ACTIVE` durumunu bekleyin ve desteklenen medya alanında `material_asset_id`, `material_asset_ids` veya `asset://<id>` kullanın. İlk kare, son kare veya referans görsel rolünü koruyun.
+
+Açıkça belirtilen materyal hâlâ hazırlanıyorsa `POST /v1/videos/generations`, `inactive_asset_ids` ile `409 seedance_material_preparing` döndürür. Varlıkları `ACTIVE` olana kadar sorgulayıp aynı kimliklerle yeniden deneyin. `FAILED` durumunda önce `error_message` değerine göre düzeltin veya yeniden içe aktarın.
 
 ## Gerçek Kişi Materyal Doğrulaması
 
@@ -44,6 +46,8 @@ Materyaller 60 saniye içinde `ACTIVE` olursa oluşturma aynı istekte devam ede
 5. `GroupId` değerini kaydedin ve `liveness_face` materyalleri oluştururken `group_id` olarak kullanın.
 
 `BytedToken` 30 dakika geçerlidir. Her iki Action isteğinde aynı `ProjectName` değerini kullanın. Kimlik doğrulamada `Authorization: Bearer <TOKENLAB_API_KEY>` kullanılır; Volc AK/SK imzaları kabul edilmez.
+
+Dönen `H5Link` adresini oluşturulduktan hemen sonra açın. Token geçerliliği, doğrulama sayfasının bu sürenin herhangi bir anında ilk kez açılabileceğini garanti etmez.
 
 İsteğe bağlı: İstek ve geri çağırma (callback) akışınızı doğrulamak, materyal gruplarını incelemek ve doğrulama geçmişini gözden geçirmek için [test konsolunu](https://tokenlab.sh/dashboard/seedance-assets) kullanın. Üretim (production) entegrasyonunuz API'leri doğrudan çağırmalıdır.
 
@@ -63,9 +67,11 @@ Her seferinde genel olarak erişilebilir bir kaynak URL'sini içe aktarmak için
 
 | Tür | Desteklenen girdi |
 |------|-----------------|
-| Görsel | `jpeg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`; en-boy oranı `(0.4, 2.5)`; genişlik ve yükseklik `(300, 6000)` px; 30 MB altı. |
-| Video | `mp4`, `mov`; `480p`, `720p` veya `1080p`; 2-15 saniye; en-boy oranı `[0.4, 2.5]`; genişlik ve yükseklik `[300, 6000]` px; toplam piksel 409600 ile 2068676 arası; 200 MB'a kadar; 24-60 FPS. |
-| Ses | `aac`, `wav`, `mp3`; 2-15 saniye; 15 MB'a kadar. |
+| Görsel | `jpeg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`; ≤ 30 MiB; genişlik ve yükseklik [300, 6000] px; en boy oranı [0.4, 2.5] |
+| Video | `mp4`, `mov`; ≤ 200 MiB |
+| Ses | `aac`, `wav`, `mp3`; ≤ 15 MiB |
+
+Tablo dosya içe aktarma sınırlarını gösterir. Kabul edilen istek medya veya gerçek kişi doğrulamasının geçeceğini garanti etmez. `ACTIVE` durumunu bekleyin; `FAILED` olursa yeniden içe aktarmadan önce `error_message` doğrultusunda kaynağı düzeltin.
 
 Materyal alımı asenkrondur. `status` değeri `ACTIVE` olana kadar [Materyal Varlığını Getir](/tr/api-reference/video/get-material-asset) ile sorgulama yapın. Başarılı bir HTTP yanıtı, yalnızca isteğin kabul edildiği anlamına gelir; her zaman iş durumunu (business status) okuyun. Durum `FAILED` ise `error_message` kısmını inceleyin, kaynak materyali düzeltin ve yeni bir varlık oluşturun.
 

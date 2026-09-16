@@ -10,8 +10,7 @@ La forma más sencilla de integrar TokenLab es elegir el SDK según el comportam
 - herramientas **Gemini / Google AI** oficiales para formatos nativos de Gemini
 - **OpenAI SDKs** oficiales para rutas /v1 compatibles con OpenAI y uso estilo Responses
 
-Usa las páginas de integración para los límites de soporte. En esta documentación, "recommended" o "supported" significa que existe una ruta de configuración documentada; no cubre automáticamente cada helper de framework ni cada función específica del proveedor.
-
+Consulta la página de integración correspondiente para configurar el cliente y conocer los límites del modelo. La [guía rápida](/es/quickstart) contiene una primera solicitud completa.
 ## SDKs recomendados
 
 <CardGroup cols={2}>
@@ -43,7 +42,7 @@ client = OpenAI(
 
 response = client.responses.create(
     model="gpt-5.6-terra",
-    input="Explain TokenLab in one sentence."
+    input="Reply with: Connected to TokenLab."
 )
 
 print(response.output_text)

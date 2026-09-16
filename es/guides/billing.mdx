@@ -1,117 +1,25 @@
 ---
-title: "Facturación y Precios"
-description: "Comprenda el modelo de precios de pago por uso de TokenLab"
+title: "Facturación y precios"
+description: "Facturación y precios"
 ---
 
-## Resumen
+Un saldo TokenLab sirve para todos los modelos. No hay suscripción ni gasto mínimo; se cobra según el modelo y el uso registrado.
 
-TokenLab utiliza un **modelo de precios de pago por uso**. Solo paga por lo que utiliza, sin suscripciones ni compromisos mínimos.
+## Precios y opciones de entrega
 
-## Cómo funciona la facturación
+Consulta precios actuales en la página del modelo, `GET /v1/models/{model}/pricing` o Pricing API. No fijes una tabla copiada en tu aplicación. Texto y embeddings pueden cobrarse por tokens de entrada, salida o caché; los medios también por imagen, segundo, minuto, solicitud o tarea.
 
-1. **Añada créditos** a su cuenta
-2. **Use la API** - los costes se deducen por solicitud
-3. **Monitoree el uso** en su panel de control
-4. **Recargue** cuando su saldo sea bajo
+`TokenLab Verified` usa los precios públicos de TokenLab y `Official` la capa Official basada en los precios públicos del fabricante. `Auto` prioriza Verified y usa Official si hace falta; cobra una vez por la opción que entrega el resultado. Console muestra la estimación máxima antes de confirmar una generación de pago y el importe final en Runs y Usage.
 
-## Modelos de precios
+[Pricing API](/es/api-reference/pricing/get-pricing)
 
-Los precios en vivo pueden cambiar según proveedores, rutas y détails du modèle. Usa el Dashboard, la página de modelos, `GET /v1/models/:model/pricing` y la [Pricing API](/api-reference/pricing/get-pricing) como referencia actual.
+## Facturación asíncrona y registros
 
-### Precios basados en tokens
+Algunas tareas reservan el coste estimado al crearse. Guarda el ID y `poll_url` y consulta hasta `completed` o `failed`. Una tarea correcta se cobra una vez y se libera la reserva sobrante; si falla, el importe pendiente se libera o devuelve.
 
-La mayoría de modelos de chat, razonamiento, embedding, rerank y algunos de imagen se cobran por tokens de entrada, salida, cache o salida de imagen.
+Las respuestas OpenAI compatibles sin streaming pueden incluir `billing_transaction_id` o `X-Billing-Transaction-ID` cuando termina la facturación. Los formatos nativos pueden usar solo el header. El resultado asíncrono o en streaming puede llegar antes del registro contable; consulta Usage si falta el identificador.
 
-| Familia de precio | Ejemplos | Verificar precio actual |
-|---|---|---|
-| Chat / Responses | `gpt-5.4`, `claude-sonnet-4-6`, `gemini-3.5-flash` | Página del modelo o API de precios |
-| Embeddings / rerank | `text-embedding-3-small`, `qwen3-vl-rerank` | Detalles de precios del modelo |
-| Imágenes facturadas por token | `gpt-image-2` | `GET /v1/models/gpt-image-2/pricing` |
-
-<Note>
-No copies tablas de precios estáticas en lógica de producción. Guarda solo IDs de modelo en código y revisa precios antes del lanzamiento.
-</Note>
-
-### Precios por solicitud y tarea
-
-Los modelos de imagen, video, música, 3D, audio y world pueden cobrarse por solicitud, imagen, segundo/minuto, tarea o uso específico del proveedor.
-
-| Familia | Ejemplos |
-|---|---|
-| Imagen | `flux-pro` |
-| Vídeo | `veo3.1`, `seedance-2.0` |
-| Música | `suno-music` |
-| 3D | `tripo-h3.1` |
-| Audio | `tts-1`, `whisper-1` |
-
-### Facturación de tareas asíncronas (Vídeo/Música/3D y algunos modelos de imagen)
-
-<Note>
-  En la generación basada en tareas, crear la tarea puede reservar o predescontar el coste estimado. La liquidación final solo ocurre después de que la tarea asíncrona alcance un estado terminal exitoso durante el polling o la finalización.
-</Note>
-
-Para flujos de generación basados en tareas (vídeo, música, 3D y algunos modelos de imagen):
-
-1. Envía la tarea. TokenLab puede aplicar una reserva o predescuento estimado para verificar el saldo y los límites de gasto de la API Key.
-2. Consulta la `poll_url` devuelta, o llama a `GET /v1/tasks/{id}`, hasta que la tarea alcance un estado terminal.
-3. Cuando la tarea se completa correctamente, la liquidación final registra el uso y la respuesta de la tarea incluye `billing_transaction_id`.
-4. Si la creación falla o el estado terminal es failed, el importe pendiente se reembolsa o libera y la solicitud se marca como no facturable.
-
-Si el dashboard no refleja la liquidación o el reembolso después de que el estado terminal sea visible, contacta con support@tokenlab.sh.
-
-```python
-# Ejemplo: Facturación de generación de vídeo
-response = client.post("/v1/videos/generations", json={
-    "model": "veo3.1",
-    "prompt": "A sunset over the ocean"
-})
-# El coste estimado puede reservarse ahora; la facturación final aparece después del éxito.
-
-poll_url = response.json()["poll_url"]
-task_id = response.json()["task_id"]
-# Consulta poll_url para ver el estado; billing_transaction_id aparece tras la liquidación.
-```
-
-### ID de transacción de facturación
-
-Las respuestas JSON facturables, no streaming y compatibles con OpenAI incluyen `billing_transaction_id` cuando la liquidación se completa antes de finalizar la respuesta. El mismo valor también se expone en el header `X-Billing-Transaction-ID`, para integraciones en navegador y servidor. Las rutas de compatibilidad nativa, como Gemini `/v1beta`, pueden exponer el valor solo por header para conservar la forma nativa de respuesta del proveedor. Para tareas multimedia asíncronas, consulta el `poll_url` devuelto o `GET /v1/tasks/{id}`; la respuesta de la tarea incluye `billing_transaction_id` cuando la liquidación termina. Las respuestas streaming pueden liquidarse después de que el stream ya fue enviado; si el header no está presente, usa los logs de uso del dashboard para reconciliación.
-
-## Conteo de tokens
-
-Los tokens son las unidades básicas del procesamiento de texto:
-
-- ~4 caracteres = 1 token (Inglés)
-- ~1-2 caracteres = 1 token (Chino)
-- 1 imagen = varía según el tamaño y el detalle
-
-### Estimación de tokens
-
-```python
-# Estimación aproximada
-def estimate_tokens(text):
-    return len(text) / 4  # Aproximado para inglés
-
-# Conteo real (para modelos de OpenAI)
-import tiktoken
-encoder = tiktoken.encoding_for_model("gpt-5.6-terra")
-tokens = encoder.encode("Your text here")
-print(f"Token count: {len(tokens)}")
-```
-
-## Seguimiento de uso
-
-### Panel de control
-
-Monitoree su uso en el [Panel de control](https://tokenlab.sh/dashboard):
-
-- Saldo en tiempo real
-- Historial de uso por modelo
-- Desglose de costes
-- Uso de claves API
-
-### Respuesta de la API
-
-Cada respuesta incluye información de uso:
+Usage muestra modelo, clave, coste y consumo. La tokenización depende del modelo, idioma y medios; contar caracteres no sustituye la factura final. El streaming no reduce tokens facturados. Compara el coste final de tareas iguales y usa límites de salida admitidos.
 
 ```json
 {
@@ -123,71 +31,13 @@ Cada respuesta incluye información de uso:
 }
 ```
 
-## Optimización de costes
+- [Usage](https://tokenlab.sh/dashboard/usage)
+- [Trabajos Asíncronos y Polling](/es/guides/async-jobs-polling)
 
-<AccordionGroup>
-  <Accordion title="Use modelos adecuados">
-    Utilice modelos más pequeños (GPT-4o-mini, Gemini Flash) para tareas sencillas.
-  </Accordion>
+## Uso de Console
 
-  <Accordion title="Implemente el almacenamiento en caché">
-    Almacene en caché las respuestas para solicitudes idénticas repetidas.
-  </Accordion>
+En Console → Billing, elige importe y uno de los métodos mostrados al pagar. El saldo se actualiza cuando el servicio de pago confirma la operación.
 
-  <Accordion title="Optimice los prompts">
-    Mantenga los prompts concisos manteniendo la claridad.
-  </Accordion>
+Configura un límite de gasto al crear o editar una clave en Console → API Keys. Al alcanzarlo se devuelve `402 Payment Required`.
 
-  <Accordion title="Establezca max_tokens">
-    Limite la longitud de la respuesta cuando no se necesiten respuestas completas.
-  </Accordion>
-
-  <Accordion title="Use streaming para respuestas largas">
-    El streaming no tiene un coste adicional pero mejora el rendimiento percibido.
-  </Accordion>
-</AccordionGroup>
-
-## Alertas de saldo bajo
-
-Configure alertas para cuando su saldo disminuya:
-
-1. Vaya a **Panel de control → Configuración → Notificaciones**
-2. Establezca su cantidad de umbral
-3. Reciba notificaciones por correo electrónico
-
-## Añadir créditos
-
-### Métodos de pago
-
-- Stripe (Visa, Mastercard)
-
-### Pasos
-
-1. Inicie sesión en el [Panel de control](https://tokenlab.sh/dashboard)
-2. Haga clic en **Añadir créditos**
-3. Seleccione la cantidad y el método de pago
-4. Complete el pago
-
-Los créditos se añaden instantáneamente tras la confirmación del pago.
-
-## Límites de claves API
-
-Puede establecer límites de gasto en claves API individuales:
-
-1. Vaya a **Panel de control → Claves API**
-2. Haga clic en una clave para editarla
-3. Establezca el **Límite de uso**
-
-Cuando se alcance el límite, las solicitudes con esa clave devolverán `402 Payment Required`.
-
-## Facturas
-
-Para cuentas de empresa, las facturas están disponibles:
-
-1. Vaya a **Panel de control → Facturación**
-2. Vea el historial de transacciones
-3. Descargue las facturas como PDF
-
-## ¿Preguntas?
-
-Póngase en contacto con support@tokenlab.sh para consultas de facturación.
+Configura alertas de saldo en Console → Settings. Para consultas, envía Request ID e ID de tarea a support@tokenlab.sh, nunca la clave API.

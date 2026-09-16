@@ -13,7 +13,7 @@ description: "把文本转换为 Embedding 向量"
 </ParamField>
 
 <ParamField body="input" type="string | array" required>
-  要转换的文本，可以是单个字符串或字符串数组。
+  待转换的文本，可以是字符串或字符串数组。支持 token 输入的模型还可接收 `number[]`（一组 token）或 `number[][]`（多组 token）。
 </ParamField>
 
 <ParamField body="encoding_format" type="string" default="float">
@@ -44,7 +44,7 @@ description: "把文本转换为 Embedding 向量"
   每个对象包含：
   - `object`（string）：`embedding`
   - `index`（integer）：在输入数组中的索引
-  - `embedding`（array）：向量值
+  - `embedding` (array | string): `float` 返回数值向量，`base64` 返回 Base64 字符串。
 </ResponseField>
 
 <ResponseField name="model" type="string">
@@ -125,6 +125,10 @@ print_r(array_slice($data['data'][0]['embedding'], 0, 5));
 ```
 </RequestExample>
 
+<Note>
+示例中的向量已缩短，便于阅读。
+</Note>
+
 <ResponseExample>
 ```json Response
 {
@@ -133,7 +137,7 @@ print_r(array_slice($data['data'][0]['embedding'], 0, 5));
     {
       "object": "embedding",
       "index": 0,
-      "embedding": [0.0023, -0.0194, 0.0081, ...]
+      "embedding": [0.0023, -0.0194, 0.0081]
     }
   ],
   "model": "text-embedding-3-small",

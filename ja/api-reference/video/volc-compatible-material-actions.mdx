@@ -4,7 +4,7 @@ openapi: "POST /api/v3"
 description: "10 個の Volcengine 互換素材・素材グループ Action のリファレンスです。"
 ---
 
-既存の Volcengine 素材クライアントは、Action 名、`Version=2024-01-01`、PascalCase JSON、フィルター、ソート、ページング、`ResponseMetadata + Result` エンベロープを維持できます。TokenLab ではエンドポイントと認証方式だけを変更します。
+これらのエンドポイントは、下記の素材 Action とフィールドをサポートし、TokenLab Bearer 認証と `ResponseMetadata + Result` 形式を使用します。
 
 ## エンドポイントと認証
 
@@ -23,7 +23,7 @@ Content-Type: application/json
 | Action | 目的 | JSON |
 | --- | --- | --- |
 | `CreateAssetGroup` | 通常の素材グループを作成 | `Name`; `Description`; `GroupType: "AIGC"`; `ProjectName` |
-| `ListAssetGroups` | プロジェクト内のグループを一覧表示 | `Filter`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
+| `ListAssetGroups` | プロジェクト内のグループを一覧表示 | `Filter.GroupIds`; `Filter.GroupType`; `Filter.Name`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
 | `GetAssetGroup` | 1 件のグループを取得 | `Id`; `ProjectName` |
 | `UpdateAssetGroup` | グループ名または説明を変更 | `Id`; `Name`; `Description`; `ProjectName` |
 | `DeleteAssetGroup` | グループとその素材を削除 | `Id`; `ProjectName` |
@@ -57,12 +57,14 @@ curl 'https://api.tokenlab.sh/?Action=CreateAssetGroup&Version=2024-01-01' \
 | Action | 目的 | JSON |
 | --- | --- | --- |
 | `CreateAsset` | 公開されている画像、ビデオ、音声 URL を 1 件インポート | `GroupId`; `URL`; `Name`; `AssetType`; `ProjectName` |
-| `ListAssets` | プロジェクト内の素材を一覧表示 | `Filter`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
+| `ListAssets` | プロジェクト内の素材を一覧表示 | `Filter.GroupIds`; `Filter.GroupType`; `Filter.Statuses`; `Filter.Name`; `PageNumber`; `PageSize`; `SortBy`; `SortOrder`; `ProjectName` |
 | `GetAsset` | 素材と一時 URL を取得 | `Id`; `ProjectName` |
 | `UpdateAsset` | 素材名を変更 | `Id`; `Name`; `ProjectName` |
 | `DeleteAsset` | 1 件の素材を削除 | `Id`; `ProjectName` |
 
 `AssetType` は `Image`、`Video`、`Audio` を受け付けます。対象グループによって通常の `AIGC` 素材か、認証済み `LivenessFace` 素材かが決まります。
+
+TokenLab の素材 ID を使用してください。`CreateAsset` は処理完了前に `Result.Id` を返します。`Result.Status` が `Active` または `Failed` になるまで `GetAsset` をポーリングしてください。`ListAssets` は `SortBy: "GroupId"` にも対応します。
 
 ### 素材を作成
 
@@ -119,7 +121,7 @@ curl 'https://api.tokenlab.sh/?Action=CreateAsset&Version=2024-01-01' \
 }
 ```
 
-`InvalidCredential`, `InvalidVersion`, `InvalidParameter`, `NotFound`, `Conflict`, `MethodNotAllowed`, `InternalError`.
+`InvalidCredential`, `InvalidVersion`, `InvalidParameter`, `NotFound`, `Conflict`, `OperationDenied`, `MethodNotAllowed`, `InternalError`.
 
 ## REST の代替
 

@@ -10,7 +10,7 @@ OpenLLMetry의 OpenAI 계측(instrumentation)은 공식 OpenAI SDK를 통해 이
 ## 설치
 
 ```bash
-pip install opentelemetry-instrumentation-openai openai
+pip install opentelemetry-instrumentation-openai opentelemetry-sdk openai
 ```
 
 ## 환경 설정
@@ -21,11 +21,20 @@ export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 
 ## 예시
 
+이 독립 실행 예제는 span을 터미널에 출력합니다. 애플리케이션에 OpenTelemetry tracer provider가 이미 설정되어 있다면 기존 provider와 exporter를 재사용하세요.
+
 ```python
 import os
 
 from openai import OpenAI
+from opentelemetry import trace
 from opentelemetry.instrumentation.openai import OpenAIInstrumentor
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import ConsoleSpanExporter, SimpleSpanProcessor
+
+tracer_provider = TracerProvider()
+tracer_provider.add_span_processor(SimpleSpanProcessor(ConsoleSpanExporter()))
+trace.set_tracer_provider(tracer_provider)
 
 OpenAIInstrumentor().instrument()
 

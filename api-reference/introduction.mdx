@@ -15,11 +15,13 @@ https://api.tokenlab.sh
 
 ## Authentication
 
-All API endpoints require authentication using a Bearer token:
+Model requests use a TokenLab API key. The standard authentication header is:
 
 ```bash
 Authorization: Bearer sk-your-api-key
 ```
+
+`GET /v1/models`, `GET /v1/models/{model}`, and `GET /v1/pricing` are public and need no key. Anthropic Messages also accepts `x-api-key`; Gemini accepts `x-goog-api-key` or `?key=` as well as Bearer authentication. `/v1/management/*` requires a management token (`mt-...`).
 
 Get your API key from the [Console](https://tokenlab.sh/dashboard).
 
@@ -153,7 +155,7 @@ Gemini endpoints support `?key=` query parameter authentication in addition to s
 
 ## Response Format
 
-Each endpoint keeps the response shape documented for its API format. This is a Chat Completions example:
+Each endpoint preserves its API format. The success and error examples below use Chat Completions format.
 
 ### Success Response
 
@@ -163,7 +165,7 @@ Each endpoint keeps the response shape documented for its API format. This is a 
   "object": "chat.completion",
   "created": 1234567890,
   "model": "gpt-5.6-terra",
-  "choices": [...],
+  "choices": [{"index": 0, "message": {"role": "assistant", "content": "Hello!"}, "finish_reason": "stop"}],
   "usage": {
     "prompt_tokens": 10,
     "completion_tokens": 20,

@@ -4,7 +4,7 @@ openapi: "POST /v1beta/models/{model}:generateContent"
 description: "Generates content using Google Gemini API format"
 ---
 
-This endpoint uses Gemini request and response formats. It does not convert requests to Chat Completions. Google ProtoJSON lowerCamelCase and proto `snake_case` field names are both accepted. Optional field support depends on the selected model.
+Use Gemini request and response formats with a model returned by the Gemini Models API. ProtoJSON lowerCamelCase and the corresponding proto snake_case field names are accepted. Supported optional fields and values depend on the selected model.
 
 ## Path Parameters
 
@@ -28,16 +28,7 @@ Gemini endpoints support multiple authentication methods:
 ## Request Body
 
 <ParamField body="contents" type="array" required>
-  Conversation contents.
-
-  Each content object contains:
-  - `role` (string): `user` or `model`
-  - `parts` (array): Content parts. TokenLab supports:
-    - text parts: `{ "text": "..." }`
-    - inline media parts: `inlineData` / `inline_data`
-    - URL-based file parts: `fileData` / `file_data`
-
-  File and Cache IDs created by TokenLab can be used only in their owning Workspace.
+  Conversation contents with `parts` and an optional `role`. Media parts use `inlineData` / `inline_data` or `fileData` / `file_data`. Files and Cache IDs created by TokenLab can only be used in their owning Workspace.
 </ParamField>
 
 <ParamField body="systemInstruction" type="object">
@@ -45,17 +36,7 @@ Gemini endpoints support multiple authentication methods:
 </ParamField>
 
 <ParamField body="generationConfig" type="object">
-  Generation configuration:
-  - `temperature` (number): Sampling temperature
-  - `topP` (number): Nucleus sampling probability
-  - `topK` (integer): Top-K sampling
-  - `maxOutputTokens` (integer): Maximum output tokens
-  - `stopSequences` (array): Stop sequences
-  - `candidateCount` (integer): Requested candidate count; support depends on the model.
-  - `responseModalities` (array): Requested output modalities for compatible models.
-  - `responseMimeType` (string): Output MIME type such as `text/plain` or `application/json`.
-  - `responseSchema` (object): JSON schema for structured output when `responseMimeType` requests JSON.
-  - `thinkingConfig` / `thinking_config` (object): Thinking budget options for compatible models.
+  Generation settings such as `temperature`, `topP`, `topK`, `maxOutputTokens`, `stopSequences`, `candidateCount`, `responseModalities`, `responseMimeType`, `responseSchema`, and `thinkingConfig`. Corresponding snake_case names are also accepted. Supported values and combinations depend on the model.
 </ParamField>
 
 <ParamField body="safetySettings" type="array">
@@ -113,11 +94,11 @@ print(response.text)
 ```javascript JavaScript
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI("sk-your-api-key", {
-  baseUrl: "https://api.tokenlab.sh"
-});
-
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
+const genAI = new GoogleGenerativeAI("sk-your-api-key");
+const model = genAI.getGenerativeModel(
+  { model: "gemini-2.5-pro" },
+  { baseUrl: "https://api.tokenlab.sh" }
+);
 const result = await model.generateContent("Hello, Gemini!");
 
 console.log(result.response.text());

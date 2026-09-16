@@ -10,6 +10,8 @@ description: "建立 3D 模型生成任務"
 
 ## 請求主體
 
+傳送可選欄位前，請透過 `GET /v1/models/{model}` 查看該模型接受的參數。範例只傳送 `model` 和 `prompt`。
+
 <ParamField body="model" type="string" default="tripo-h3.1">
   要使用的模型，例如 `tripo-h3.1` 或 `tripo-p1.0`。依賴某個輸入類型或輸出格式前，請先查詢 `GET /v1/models?recommended_for=3d`。
 </ParamField>
@@ -26,12 +28,12 @@ description: "建立 3D 模型生成任務"
   用於圖片轉 3D 生成的圖片 URL。
 </ParamField>
 
-<ParamField body="format" type="string" default="glb">
-  輸出格式：`glb`、`fbx`、`obj` 或 `usdz`。
+<ParamField body="format" type="string">
+  輸出格式；是否支援及允許值取決於所選模型。
 </ParamField>
 
-<ParamField body="quality" type="string" default="standard">
-  品質等級：`draft`、`standard` 或 `high`。
+<ParamField body="quality" type="string">
+  品質設定；是否支援及允許值取決於所選模型。
 </ParamField>
 
 <ParamField body="style" type="string">
@@ -39,7 +41,7 @@ description: "建立 3D 模型生成任務"
 </ParamField>
 
 <ParamField body="seed" type="integer">
-  用於可重現生成的整數種子值，範圍為 `0` 到 `4294967295`。
+  整數種子，僅在所選模型支援時使用。
 </ParamField>
 
 <ParamField body="user" type="string">
@@ -75,9 +77,7 @@ curl -X POST "https://api.tokenlab.sh/v1/3d/generations" \
   -H "Content-Type: application/json" \
   -d '{
     "model": "tripo-h3.1",
-    "prompt": "A detailed medieval castle with towers",
-    "format": "glb",
-    "quality": "high"
+    "prompt": "A detailed medieval castle with towers"
   }'
 ```
 
@@ -89,9 +89,7 @@ response = requests.post(
     headers={"Authorization": "Bearer sk-your-api-key"},
     json={
         "model": "tripo-h3.1",
-        "prompt": "A detailed medieval castle with towers",
-        "format": "glb",
-        "quality": "high"
+        "prompt": "A detailed medieval castle with towers"
     }
 )
 
@@ -108,9 +106,7 @@ const response = await fetch('https://api.tokenlab.sh/v1/3d/generations', {
   },
   body: JSON.stringify({
     model: 'tripo-h3.1',
-    prompt: 'A detailed medieval castle with towers',
-    format: 'glb',
-    quality: 'high'
+    prompt: 'A detailed medieval castle with towers'
   })
 });
 
@@ -132,8 +128,6 @@ func main() {
     payload := map[string]interface{}{
         "model":   "tripo-h3.1",
         "prompt":  "A detailed medieval castle with towers",
-        "format":  "glb",
-        "quality": "high",
     }
     body, _ := json.Marshal(payload)
 
@@ -164,9 +158,7 @@ curl_setopt_array($ch, [
     ],
     CURLOPT_POSTFIELDS => json_encode([
         'model' => 'tripo-h3.1',
-        'prompt' => 'A detailed medieval castle with towers',
-        'format' => 'glb',
-        'quality' => 'high'
+        'prompt' => 'A detailed medieval castle with towers'
     ])
 ]);
 

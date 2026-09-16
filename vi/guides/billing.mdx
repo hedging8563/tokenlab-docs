@@ -1,117 +1,25 @@
 ---
-title: "Thanh toán & Giá cả"
-description: "Tìm hiểu mô hình giá pay-as-you-go của TokenLab"
+title: "Thanh toán và giá"
+description: "Thanh toán và giá"
 ---
 
-## Tổng quan
+Một số dư TokenLab dùng chung cho các mô hình. Không có thuê bao hay mức chi tối thiểu; phí dựa trên mô hình và mức sử dụng được ghi nhận.
 
-TokenLab sử dụng **mô hình giá pay-as-you-go**. Bạn chỉ trả tiền cho những gì bạn sử dụng, không có phí đăng ký hàng tháng hoặc cam kết tối thiểu.
+## Giá và lựa chọn cung cấp
 
-## Cơ chế thanh toán
+Xem giá hiện tại trên trang mô hình, `GET /v1/models/{model}/pricing` hoặc Pricing API. Không cố định bảng giá sao chép trong ứng dụng. Văn bản và embedding có thể tính theo token đầu vào, đầu ra hoặc cache; media còn có thể tính theo ảnh, giây, phút, yêu cầu hoặc tác vụ.
 
-1. **Nạp tiền (credits)** vào tài khoản của bạn
-2. **Sử dụng API** - chi phí sẽ được trừ trên mỗi yêu cầu
-3. **Theo dõi mức sử dụng** trong bảng điều khiển (dashboard) của bạn
-4. **Nạp thêm tiền** khi số dư của bạn thấp
+`TokenLab Verified` dùng giá công khai TokenLab; `Official` dùng lớp Official dựa trên giá công khai của nhà sản xuất mô hình. `Auto` ưu tiên Verified rồi dùng Official nếu cần; chỉ thu một lần theo lựa chọn cung cấp kết quả. Console hiển thị ước tính tối đa trước khi xác nhận tạo có phí và số tiền cuối cùng trong Runs và Usage.
 
-## Các mô hình giá
+[Pricing API](/vi/api-reference/pricing/get-pricing)
 
-Giá live có thể thay đổi theo provider, route và hợp đồng model. Hãy coi Dashboard, trang Models, `GET /v1/models/:model/pricing` và [Pricing API](/api-reference/pricing/get-pricing) là nguồn sự thật.
+## Thanh toán bất đồng bộ và bản ghi
 
-### Giá theo token
+Một số tác vụ giữ trước chi phí ước tính khi tạo. Lưu ID và `poll_url`, rồi kiểm tra đến `completed` hoặc `failed`. Tác vụ thành công được tính phí một lần và giải phóng phần giữ dư; khi thất bại, khoản chờ được giải phóng hoặc hoàn trả.
 
-Phần lớn model chat, reasoning, embedding, rerank và một số model ảnh được tính theo token đầu vào, đầu ra, cache hoặc token đầu ra ảnh.
+Phản hồi tương thích OpenAI không streaming có thể chứa `billing_transaction_id` hoặc `X-Billing-Transaction-ID` sau khi tính phí. Định dạng native có thể chỉ dùng header. Kết quả bất đồng bộ hoặc streaming có thể tới trước bản ghi tài chính; xem Usage nếu chưa có ID.
 
-| Nhóm giá | Ví dụ | Kiểm tra giá hiện tại |
-|---|---|---|
-| Chat / Responses | `gpt-5.4`, `claude-sonnet-4-6`, `gemini-3.5-flash` | Trang model hoặc API định giá |
-| Embedding / rerank | `text-embedding-3-small`, `qwen3-vl-rerank` | Chi tiết giá của model |
-| Ảnh tính phí theo token | `gpt-image-2` | `GET /v1/models/gpt-image-2/pricing` |
-
-<Note>
-Đừng sao chép bảng giá tĩnh vào logic production. Chỉ lưu model ID trong code và kiểm tra giá hiện tại trước khi launch.
-</Note>
-
-### Giá theo yêu cầu và tác vụ
-
-Model ảnh, video, nhạc, 3D, audio và world có thể tính theo request, ảnh, giây/phút, task hoặc usage đặc thù provider.
-
-| Nhóm | Ví dụ |
-|---|---|
-| Hình ảnh | `flux-pro` |
-| Video | `veo3.1`, `seedance-2.0` |
-| Âm nhạc | `suno-music` |
-| 3D | `tripo-h3.1` |
-| Âm thanh | `tts-1`, `whisper-1` |
-
-### Thanh toán tác vụ không đồng bộ (Video/Nhạc/3D và một số mô hình hình ảnh)
-
-<Note>
-  Với quy trình tạo dựa trên tác vụ, việc tạo tác vụ có thể giữ chỗ hoặc trừ trước chi phí ước tính. Việc quyết toán cuối cùng chỉ diễn ra sau khi tác vụ không đồng bộ đạt trạng thái cuối thành công trong quá trình polling hoặc finalization.
-</Note>
-
-Đối với quy trình tạo dựa trên tác vụ (video, nhạc, 3D và một số mô hình hình ảnh):
-
-1. Gửi tác vụ. TokenLab có thể giữ chỗ hoặc trừ trước chi phí ước tính để kiểm tra số dư và giới hạn chi tiêu của API Key.
-2. Poll `poll_url` được trả về, hoặc gọi `GET /v1/tasks/{id}`, cho đến khi tác vụ đạt trạng thái cuối.
-3. Khi tác vụ hoàn tất thành công, việc quyết toán cuối cùng ghi nhận usage và phản hồi tác vụ bao gồm `billing_transaction_id`.
-4. Nếu tạo tác vụ thất bại hoặc trạng thái cuối là failed, khoản đang chờ sẽ được hoàn lại hoặc giải phóng và request được đánh dấu là không tính phí.
-
-Nếu dashboard không phản ánh quyết toán hoặc hoàn tiền sau khi trạng thái cuối đã hiển thị, hãy liên hệ support@tokenlab.sh để được hỗ trợ.
-
-```python
-# Ví dụ: billing cho tạo video
-response = client.post("/v1/videos/generations", json={
-    "model": "veo3.1",
-    "prompt": "A sunset over the ocean"
-})
-# Chi phí ước tính có thể được giữ chỗ ngay; billing cuối cùng xuất hiện sau khi thành công.
-
-poll_url = response.json()["poll_url"]
-task_id = response.json()["task_id"]
-# Poll poll_url để xem trạng thái; billing_transaction_id xuất hiện sau settlement.
-```
-
-### ID giao dịch billing
-
-Các phản hồi JSON có tính phí, không streaming và tương thích OpenAI sẽ bao gồm `billing_transaction_id` khi việc settlement hoàn tất trước lúc phản hồi được hoàn thiện. Cùng giá trị này cũng được expose qua header `X-Billing-Transaction-ID` cho tích hợp trình duyệt và server. Các route tương thích native như Gemini `/v1beta` có thể chỉ expose giá trị qua header để giữ nguyên hình dạng phản hồi native của provider. Với task media bất đồng bộ, hãy poll `poll_url` trả về hoặc `GET /v1/tasks/{id}`; phản hồi task sẽ có `billing_transaction_id` sau khi settlement hoàn tất. Phản hồi streaming có thể settlement sau khi stream đã được gửi, vì vậy nếu không có header này, hãy dùng usage logs trong dashboard để đối soát.
-
-## Đếm Token
-
-Token là các đơn vị cơ bản của xử lý văn bản:
-
-- ~4 ký tự = 1 token (Tiếng Anh)
-- ~1-2 ký tự = 1 token (Tiếng Trung)
-- 1 hình ảnh = thay đổi tùy theo kích thước và chi tiết
-
-### Ước tính Token
-
-```python
-# Rough estimation
-def estimate_tokens(text):
-    return len(text) / 4  # Approximate for English
-
-# Actual count (for OpenAI models)
-import tiktoken
-encoder = tiktoken.encoding_for_model("gpt-5.6-terra")
-tokens = encoder.encode("Your text here")
-print(f"Token count: {len(tokens)}")
-```
-
-## Theo dõi mức sử dụng
-
-### Bảng điều khiển
-
-Theo dõi mức sử dụng của bạn trong [Dashboard](https://tokenlab.sh/dashboard):
-
-- Số dư thời gian thực
-- Lịch sử sử dụng theo mô hình
-- Phân tích chi phí
-- Mức sử dụng API key
-
-### Phản hồi API
-
-Mỗi phản hồi bao gồm thông tin sử dụng:
+Usage hiển thị mô hình, khóa, chi phí và mức dùng. Cách đếm token khác nhau theo mô hình, ngôn ngữ và media; ước tính ký tự không thay thế hóa đơn cuối cùng. Streaming không giảm token tính phí. So sánh chi phí cuối cùng của cùng tác vụ và đặt giới hạn đầu ra được hỗ trợ.
 
 ```json
 {
@@ -123,71 +31,13 @@ Mỗi phản hồi bao gồm thông tin sử dụng:
 }
 ```
 
-## Tối ưu hóa chi phí
+- [Usage](https://tokenlab.sh/dashboard/usage)
+- [Công Việc Không Đồng Bộ & Kiểm Tra](/vi/guides/async-jobs-polling)
 
-<AccordionGroup>
-  <Accordion title="Sử dụng mô hình phù hợp">
-    Sử dụng các mô hình nhỏ hơn (GPT-4o-mini, Gemini Flash) cho các tác vụ đơn giản.
-  </Accordion>
+## Sử dụng Console
 
-  <Accordion title="Triển khai bộ nhớ đệm">
-    Lưu bộ nhớ đệm (cache) các phản hồi cho các yêu cầu giống hệt nhau được lặp lại.
-  </Accordion>
+Chọn số tiền và phương thức được cung cấp trong Console → Billing. Số dư cập nhật khi dịch vụ thanh toán xác nhận.
 
-  <Accordion title="Tối ưu hóa prompt">
-    Giữ cho prompt ngắn gọn trong khi vẫn duy trì sự rõ ràng.
-  </Accordion>
+Đặt giới hạn chi tiêu khi tạo hoặc sửa khóa trong Console → API Keys. Khi chạm giới hạn, API trả `402 Payment Required`.
 
-  <Accordion title="Thiết lập max_tokens">
-    Giới hạn độ dài phản hồi khi không cần phản hồi đầy đủ.
-  </Accordion>
-
-  <Accordion title="Sử dụng streaming cho các phản hồi dài">
-    Streaming không tốn thêm phí nhưng cải thiện hiệu suất cảm nhận được.
-  </Accordion>
-</AccordionGroup>
-
-## Cảnh báo số dư thấp
-
-Cấu hình cảnh báo khi số dư của bạn giảm xuống:
-
-1. Đi tới **Dashboard → Settings → Notifications**
-2. Thiết lập số tiền ngưỡng của bạn
-3. Nhận thông báo qua email
-
-## Nạp tiền
-
-### Phương thức thanh toán
-
-- Stripe (Visa, Mastercard)
-
-### Các bước thực hiện
-
-1. Đăng nhập vào [Dashboard](https://tokenlab.sh/dashboard)
-2. Nhấp vào **Add Credits**
-3. Chọn số tiền và phương thức thanh toán
-4. Hoàn tất thanh toán
-
-Tiền sẽ được cộng vào tài khoản ngay lập tức sau khi xác nhận thanh toán.
-
-## Giới hạn API Key
-
-Bạn có thể thiết lập giới hạn chi tiêu cho từng API Key riêng lẻ:
-
-1. Đi tới **Dashboard → API Keys**
-2. Nhấp vào một key để chỉnh sửa
-3. Thiết lập **Usage Limit**
-
-Khi đạt đến giới hạn, các yêu cầu với key đó sẽ trả về lỗi `402 Payment Required`.
-
-## Hóa đơn
-
-Đối với tài khoản doanh nghiệp, hóa đơn luôn có sẵn:
-
-1. Đi tới **Dashboard → Billing**
-2. Xem lịch sử giao dịch
-3. Tải hóa đơn dưới dạng PDF
-
-## Câu hỏi?
-
-Liên hệ support@tokenlab.sh cho các thắc mắc về thanh toán.
+Đặt cảnh báo số dư trong Console → Settings. Với câu hỏi thanh toán, gửi Request ID và ID tác vụ tới support@tokenlab.sh, không gửi khóa API.

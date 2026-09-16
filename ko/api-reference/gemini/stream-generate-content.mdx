@@ -4,7 +4,8 @@ openapi: "POST /v1beta/models/{model}:streamGenerateContent"
 description: "Google Gemini API 형식을 사용하여 콘텐츠 생성을 스트리밍합니다."
 ---
 
-Gemini `generateContent`의 네이티브 SSE streaming 변형입니다. TokenLab는 upstream 이벤트, 순서, 필드를 보존합니다. metadata-only 이벤트, `finishReason`이 없는 중간 chunk, 자연스러운 EOF가 모두 유효합니다. Chat Completions `[DONE]`을 추가하지 않으며 Chat으로 fallback하지 않습니다.
+Gemini `generateContent`의 SSE 버전입니다. 이벤트에는 메타데이터만 있거나 `finishReason` 없는 중간 내용이 있을 수 있습니다. 스트림은 자연스러운 EOF에서 끝나며 `[DONE]` 마커를 추가하지 않습니다.
+
 ## 경로 파라미터
 
 <ParamField path="model" type="string" required>
@@ -19,9 +20,9 @@ Gemini `generateContent`의 네이티브 SSE streaming 변형입니다. TokenLab
 
 ## 요청 본문
 
-[콘텐츠 생성](/api-reference/gemini/generate-content)과 동일합니다.
+[콘텐츠 생성](/ko/api-reference/gemini/generate-content)과 동일합니다.
 
-`generationConfig.candidateCount`, 도구 조합, 향후 필드는 변경 없이 upstream으로 전달하며 TokenLab 자체 streaming 제한을 두지 않습니다.
+`generationConfig.candidateCount`, 도구, 미디어 유형 및 기타 선택적 필드 지원 여부는 선택한 모델에 따라 다릅니다.
 
 ## 응답
 
@@ -29,7 +30,7 @@ Gemini `generateContent`의 네이티브 SSE streaming 변형입니다. TokenLab
 
 <RequestExample>
 ```bash cURL
-curl -X POST "https://api.tokenlab.sh/v1beta/models/gemini-2.5-pro:streamGenerateContent?key=sk-your-api-key" \
+curl -N -X POST "https://api.tokenlab.sh/v1beta/models/gemini-2.5-pro:streamGenerateContent?key=sk-your-api-key" \
   -H "Content-Type: application/json" \
   -d '{
     "contents": [
@@ -53,7 +54,10 @@ model = genai.GenerativeModel("gemini-2.5-pro")
 response = model.generate_content("Tell me a story", stream=True)
 
 for chunk in response:
-    print(chunk.text, end="")
+    for candidate in chunk.candidates:
+        for part in candidate.content.parts:
+            if part.text:
+                print(part.text, end="")
 ```
 
 ```javascript JavaScript
@@ -74,7 +78,7 @@ const decoder = new TextDecoder();
 while (true) {
   const { done, value } = await reader.read();
   if (done) break;
-  console.log(decoder.decode(value));
+  console.log(decoder.decode(value, { stream: true }));
 }
 ```
 

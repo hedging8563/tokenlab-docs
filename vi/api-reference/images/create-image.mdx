@@ -19,10 +19,9 @@ Với tạo ảnh bằng `gpt-image-2`, các tham số public được hỗ tr�
 Google Gemini không dùng cùng một hợp đồng selector:
 
 - `gemini-3.1-flash-image`, `gemini-3-pro-image`, và `nano-banana-pro` hỗ trợ `aspect_ratio` cùng `resolution` (`1k`, `2k`, `4k`) cho các operation text-to-image và image-edit/image-to-image công khai.
-- `nano-banana-2` chỉ hỗ trợ `aspect_ratio` cùng `resolution` (`1k`, `2k`, `4k`) cho text-to-image trong contract TokenLab hiện tại.
+- `nano-banana-2` hỗ trợ `aspect_ratio` và `resolution` (`1k`, `2k`, `4k`) cho cả text-to-image và image-to-image.
 - `gemini-2.5-flash-image`, `nano-banana`, và `nano-banana-edit` hỗ trợ `aspect_ratio` nhưng không công khai `resolution`.
 - Với request Nano Banana dùng ảnh tham chiếu, hãy dùng `nano-banana-edit` hoặc `nano-banana-pro` trên endpoint này (`/v1/images/generations`) với `operation: "image-to-image"` và `image_urls`. Đừng gửi request ảnh tham chiếu Nano Banana tới `/v1/images/edits`.
-- Với request Nano Banana image-to-image, `nano-banana-pro` có thể gửi `resolution` (`1k`, `2k`, `4k`); `nano-banana-edit` phải bỏ qua trường này. `nano-banana` và `nano-banana-2` là model text-to-image trong contract công khai hiện tại.
 - Ảnh tham chiếu trên endpoint này có thể gửi bằng JSON `image_url` / `image_urls`, hoặc file multipart `image`. `/v1/images/generations` không nhận `images[]` hay `file_id`; tham chiếu `/v1/files` chỉ dùng cho model `/v1/images/edits` có tài liệu rõ `images[].file_id`.
 
 Với các model hình ảnh của Google, hãy ưu tiên `aspect_ratio` và chỉ gửi `resolution` khi model đó hỗ trợ rõ ràng.
@@ -61,7 +60,7 @@ Các model hình ảnh xAI Grok Imagine (`grok-imagine-image`, `grok-imagine-ima
   Số lượng hình ảnh cần tạo (1-10, tùy theo model).
 </ParamField>
 
-<ParamField body="size" type="string" default="1024x1024">
+<ParamField body="size" type="string">
   Kích thước ảnh. Dùng cho các dòng ảnh kiểu OpenAI và các model khác chấp nhận kích thước pixel chính xác.
 
   Với `gpt-image-2`, `size` chấp nhận `auto` hoặc `WIDTHxHEIGHT`. Kích thước tùy chỉnh phải có cả hai cạnh là bội số của 16, cạnh dài nhất không quá `3840px`, tỷ lệ cạnh dài/cạnh ngắn không quá `3:1`, và tổng số pixel nằm trong khoảng `655,360` đến `8,294,400`. `aspect_ratio` và `resolution` hiện không thuộc chi tiết model của TokenLab cho `gpt-image-2`.
@@ -76,19 +75,17 @@ Các model hình ảnh xAI Grok Imagine (`grok-imagine-image`, `grok-imagine-ima
 </ParamField>
 
 <ParamField body="resolution" type="string">
-  Bộ chọn độ phân giải đầu ra theo từng model.
-
-  Được hỗ trợ trên `gemini-3.1-flash-image` và `gemini-3-pro-image` cho text-to-image và image-edit, trên `nano-banana-pro` cho text-to-image và image-to-image, và trên `nano-banana-2` chỉ cho text-to-image. Giá trị thường dùng là `1k`, `2k`, và `4k`. Không gửi tham số này cho các model Gemini hình ảnh chỉ nhận tỷ lệ khung hình trừ khi tài liệu của model đó nói rõ. Với model hình ảnh xAI Grok Imagine, dùng `1k` hoặc `2k`.
+  Độ phân giải phụ thuộc vào model. `gemini-3.1-flash-image`, `gemini-3-pro-image`, `nano-banana-2` và `nano-banana-pro` hỗ trợ `1k`, `2k`, `4k`; model ảnh Grok Imagine hỗ trợ `1k`, `2k`. Chỉ gửi trường này khi model và thao tác đã chọn hỗ trợ rõ ràng.
 </ParamField>
 
-<ParamField body="quality" type="string" default="standard">
+<ParamField body="quality" type="string">
   Chất lượng ảnh. Các model GPT Image như `gpt-image-2` dùng `auto`, `low`, `medium` hoặc `high`. Các họ ảnh khác có thể dùng giá trị riêng của provider; hãy kiểm tra metadata của model trước khi gửi giá trị khác mặc định.
 </ParamField>
 
 <ParamField body="response_format" type="string" default="url">
   Định dạng response: `url` hoặc `b64_json`. Mặc định là `url`.
 
-  Với `gpt-image-2` qua Azure Official hoặc dịch vụ tương thích Azure, TokenLab nhận kết quả ảnh dưới dạng `b64_json`. Với request `url`, TokenLab tải từng ảnh lên CDN rồi trả về `data[].url`. Nếu CDN storage không khả dụng hoặc upload thất bại, request sẽ thất bại và không chuyển thành response Base64. Với `b64_json`, Base64 gốc được trả về.
+  `url` trả URL ảnh trong `data[].url`; `b64_json` trả dữ liệu ảnh Base64 trong `data[].b64_json`.
 </ParamField>
 
 <ParamField body="async" type="boolean" default="false">
@@ -159,8 +156,7 @@ curl -X POST "https://api.tokenlab.sh/v1/images/generations" \
     "model": "gemini-3-pro-image",
     "prompt": "A cinematic portrait of a white cat sitting on a rainy windowsill",
     "aspect_ratio": "16:9",
-    "resolution": "2k",
-    "n": 1
+    "resolution": "2k"
   }'
 ```
 
@@ -175,9 +171,7 @@ client = OpenAI(
 response = client.images.generate(
     model="gemini-3-pro-image",
     prompt="A cinematic portrait of a white cat sitting on a rainy windowsill",
-    aspect_ratio="16:9",
-    resolution="2k",
-    n=1
+    extra_body={"aspect_ratio": "16:9", "resolution": "2k"}
 )
 
 print(response.data[0].url)
@@ -195,8 +189,7 @@ const response = await client.images.generate({
   model: 'gemini-3-pro-image',
   prompt: 'A cinematic portrait of a white cat sitting on a rainy windowsill',
   aspect_ratio: '16:9',
-  resolution: '2k',
-  n: 1
+  resolution: '2k'
 });
 
 console.log(response.data[0].url);
@@ -217,8 +210,7 @@ curl_setopt_array($ch, [
         'model' => 'gemini-3-pro-image',
         'prompt' => 'A cinematic portrait of a white cat sitting on a rainy windowsill',
         'aspect_ratio' => '16:9',
-        'resolution' => '2k',
-        'n' => 1
+        'resolution' => '2k'
     ])
 ]);
 
@@ -295,15 +287,7 @@ curl -X POST "https://api.tokenlab.sh/v1/images/generations" \
 
 ## Model Khả Dụng
 
-Đây là các ví dụ model hiện tại, không phải catalog cố định. Dùng `GET /v1/models?recommended_for=image` hoặc trang Models để xem khả dụng và giá mới nhất.
-
-| Mô hình | Loại | Tính năng |
-|-------|------|----------|
-| `gpt-image-2` | Inline hoặc task | Model GPT Image tính giá theo token, kích thước linh hoạt |
-| `flux-pro` | Thường là task | Photorealistic, chất lượng cao |
-| `nano-banana-pro` | Thường là task | Workflow ảnh tham chiếu và đầu ra độ phân giải cao |
-| `grok-imagine-image` | Thường là task | Tạo ảnh xAI với chọn tỉ lệ và độ phân giải |
-| `ideogram-v3` | Thường là task | Render chữ tốt |
+Tra cứu `GET /v1/models?recommended_for=image` để xem model ảnh, khả năng và giá hiện tại.
 
 Đừng hard-code một model là luôn đồng bộ hay luôn bất đồng bộ. Nếu response tạo ra trả về `status: "pending"`, hãy theo `poll_url` và polling đến khi hoàn tất.
 

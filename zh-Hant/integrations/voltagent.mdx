@@ -15,6 +15,12 @@ VoltAgent 可直接接收 AI SDK 語言模型。請配置一個與 OpenAI 相容
 **支援信心**: 支援與 OpenAI 相容的路徑
 </Note>
 
+## 安裝
+
+```bash
+npm install @voltagent/core@2 ai@6 @ai-sdk/openai@3 zod
+```
+
 ## 環境配置
 
 ```bash
@@ -35,7 +41,7 @@ const tokenlab = createOpenAI({
 const agent = new Agent({
   name: "tokenlab-agent",
   instructions: "Answer concisely.",
-  model: tokenlab("claude-sonnet-5"),
+  model: tokenlab.chat("claude-sonnet-5"),
 });
 ```
 

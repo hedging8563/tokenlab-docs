@@ -9,18 +9,22 @@ Hướng dẫn này dành cho người dùng **self-hosted OpenClaw** muốn k�
 
 ## Khuyến nghị: cài đặt plugin
 
-Để chạy agent OpenClaw theo cách tiêu chuẩn, hãy cài đặt plugin provider TokenLab:
+Tùy chọn: cài plugin nhà cung cấp đã phát hành **0.1.0**. Cấp `TOKENLAB_API_KEY` qua môi trường Gateway bên dưới và chỉ chọn mô hình cho phiên. Trình hướng dẫn thay đổi mô hình mặc định nên hướng dẫn này không chạy `openclaw onboard`. Giữ nguyên plugin và quyền hiện có; kiểm tra plugin đã nạp và danh sách mô hình trước khi gửi yêu cầu.
+
+Xem các khả năng trình cài đặt yêu cầu và làm theo bước xác nhận của ứng dụng. Không cấp quyền không liên quan hoặc đổi quyền của plugin hiện có.
 
 ```bash
-openclaw plugins install @tokenlabai/openclaw-provider
-openclaw onboard
+openclaw plugins install @tokenlabai/openclaw-provider@0.1.0
+openclaw plugins list
+openclaw models list --provider tokenlab
 ```
 
-Sau khi cài, chạy `openclaw onboard`, chọn TokenLab và chỉ nhập khóa trong hộp thoại cục bộ. Nếu plugin không tải được, dùng cấu hình thủ công bên dưới và kiểm tra tương thích phiên bản.
+```text
+/model tokenlab/claude-sonnet-5 -s
+/model default -s
+```
 
-Plugin tải danh mục model chat trực tiếp của TokenLab và giữ 18 model dự phòng để khám phá khi ngoại tuyến. Model sử dụng định dạng `tokenlab/<model-id>`.
-
-[Gói npm](https://www.npmjs.com/package/@tokenlabai/openclaw-provider) · [Trang ClawHub](https://clawhub.ai/tokenlabai/plugins/openclaw-provider) · [Mã nguồn](https://github.com/hedging8563/tokenlab-openclaw-provider)
+[npm](https://www.npmjs.com/package/@tokenlabai/openclaw-provider/v/0.1.0) · [GitHub](https://github.com/hedging8563/tokenlab-openclaw-provider)
 
 ## Cấu hình provider thủ công
 
@@ -45,6 +49,7 @@ Các nhà cung cấp gốc như `anthropic-messages` và `google-generative-ai` 
 ## Yêu cầu tiên quyết
 
 - Một instance OpenClaw self-hosted
+- OpenClaw **2026.9.4** yêu cầu Node.js `>=24.16.0 <25 || >=26.1.0` ([yêu cầu phiên bản](https://github.com/openclaw/openclaw/blob/v2026.9.4/package.json)). Với phiên bản OpenClaw khác, hãy kiểm tra yêu cầu của phiên bản đó.
 - Một TokenLab API Key — [Get one here](https://tokenlab.sh/dashboard/api?tab=keys)
 
 ## Cấu hình
@@ -57,15 +62,10 @@ Thêm provider TokenLab dưới `models.providers`:
 
 Dùng cùng profile, `OPENCLAW_STATE_DIR` và `OPENCLAW_CONFIG_PATH` với Gateway đang chạy rồi sao lưu cấu hình. Đặt `TOKENLAB_API_KEY` trong `.env` toàn cục đáng tin cậy hoặc môi trường dịch vụ của phiên bản đó. Export ở terminal hay `.env` dự án có thể không tới tiến trình nền. Xem [môi trường](https://docs.openclaw.ai/help/environment).
 
+Sao lưu cấu hình đang dùng. Chỉ thêm mục TokenLab và giữ nguyên nhà cung cấp, tài khoản, mô hình mặc định cùng quyền hiện có. Nếu tên đã được dùng, chọn tên khác và sửa lệnh tương ứng. Khi hoàn tác, chỉ xóa mục đã thêm hoặc khôi phục bản sao lưu trước đó.
+
 ```json5
 {
-  agents: {
-    defaults: {
-      model: {
-        primary: "tokenlab-claude/claude-sonnet-5"
-      }
-    }
-  },
   models: {
     mode: "merge",
     providers: {
@@ -131,16 +131,11 @@ Các mảng `models` ở trên chỉ hiển thị các ví dụ phổ biến. Th
 
 OpenClaw vẫn tham chiếu các model theo định dạng `provider/model`:
 
-```json5
-{
-  agents: {
-    defaults: {
-      model: {
-        primary: "tokenlab-gemini/gemini-3.5-flash"
-      }
-    }
-  }
-}
+Trong **OpenClaw 2026.9.4**, dùng `-s` để chọn mô hình chỉ cho phiên hiện tại. Giữ nguyên `agents.defaults.model`, mặc định của agent và quyền. Dùng `/model default -s` để đưa phiên về mô hình mặc định đã cấu hình.
+
+```text
+/model tokenlab-claude/claude-sonnet-5 -s
+/model default -s
 ```
 
 ### Ví dụ Model

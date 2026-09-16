@@ -8,10 +8,12 @@ description: "現在の組織が所有するSeedanceマテリアルグループ�
 
 現在の認証状態が許可されていないためにTokenLabマテリアルライブラリが削除を完了できない場合、TokenLabはニュートラルなマテリアルライブラリエラーを返します。削除後、そのグループおよびアセットは動画生成に使用できなくなります。
 
+`project_name` は認証済み組織内のリソースを分離します。デフォルトは `default` です。関連するグループと素材には、大文字と小文字を区別した同じ値を使用してください。POST/PUT では JSON ボディ、GET/DELETE ではクエリに指定します。
+
 ## リクエスト例
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01 \
+curl "https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01?project_name=default" \
   -X DELETE \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```

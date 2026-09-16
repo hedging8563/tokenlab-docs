@@ -15,13 +15,19 @@ https://api.tokenlab.sh
 
 ## Authentifizierung
 
-Alle API-Endpunkte erfordern eine Authentifizierung mit einem Bearer-Token:
+Modellanfragen verwenden einen TokenLab-API-Key. Der übliche Authentifizierungsheader lautet:
 
 ```bash
 Authorization: Bearer sk-your-api-key
 ```
 
+`GET /v1/models`, `GET /v1/models/{model}` und `GET /v1/pricing` sind öffentlich und benötigen keinen Schlüssel. Anthropic Messages akzeptiert auch `x-api-key`; Gemini unterstützt neben Bearer auch `x-goog-api-key` oder `?key=`. `/v1/management/*` benötigt ein Management-Token (`mt-...`).
+
 Holen Sie Ihren API-Schlüssel vom [Dashboard](https://tokenlab.sh/dashboard).
+
+<Note>
+Generierungsanfragen unterstützen `X-TokenLab-Delivery-Policy: auto | verified | official`. Der Header hat Vorrang vor der API-Key-Einstellung und diese vor dem Workspace-Standard. `auto` verwendet zuerst TokenLab Verified, bei Bedarf Official; berechnet wird die erfolgreiche Zustellart. `verified` nutzt TokenLab-Preise, `official` basiert auf den öffentlichen Herstellerpreisen; maßgeblich ist der angezeigte TokenLab-Preis. Realtime übernimmt die Key- oder Workspace-Einstellung ohne Query-Override. Ungültige Header ergeben `400`; eine nicht verfügbare Zustellart ergibt `503 delivery_tier_unavailable` mit Request-ID.
+</Note>
 
 <Warning>
 **Zum interaktiven Playground**: Der Playground auf dieser Dokumentationsseite dient nur zu Demonstrationszwecken und unterstützt das Eingeben von API-Schlüsseln nicht. Um die API zu testen, verwenden Sie bitte:
@@ -56,7 +62,7 @@ Holen Sie Ihren API-Schlüssel vom [Dashboard](https://tokenlab.sh/dashboard).
 | `/v1/images/generations/{id}` | GET | Statuspfad für Bildaufgaben bei aufgabenbasierten Bildantworten |
 
 <Info>
-Einige Bildmodelle können Ergebnisse inline zurückgeben, einige liefern aufgabenbasierte Antworten, und einige verhalten sich je nach geroutetem Anbieter-Pfad unterschiedlich. Wenn die Create-Antwort `poll_url` enthält, folgen Sie dieser exakt.
+Bildmodelle können ein fertiges Bild oder eine asynchrone Aufgabe zurückgeben. Enthält die Antwort `poll_url`, verwenden Sie diese URL zum Abfragen der Aufgabe.
 </Info>
 
 ### Audio
@@ -142,7 +148,7 @@ Gemini-Endpunkte unterstützen die Authentifizierung über den Query-Parameter `
 
 ## Antwortformat
 
-Alle Antworten folgen einem konsistenten Format:
+Jeder Endpunkt behält sein API-Format bei. Die folgenden Erfolgs- und Fehlerbeispiele verwenden das Chat-Completions-Format.
 
 ### Erfolgsantwort
 
@@ -152,7 +158,7 @@ Alle Antworten folgen einem konsistenten Format:
   "object": "chat.completion",
   "created": 1234567890,
   "model": "gpt-5.6-terra",
-  "choices": [...],
+  "choices": [{"index": 0, "message": {"role": "assistant", "content": "Hello!"}, "finish_reason": "stop"}],
   "usage": {
     "prompt_tokens": 10,
     "completion_tokens": 20,

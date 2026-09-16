@@ -6,6 +6,10 @@ description: "Creates a Volc-compatible real-person visual validation session."
 
 Create the real-person visual validation session before uploading reusable `liveness_face` materials. TokenLab uses the Volc Action API shape and TokenLab Bearer authentication.
 
+Use the same authenticated organization, user, and case-sensitive `ProjectName` that created the session.
+
+Open `Result.H5Link` immediately after creating the session. Its initial launch can expire before the 30-minute `BytedToken`; do not delay opening it.
+
 ## Endpoint And Authentication
 
 ```text

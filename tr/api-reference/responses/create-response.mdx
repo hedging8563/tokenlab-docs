@@ -4,7 +4,8 @@ openapi: "POST /v1/responses"
 description: "OpenAI Responses API formatını kullanarak bir yanıt oluşturur"
 ---
 
-Responses, OpenAI’nin yerel durumlu yanıt protokolüdür. TokenLab bunu yalnızca model ayrıntıları Responses biçimini yayımladığında ve aynı protokolde bir upstream rota bulunduğunda sunar; model veya sağlayıcı adından çıkarım yapılmaz ve Chat Completions’a fallback edilmez. Bilinmeyen alanlar, açık `null` ve boş diziler dahil JSON şekli korunarak best-effort iletilir.
+Model ayrıntılarındaki `accepted_request_formats`, `openai_responses` içeriyorsa bu uç noktayı kullanın. İstekler ve yanıtlar Responses API biçimini kullanır. İsteğe bağlı alanlar ve desteklenen değerler seçilen modele bağlıdır.
+
 ## İstek Gövdesi
 
 <ParamField body="model" type="string" required>
@@ -21,7 +22,7 @@ Responses, OpenAI’nin yerel durumlu yanıt protokolüdür. TokenLab bunu yaln�
   - `function_call`: bir fonksiyon çağrısı isteği
   - `function_call_output`: bir fonksiyon çağrısından gelen çıktı
 
-  Multimodal giriş için, `message.content` ya düz bir string ya da içerik blokları dizisi olabilir. GPT-5.4 gibi görsel işleme yeteneği olan modeller için resimleri doğrudan düz metin içine URL veya Base64 dizeleri yerleştirmek yerine `input_image` blokları olarak iletin.
+  Multimodal giriş için, `message.content` ya düz bir string ya da içerik blokları dizisi olabilir. GPT-5.6 Terra gibi görsel işleme yeteneği olan modeller için resimleri doğrudan düz metin içine URL veya Base64 dizeleri yerleştirmek yerine `input_image` blokları olarak iletin.
 
   Örnek içerik blokları:
   - `{ "type": "input_text", "text": "Describe this image" }`
@@ -37,12 +38,12 @@ Responses, OpenAI’nin yerel durumlu yanıt protokolüdür. TokenLab bunu yaln�
   Üretilmesi gereken maksimum token sayısı.
 </ParamField>
 
-<ParamField body="temperature" type="number" default="1">
-  0 ile 2 arasında örnekleme sıcaklığı.
+<ParamField body="temperature" type="number">
+  Örnekleme sıcaklığı. Desteklenen değerler ve varsayılanlar seçilen modele bağlıdır.
 </ParamField>
 
 <ParamField body="tools" type="array">
-  Modelin çağırabileceği araçların listesi. TokenLab yerel tanımları yerel bir allowlist olmadan iletir; desteklenen tür ve kombinasyonlara seçilen upstream karar verir.
+  Modelin çağırabileceği araçlar. Desteklenen türler ve birleşimler seçilen modele bağlıdır.
 </ParamField>
 
 <ParamField body="stream" type="boolean" default="false">
@@ -57,12 +58,20 @@ Responses, OpenAI’nin yerel durumlu yanıt protokolüdür. TokenLab bunu yaln�
   Yanıtın daha sonra alınmak üzere depolanıp depolanmayacağı.
 </ParamField>
 
+<ParamField body="background" type="boolean" default="false">
+  Asenkron yürütme talep eder. Destek, seçilen modele bağlıdır.
+</ParamField>
+
+<ParamField body="prompt" type="object">
+  Yeniden kullanılabilir bir istem şablonuna ve değişkenlerine başvuru.
+</ParamField>
+
 <ParamField body="metadata" type="object">
   İzleme amaçlı yanıtla iliştirilecek metadata.
 </ParamField>
 
 <ParamField body="text" type="object">
-  Metin üretimi yapılandırma seçenekleri. `text.format` davranışı seçilen model ve yönlendirilen yola bağlıdır; her modelde aynı şekilde garanti edilmez.
+  Metin çıktı ayarları. `text.format` desteği seçilen modele bağlıdır.
 </ParamField>
 
 <ParamField body="parallel_tool_calls" type="boolean" default="true">
@@ -74,9 +83,7 @@ Responses, OpenAI’nin yerel durumlu yanıt protokolüdür. TokenLab bunu yaln�
 </ParamField>
 
 <ParamField body="reasoning" type="object">
-  GPT-5 ailesi varyantları gibi akıl yürütme etkin modeller için akıl yürütme yapılandırması.
-
-  - `effort` (string): Akıl yürütme çabası seviyesi (`low`, `medium`, `high`)
+  `effort` dahil akıl yürütme seçenekleri seçilen modele bağlıdır.
 </ParamField>
 
 ## Yanıt
@@ -93,6 +100,10 @@ Responses, OpenAI’nin yerel durumlu yanıt protokolüdür. TokenLab bunu yaln�
   Yanıtın oluşturulduğu zamanın Unix zaman damgası.
 </ResponseField>
 
+<ResponseField name="status" type="string">
+  Yanıt durumu: `queued`, `in_progress`, `completed`, `incomplete`, `failed` veya `cancelled`. HTTP isteği başarılı olsa da bu alanı kontrol edin.
+</ResponseField>
+
 <ResponseField name="output" type="array">
   Model tarafından oluşturulan çıktı öğelerinin listesi.
 </ResponseField>
@@ -100,6 +111,13 @@ Responses, OpenAI’nin yerel durumlu yanıt protokolüdür. TokenLab bunu yaln�
 <ResponseField name="usage" type="object">
   Token kullanım istatistikleri.
 </ResponseField>
+
+## İlgili uç noktalar
+
+- `GET /v1/responses/{id}` kayıtlı bir yanıtı getirir ve `include`, `include_obfuscation`, `stream`, `starting_after` parametrelerini destekler.
+- `DELETE /v1/responses/{id}` kayıtlı bir yanıtı siler. Üretimi iptal etmez.
+- `POST /v1/responses/compact` bir `response.compaction` nesnesi döndürür.
+- İptal, input-items ve input-tokens uç noktaları şu anda kullanılamaz.
 
 <RequestExample>
 ```bash cURL
@@ -268,14 +286,17 @@ Görsel işleme yeteneği olan modelleri, resimleri `message.content` içinde `i
 {
   "id": "resp_abc123",
   "object": "response",
-  "created": 1706000000,
+  "created_at": 1706000000,
+  "status": "completed",
   "model": "gpt-5.6-terra",
   "output": [
     {
+      "id": "msg_abc123",
       "type": "message",
+      "status": "completed",
       "role": "assistant",
       "content": [
-        {"type": "text", "text": "Hello! How can I help you today?"}
+        {"type": "output_text", "text": "Hello! How can I help you today?", "annotations": []}
       ]
     }
   ],

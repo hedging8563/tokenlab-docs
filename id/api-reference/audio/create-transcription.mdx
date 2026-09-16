@@ -6,14 +6,14 @@ description: "Mentranskripsikan audio ke dalam bahasa input"
 
 ## Body Permintaan
 
-**Timeout permintaan sinkron:** endpoint non-chat ini menunggu model yang dirutekan selesai. Input besar, audio panjang, atau batch besar dapat melebihi default client umum 30s, jadi atur timeout HTTP client Anda minimal `120s`.
+Transkripsi dapat langsung mengembalikan teks atau menerima tugas asinkron dengan HTTP `200`, `id`, dan `status`. Untuk tugas yang diterima, ikuti `poll_url` atau periksa `/v1/tasks/{id}`. Untuk audio panjang yang diproses sinkron, gunakan batas waktu setidaknya `120s`.
 
 <ParamField body="file" type="file" required>
-  File audio untuk ditranskripsikan. Format yang didukung: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, webm.
+  File audio untuk ditranskripsikan. Format yang didukung: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, webm. Ukuran file maksimum: 25 MB.
 </ParamField>
 
 <ParamField body="model" type="string" default="whisper-1">
-  Model yang digunakan. Saat ini hanya `whisper-1` yang didukung.
+  ID model transkripsi, misalnya `whisper-1` atau `gpt-4o-transcribe`. Temukan pilihan terkini melalui `GET /v1/models?recommended_for=stt`.
 </ParamField>
 
 <ParamField body="language" type="string">
@@ -25,18 +25,20 @@ description: "Mentranskripsikan audio ke dalam bahasa input"
 </ParamField>
 
 <ParamField body="response_format" type="string" default="json">
-  Format output: `json`, `text`, `srt`, `verbose_json`, `vtt`.
+  Format keluaran. Whisper mendukung `json`, `text`, `srt`, `verbose_json`, dan `vtt`; model lain dapat mendukung pilihan berbeda. Periksa detail model.
 </ParamField>
 
-<ParamField body="temperature" type="number" default="0">
-  Temperatur sampling (0 hingga 1).
+<ParamField body="temperature" type="number">
+  Temperatur sampling dari 0 hingga 1, hanya untuk model yang mendukung parameter ini.
 </ParamField>
 
 <ParamField body="timestamp_granularities" type="array">
-  Granularitas timestamp: `word` dan/atau `segment`. Memerlukan `verbose_json`.
+  `word` dan/atau `segment`, jika didukung model. Whisper memerlukan `response_format=verbose_json`. Dalam multipart, ulangi `timestamp_granularities[]` untuk beberapa nilai.
 </ParamField>
 
 ## Respons
+
+Field berikut menjelaskan respons JSON transkripsi atau terjemahan. `text`, `srt`, dan `vtt` mengembalikan teks atau subtitel mentah, bukan objek JSON. Field tambahan bergantung pada model dan format keluaran.
 
 <ResponseField name="text" type="string">
   Teks hasil transkripsi.
@@ -45,7 +47,7 @@ description: "Mentranskripsikan audio ke dalam bahasa input"
 Untuk `verbose_json`:
 
 <ResponseField name="task" type="string">
-  Selalu `transcribe`.
+  Nama tugas jika dikembalikan, misalnya `transcribe`.
 </ResponseField>
 
 <ResponseField name="language" type="string">
@@ -62,6 +64,24 @@ Untuk `verbose_json`:
 
 <ResponseField name="words" type="array">
   Timestamp tingkat kata (jika diminta).
+</ResponseField>
+
+Tugas transkripsi asinkron yang diterima mengembalikan field berikut, bukan teks transkripsi:
+
+<ResponseField name="id" type="string">
+  ID tugas.
+</ResponseField>
+
+<ResponseField name="task_id" type="string">
+  Alias identifier tugas asinkron ketika tersedia.
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Status tugas: `pending`, `processing`, `completed`, atau `failed`.
+</ResponseField>
+
+<ResponseField name="poll_url" type="string">
+  URL polling yang diutamakan saat disediakan oleh respons pembuatan.
 </ResponseField>
 
 <RequestExample>
@@ -155,9 +175,18 @@ echo $data['text'];
       "start": 0.0,
       "end": 2.5,
       "text": "Hello, this is a test",
-      "tokens": [...]
+      "tokens": [50364, 2425, 11]
     }
   ]
+}
+```
+
+```json HTTP 200 (async)
+{
+  "id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "task_id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "status": "pending",
+  "poll_url": "/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 }
 ```
 </ResponseExample>
@@ -167,8 +196,11 @@ echo $data['text'];
 Untuk menerjemahkan audio ke bahasa Inggris, gunakan endpoint translations:
 
 ```python
-response = client.audio.translations.create(
-    model="whisper-1",
-    file=audio_file
-)
+with open("audio.mp3", "rb") as audio_file:
+    response = client.audio.translations.create(
+        model="whisper-1",
+        file=audio_file
+    )
+
+print(response.text)
 ```

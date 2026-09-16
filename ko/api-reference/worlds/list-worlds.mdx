@@ -19,7 +19,7 @@ TokenLab에서 만든 완료된 World Labs Marble world를 나열합니다. 결�
 </ParamField>
 
 <ParamField body="status" type="string">
-  선택 상태 필터. TokenLab은 `SUCCEEDED`에 대해 완료된 world를 반환하며 다른 상태는 생성 작업 엔드포인트에서 확인합니다.
+  선택 값은 `SUCCEEDED`, `PENDING`, `RUNNING`, `FAILED`입니다. 이 엔드포인트는 완료된 월드를 나열하며 나머지 세 값에는 빈 목록을 반환합니다. 진행 상황은 생성 작업에서 조회하세요.
 </ParamField>
 
 <ParamField body="model" type="string">
@@ -56,7 +56,7 @@ TokenLab에서 만든 완료된 World Labs Marble world를 나열합니다. 결�
   World 레코드 배열.
 </ResponseField>
 
-<ResponseField name="next_page_token" type="string">
+<ResponseField name="next_page_token" type="string | null">
   다음 페이지 토큰 또는 `null`.
 </ResponseField>
 

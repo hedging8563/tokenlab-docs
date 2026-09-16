@@ -10,8 +10,7 @@ Le plus simple est de choisir le SDK selon le comportement attendu :
 - outils **Gemini / Google AI** officiels pour les formats Gemini-native
 - **OpenAI SDKs** officiels pour les routes /v1 compatibles OpenAI et les usages de style Responses
 
-Utilisez les pages d’intégration pour les limites de support. Dans cette documentation, "recommended" ou "supported" signifie qu’un chemin de configuration documenté existe ; cela ne couvre pas automatiquement chaque helper de framework ou fonctionnalité propre au fournisseur.
-
+Consultez la page d’intégration correspondante pour configurer le client et connaître les limites du modèle. Le [démarrage rapide](/fr/quickstart) contient une première requête complète.
 ## SDKs recommandés
 
 <CardGroup cols={2}>
@@ -43,7 +42,7 @@ client = OpenAI(
 
 response = client.responses.create(
     model="gpt-5.6-terra",
-    input="Explain TokenLab in one sentence."
+    input="Reply with: Connected to TokenLab."
 )
 
 print(response.output_text)

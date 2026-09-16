@@ -19,13 +19,15 @@ Si votre build Flowise inclut un nœud de modèle de chat **TokenLab** :
 
 ## Alternative compatible OpenAI
 
-Si le nœud TokenLab n'est pas encore disponible, utilisez un nœud de modèle de chat compatible OpenAI avec :
+Si votre version ne contient pas de nœud TokenLab, ajoutez **Chat Models** → **OpenAI Custom Model**. Dans **Connect Credential**, créez un identifiant **OpenAI API** avec votre clé TokenLab. Réglez **Model Name** et **Additional Parameters** → **Base Path** comme suit :
 
 | Champ | Valeur |
 |-------|-------|
-| Base URL | `https://api.tokenlab.sh/v1` |
+| Base Path | `https://api.tokenlab.sh/v1` |
 | API Key | `sk-your-tokenlab-key` |
-| Model | `gpt-5.4-mini` |
+| Model Name | `gpt-5.4-mini` |
+
+Connectez le nœud à votre chaîne, agent ou workflow, puis envoyez un prompt de test.
 
 ## Modèles recommandés
 

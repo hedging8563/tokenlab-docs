@@ -6,17 +6,29 @@ description: "Listen Sie aktuelle Seedance-Kompatibilitätsaufgaben der Organisa
 
 ## Überblick
 
-Diese Endpunkte sind für Teams gedacht, die bereits die Volc-ähnliche Seedance-Aufgabenstruktur verwenden. Die Authentifizierung erfolgt mit einem TokenLab Bearer API Key. Die zurückgegebene Aufgaben-ID beginnt mit `cgt-`; fragen Sie den Status ab, bis `status` `succeeded`, `failed`, `cancelled` oder `expired` ist.
+Listen Sie mit einem TokenLab Bearer API-Key aktuelle Kompatibilitätsaufgaben im authentifizierten Workspace auf. Ohne `filter.task_ids` werden die letzten sieben Tage berücksichtigt; genaue IDs werden direkt abgefragt.
 
 Siehe auch [Seedance 2.0 Videomodelle](/de/guides/seedance-2-video) und [Videogenerierung](/de/guides/video-generation).
 
 ## Antwortformat
 
-Die Listenantwort enthält `items` und `total`. Unterstützte Filter sind `filter.status`, `filter.task_ids`, `filter.model` und `filter.service_tier`; `page_num` und `page_size` steuern die Paginierung.
+- `page_num`: Standard `1`, ganze Zahl von `1` bis `500`.
+- `page_size`: Standard `20`, ganze Zahl von `1` bis `500`.
+- `filter.status`: `queued`, `running`, `succeeded`, `failed`, `cancelled`, `expired`.
+- `filter.task_ids`: Wiederholen Sie den Parameter für mehrere genaue Task-IDs. Trennen Sie die IDs nicht durch Kommas.
+- `filter.model`: Modellkennung.
+- `filter.service_tier`: `default`, `flex`.
+
+Die Antwort enthält `items` und `total` für die gefilterten Ergebnisse. Jedes Element entspricht der Antwort des Abruf-Endpunkts. Aktualisieren Sie den Status einer bekannten Aufgabe über diesen Endpunkt.
 
 ## Beispiel
 
 ```bash
 curl "https://api.tokenlab.sh/api/v3/contents/generations/tasks?page_num=1&page_size=20&filter.status=succeeded" \
+  -H "Authorization: Bearer $TOKENLAB_API_KEY"
+```
+
+```bash
+curl "https://api.tokenlab.sh/api/v3/contents/generations/tasks?filter.task_ids=cgt-20260102030405-a1b2c" \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```

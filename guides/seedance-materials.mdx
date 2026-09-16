@@ -3,13 +3,13 @@ title: "Seedance Materials and Real-Person Verification"
 description: "Reuse images, video, audio, or a verified person in Seedance"
 ---
 
-Seedance materials let you reuse an image, video, or audio file without importing it for every generation. References to a real person require consent and visual verification; other people, products, and styles do not.
+Seedance materials let you reuse an image, video, or audio file without importing it for every generation. References to a real person require consent and visual verification; virtual people, products, and styles do not.
 
 ## Choose a material type
 
 | What you want to reuse | What to do |
 |------|---------------|
-| One image used once | Send its URL in the video request; compatible Seedance models prepare it automatically |
+| One image used once | Send its URL in a supported image field; this does not create a reusable material ID |
 | Reuse a virtual person, product, or style | Create an `aigc_avatar` group, create an asset, wait for `ACTIVE`, then use the asset ID |
 | Reuse a real person | Complete visual validation, receive its `GroupId`, create an asset in that group, wait for `ACTIVE`, then use the asset ID |
 | Migrate an existing Volcengine material client | Keep the Action request shape and use the [Volc-compatible material reference](/api-reference/video/volc-compatible-material-actions) |
@@ -26,13 +26,13 @@ Seedance materials let you reuse an image, video, or audio file without importin
 
 Keep group IDs and asset IDs separate. A group organizes uploads; an asset ID is the reference used by video generation. Public IDs look like `group-20260720123456-vrt01` and `asset-20260720123457-def45`.
 
-## Automatic Image Materials
+## Image URLs and reusable materials
 
-When the selected Seedance model can use the TokenLab material library, you may send image URLs or supported inline data URLs directly in `image`, `image_url`, `image_urls`, `reference_images`, `start_image`, or `end_image`. TokenLab imports them into the organization's default virtual-avatar group and preserves their first-frame, last-frame, or reference-image role.
+Send public HTTP(S) URLs or supported data URLs in the image fields accepted by your selected model. These inputs follow the normal media path and do not automatically create reusable material IDs.
 
-If preparation finishes within 60 seconds, video generation continues in the same request. Otherwise the API returns `409 seedance_material_preparing` with `auto_material_asset_ids`. Poll those assets until they are `ACTIVE`, then retry with `material_asset_id`, `material_asset_ids`, or an `asset://<id>` URI in the appropriate media field.
+For reusable materials, create an asset through the material API, wait for `ACTIVE`, then use `material_asset_id`, `material_asset_ids`, or `asset://<id>` in a supported media field. Keep the intended first-frame, last-frame, or reference-image role.
 
-Existing material IDs are used as-is and are not imported again. If the selected model cannot use the material library, ordinary URL and data URL inputs continue on the regular media path; explicit material IDs return a material-availability error.
+When an explicit material is still preparing, `POST /v1/videos/generations` returns `409 seedance_material_preparing` with `inactive_asset_ids`. Poll those assets until `ACTIVE`, then retry with the same material IDs. If an asset is `FAILED`, inspect `error_message` and correct or reimport it before retrying.
 
 ## Virtual-Avatar Materials
 
@@ -58,6 +58,8 @@ Use this flow when your product must collect consent and verify a face before re
 
 `BytedToken` is valid for 30 minutes. A client cannot create a `LivenessFace` group with `CreateAssetGroup`; this prevents an unverified group from being presented as verified.
 
+Open the returned `H5Link` immediately after creation. The token validity does not mean the verification page can be opened for the first time at any point in that window.
+
 For a real-person group, uploads are checked against the verified face. An asset can fail if it contains multiple faces or the face does not match. For best results, upload a full-body front reference and a clear front-facing close-up.
 
 ## Create And Prepare An Asset
@@ -66,9 +68,11 @@ Use [Create Material Asset](/api-reference/video/create-material-asset) to impor
 
 | Type | Supported input |
 |------|-----------------|
-| Image | `jpeg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`; aspect ratio `(0.4, 2.5)`; width and height `(300, 6000)` px; under 30 MB |
-| Video | `mp4`, `mov`; `480p`, `720p`, or `1080p`; 2-15 seconds; aspect ratio `[0.4, 2.5]`; width and height `[300, 6000]` px; total pixels between 409600 and 2068676; up to 200 MB; 24-60 FPS |
-| Audio | `aac`, `wav`, `mp3`; 2-15 seconds; up to 15 MB |
+| Image | `jpeg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`; ≤ 30 MiB; width and height [300, 6000] px; aspect ratio [0.4, 2.5] |
+| Video | `mp4`, `mov`; ≤ 200 MiB |
+| Audio | `aac`, `wav`, `mp3`; ≤ 15 MiB |
+
+These are file-import limits. A successful import request does not guarantee that media or real-person validation will pass. Wait for `ACTIVE`; if the asset becomes `FAILED`, use `error_message` to correct the source before importing again.
 
 Material ingestion is asynchronous. Poll [Get Material Asset](/api-reference/video/get-material-asset) until `status` becomes `ACTIVE`. HTTP success means the import was accepted, not that the asset is ready. If the asset becomes `FAILED`, inspect `error_message`, correct the source, and create a new asset.
 

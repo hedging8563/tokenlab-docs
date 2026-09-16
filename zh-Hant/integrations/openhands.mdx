@@ -1,48 +1,24 @@
 ---
 title: "OpenHands"
-description: "為 OpenHands CLI 和無頭 (headless) 工作流程配置 TokenLab 模型"
+description: "將 OpenHands 連線至 TokenLab"
 ---
+
 
 ## 概覽
 
-OpenHands 可以透過其 LiteLLM/OpenAI 相容的模型配置來使用 TokenLab，特別是在您需要自行提供模型、API 金鑰和 Base URL 的 CLI 與無頭工作流程中。
-
-<Note>
-**類型**: 程式設計代理 (Coding Agent)
-
-**主要路徑**: OpenAI 相容模型配置
-
-**支援信心**: 支援自訂端點路徑
-</Note>
-
-## 環境
-
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
+本頁適用於提供 **Settings → LLM → Advanced** 的 LiteLLM 版 OpenHands 介面。選擇 **OpenAI**，填入帶 `openai/` 前綴的自訂模型，在本機 API Key 欄位輸入 TokenLab 金鑰，並設定下列 Base URL。先記錄原模型選擇，完成後可還原，保留既有帳戶與工具權限。請參閱[官方 OpenAI 相容設定](https://docs.openhands.dev/openhands/usage/llms/openai-llms)。CLI、雲端和原始碼安裝的設定流程可能不同，應遵循所裝版本的指南；`make setup-config` 不是通用的已安裝 CLI 指令。
 
 ## 模型設定
 
-使用方式：
+編輯前先在本機儲存目前供應商、模型與連線設定。這些介面選項會改變目前模型選擇，使用結束後還原原值。保留已登入帳戶與工具權限；未保留可還原備份時，不要覆寫既有的其他 OpenAI 相容連線。
 
 ```text
-Model: openai/claude-sonnet-5
-API key: sk-your-tokenlab-key
+Custom Model: openai/kimi-k3
 Base URL: https://api.tokenlab.sh/v1
 ```
 
-`openai/` 前綴會告知 LiteLLM 支援的路徑使用 OpenAI 相容的提供者配置。
+儲存設定或列出模型不能證明金鑰有效或請求完成。傳送提示詞會使用 TokenLab 餘額；先核對回覆及對應[請求記錄](https://tokenlab.sh/dashboard/runs?section=requests)，再嘗試工具，輔助請求也可能計費。
 
-## 無頭 (Headless) 設定
-
-如果您正在為 CLI 或無頭使用準備本地預設值，請執行 OpenHands 設定流程並輸入：
-
-```bash
-make setup-config
+```text
+Reply only with TOKENLAB_CONNECTION_OK. Do not use tools or modify files.
 ```
-
-當系統提示輸入模型詳細資訊時，請使用帶有 `openai/` 前綴的 TokenLab 模型 ID 以及 TokenLab 的 `/v1` Base URL。
-
-## 模型建議
-
-使用 `claude-sonnet-5` 或 `gpt-5.4` 進行程式設計代理規劃，使用 `gpt-5.4-mini` 進行更快速的常規迴圈，並在需要強大的替代推理模型時使用 `deepseek-v4-pro`。

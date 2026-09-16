@@ -10,7 +10,7 @@ Müzik oluşturma görevinizin durumunu kontrol etmek için bu endpoint'i sorgul
 Create yanıtı `poll_url` içeriyorsa, sorgulama için doğrudan o URL'yi kullanın. `id` ve `task_id` aynı asenkron görev kimliği olarak değerlendirilmelidir.
 
 
-Görev artık mevcut değilse veya genel görev kaydında artık bulunmuyorsa TokenLab `Task not found or no longer available.` mesajıyla `async_task_not_found` döndürür.
+Süresi dolmuş veya kullanılamayan bir görev `404 async_task_not_found` döndürebilir. Geçerli API anahtarının görev sahipliği doğrulanamazsa yanıt `403 task_not_owned` olur.
 </Info>
 
 ## Yol Parametreleri
@@ -26,7 +26,7 @@ Görev artık mevcut değilse veya genel görev kaydında artık bulunmuyorsa To
 </ResponseField>
 
 <ResponseField name="task_id" type="string">
-  Uygun olduğunda dönen asenkron görev kimliği takma adı.
+  Aynı asenkron görev ID’sinin takma adı; döndürüldüğünde mevcuttur.
 </ResponseField>
 
 <ResponseField name="poll_url" type="string">
@@ -39,6 +39,16 @@ Görev artık mevcut değilse veya genel görev kaydında artık bulunmuyorsa To
 
 <ResponseField name="progress" type="integer">
   İsteğe bağlı ilerleme değeri. Yalnızca gerçek bir ilerleme değeri varsa döner; tamamlanmayı belirlemek için `status` kullanın.
+</ResponseField>
+
+Sonuç alanları işleme bağlıdır. Müzik `audio_url` ve `audio_id`, yalnızca söz görevleri `lyrics`, kanal ayırma ise `data` içinde birden fazla dosya döndürebilir. `video_url`, başlık, ilerleme ve diğer meta veriler isteğe bağlıdır. Tamamlanmayı `status` ile kontrol edin ve gerçekten dönen alanları okuyun.
+
+<ResponseField name="audio_id" type="string">
+  Desteklenen sonraki işlemlerde bu görev ID’siyle kullanılabilecek isteğe bağlı ses ID’si.
+</ResponseField>
+
+<ResponseField name="data" type="array">
+  `audio_url` veya `url` içeren ayrılmış ses dosyaları gibi isteğe bağlı çıktı dizisi.
 </ResponseField>
 
 <ResponseField name="audio_url" type="string">
@@ -57,13 +67,13 @@ Görev artık mevcut değilse veya genel görev kaydında artık bulunmuyorsa To
   Oluşturulan veya sağlanan şarkı sözleri.
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="error" type="string | object">
   Hata mesajı (başarısız olduğunda).
 </ResponseField>
 
 <RequestExample>
 ```bash cURL
-curl "https://api.tokenlab.sh/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" \
+curl --fail-with-body "https://api.tokenlab.sh/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 
@@ -78,13 +88,14 @@ while True:
         f"https://api.tokenlab.sh/v1/tasks/{task_id}",
         headers={"Authorization": "Bearer sk-your-api-key"}
     )
+    response.raise_for_status()
     result = response.json()
 
     if result["status"] == "completed":
-        print(f"Audio URL: {result['audio_url']}")
+        print(result)
         break
     elif result["status"] == "failed":
-        print(f"Error: {result['error']}")
+        print(result.get("error", "Task failed"))
         break
 
     time.sleep(5)  # Poll every 5 seconds
@@ -100,18 +111,23 @@ async function pollForMusic() {
       { headers: { 'Authorization': 'Bearer sk-your-api-key' } }
     );
 
+    if (!response.ok) throw new Error(await response.text());
     const result = await response.json();
 
     if (result.status === 'completed') {
-      console.log(`Audio URL: ${result.audio_url}`);
-      return result.audio_url;
+      console.log(result);
+      return result;
     } else if (result.status === 'failed') {
-      throw new Error(result.error);
+      throw new Error(typeof result.error === 'string'
+        ? result.error
+        : JSON.stringify(result.error ?? result));
     }
 
     await new Promise(r => setTimeout(r, 5000));
   }
 }
+
+await pollForMusic();
 ```
 
 ```go Go
@@ -120,6 +136,8 @@ package main
 import (
     "encoding/json"
     "fmt"
+    "io"
+    "log"
     "net/http"
     "time"
 )
@@ -128,22 +146,36 @@ func main() {
     taskID := "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
     for {
-        req, _ := http.NewRequest("GET",
+        req, err := http.NewRequest("GET",
             fmt.Sprintf("https://api.tokenlab.sh/v1/tasks/%s", taskID), nil)
+        if err != nil {
+            log.Fatal(err)
+        }
         req.Header.Set("Authorization", "Bearer sk-your-api-key")
 
         client := &http.Client{}
-        resp, _ := client.Do(req)
+        resp, err := client.Do(req)
+        if err != nil {
+            log.Fatal(err)
+        }
+        if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+            body, _ := io.ReadAll(resp.Body)
+            resp.Body.Close()
+            log.Fatalf("HTTP %d: %s", resp.StatusCode, body)
+        }
 
         var result map[string]interface{}
-        json.NewDecoder(resp.Body).Decode(&result)
+        err = json.NewDecoder(resp.Body).Decode(&result)
         resp.Body.Close()
+        if err != nil {
+            log.Fatal(err)
+        }
 
         if result["status"] == "completed" {
-            fmt.Printf("Audio URL: %s\n", result["audio_url"])
+            fmt.Println(result)
             break
         } else if result["status"] == "failed" {
-            fmt.Printf("Error: %s\n", result["error"])
+            fmt.Println(result)
             break
         }
 
@@ -167,15 +199,24 @@ while (true) {
     ]);
 
     $response = curl_exec($ch);
+    $httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
     curl_close($ch);
 
-    $result = json_decode($response, true);
+    if ($response === false) {
+        throw new RuntimeException($curlError);
+    }
+    if ($httpStatus < 200 || $httpStatus >= 300) {
+        throw new RuntimeException("HTTP {$httpStatus}: {$response}");
+    }
+
+    $result = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
 
     if ($result['status'] === 'completed') {
-        echo "Audio URL: {$result['audio_url']}\n";
+        echo json_encode($result, JSON_UNESCAPED_SLASHES) . "\n";
         break;
     } elseif ($result['status'] === 'failed') {
-        echo "Error: {$result['error']}\n";
+        echo json_encode($result, JSON_UNESCAPED_SLASHES) . "\n";
         break;
     }
 
@@ -191,10 +232,10 @@ while (true) {
   "task_id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "poll_url": "/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "status": "completed",
-  "audio_url": "https://cdn.suno.ai/abc123.mp3",
-  "video_url": "https://cdn.suno.ai/abc123.mp4",
+  "audio_url": "https://cdn.example.com/music/abc123.mp3",
   "title": "Night Drive",
-  "lyrics": "[Verse 1]\nDriving through the night..."
+  "lyrics": "[Verse 1]\nDriving through the night...",
+  "audio_id": "audio_abc123"
 }
 ```
 </ResponseExample>

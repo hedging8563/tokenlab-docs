@@ -22,7 +22,7 @@ import os
 
 os.environ["OPENAI_API_KEY"] = "sk-your-tokenlab-key"
 os.environ["OPENAI_API_BASE"] = "https://api.tokenlab.sh/v1"
-os.environ["OPENAI_MODEL_NAME"] = "claude-sonnet-5"
+os.environ["OPENAI_MODEL_NAME"] = "openai/claude-sonnet-5"
 ```
 
 ## فئة LLM
@@ -32,6 +32,7 @@ from crewai import Agent, LLM
 
 llm = LLM(
     model="claude-sonnet-5",
+    custom_openai=True,
     base_url="https://api.tokenlab.sh/v1",
     api_key="sk-your-tokenlab-key",
 )

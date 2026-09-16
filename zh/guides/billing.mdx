@@ -55,19 +55,6 @@ description: "费用预估、实际扣费、余额与限额说明"
 
 任务结束后，如果 Usage 仍没有显示最终费用或释放金额，请把请求 ID 和任务 ID 发到 support@tokenlab.sh。
 
-```python
-# 示例：视频生成计费
-response = client.post("/v1/videos/generations", json={
-    "model": "veo3.1",
-    "prompt": "A sunset over the ocean"
-})
-# 现在可能会预留预估费用；最终账单会在任务成功后出现。
-
-poll_url = response.json()["poll_url"]
-task_id = response.json()["task_id"]
-# 查询 poll_url；计费完成后会出现 billing_transaction_id。
-```
-
 ### `billing_transaction_id`
 
 非流式 OpenAI 兼容响应如果在返回前完成结算，会带上 `billing_transaction_id`。同一个值也可能出现在 `X-Billing-Transaction-ID` 响应头中；Gemini 等原生格式可能只在响应头里提供。
@@ -80,7 +67,7 @@ task_id = response.json()["task_id"]
 
 ## 查询用量
 
-打开 [Usage](https://tokenlab.sh/dashboard)，可以找到：
+打开 [Usage](https://tokenlab.sh/dashboard/usage)，可以找到：
 
 - 实时余额
 - 按模型分类的使用历史

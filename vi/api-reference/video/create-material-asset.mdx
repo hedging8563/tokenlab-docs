@@ -10,11 +10,15 @@ Nhập một URL nguồn có thể truy cập công khai vào một nhóm vật 
 
 | Loại | Đầu vào được hỗ trợ |
 |------|-----------------|
-| Hình ảnh | `jpeg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`; tỷ lệ khung hình `(0.4, 2.5)`; chiều rộng và chiều cao `(300, 6000)` px; dưới 30 MB. |
-| Video | `mp4`, `mov`; `480p`, `720p`, hoặc `1080p`; 2-15 giây; tỷ lệ khung hình `[0.4, 2.5]`; chiều rộng và chiều cao `[300, 6000]` px; tổng số pixel từ 409600 đến 2068676; tối đa 200 MB; 24-60 FPS. |
-| Âm thanh | `aac`, `wav`, `mp3`; 2-15 giây; tối đa 15 MB. |
+| Hình ảnh | `jpeg`, `jpg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`; ≤30 MiB; chiều rộng và chiều cao `[300, 6000]` px; tỷ lệ khung hình `[0.4, 2.5]`. |
+| Video | `mp4`, `mov`; ≤200 MiB. |
+| Âm thanh | `aac`, `wav`, `mp3`; ≤15 MiB. |
+
+TokenLab kiểm tra URL nguồn, loại phương tiện, kích thước tệp và kích thước ảnh đọc được. Việc chấp nhận nhập không có nghĩa tài nguyên đã sẵn sàng: hãy chờ `ACTIVE` và xem `error_message` nếu xử lý thất bại. Các điều kiện khác về phương tiện và khuôn mặt được kiểm tra trong quá trình xử lý.
 
 Quá trình tạo diễn ra không đồng bộ. Hãy thực hiện poll [Lấy tài nguyên vật liệu (Get Material Asset)](/vi/api-reference/video/get-material-asset) cho đến khi `status` là `ACTIVE`. Đối với các nhóm người thật, một nhóm tương ứng với một người đã được xác minh; việc tải lên có nhiều khuôn mặt hoặc khuôn mặt không khớp với người đã xác minh có thể thất bại.
+
+`project_name` tách biệt tài nguyên trong tổ chức đã xác thực. Mặc định là `default`; dùng cùng một giá trị phân biệt chữ hoa, chữ thường cho nhóm và tài nguyên liên quan. Gửi trong nội dung JSON với POST/PUT và tham số truy vấn với GET/DELETE.
 
 ## Ví dụ Yêu cầu
 
@@ -22,7 +26,7 @@ Quá trình tạo diễn ra không đồng bộ. Hãy thực hiện poll [Lấy 
 curl https://api.tokenlab.sh/v1/videos/assets \
   -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"library_type":"aigc_avatar","group_id":"group-20260720123456-vrt01","asset_url":"https://example.com/reference.png","asset_type":"Image","asset_name":"Front view"}'
+  -d '{"library_type":"aigc_avatar","group_id":"group-20260720123456-vrt01","asset_url":"https://example.com/reference.png","asset_type":"Image","asset_name":"Front view","project_name":"default"}'
 ```
 
 ## Ví dụ Phản hồi
@@ -31,6 +35,7 @@ curl https://api.tokenlab.sh/v1/videos/assets \
 {
   "id": "asset-20260720123456-qn7wr",
   "object": "seedance.material_asset",
+  "project_name": "default",
   "group_id": "group-20260720123456-vrt01",
   "library_type": "aigc_avatar",
   "asset_name": "Front view",

@@ -39,8 +39,8 @@ TokenLab 返回的 OpenAI 兼容错误一定包含 `message` 和 `type`，其他
 
 | 错误码 | 含义 | 需要修改什么 |
 | --- | --- | --- |
-| `invalid_api_key` | API 密钥缺失或无效 | 检查 Authorization 请求头和密钥内容 |
-| `expired_api_key` | API 密钥已过期或撤销 | 创建或选择一枚有效密钥 |
+| `invalid_api_key` | API 密钥缺失、无效、已停用或撤销 | 检查 Authorization 请求头和密钥内容 |
+| `expired_api_key` | API 密钥已过期 | 创建或选择一枚有效密钥 |
 | `insufficient_balance` | 余额无法支付这次请求 | 充值、缩小请求或选择价格更低的模型 |
 | `quota_exceeded` | 这枚 API 密钥达到自身限额 | 提高限额，或使用另一枚有权限的密钥 |
 | `model_not_allowed` | 这枚密钥不能使用所选模型 | 修改模型范围，或改用已开放模型 |
@@ -65,43 +65,10 @@ TokenLab 返回的 OpenAI 兼容错误一定包含 `message` 和 `type`，其他
 
 创建图片、视频、音乐、3D 或 Worlds 任务时，收到任务 ID 就立即保存。创建请求超时后，请确认没有任务记录再重新提交。
 
-## Python 示例
-
-```python
-import random
-import time
-from openai import OpenAI, APIConnectionError, APIStatusError, RateLimitError
-
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1",
-)
-
-def chat(messages, model="gpt-5.6-luna", attempts=3):
-    for attempt in range(attempts):
-        try:
-            return client.chat.completions.create(
-                model=model,
-                messages=messages,
-            )
-        except RateLimitError as exc:
-            if attempt == attempts - 1:
-                raise
-            retry_after = exc.response.headers.get("Retry-After")
-            wait = float(retry_after) if retry_after else (2 ** attempt + random.random())
-            time.sleep(wait)
-        except APIStatusError as exc:
-            if exc.status_code < 500 or attempt == attempts - 1:
-                raise
-            time.sleep(2 ** attempt + random.random())
-        except APIConnectionError:
-            if attempt == attempts - 1:
-                raise
-            time.sleep(2 ** attempt + random.random())
-```
-
 ## 保存请求 ID
 
 响应头会提供请求 ID，用于查询这次请求。请同时记录 API 地址、模型、时间，以及你自己的用户或任务 ID。异步任务还应保存 `task_id` 和返回时的 `billing_transaction_id`。
 
 联系支持时请附上这些 ID 和脱敏示例。不要发送 API 密钥、管理令牌、私密媒体、签名 URL 或完整的私密提示词。
+
+[从请求详情到调查和人工支持](/zh/guides/observability-troubleshooting)

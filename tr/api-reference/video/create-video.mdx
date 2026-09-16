@@ -32,7 +32,7 @@ Ses çıkışı modele bağlıdır. TokenLab’de Veo 3 ve Seedance istekleri `o
 
 <VideoModelContractNote />
 
-<ParamField body="prompt" type="string" required>
+<ParamField body="prompt" type="string">
   Oluşturulacak videonun metin açıklaması. Bu alan herkese açık video modellerinin çoğunda zorunludur.
 </ParamField>
 
@@ -53,7 +53,7 @@ Ses çıkışı modele bağlıdır. TokenLab’de Veo 3 ve Seedance istekleri `o
 </ParamField>
 
 <ParamField body="material_asset_id" type="string">
-  [Materyal Oluştur](/tr/api-reference/video/create-material-asset) veya otomatik görsel hazırlama tarafından döndürülen TokenLab Seedance materyal ID’si. Materyal `ACTIVE` olduktan sonra TokenLab materyal kitaplığını kullanabilen Seedance modelleriyle kullanın.
+  [Materyal Oluştur](/tr/api-reference/video/create-material-asset) tarafından döndürülen TokenLab Seedance materyal ID’si. Materyal `ACTIVE` olduktan sonra TokenLab materyal kitaplığını kullanabilen Seedance modelleriyle kullanın.
 </ParamField>
 
 <ParamField body="material_asset_ids" type="array">
@@ -61,7 +61,7 @@ Ses çıkışı modele bağlıdır. TokenLab’de Veo 3 ve Seedance istekleri `o
 </ParamField>
 
 <Info>
-Seçilen Seedance modeli TokenLab materyal kitaplığını kullanabiliyorsa TokenLab, oluşturma öncesinde görsel alanlarını (`image`, `image_url`, `image_urls`, `reference_images`, `start_image`, `end_image`) yeniden kullanılabilir materyaller olarak hazırlar. Hazırlık 60 saniye içinde tamamlanmazsa API, `auto_material_asset_ids` ile `409 seedance_material_preparing` döndürür; bu materyaller `ACTIVE` olduktan sonra tekrar deneyin. Seçilen model materyal kitaplığını kullanamıyorsa normal görsel girdileri standart görsel yolunda devam eder ve açık materyal ID’leri yeniden denenebilir materyal kullanılabilirliği hatasıyla güvenli şekilde başarısız olur.
+Normal görsel URL’leri girdi olarak kullanılır ve otomatik olarak yeniden kullanılabilir materyal oluşturmaz. Materyalleri materyal API’siyle oluşturup TokenLab ID’lerini veya `asset://asset-YYYYMMDDHHMMSS-xxxxx` URI’lerini kullanın. Açıkça belirtilen materyaller `409 seedance_material_preparing` döndürürse `inactive_asset_ids` içindeki materyalleri kontrol edin ve `ACTIVE` olduktan sonra yeniden deneyin.
 </Info>
 
 
@@ -70,7 +70,7 @@ Seçilen Seedance modeli TokenLab materyal kitaplığını kullanabiliyorsa Toke
 </ParamField>
 
 <ParamField body="kling_elements" type="array">
-  Kling 3.0 öğe referansı tanımlarıdır. Yalnızca görüntü koşullu `kling-3.0-video` isteklerinde desteklenir. 1-3 öğe tanımlayın; her öğede `name`, isteğe bağlı `description` ve 2-4 görüntü URL’si içeren `element_input_urls` bulunur. `prompt` içinde öğeyi `@name` ile referanslayın. `kling_elements` ile `output_audio=true` birlikte kullanılamaz; öğe referanslı isteklerde `output_audio` alanını kaldırın veya `false` yapın.
+  `kling_elements` alanını yalnızca modelin güncel genel ayrıntıları listeliyorsa kullanın. Görseller ve `name`, isteğe bağlı `description`, 2–4 `element_input_urls` içeren 1–3 öğe gönderin; `prompt` içinde `@name` ile başvurun. `output_audio=true` ile birleştirmeyin.
 </ParamField>
 
 <ParamField body="video_url" type="string">
@@ -202,7 +202,7 @@ Seçilen Seedance modeli TokenLab materyal kitaplığını kullanabiliyorsa Toke
 </ParamField>
 
 <ParamField body="user" type="string">
-  Son kullanıcı için benzersiz tanımlayıcı. Seedance için TokenLab, bu alan atlandığında bu değeri `safety_identifier` olarak da kullanır.
+  Son kullanıcının benzersiz tanımlayıcısı. Seedance için `safety_identifier` atlandığında TokenLab bu değeri kullanır.
 </ParamField>
 
 ## Uyumluluk notları
@@ -243,6 +243,10 @@ curl -X POST "https://api.tokenlab.sh/v1/videos/generations" \
 
 ## Yanıt
 
+<Note>
+Sonuç, hata, zaman damgası ve model alanları görev için mevcut olduğunda döndürülür.
+</Note>
+
 <ResponseField name="id" type="string">
   Kanonik asenkron görev kimliği.
 </ResponseField>
@@ -260,7 +264,7 @@ curl -X POST "https://api.tokenlab.sh/v1/videos/generations" \
 </ResponseField>
 
 <ResponseField name="status" type="string">
-  Başlangıç durumu: `pending`.
+  Görev durumu: `pending`, `processing`, `completed`, `failed`.
 </ResponseField>
 
 <ResponseField name="created" type="integer">
@@ -283,7 +287,7 @@ curl -X POST "https://api.tokenlab.sh/v1/videos/generations" \
   Üst sağlayıcı birden fazla çıktı döndürdüğünde video dizisi görünebilir.
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="error" type="string | object">
   Görev başarısız olursa dönen hata mesajı ya da yapılandırılmış hata nesnesi.
 </ResponseField>
 
@@ -327,38 +331,14 @@ response = requests.post(
         "operation": "image-to-video",
         "image_url": "https://example.com/image.jpg",
         "duration": 6,
-        "aspect_ratio": "16:9"
+        "resolution": "768p"
     }
 )
 ```
 
 ## Kling 3.0 öğeleri
 
-Öğe referanslarına ihtiyacınız olduğunda `kling_elements` alanını `kling-3.0-video` ile kullanın. Görüntü koşullu bir istek (`image_url`, `image_urls`, `start_image` veya `end_image`) sağlayın ve prompt içinde her öğeyi `@name` ile referanslayın. `kling_elements` ile `output_audio=true` birlikte kullanılamaz; öğe referanslı isteklerde `output_audio` alanını kaldırın veya `false` yapın.
-
-```python
-response = requests.post("https://api.tokenlab.sh/v1/videos/generations",
-    headers=headers,
-    json={
-        "model": "kling-3.0-video",
-        "prompt": "Place @hero_bag on a studio turntable with soft product lighting.",
-        "operation": "image-to-video",
-        "image_url": "https://example.com/studio-start.png",
-        "duration": 5,
-        "resolution": "720p",
-        "kling_elements": [
-            {
-                "name": "hero_bag",
-                "description": "black leather handbag",
-                "element_input_urls": [
-                    "https://example.com/bag-front.png",
-                    "https://example.com/bag-side.png"
-                ]
-            }
-        ]
-    }
-)
-```
+`kling_elements` alanını yalnızca modelin güncel genel ayrıntıları listeliyorsa kullanın. Görseller ve `name`, isteğe bağlı `description`, 2–4 `element_input_urls` içeren 1–3 öğe gönderin; `prompt` içinde `@name` ile başvurun. `output_audio=true` ile birleştirmeyin.
 
 ## Referans görselle videoya
 
@@ -394,7 +374,6 @@ response = requests.post(
     headers={"Authorization": "Bearer sk-your-api-key"},
     json={
         "model": "viduq2-pro",
-        "prompt": "Smooth transition from day to night",
         "operation": "start-end-to-video",
         "start_image": "https://example.com/day.jpg",
         "end_image": "https://example.com/night.jpg",
@@ -407,7 +386,7 @@ response = requests.post(
 
 ## Videodan videoya
 
-`grok-imagine-video` video-to-video için `video_url` içinde herkese açık HTTPS `.mp4` URL gönderin. TokenLab bunu xAI REST `video.url` gövdesine çevirir. `resolution` için `480p` veya `720p` gönderebilirsiniz; bu düzenleme akışı `duration` ve `aspect_ratio` kabul etmez.
+`grok-imagine-video` video-to-video için herkese açık HTTPS `.mp4` URL’sini `video_url`, düzenleme talimatını `prompt` ile gönderin. Bu işlemde `resolution`, `duration` ve `aspect_ratio` alanlarını atlayın.
 
 Model mevcut bir videoyu birincil giriş olarak kabul ediyorsa `operation=video-to-video` kullanın.
 
@@ -419,8 +398,7 @@ response = requests.post(
         "model": "grok-imagine-video",
         "operation": "video-to-video",
         "video_url": "https://example.com/source.mp4",
-        "prompt": "Enhance the clip while preserving the original motion.",
-        "resolution": "720p"
+        "prompt": "Enhance the clip while preserving the original motion."
     }
 )
 ```
@@ -449,11 +427,9 @@ response = requests.post(
 Herkese açık video envanteri ve desteklenen işlemler zamanla değişir. Modele özgü bir akışı bağlamadan önce [Models API](/tr/api-reference/models/list-models) uç noktasını doğruluk kaynağı olarak kullanın:
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \
-  -H "Authorization: Bearer sk-your-api-key"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=video"
 
-curl "https://api.tokenlab.sh/v1/models/veo3.1" \
-  -H "Authorization: Bearer sk-your-api-key"
+curl "https://api.tokenlab.sh/v1/models/veo3.1"
 ```
 
-Model detay yanıtındaki `tokenlab.capabilities`, `tokenlab.supported_operations`, `GET /v1/models` ve `GET /v1/models/{model}` alanlarını okuyun. `audio-to-video` ve `video-extension` gibi işlemler modele özgüdür; güncel kullanılabilirliği bu sayfadaki statik örneklerden değil oradan doğrulayın.
+Model detay yanıtındaki `tokenlab.capabilities` ve `tokenlab.supported_operations` alanlarını okuyun. `audio-to-video` ve `video-extension` gibi işlemler modele özgüdür; güncel kullanılabilirliği bu sayfadaki statik örneklerden değil oradan doğrulayın.

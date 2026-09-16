@@ -15,11 +15,22 @@ description: "获取异步图像生成任务的状态和结果"
 
 `ldtask_...` 图片任务也可以通过 `/v1/images/{id}` 查询；这个兼容地址与 `/v1/images/generations/{id}` 返回相同格式。
 
-
-任务不存在、已过期或当前 API 密钥无权访问时，会返回 `async_task_not_found`。
+已过期或不可用的公开任务可能返回 `404 async_task_not_found`。无法确认当前 API 密钥对任务的归属权限时，返回 `403 task_not_owned`。
 </Info>
 
 ## 响应
+
+<Note>
+结果、错误、时间戳和模型字段仅在任务提供时返回。
+</Note>
+
+<ResponseField name="id" type="string">
+  TokenLab 任务 ID。
+</ResponseField>
+
+<ResponseField name="poll_url" type="string">
+  创建响应返回的状态查询地址。
+</ResponseField>
 
 <ResponseField name="created" type="integer">
   创建时的 Unix 时间戳。
@@ -38,10 +49,10 @@ description: "获取异步图像生成任务的状态和结果"
 
   每个对象包含：
   - `url` (string): 生成图像的 URL
-  - `revised_prompt` (string): 用于生成的提示词
+  - `revised_prompt` (string): 所选模型返回的可选提示词改写结果
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="error" type="string | object">
   错误信息（仅在 `status` 为 `failed` 时存在）。
 </ResponseField>
 
@@ -59,6 +70,7 @@ response = requests.get(
     headers={"Authorization": "Bearer sk-your-api-key"}
 )
 
+response.raise_for_status()
 data = response.json()
 print(f"Status: {data['status']}")
 
@@ -76,6 +88,7 @@ const response = await fetch(
   }
 );
 
+if (!response.ok) throw new Error(`HTTP ${response.status}`);
 const data = await response.json();
 console.log(`Status: ${data.status}`);
 
@@ -93,12 +106,7 @@ if (data.status === 'completed') {
   "task_id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "poll_url": "/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "status": "pending",
-  "data": [
-    {
-      "url": "",
-      "revised_prompt": "a beautiful sunset over mountains"
-    }
-  ]
+  "data": []
 }
 ```
 
@@ -134,7 +142,7 @@ if (data.status === 'completed') {
 ## 查询间隔
 
 <Tip>
-图片生成时每 3–5 秒查询一次通常足够。状态变为 `completed` 或 `failed` 后停止。
+状态为 `pending` 或 `processing` 时，每 3–5 秒查询一次；变为 `completed` 或 `failed` 后停止。
 </Tip>
 
 ```python
@@ -148,7 +156,8 @@ def poll_image_task(task_id, api_key, max_wait=300, interval=3):
 
     start_time = time.time()
     while time.time() - start_time < max_wait:
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=30)
+        response.raise_for_status()
         data = response.json()
 
         if data["status"] == "completed":

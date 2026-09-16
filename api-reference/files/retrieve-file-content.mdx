@@ -31,5 +31,5 @@ Batch files are returned as JSONL or plain text. Image-reference files are retur
 
 ## Important fields
 
-<ResponseField name="body" type="binary|string">File content. Save or parse it according to `Content-Type`.</ResponseField>
+<ResponseField name="body" type="binary|string">File content. Save or parse it according to `Content-Type`; parse JSONL one line at a time.</ResponseField>
 <ResponseField name="custom_id" type="string">ID that matches a batch input item to its result.</ResponseField>

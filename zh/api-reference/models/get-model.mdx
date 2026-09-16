@@ -7,7 +7,7 @@ description: "获取模型的能力、价格和 API 格式"
 ## 路径参数
 
 <ParamField path="model" type="string" required>
-  模型 ID，例如 `gpt-5.4` 或 `claude-sonnet-4-6`。
+  模型 ID，例如 `gpt-5.6-terra` 或 `claude-sonnet-4-6`。
 </ParamField>
 
 ## 响应
@@ -42,7 +42,7 @@ description: "获取模型的能力、价格和 API 格式"
 ## 示例
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models/gpt-5.4"
+curl "https://api.tokenlab.sh/v1/models/gpt-5.6-terra"
 ```
 
 ```json
@@ -52,8 +52,8 @@ curl "https://api.tokenlab.sh/v1/models/gpt-5.4"
   "owned_by": "openai",
   "tokenlab": {
     "category": "chat",
-    "capabilities": ["text"],
-    "accepted_request_formats": ["responses", "chat_completions"]
+    "capabilities": ["coding", "json-mode", "prompt-cache", "reasoning", "tool-use", "vision"],
+    "accepted_request_formats": ["openai_chat_completions", "openai_responses"]
   }
 }
 ```

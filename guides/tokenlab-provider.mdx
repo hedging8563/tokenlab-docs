@@ -24,18 +24,22 @@ This guide is for **self-hosted OpenClaw**. The TokenLab plugin is the shortest 
 
 ## Install the plugin
 
-Install the TokenLab provider plugin and add your API key:
+Optional: install the published provider plugin **0.1.0**. Supply `TOKENLAB_API_KEY` through the same Gateway environment described below and use session-only model selection. The plugin onboarding wizard changes the default model, so this guide does not run `openclaw onboard`. Keep existing plugin entries and permissions. Check the installed plugin and model list before making a request.
+
+Review the capabilities requested by the installer and follow the client’s confirmation prompts. Do not grant unrelated permissions or change the permissions of existing plugins.
 
 ```bash
-openclaw plugins install @tokenlabai/openclaw-provider
-openclaw onboard
+openclaw plugins install @tokenlabai/openclaw-provider@0.1.0
+openclaw plugins list
+openclaw models list --provider tokenlab
 ```
 
-After plugin installation, run `openclaw onboard` and select TokenLab when offered. Enter the key only in the local credential prompt. If the installed plugin does not load on your OpenClaw version, use the manual provider settings below and check the plugin’s compatibility before retrying.
+```text
+/model tokenlab/claude-sonnet-5 -s
+/model default -s
+```
 
-The plugin loads the current chat-model list from TokenLab. OpenClaw refers to them as `tokenlab/<model-id>`.
-
-[npm package](https://www.npmjs.com/package/@tokenlabai/openclaw-provider) · [ClawHub listing](https://clawhub.ai/tokenlabai/plugins/openclaw-provider) · [Source code](https://github.com/hedging8563/tokenlab-openclaw-provider)
+[npm](https://www.npmjs.com/package/@tokenlabai/openclaw-provider/v/0.1.0) · [GitHub](https://github.com/hedging8563/tokenlab-openclaw-provider)
 
 ## Configure providers manually
 
@@ -58,6 +62,7 @@ Native providers such as `anthropic-messages` and `google-generative-ai` should 
 ## Prerequisites
 
 - A self-hosted OpenClaw instance
+- For OpenClaw **2026.9.4**, use Node.js `>=24.16.0 <25 || >=26.1.0` ([version requirements](https://github.com/openclaw/openclaw/blob/v2026.9.4/package.json)). For other OpenClaw releases, check that release's requirements.
 - A TokenLab API Key — [Get one here](https://tokenlab.sh/dashboard/api?tab=keys)
 
 ## Configuration
@@ -70,15 +75,10 @@ Add TokenLab providers under `models.providers`:
 
 Use the same profile, `OPENCLAW_STATE_DIR` and `OPENCLAW_CONFIG_PATH` as the running Gateway. Back up the active configuration before merging. Put `TOKENLAB_API_KEY` in that instance’s trusted global `.env` or service environment; a terminal export or project `.env` alone may not reach the background Gateway. See [environment handling](https://docs.openclaw.ai/help/environment).
 
+Back up the active configuration. Add only the TokenLab entry and preserve existing providers, accounts, default-model selection and permissions. If the name is already used, choose another name and update the commands. To undo setup, remove only your added entry or restore its previous backup.
+
 ```json5
 {
-  agents: {
-    defaults: {
-      model: {
-        primary: "tokenlab-claude/claude-sonnet-5"
-      }
-    }
-  },
   models: {
     mode: "merge",
     providers: {
@@ -144,16 +144,11 @@ The `models` arrays above only show common examples. Add more model IDs to each 
 
 OpenClaw still references models with the `provider/model` format:
 
-```json5
-{
-  agents: {
-    defaults: {
-      model: {
-        primary: "tokenlab-gemini/gemini-3.5-flash"
-      }
-    }
-  }
-}
+For **OpenClaw 2026.9.4**, select the model only for the current session with `-s`. Keep `agents.defaults.model`, agent defaults and permissions unchanged. Use `/model default -s` to return this session to its configured default.
+
+```text
+/model tokenlab-claude/claude-sonnet-5 -s
+/model default -s
 ```
 
 ### Model Examples

@@ -27,13 +27,15 @@ Nếu bản dựng Flowise của bạn bao gồm node mô hình chat **TokenLab*
 
 ## Phương thức dự phòng tương thích với OpenAI
 
-Nếu node TokenLab chưa khả dụng, hãy sử dụng node mô hình chat tương thích với OpenAI với các thông số sau:
+Nếu bản dựng của bạn không có nút TokenLab, hãy thêm **Chat Models** → **OpenAI Custom Model**. Trong **Connect Credential**, tạo thông tin xác thực **OpenAI API** bằng khóa TokenLab. Đặt **Model Name** và **Additional Parameters** → **Base Path** như sau:
 
 | Trường | Giá trị |
 |-------|-------|
-| Base URL | `https://api.tokenlab.sh/v1` |
+| Base Path | `https://api.tokenlab.sh/v1` |
 | API Key | `sk-your-tokenlab-key` |
-| Model | `gpt-5.4-mini` |
+| Model Name | `gpt-5.4-mini` |
+
+Kết nối nút với chuỗi, tác nhân hoặc quy trình làm việc rồi gửi lời nhắc thử nghiệm.
 
 ## Các mô hình được đề xuất
 

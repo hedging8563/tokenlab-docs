@@ -20,11 +20,13 @@ description: "Hubungkan Kilo Code dan Kilo CLI ke TokenLab"
 Instal kanal pre-release **Kilo Code** di VS Code atau instal CLI:
 
 ```bash
-npm install -g @kilocode/cli
+npm install -g @kilocode/cli@7.7.2
 kilo --version
 ```
 
 Buka **Settings → Providers → Custom provider**.
+
+Simpan penyedia, model, dan pengaturan koneksi saat ini secara lokal sebelum mengedit. Kontrol ini mengubah model aktif; pulihkan nilai sebelumnya setelah selesai. Pertahankan akun yang masuk dan izin alat. Jangan timpa koneksi kompatibel OpenAI lain tanpa cadangan yang dapat dipulihkan.
 
 | Kolom | Nilai |
 |---|---|
@@ -39,18 +41,17 @@ Kilo mendeteksi model melalui `/v1/models`. Setelah disimpan, pilih `tokenlab/ki
 
 ## Konfigurasi CLI
 
-Simpan Key di variabel lingkungan dan edit berkas global tepercaya `~/.config/kilo/kilo.jsonc`:
+Ikuti langkah terminal [panduan cepat](/id/quickstart) untuk macOS, Linux, WSL, atau Windows PowerShell guna mengatur `TOKENLAB_API_KEY` tanpa menulis kunci ke riwayat perintah. Jalankan Kilo dari terminal tersebut. Untuk penggunaan berkelanjutan, gunakan pengelola rahasia lokal, bukan kunci teks biasa di profil shell.
 
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
+Sebelum menjalankan Kilo **7.7.2**, cadangkan konfigurasi global aktif dan periksa `permission.bash`. Versi ini menambahkan `bash: "allow"` pada konfigurasi lama tanpa aturan eksplisit tersebut, meskipun `permission["*"]` bernilai `deny`. Pertahankan aturan shell saat ini secara eksplisit: jika aturan wildcard yang ada adalah `deny`, gabungkan `"bash": "deny"` ke objek `permission` tanpa mengubah aturan lain. Berkas penyedia terpisah tidak mencegah migrasi klien ini.
+
+Simpan konfigurasi di file terpisah `~/.config/kilo/tokenlab.jsonc`. Jika `XDG_CONFIG_HOME` diatur, gunakan `kilo/tokenlab.jsonc` di direktori tersebut. Pertahankan `kilo.json` / `kilo.jsonc` biasa, akun, model default, dan izin. File terpisah ini hanya dimuat saat peluncuran memilihnya melalui `KILO_CONFIG`. Jika file atau nama penyedia sudah dipakai, pilih nama lain dan sesuaikan perintah.
 
 ```jsonc
 {
   "$schema": "https://app.kilo.ai/config.json",
-  "model": "openai-compatible/kimi-k3",
   "provider": {
-    "openai-compatible": {
+    "tokenlab": {
       "options": {
         "apiKey": "{env:TOKENLAB_API_KEY}",
         "baseURL": "https://api.tokenlab.sh/v1"
@@ -61,18 +62,46 @@ export TOKENLAB_API_KEY="sk-your-tokenlab-key"
           "tool_call": true,
           "reasoning": true,
           "modalities": {
-            "input": ["text", "image"],
-            "output": ["text"]
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
           },
           "limit": {
             "context": 1048576,
             "output": 131072
           }
         }
-      }
+      },
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "TokenLab"
     }
   }
 }
 ```
 
-Mulai ulang Kilo lalu jalankan `kilo models`. `{env:...}` hanya diresolusi dalam konfigurasi global atau terkelola yang tepercaya. Jangan tulis Key asli di konfigurasi proyek yang mungkin masuk Git.
+<CodeGroup>
+```bash macOS / Linux / WSL
+KILO_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/kilo/tokenlab.jsonc" kilo models tokenlab
+KILO_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/kilo/tokenlab.jsonc" kilo --model tokenlab/kimi-k3
+```
+
+```powershell Windows PowerShell
+$previous = @{}
+$previous['KILO_CONFIG'] = [Environment]::GetEnvironmentVariable('KILO_CONFIG', 'Process')
+try {
+  $env:KILO_CONFIG = (Join-Path $(if ($env:XDG_CONFIG_HOME) { $env:XDG_CONFIG_HOME } else { Join-Path $HOME '.config' }) 'kilo/tokenlab.jsonc')
+  kilo models tokenlab
+  kilo --model tokenlab/kimi-k3
+} finally {
+  foreach ($name in $previous.Keys) {
+    [Environment]::SetEnvironmentVariable($name, $previous[$name], 'Process')
+  }
+}
+```
+</CodeGroup>
+
+Menyimpan pengaturan atau menampilkan model tidak memvalidasi kunci maupun permintaan yang selesai. Prompt memakai saldo TokenLab. Periksa respons dan [catatan permintaan terkait](https://tokenlab.sh/dashboard/runs?section=requests) sebelum mencoba alat; permintaan tambahan juga dapat dikenai biaya.

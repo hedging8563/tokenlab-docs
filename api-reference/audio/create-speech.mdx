@@ -10,12 +10,12 @@ Use `GET /v1/models?recommended_for=tts` to get current speech models.
 
 ## Request Body
 
-This endpoint returns after the audio is ready. For longer input, set your HTTP client timeout to at least `120s`.
+The response mode depends on the selected model and `stream_format`. For longer input, allow an HTTP client timeout of at least `120s`.
 
-Optional fields vary by model. OpenAI TTS supports `voice`, `instructions`, `response_format`, `stream_format`, and `speed`. MiniMax speech can also use `voice_id`. Gemini TTS can use `prompt`, `language_code`, and `temperature`. Unsupported fields return `400 unsupported_parameter`.
+Optional fields, voices, output formats, and SSE support depend on the selected model. Check `GET /v1/models/{model}` before sending them. Unsupported parameters can return `400 unsupported_parameter`.
 
 <ParamField body="model" type="string" default="tts-1">
-  TTS model. Examples include `tts-1`, `gpt-4o-mini-tts`, `speech-02-hd`, and `gemini-2.5-flash-tts`. Query `GET /v1/models?recommended_for=tts` for the current shortlist.
+  TTS model ID. Find current choices with `GET /v1/models?recommended_for=tts`.
 </ParamField>
 
 <ParamField body="input" type="string" required>
@@ -27,7 +27,7 @@ Optional fields vary by model. OpenAI TTS supports `voice`, `instructions`, `res
 </ParamField>
 
 <ParamField body="voice_id" type="string">
-  Provider-native voice selector for MiniMax-compatible speech models.
+  Voice ID for models that support this parameter, such as compatible MiniMax speech models.
 </ParamField>
 
 <ParamField body="instructions" type="string">
@@ -60,7 +60,7 @@ Optional fields vary by model. OpenAI TTS supports `voice`, `instructions`, `res
 
 ## Response
 
-Returns the audio file in the requested format.
+With `stream_format=audio`, the response contains audio bytes. Models that support `stream_format=sse` return a `text/event-stream` response; parse its events instead of saving the entire response as an audio file.
 
 <RequestExample>
 ```bash cURL
@@ -138,6 +138,8 @@ file_put_contents('speech.mp3', $audio);
 
 ## Voice Samples
 
+Voice availability depends on the model; the names below are examples, not a shared voice list for every TTS model.
+
 | Voice | Description |
 |-------|-------------|
 | `alloy` | Neutral, balanced |
@@ -162,5 +164,9 @@ file_put_contents('speech.mp3', $audio);
 
 ## Important fields
 
-<ResponseField name="Content-Type" type="string">Event or message type returned by the API.</ResponseField>
-<ResponseField name="body" type="binary">Raw response body. Save it directly instead of parsing it as JSON.</ResponseField>
+<ResponseField name="Content-Type" type="string">
+  HTTP response media type: the audio format, or `text/event-stream` for SSE.
+</ResponseField>
+<ResponseField name="body" type="binary | SSE">
+  Audio bytes for `audio`; an event stream for `sse`. Choose the parser using `Content-Type` and the requested mode.
+</ResponseField>

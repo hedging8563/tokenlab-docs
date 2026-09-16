@@ -18,7 +18,7 @@ A rota suporta ambos:
 
 Edições com `gpt-image-2` não aceitam `resolution`; use `size` para as dimensões de saída. `background` aceita `auto` ou `opaque`; `transparent` não é suportado. Para edições com várias imagens ou alta latência, prefira `async: true` e consulte a tarefa retornada.
 
-Solicitações Nano Banana com imagem de referência (`nano-banana`, `nano-banana-2` e `nano-banana-pro`) são expostas em `/v1/images/generations` com `operation: "image-to-image"` e `image_urls`, não neste endpoint `/v1/images/edits`.
+Solicitações Nano Banana com imagem de referência (`nano-banana-edit`, `nano-banana-2` e `nano-banana-pro`) são expostas em `/v1/images/generations` com `operation: "image-to-image"` e `image_urls`, não neste endpoint `/v1/images/edits`.
 
 Os modelos de edição de imagem xAI Grok Imagine (`grok-imagine-image`, `grok-imagine-image-quality` e o legacy `grok-imagine-image-pro`) aceitam no máximo 3 imagens de origem. Solicitações com mais de 3 imagens de origem falham na validação de entrada com `400 too_many_images`.
 
@@ -29,18 +29,20 @@ Os modelos de edição de imagem xAI Grok Imagine (`grok-imagine-image`, `grok-i
 
 **Timeout de solicitações síncronas:** algumas solicitações de imagem retornam a imagem final inline e aguardam a geração terminar. Solicitações de alta resolução ou alta qualidade podem levar perto de um minuto ou mais, então configure o timeout do seu cliente HTTP para pelo menos `120s`. Se a resposta de criação incluir `status: "pending"`, `task_id` ou `poll_url`, siga o `poll_url` retornado.
 
-URLs de imagem remotas: quando entrada multipart é necessária, a TokenLab busca JSON `image_url`, `image_urls` ou `images[].image_url` e envia os bytes como partes multipart `image`. As URLs devem ser públicas em `http`/`https`, sem credenciais embutidas nem fragmentos, e não podem resolver para localhost, faixas de IP privadas ou reservadas; cada redirecionamento é verificado novamente. O payload buscado deve ser uma imagem PNG, JPEG ou WebP real. Limites: `50MB` por imagem, `200MB` no total para imagens buscadas por URL em uma requisição, timeout de `10s` e até `3` redirecionamentos.
+URLs de imagem remotas: quando entrada multipart é necessária, a TokenLab busca JSON `image_url`, `image_urls` ou `images[].image_url` e envia os bytes como partes multipart `image`. As URLs devem ser públicas em `http`/`https`, sem credenciais embutidas nem fragmentos, e não podem resolver para localhost, faixas de IP privadas ou reservadas; cada redirecionamento é verificado novamente. O payload buscado deve ser uma imagem PNG, JPEG ou WebP real. Limites: `50 MiB` por imagem, `200 MiB` no total para imagens buscadas por URL em uma requisição, timeout de `10s` e até `3` redirecionamentos.
+
+Uma requisição JSON deve conter exatamente um de `image_url`, `image_urls` ou `images`. Cada objeto `images[]` deve conter apenas um de `image_url` ou `file_id`. O limite total de 200 MiB inclui todas as imagens de origem e a máscara.
 
 <ParamField body="image" type="file">
-  Imagens de origem multipart. Repita `image` para fornecer várias fontes GPT Image. Os arquivos devem ser PNG, JPEG ou WebP, até 16 imagens de origem e `50MB` cada. Modelos de edição xAI Grok Imagine usam os mesmos campos de entrada, mas limitam imagens de origem a 3.
+  Imagens de origem multipart. Repita `image` para fornecer várias fontes GPT Image. Os arquivos devem ser PNG, JPEG ou WebP, até 16 imagens de origem e `50 MiB` cada. Modelos de edição xAI Grok Imagine usam os mesmos campos de entrada, mas limitam imagens de origem a 3.
 </ParamField>
 
 <ParamField body="prompt" type="string" required>
   Uma descrição em texto da edição desejada.
 </ParamField>
 
-<ParamField body="mask" type="file">
-  Uma imagem adicional cujas áreas totalmente transparentes indicam onde a imagem deve ser editada. Deve ser um arquivo PNG válido, menor que 50MB e ter as mesmas dimensões que `image`.
+<ParamField body="mask" type="file | object">
+  Uma imagem adicional cujas áreas totalmente transparentes indicam onde a imagem deve ser editada. Deve ser um arquivo PNG válido, menor que 50 MiB e ter as mesmas dimensões que `image`.
 
   Em solicitações JSON, `mask` também pode ser um objeto com exatamente um de `image_url` ou `file_id`; valores `file_id` devem vir de `/v1/files` e permanecer vinculados à mesma configuração de edição de imagem.
 </ParamField>
@@ -50,7 +52,7 @@ URLs de imagem remotas: quando entrada multipart é necessária, a TokenLab busc
 </ParamField>
 
 <ParamField body="n" type="integer" default="1">
-  O número de imagens a gerar. Deve estar entre 1 e 10.
+  Número de imagens a gerar (1-10, dependendo do modelo).
 </ParamField>
 
 <ParamField body="size" type="string">
@@ -60,7 +62,7 @@ URLs de imagem remotas: quando entrada multipart é necessária, a TokenLab busc
 <ParamField body="response_format" type="string" default="url">
   O formato em que as imagens geradas são retornadas. Deve ser `url` ou `b64_json`; o padrão é `url`.
 
-  Para solicitações `gpt-image-2` Azure Official ou compatíveis com Azure, a TokenLab recebe os dados de imagem como `b64_json`. Para solicitações `url`, a TokenLab envia cada imagem ao CDN e retorna `data[].url`. Se o armazenamento CDN estiver indisponível ou o upload falhar, a solicitação falha em vez de ser convertida em uma resposta Base64. Para `b64_json`, o Base64 bruto é retornado.
+  `url` retorna as URLs em `data[].url`; `b64_json` retorna os dados de imagem Base64 em `data[].b64_json`.
 </ParamField>
 
 <ParamField body="async" type="boolean" default="false">

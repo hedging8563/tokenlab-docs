@@ -8,7 +8,7 @@ Reordena documentos utilizando modelos de similitud semántica. Útil para mejor
 
 ## Cuerpo de la solicitud
 
-**Tiempo de espera de solicitudes síncronas:** este endpoint no-chat espera a que el modelo enrutado termine. Entradas grandes, audio largo o lotes grandes pueden superar los valores predeterminados habituales de 30s del cliente, así que configura el timeout de tu cliente HTTP en al menos `120s`.
+Para entradas grandes, configura el tiempo de espera del cliente HTTP en al menos `120s`. La respuesta llega al terminar el procesamiento.
 
 <ParamField body="model" type="string" required>
   ID del modelo de reranker a utilizar (por ejemplo, `qwen3-vl-rerank`).
@@ -23,7 +23,7 @@ Reordena documentos utilizando modelos de similitud semántica. Útil para mejor
 </ParamField>
 
 <ParamField body="top_n" type="integer">
-  Número de mejores resultados a devolver. Por defecto se devuelven todos los documentos. Debe ser al menos `1` y no puede superar `documents.length`. TokenLab no aplica actualmente un límite público inferior específico de proveedor; si este límite cambia, esta página se actualizará antes de aplicarlo.
+  Número de mejores resultados, de `1` a `documents.length`. Si se omite, el modelo seleccionado determina la cantidad.
 </ParamField>
 
 <ParamField body="return_documents" type="boolean" default="false">
@@ -37,16 +37,16 @@ Reordena documentos utilizando modelos de similitud semántica. Útil para mejor
 
   Cada resultado contiene:
   - `index` (integer): Índice original del documento
-  - `relevance_score` (number): Puntuación de relevancia (0-1)
+  - `relevance_score` (number): Puntuación de relevancia. El rango depende del modelo seleccionado.
   - `document` (string): Texto original (si `return_documents=true`)
 </ResponseField>
 
 <ResponseField name="model" type="string">
-  El modelo utilizado para el reordenamiento.
+  El modelo utilizado para el reordenamiento. Se devuelve cuando está disponible.
 </ResponseField>
 
 <ResponseField name="usage" type="object">
-  Estadísticas de uso de tokens.
+  Estadísticas de uso de tokens. Se devuelve cuando está disponible.
 </ResponseField>
 
 <RequestExample>

@@ -18,7 +18,7 @@ Route này hỗ trợ cả:
 
 Edit bằng `gpt-image-2` không chấp nhận `resolution`; hãy dùng `size` cho kích thước đầu ra. `background` chấp nhận `auto` hoặc `opaque`; không hỗ trợ `transparent`. Với edit nhiều ảnh hoặc độ trễ cao, nên đặt `async: true` rồi polling task được trả về.
 
-Request Nano Banana dùng ảnh tham chiếu (`nano-banana`, `nano-banana-2`, và `nano-banana-pro`) được cung cấp qua `/v1/images/generations` với `operation: "image-to-image"` và `image_urls`, không phải endpoint `/v1/images/edits` này.
+Request Nano Banana dùng ảnh tham chiếu (`nano-banana-edit`, `nano-banana-2`, và `nano-banana-pro`) được cung cấp qua `/v1/images/generations` với `operation: "image-to-image"` và `image_urls`, không phải endpoint `/v1/images/edits` này.
 
 Các model chỉnh sửa ảnh xAI Grok Imagine (`grok-imagine-image`, `grok-imagine-image-quality`, và legacy `grok-imagine-image-pro`) chấp nhận tối đa 3 ảnh nguồn. Request có hơn 3 ảnh nguồn sẽ thất bại ở bước kiểm tra input với `400 too_many_images`.
 
@@ -29,18 +29,20 @@ Các model chỉnh sửa ảnh xAI Grok Imagine (`grok-imagine-image`, `grok-ima
 
 **Timeout cho yêu cầu đồng bộ:** một số yêu cầu hình ảnh sẽ trả ảnh cuối cùng inline và chờ quá trình tạo hoàn tất. Yêu cầu độ phân giải cao hoặc chất lượng cao có thể mất gần một phút hoặc lâu hơn, vì vậy hãy đặt timeout của HTTP client ít nhất là `120s`. Nếu phản hồi tạo có `status: "pending"`, `task_id`, hoặc `poll_url`, hãy theo `poll_url` được trả về để polling.
 
-URL ảnh từ xa: khi cần input multipart, TokenLab sẽ tải JSON `image_url`, `image_urls`, hoặc `images[].image_url` rồi gửi byte dưới dạng các phần multipart `image`. URL phải là `http`/`https` công khai, không chứa credentials nhúng hoặc fragment, và không được resolve tới localhost, dải IP private hoặc reserved; mỗi redirect đều được kiểm tra lại. Payload tải về phải là ảnh PNG, JPEG hoặc WebP thật. Giới hạn: `50MB` mỗi ảnh, tổng `200MB` cho ảnh tải từ URL trong một request, timeout tải `10s`, và tối đa `3` redirect.
+URL ảnh từ xa: khi cần input multipart, TokenLab sẽ tải JSON `image_url`, `image_urls`, hoặc `images[].image_url` rồi gửi byte dưới dạng các phần multipart `image`. URL phải là `http`/`https` công khai, không chứa credentials nhúng hoặc fragment, và không được resolve tới localhost, dải IP private hoặc reserved; mỗi redirect đều được kiểm tra lại. Payload tải về phải là ảnh PNG, JPEG hoặc WebP thật. Giới hạn: `50 MiB` mỗi ảnh, tổng `200 MiB` cho ảnh tải từ URL trong một request, timeout tải `10s`, và tối đa `3` redirect.
+
+Yêu cầu JSON phải có đúng một trong các trường `image_url`, `image_urls` hoặc `images`. Mỗi đối tượng `images[]` phải chứa đúng một trong `image_url` hoặc `file_id`. Giới hạn tổng 200 MiB bao gồm mọi ảnh nguồn và mask.
 
 <ParamField body="image" type="file">
-  Ảnh nguồn multipart. Lặp lại trường `image` để gửi nhiều nguồn GPT Image. File phải là PNG, JPEG hoặc WebP, tối đa 16 ảnh nguồn và `50MB` mỗi ảnh. Model edit xAI Grok Imagine dùng cùng các trường input nhưng giới hạn ảnh nguồn ở mức 3.
+  Ảnh nguồn multipart. Lặp lại trường `image` để gửi nhiều nguồn GPT Image. File phải là PNG, JPEG hoặc WebP, tối đa 16 ảnh nguồn và `50 MiB` mỗi ảnh. Model edit xAI Grok Imagine dùng cùng các trường input nhưng giới hạn ảnh nguồn ở mức 3.
 </ParamField>
 
 <ParamField body="prompt" type="string" required>
   Mô tả bằng văn bản cho chỉnh sửa mong muốn.
 </ParamField>
 
-<ParamField body="mask" type="file">
-  Một ảnh bổ sung có các vùng trong suốt hoàn toàn để chỉ ra nơi ảnh sẽ được chỉnh sửa. Phải là tệp PNG hợp lệ, nhỏ hơn 50MB, và có cùng kích thước với `image`.
+<ParamField body="mask" type="file | object">
+  Một ảnh bổ sung có các vùng trong suốt hoàn toàn để chỉ ra nơi ảnh sẽ được chỉnh sửa. Phải là tệp PNG hợp lệ, nhỏ hơn 50 MiB, và có cùng kích thước với `image`.
 
   Với yêu cầu JSON, `mask` cũng có thể là một object chứa đúng một trong hai trường `image_url` hoặc `file_id`; giá trị `file_id` phải đến từ `/v1/files` và vẫn gắn với cùng cấu hình chỉnh sửa ảnh.
 </ParamField>
@@ -50,7 +52,7 @@ URL ảnh từ xa: khi cần input multipart, TokenLab sẽ tải JSON `image_ur
 </ParamField>
 
 <ParamField body="n" type="integer" default="1">
-  Số lượng ảnh cần tạo. Phải nằm trong khoảng từ 1 đến 10.
+  Số lượng hình ảnh cần tạo (1-10, tùy theo model).
 </ParamField>
 
 <ParamField body="size" type="string">
@@ -60,7 +62,7 @@ URL ảnh từ xa: khi cần input multipart, TokenLab sẽ tải JSON `image_ur
 <ParamField body="response_format" type="string" default="url">
   Định dạng trả về của ảnh được tạo. Phải là `url` hoặc `b64_json`; mặc định là `url`.
 
-  Với `gpt-image-2` qua Azure Official hoặc dịch vụ tương thích Azure, TokenLab nhận kết quả ảnh dưới dạng `b64_json`. Với request `url`, TokenLab tải từng ảnh lên CDN rồi trả về `data[].url`. Nếu CDN storage không khả dụng hoặc upload thất bại, request sẽ thất bại và không chuyển thành response Base64. Với `b64_json`, Base64 gốc được trả về.
+  `url` trả URL ảnh trong `data[].url`; `b64_json` trả dữ liệu ảnh Base64 trong `data[].b64_json`.
 </ParamField>
 
 <ParamField body="async" type="boolean" default="false">

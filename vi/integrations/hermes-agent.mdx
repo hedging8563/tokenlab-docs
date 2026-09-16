@@ -13,6 +13,8 @@ Thêm TokenLab làm nhà cung cấp riêng có tên, giữ nguyên tài khoản,
 
 Dùng thư mục `HERMES_HOME` nếu đã đặt, nếu không dùng `~/.hermes` (Windows: `%USERPROFILE%\.hermes`). Sao lưu `config.yaml` rồi hợp nhất các mục dưới đây, giữ nguyên thiết lập khác. Chọn mô hình hiện hỗ trợ Chat Completions và gọi công cụ.
 
+Sao lưu cấu hình đang dùng. Chỉ thêm mục TokenLab và giữ nguyên nhà cung cấp, tài khoản, mô hình mặc định cùng quyền hiện có. Nếu tên đã được dùng, chọn tên khác và sửa lệnh tương ứng. Khi hoàn tác, chỉ xóa mục đã thêm hoặc khôi phục bản sao lưu trước đó.
+
 ```yaml
 providers:
   tokenlab:
@@ -20,16 +22,17 @@ providers:
     key_env: TOKENLAB_API_KEY
     transport: chat_completions
     default_model: gpt-5.6-luna
-model:
-  provider: custom:tokenlab
-  default: gpt-5.6-luna
 ```
 
 Tạo khóa tại [Khóa API](https://tokenlab.sh/dashboard/api?tab=keys). Lưu cục bộ thành `TOKENLAB_API_KEY` trong `.env` của thư mục Hermes hoặc môi trường tiến trình khởi chạy. Không dán khóa vào hội thoại hay YAML của nhà cung cấp.
 
 ## Kiểm tra rồi gửi yêu cầu
 
-Chạy `hermes config get model.provider` và `hermes config get model.default` để kiểm tra `custom:tokenlab` và mô hình đã chọn. Mở phiên mới vì phiên cũ có thể giữ mô hình trước đó. Kiểm tra cấu hình không xác nhận khóa hợp lệ hay gọi mô hình thành công.
+Kiểm tra nhà cung cấp bằng `hermes config get providers.tokenlab.api`; kết quả phải là `https://api.tokenlab.sh/v1`. Giữ nguyên phần `model` hiện có. Bắt đầu phiên mới với nhà cung cấp và mô hình chỉ định bên dưới; không có các tùy chọn này thì dùng mặc định trước đó. Việc kiểm tra cấu hình không xác minh khóa.
+
+```bash
+hermes chat --provider custom:tokenlab --model gpt-5.6-luna
+```
 
 Khi sẵn sàng dùng số dư TokenLab, gửi văn bản ngắn rồi đối chiếu phản hồi với [bản ghi yêu cầu](https://tokenlab.sh/dashboard/runs?section=requests). Sau đó thử tác vụ công cụ chỉ đọc. Mô hình phụ và công cụ tùy chọn có thể dùng nhà cung cấp hoặc khóa riêng.
 

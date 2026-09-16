@@ -15,11 +15,22 @@ Si la respuesta de creación incluyó `poll_url`, prefiera llamar a esa URL exac
 
 También puedes consultar IDs públicos de tareas de imagen como `ldtask_...` en `/v1/images/{id}`. Este alias de compatibilidad usa la misma autorización, verificación de propiedad, cabeceras de facturación, snapshots terminales y forma de respuesta que `/v1/images/generations/{id}`.
 
-
-Si la tarea ya no existe o ya no se puede resolver a través del detalles del modelo de tareas asíncronas, TokenLab devuelve `async_task_not_found` con el mensaje `Task not found or no longer available.`
+Una tarea pública caducada o no disponible puede devolver `404 async_task_not_found`. Si no se puede confirmar que pertenece a la clave API actual, devuelve `403 task_not_owned`.
 </Info>
 
 ## Respuesta
+
+<Note>
+Los campos de resultado, error, marcas de tiempo y modelo se devuelven cuando están disponibles para la tarea.
+</Note>
+
+<ResponseField name="id" type="string">
+  Identificador de la tarea.
+</ResponseField>
+
+<ResponseField name="poll_url" type="string">
+  URL de sondeo preferida cuando la respuesta de creación la proporciona.
+</ResponseField>
 
 <ResponseField name="created" type="integer">
   Marca de tiempo Unix de creación.
@@ -38,10 +49,10 @@ Si la tarea ya no existe o ya no se puede resolver a través del detalles del mo
 
   Cada objeto contiene:
   - `url` (string): URL de la imagen generada
-  - `revised_prompt` (string): El prompt utilizado para la generación
+  - `revised_prompt` (string): Revisión opcional del prompt cuando el modelo seleccionado la devuelve
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="error" type="string | object">
   Mensaje de error (solo presente cuando el `status` es `failed`).
 </ResponseField>
 
@@ -59,6 +70,7 @@ response = requests.get(
     headers={"Authorization": "Bearer sk-your-api-key"}
 )
 
+response.raise_for_status()
 data = response.json()
 print(f"Status: {data['status']}")
 
@@ -76,6 +88,7 @@ const response = await fetch(
   }
 );
 
+if (!response.ok) throw new Error(`HTTP ${response.status}`);
 const data = await response.json();
 console.log(`Status: ${data.status}`);
 
@@ -93,12 +106,7 @@ if (data.status === 'completed') {
   "task_id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "poll_url": "/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "status": "pending",
-  "data": [
-    {
-      "url": "",
-      "revised_prompt": "a beautiful sunset over mountains"
-    }
-  ]
+  "data": []
 }
 ```
 
@@ -134,7 +142,7 @@ if (data.status === 'completed') {
 ## Mejores prácticas de sondeo (Polling)
 
 <Tip>
-**Intervalo de sondeo recomendado**: 3-5 segundos. La mayoría de las tareas de generación de imágenes se completan en un plazo de 30 a 120 segundos, dependiendo del modelo y de la ruta del proveedor asignada.
+Consulta cada 3–5 segundos durante `pending` o `processing` y detente en `completed` o `failed`.
 </Tip>
 
 ```python
@@ -148,7 +156,8 @@ def poll_image_task(task_id, api_key, max_wait=300, interval=3):
 
     start_time = time.time()
     while time.time() - start_time < max_wait:
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=30)
+        response.raise_for_status()
         data = response.json()
 
         if data["status"] == "completed":

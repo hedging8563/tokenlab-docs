@@ -37,11 +37,10 @@ curl -X GET "https://api.tokenlab.sh/v1/files?purpose=batch&limit=20" \
 
 - استخدم `custom_id` للمصالحة اللاحقة غير المتكررة.
 - توقّع `output_file_id` و `error_file_id` فقط بعد انتهاء العامل من الدفعة.
-- قد تختلف أسعار الدفعات عن الأسعار المتزامنة لأن قواعد الخصم `isBatchRequest=true` تنطبق.
 
 ## عوامل التصفية
 
-- يقبل `limit` قيمًا من 1 إلى 10000، والقيمة الافتراضية هي 10000.
+- بالنسبة لملفات الدفعات ومراجع الصور، يقبل `limit` القيم 1–10000 (الافتراضي 10000)، ويُستخدم `after` للتصفح. في وضع Anthropic Files يقبل 1–1000 (الافتراضي 20)؛ استخدم `after_id` أو `before_id`، وليس كليهما.
 - يمكن أن يكون `purpose` هو `batch` أو `batch_output` أو `user_data` أو `vision`.
 - يعيد `user_data` و `vision` ملفات مراجع الصور التي أنشأها TokenLab عند توفرها.
 
@@ -51,7 +50,10 @@ curl -X GET "https://api.tokenlab.sh/v1/files?purpose=batch&limit=20" \
 ```json 200 OK
 {
   "object": "list",
-  "data": [{ "id": "file_abc123", "object": "file", "purpose": "batch" }]
+  "data": [{ "id": "file_abc123", "object": "file", "purpose": "batch" }],
+  "first_id": "file_abc123",
+  "last_id": "file_abc123",
+  "has_more": false
 }
 ```
 </ResponseExample>
@@ -60,3 +62,4 @@ curl -X GET "https://api.tokenlab.sh/v1/files?purpose=batch&limit=20" \
 
 <ResponseField name="object" type="string">نوع كائن الاستجابة.</ResponseField>
 <ResponseField name="data" type="array">القائمة أو payload المعاد في هذه الاستجابة.</ResponseField>
+<ResponseField name="has_more" type="boolean">تتوفر نتائج إضافية عندما تكون قيمة `has_more` هي true.</ResponseField>

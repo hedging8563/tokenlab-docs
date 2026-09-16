@@ -38,7 +38,6 @@ Utilisez le panneau OpenAPI interactif ci-dessus pour le schéma exact.
 
 - Utilisez `custom_id` pour la réconciliation idempotente en aval.
 - Attendez-vous à recevoir `output_file_id` et `error_file_id` uniquement après que le travailleur finalise le lot.
-- La tarification des lots peut différer de la tarification synchrone car les règles de remise `isBatchRequest=true` s'appliquent.
 
 ## Types de contenu
 
@@ -55,5 +54,5 @@ Le contenu des fichiers batch est renvoyé en JSONL ou en texte brut. Le contenu
 
 ## Champs importants
 
-<ResponseField name="body" type="binary|string">Corps brut de la réponse. Enregistrez-le directement sans le parser en JSON.</ResponseField>
-<ResponseField name="custom_id" type="string">Identifiant pour les appels suivants et le support.</ResponseField>
+<ResponseField name="body" type="binary|string">Contenu du fichier. Enregistrez-le ou analysez-le selon `Content-Type` ; analysez le JSONL ligne par ligne.</ResponseField>
+<ResponseField name="custom_id" type="string">ID permettant d’associer un élément d’entrée du lot à son résultat.</ResponseField>

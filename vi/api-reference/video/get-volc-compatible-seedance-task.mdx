@@ -9,10 +9,10 @@ description: "Lấy một task tương thích Seedance theo ID task cgt của n�
 Sử dụng ID `cgt-...` được trả về từ lệnh create. Hãy thực hiện polling mỗi vài giây trong khi task ở trạng thái `queued` hoặc `running`. Dừng lại khi task ở trạng thái `succeeded`, `failed`, `cancelled`, hoặc `expired`.
 
 <Warning>
-Không sử dụng lại enum task hoặc struct phản hồi v1 thống nhất ở đây. `/v1/tasks/{id}` sử dụng `pending`, `processing`, `completed`, và `failed`; endpoint v3 này sử dụng enum chính thức ở trên. Trong đối tượng JSON v3, `duration` là một chuỗi (string) khi xuất hiện và `error` sẽ bị lược bỏ trừ khi task thất bại. Một Go client nghiêm ngặt nên khai báo `Duration` là `string` với thẻ JSON `duration,omitempty`, và dừng lại ở mọi trạng thái kết thúc (terminal status) của v3.
+Không sử dụng lại enum task hoặc struct phản hồi v1 thống nhất ở đây. `/v1/tasks/{id}` sử dụng `pending`, `processing`, `completed`, và `failed`; endpoint v3 này sử dụng enum chính thức ở trên. Trong đối tượng JSON v3, `duration` là một chuỗi (string) khi xuất hiện và `error` là trường tùy chọn chứa chi tiết lỗi khi có. Một Go client nghiêm ngặt nên khai báo `Duration` là `string` với thẻ JSON `duration,omitempty`, và dừng lại ở mọi trạng thái kết thúc (terminal status) của v3.
 </Warning>
 
-Xem thêm [Mô hình video Seedance 2.0](/guides/seedance-2-video) và [Tạo Video](/guides/video-generation).
+Xem thêm [Mô hình video Seedance 2.0](/vi/guides/seedance-2-video) và [Tạo Video](/vi/guides/video-generation).
 
 ## Các giá trị trạng thái
 
@@ -32,7 +32,7 @@ Xem thêm [Mô hình video Seedance 2.0](/guides/seedance-2-video) và [Tạo Vi
 - `content.last_frame_url`: chỉ xuất hiện khi được yêu cầu và khả dụng.
 - `usage`: mức sử dụng token khi khả dụng.
 - `created_at` và `updated_at`: dấu thời gian của task.
-- `error`: chỉ xuất hiện khi task thất bại; bị lược bỏ đối với các task không thất bại.
+- `error`: Chi tiết lỗi tùy chọn khi có. Xem `error.code` và `error.message`; không suy ra sự hiện diện của trường chỉ từ `status`.
 
 Phản hồi không bao giờ thêm các trường TokenLab như `progress`, `return_last_frame`, `watermark`, `priority`, hoặc `camera_fixed`.
 

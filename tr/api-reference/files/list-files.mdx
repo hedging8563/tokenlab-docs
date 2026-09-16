@@ -37,11 +37,10 @@ Kesin şema için yukarıdaki etkileşimli OpenAPI panelini kullanın.
 
 - Downstream mutabakatı idempotent yapmak için `custom_id` kullanın.
 - `output_file_id` ve `error_file_id` yalnızca worker batch'i tamamladıktan sonra beklenmelidir.
-- `isBatchRequest=true` indirim kuralları uygulandığı için batch fiyatlandırması senkron fiyatlandırmadan farklı olabilir.
 
 ## Filtreler
 
-- `limit` 1 ile 10000 arasında değer kabul eder ve varsayılanı 10000'dir.
+- Batch ve görüntü referans dosyalarında `limit` 1–10000 arasındadır (varsayılan 10000); sayfalama için `after` kullanılır. Anthropic Files modunda aralık 1–1000’dir (varsayılan 20); `after_id` veya `before_id` kullanın, ikisini birlikte kullanmayın.
 - `purpose` `batch`, `batch_output`, `user_data` veya `vision` olabilir.
 - `user_data` ve `vision`, varsa TokenLab tarafından oluşturulan görüntü referans dosyalarını döndürür.
 
@@ -51,7 +50,10 @@ Kesin şema için yukarıdaki etkileşimli OpenAPI panelini kullanın.
 ```json 200 OK
 {
   "object": "list",
-  "data": [{ "id": "file_abc123", "object": "file", "purpose": "batch" }]
+  "data": [{ "id": "file_abc123", "object": "file", "purpose": "batch" }],
+  "first_id": "file_abc123",
+  "last_id": "file_abc123",
+  "has_more": false
 }
 ```
 </ResponseExample>
@@ -60,3 +62,4 @@ Kesin şema için yukarıdaki etkileşimli OpenAPI panelini kullanın.
 
 <ResponseField name="object" type="string">Yanıtın object type değeri.</ResponseField>
 <ResponseField name="data" type="array">Bu yanıtta dönen liste veya payload.</ResponseField>
+<ResponseField name="has_more" type="boolean">`has_more` true ise başka sonuçlar vardır.</ResponseField>

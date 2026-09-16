@@ -4,7 +4,8 @@ openapi: "POST /v1beta/models/{model}:generateContent"
 description: "Gera conteúdo usando o formato da API Google Gemini"
 ---
 
-O TokenLab expõe esta rota apenas para modelos que anunciam um contrato Gemini nativo e têm uma rota upstream do mesmo protocolo; não há fallback para Chat Completions. Nomes ProtoJSON em lowerCamelCase e nomes proto originais em snake_case são oficiais e preservados, inclusive em solicitações mistas. Campos desconhecidos são encaminhados em best-effort e o upstream decide o suporte.
+Use os formatos de solicitação e resposta Gemini com um modelo retornado pela Gemini Models API. Nomes de campos ProtoJSON lowerCamelCase e os equivalentes proto snake_case são aceitos. Os campos opcionais e valores aceitos dependem do modelo escolhido.
+
 ## Parâmetros de Caminho
 
 <ParamField path="model" type="string" required>
@@ -27,7 +28,7 @@ Os endpoints do Gemini suportam múltiplos métodos de autenticação:
 ## Corpo da Requisição
 
 <ParamField body="contents" type="array" required>
-  Conteúdo da conversa. Valores de `role` e todos os `parts` são preservados como enviados; o TokenLab não faz trim/lowercase, reescrita de Base64 nem inferência de MIME. `inlineData` / `inline_data` e `fileData` / `file_data` são grafias oficiais, e o TokenLab não exige localmente `fileData.mimeType`. IDs de Files ou Cache criados pelo TokenLab têm a propriedade verificada e mantêm o vínculo upstream; o provedor decide as demais regras de mídia e ferramentas.
+  Conteúdo da conversa com `parts` e um `role` opcional. Mídias usam `inlineData` / `inline_data` ou `fileData` / `file_data`. IDs de Files e Cache criados pela TokenLab só podem ser usados no Workspace ao qual pertencem.
 </ParamField>
 
 <ParamField body="systemInstruction" type="object">
@@ -35,7 +36,7 @@ Os endpoints do Gemini suportam múltiplos métodos de autenticação:
 </ParamField>
 
 <ParamField body="generationConfig" type="object">
-  Configuração nativa de geração. Nomes lowerCamelCase como `maxOutputTokens`, `candidateCount` e `thinkingConfig`, além dos equivalentes snake_case, são aceitos sem alteração. O TokenLab não remove `thinkingConfig` após falhas nem impõe limite local de `candidateCount` no streaming; o upstream decide intervalos e combinações.
+  Configurações de geração como `temperature`, `topP`, `topK`, `maxOutputTokens`, `stopSequences`, `candidateCount`, `responseModalities`, `responseMimeType`, `responseSchema` e `thinkingConfig`. Os nomes snake_case correspondentes também são aceitos. Valores e combinações dependem do modelo.
 </ParamField>
 
 <ParamField body="safetySettings" type="array">
@@ -87,11 +88,11 @@ print(response.text)
 ```javascript JavaScript
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI("sk-your-api-key", {
-  baseUrl: "https://api.tokenlab.sh"
-});
-
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
+const genAI = new GoogleGenerativeAI("sk-your-api-key");
+const model = genAI.getGenerativeModel(
+  { model: "gemini-2.5-pro" },
+  { baseUrl: "https://api.tokenlab.sh" }
+);
 const result = await model.generateContent("Hello, Gemini!");
 
 console.log(result.response.text());

@@ -8,10 +8,12 @@ description: "刪除當前組織擁有的 Seedance 素材群組。"
 
 若 TokenLab 素材庫因當前的授權狀態不允許而無法完成刪除，TokenLab 將返回一個中性的素材庫錯誤。刪除後，該群組及其資源將無法再用於影片生成。
 
+`project_name` 用於同一組織內的資源隔離，預設為 `default`。相關素材群組和素材須使用相同且區分大小寫的值；POST/PUT 在 JSON 請求主體中傳入，GET/DELETE 在查詢參數中傳入。
+
 ## 請求範例
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01 \
+curl "https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01?project_name=default" \
   -X DELETE \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```

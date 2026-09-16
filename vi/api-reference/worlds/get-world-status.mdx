@@ -6,6 +6,10 @@ description: "Lấy trạng thái và kết quả của tác vụ sinh world Wor
 
 Polling endpoint này để kiểm tra trạng thái tác vụ World Labs Marble. Nếu phản hồi tạo có `poll_url`, hãy ưu tiên gọi đúng URL đó.
 
+<Info>
+Tác vụ công khai đã hết hạn hoặc không khả dụng có thể trả `404 async_task_not_found`. Nếu không xác nhận được quyền sở hữu cho API key hiện tại, phản hồi là `403 task_not_owned`.
+</Info>
+
 ## Tham số đường dẫn
 
 <ParamField path="id" type="string" required>
@@ -13,6 +17,8 @@ Polling endpoint này để kiểm tra trạng thái tác vụ World Labs Marble
 </ParamField>
 
 ## Phản hồi
+
+Chỉ `id` và `status` là bắt buộc trong phản hồi trạng thái thành công. Bí danh tác vụ, ID thao tác, tài nguyên thế giới, mô tả, chi phí và chuỗi `error` được trả về khi có. Tác vụ hoàn tất không đảm bảo mọi URL tài nguyên đều hiện diện.
 
 <ResponseField name="id" type="string">
   ID tác vụ công khai.
@@ -59,7 +65,7 @@ Polling endpoint này để kiểm tra trạng thái tác vụ World Labs Marble
 </ResponseField>
 
 <ResponseField name="cost" type="object">
-  Chi tiết chi phí operation upstream khi có, bao gồm `total_credits`.
+  Chi tiết chi phí tạo world nếu có, bao gồm `total_credits`. Xem bản ghi sử dụng để biết số tiền tính phí.
 </ResponseField>
 
 <ResponseField name="error" type="string">
@@ -68,7 +74,7 @@ Polling endpoint này để kiểm tra trạng thái tác vụ World Labs Marble
 
 <RequestExample>
 ```bash cURL
-curl "https://api.tokenlab.sh/v1/worlds/generations/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" \
+curl --fail-with-body "https://api.tokenlab.sh/v1/worlds/generations/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 
@@ -83,6 +89,7 @@ while True:
         f"https://api.tokenlab.sh/v1/worlds/generations/{task_id}",
         headers={"Authorization": "Bearer sk-your-api-key"},
     )
+    response.raise_for_status()
     result = response.json()
     if result["status"] in ["completed", "failed", "timeout"]:
         print(result)
@@ -96,7 +103,8 @@ const response = await fetch(`https://api.tokenlab.sh/v1/worlds/generations/${ta
   headers: { Authorization: 'Bearer sk-your-api-key' }
 });
 
+if (!response.ok) throw new Error(await response.text());
 const result = await response.json();
-console.log(result.status, result.world_marble_url);
+console.log(result);
 ```
 </RequestExample>

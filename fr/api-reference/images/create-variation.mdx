@@ -13,7 +13,7 @@ Cet endpoint est conservé pour les clients legacy de variations compatibles Ope
 **Timeout des requêtes synchrones :** certains fournisseurs d’images routés renvoient l’image finale inline et attendent la fin de la génération. Les requêtes haute résolution ou haute qualité peuvent prendre près d’une minute, voire plus ; configurez donc le timeout de votre client HTTP à au moins `120s`. Si la réponse de création contient `status: "pending"`, `task_id` ou `poll_url`, suivez plutôt le `poll_url` renvoyé.
 
 <ParamField body="image" type="file" required>
-  L'image à utiliser comme base pour la variation. Doit être un fichier PNG valide, inférieur à 50 Mo et carré.
+  Image source multipart. Le fichier et le corps complet de la requête doivent chacun rester dans la limite de 50 MiB. Les formats et dimensions dépendent du modèle ; ses détails actuels doivent mentionner explicitement `/v1/images/variations`.
 </ParamField>
 
 <ParamField body="model" type="string" required>
@@ -21,14 +21,14 @@ Cet endpoint est conservé pour les clients legacy de variations compatibles Ope
 </ParamField>
 
 <ParamField body="n" type="integer" default="1">
-  Le nombre d'images à générer. Doit être compris entre 1 et 10.
+  Nombre d’images à générer (1-10, selon le modèle).
 </ParamField>
 
 <ParamField body="size" type="string">
   Taille des images générées pour les routes legacy compatibles avec les variations. Les valeurs prises en charge dépendent du modèle sélectionné.
 </ParamField>
 
-<ParamField body="response_format" type="string" default="url">
+<ParamField body="response_format" type="string">
   Le format de retour des images générées. Doit être `url` ou `b64_json`.
 </ParamField>
 

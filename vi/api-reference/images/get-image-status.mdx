@@ -15,11 +15,22 @@ Nếu phản hồi tạo bao gồm `poll_url`, hãy ưu tiên gọi URL chính x
 
 Bạn cũng có thể polling các ID tác vụ ảnh công khai như `ldtask_...` tại `/v1/images/{id}`. Alias tương thích này dùng cùng cơ chế xác thực, kiểm tra quyền sở hữu, header billing, snapshot terminal và dạng phản hồi như `/v1/images/generations/{id}`.
 
-
-Nếu tác vụ không còn tồn tại hoặc không thể được phân giải thông qua hợp đồng tác vụ bất đồng bộ công khai, TokenLab trả về `async_task_not_found` với thông báo `Task not found or no longer available.`
+Tác vụ công khai đã hết hạn hoặc không khả dụng có thể trả `404 async_task_not_found`. Nếu không xác nhận được quyền sở hữu cho API key hiện tại, phản hồi là `403 task_not_owned`.
 </Info>
 
 ## Phản hồi
+
+<Note>
+Các trường kết quả, lỗi, thời gian và model được trả về khi tác vụ cung cấp chúng.
+</Note>
+
+<ResponseField name="id" type="string">
+  Định danh tác vụ.
+</ResponseField>
+
+<ResponseField name="poll_url" type="string">
+  URL polling ưu tiên khi phản hồi tạo tác vụ cung cấp.
+</ResponseField>
 
 <ResponseField name="created" type="integer">
   Unix timestamp lúc tạo.
@@ -38,10 +49,10 @@ Nếu tác vụ không còn tồn tại hoặc không thể được phân giả
 
   Mỗi đối tượng bao gồm:
   - `url` (string): URL của hình ảnh đã tạo
-  - `revised_prompt` (string): Prompt đã được chỉnh sửa dùng để tạo hình ảnh
+  - `revised_prompt` (string): Bản sửa prompt tùy chọn khi model đã chọn trả về trường này
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="error" type="string | object">
   Thông báo lỗi (chỉ xuất hiện khi `status` là `failed`).
 </ResponseField>
 
@@ -59,6 +70,7 @@ response = requests.get(
     headers={"Authorization": "Bearer sk-your-api-key"}
 )
 
+response.raise_for_status()
 data = response.json()
 print(f"Status: {data['status']}")
 
@@ -76,6 +88,7 @@ const response = await fetch(
   }
 );
 
+if (!response.ok) throw new Error(`HTTP ${response.status}`);
 const data = await response.json();
 console.log(`Status: ${data.status}`);
 
@@ -93,12 +106,7 @@ if (data.status === 'completed') {
   "task_id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "poll_url": "/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "status": "pending",
-  "data": [
-    {
-      "url": "",
-      "revised_prompt": "a beautiful sunset over mountains"
-    }
-  ]
+  "data": []
 }
 ```
 
@@ -134,7 +142,7 @@ if (data.status === 'completed') {
 ## Các thực hành tốt nhất về Polling
 
 <Tip>
-**Khoảng thời gian polling khuyến nghị**: 3-5 giây. Hầu hết các tác vụ tạo hình ảnh hoàn thành trong vòng 30-120 giây tùy thuộc vào mô hình và đường dẫn nhà cung cấp được điều hướng.
+Kiểm tra mỗi 3–5 giây khi trạng thái là `pending` hoặc `processing`, và dừng ở `completed` hoặc `failed`.
 </Tip>
 
 ```python
@@ -148,7 +156,8 @@ def poll_image_task(task_id, api_key, max_wait=300, interval=3):
 
     start_time = time.time()
     while time.time() - start_time < max_wait:
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=30)
+        response.raise_for_status()
         data = response.json()
 
         if data["status"] == "completed":

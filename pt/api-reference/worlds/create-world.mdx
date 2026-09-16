@@ -6,12 +6,12 @@ description: "Cria uma tarefa de geração de mundo World Labs Marble"
 
 Gere mundos 3D exploráveis com World Labs Marble. Esta API é assíncrona: respostas de criação retornam uma identidade de tarefa e uma `poll_url` para verificar status.
 
-Os modelos suportados são `marble-1.0`, `marble-1.1` e `marble-1.1-plus`. A World Labs documenta `marble-1.0-draft`, mas o TokenLab ainda não expõe geração draft neste endpoint.
+Escolha um modelo Marble disponível atualmente pela [Models API](/pt/api-reference/models/list-models).
 
 ## Corpo da requisição
 
 <ParamField body="model" type="string" default="marble-1.0">
-  Modelo Marble a usar: `marble-1.0`, `marble-1.1` ou `marble-1.1-plus`.
+  Escolha um modelo Marble disponível atualmente pela [Models API](/pt/api-reference/models/list-models).
 </ParamField>
 
 <ParamField body="prompt" type="string">
@@ -55,7 +55,7 @@ Os modelos suportados são `marble-1.0`, `marble-1.1` e `marble-1.1-plus`. A Wor
 </ParamField>
 
 <ParamField body="permission" type="object">
-  Objeto permission opcional da World Labs.
+  Configurações opcionais de visibilidade e acesso: `public`, `allow_id_access`, `allowed_readers` e `allowed_writers`. `public: true` solicita um mundo visível publicamente.
 </ParamField>
 
 ## Resposta
@@ -94,11 +94,7 @@ Os modelos suportados são `marble-1.0`, `marble-1.1` e `marble-1.1-plus`. A Wor
 
 ## Preços
 
-A World Labs cobra em credits. O TokenLab pré-deduz o máximo do tipo de requisição e liquida pelo `cost.total_credits` da operation concluída quando disponível. Requisições Marble padrão chegam a 1.600 credits. `marble-1.1-plus` chega a 3.100 credits.
-
-## Escopo
-
-Esses endpoints de gestão cobrem mídias pertencentes ao TokenLab e Worlds gerados concluídos. TokenLab ainda não expõe geração `marble-1.0-draft` nem ferramentas pano/depth independentes.
+Consulte a [Pricing API](/pt/api-reference/pricing/get-pricing) para ver as tarifas atuais. O valor faturado aparece nos registros de uso; o valor retornado em `cost.total_credits` indica uso de geração, não uma quantia em moeda.
 
 <RequestExample>
 ```bash cURL

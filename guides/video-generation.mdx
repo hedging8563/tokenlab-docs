@@ -7,7 +7,9 @@ import VideoModelContracts from "../snippets/generated/video-model-contracts.mdx
 
 Video generation is asynchronous. `POST /v1/videos/generations` returns a task ID and usually a `poll_url`. Use that URL until the finished video is ready.
 
-Seedance can turn supported image inputs into reusable materials automatically. If an image is still being prepared after 60 seconds, the API returns `auto_material_asset_ids`; wait until those materials are `ACTIVE`, then send the request again.
+Send public HTTP(S) URLs or supported data URLs in the image fields accepted by your selected model. These inputs follow the normal media path and do not automatically create reusable material IDs.
+
+When an explicit material is still preparing, `POST /v1/videos/generations` returns `409 seedance_material_preparing` with `inactive_asset_ids`. Poll those assets until `ACTIVE`, then retry with the same material IDs. If an asset is `FAILED`, inspect `error_message` and correct or reimport it before retrying.
 
 ## Choose an API
 
@@ -31,7 +33,7 @@ Set `operation` explicitly so the API can validate the right fields for the job.
 ## Choose a model
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \\
+curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 
@@ -42,9 +44,9 @@ Read the selected model detail before relying on specialized fields such as `ref
 ## Create a video
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/generations \\
-  -H "Authorization: Bearer sk-your-api-key" \\
-  -H "Content-Type: application/json" \\
+curl https://api.tokenlab.sh/v1/videos/generations \
+  -H "Authorization: Bearer sk-your-api-key" \
+  -H "Content-Type: application/json" \
   -d '{
     "model": "veo3.1",
     "operation": "text-to-video",
@@ -59,9 +61,8 @@ Use `https` URLs for media that can be fetched from the internet. Temporary URLs
 ## Model-specific fields
 
 - Veo 3 family requests default to audio-on when `output_audio` is omitted. Set it explicitly when the model supports the toggle and your UX depends on sound.
-- `kling_elements` is for `kling-3.0-video` image-conditioned requests. Reference each element in `prompt` as `@name`; do not combine it with `output_audio=true`.
 - For the Seedance 2.0 family, read the [Seedance 2.0 video models guide](/guides/seedance-2-video) before using 4K output, Fast/Mini resolution caps, or multimodal reference inputs.
-- For `grok-imagine-video`, video-to-video uses a public `.mp4` `video_url`; model-specific limits such as `duration` and `resolution` must come from the model details.
+- For `grok-imagine-video` video-to-video, send `prompt` and a public HTTPS `.mp4` `video_url`. This operation does not use `duration`, `resolution`, or `aspect_ratio` selectors.
 
 <VideoModelContracts />
 

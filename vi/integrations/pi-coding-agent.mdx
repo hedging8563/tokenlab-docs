@@ -8,11 +8,13 @@ description: "Dùng Pi với TokenLab. Pi là một công cụ coding tối gi�
 Dùng [hướng dẫn cài đặt chính thức](https://pi.dev/). Gói npm là `@earendil-works/pi-coding-agent`. Windows mặc định dùng Git Bash; xem [thiết lập shell](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/windows.md). Bỏ qua cài đặt nếu đã có Pi.
 
 ```bash
-npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+npm install -g --ignore-scripts @earendil-works/pi-coding-agent@0.85.1
 pi --version
 ```
 
-Hợp nhất vào `~/.pi/agent/models.json` hoặc thư mục `PI_CODING_AGENT_DIR`. Sao lưu và giữ nguyên nhà cung cấp khác. Đặt `TOKENLAB_API_KEY` cục bộ trong môi trường khởi chạy, không dán vào chat. Chỉ đặt biến Base URL không tạo được nhà cung cấp.
+Cấu hình dưới đây đã được kiểm tra với **Pi 0.85.1**. Các phiên bản khác cần được xác minh riêng theo tài liệu chính thức.
+
+Sao lưu `~/.pi/agent/models.json`, rồi thêm `tokenlab` sau các mục hiện có trong `providers`; chỉ tạo tệp khi chưa có. `PI_CODING_AGENT_DIR` không rỗng chọn thư mục chứa `models.json`. Giữ nguyên thứ tự nhà cung cấp, `settings.json`, tài khoản, trường mô hình mặc định và quyền. Nếu `tokenlab` đã có trong cấu hình hoặc tài khoản lưu sẵn, chọn tên khác và sửa lệnh khởi chạy. Đặt `TOKENLAB_API_KEY` cục bộ theo [bắt đầu nhanh](/vi/quickstart) cho macOS, Linux, WSL hoặc Windows PowerShell, không dán khóa vào chat.
 
 ```json
 {
@@ -29,11 +31,18 @@ Hợp nhất vào `~/.pi/agent/models.json` hoặc thư mục `PI_CODING_AGENT_D
 
 Dấu `$` trong `"$TOKENLAB_API_KEY"` là bắt buộc; thiếu dấu này sẽ thành chuỗi nguyên văn. Chọn mô hình hiện hỗ trợ Chat Completions và công cụ. Dùng chi tiết mô hình để đặt giới hạn, hình ảnh và suy luận.
 
+Tùy chọn: [trình cấu hình Pi có thể khôi phục](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/skills/tokenlab-api-integration/references/pi_setup.md) dùng Python 3.11+ để xem trước, áp dụng và khôi phục tệp gốc. Plugin TokenLab Skills **0.1.2** chứa các script này; Skill độc lập cũng dùng được sau khi cập nhật lên phiên bản có chúng. Nếu đã cài plugin hoặc Skill độc lập, làm theo [hướng dẫn cập nhật README](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/README.md#update-an-existing-installation) và kiểm tra script đã có. Các bước thủ công trên trang vẫn dùng được mà không cần trình cấu hình.
+
 ## Kiểm tra và khôi phục
 
-Chạy `pi --list-models`, rồi chọn `tokenlab/gpt-5.6-luna` trong `/model`. Bộ chọn tải lại `models.json`. Việc này xác nhận đăng ký mô hình và có thông tin xác thực, không chứng minh khóa hợp lệ hay gọi API thành công.
+Dùng cùng terminal và thư mục Agent để kiểm tra việc tải, rồi chọn rõ TokenLab cho phiên này. Nếu chưa đặt `TOKENLAB_API_KEY`, nhà cung cấp có thể không xuất hiện. Danh sách chỉ xác nhận đăng ký và sự hiện diện của thông tin xác thực, không chứng minh khóa hợp lệ hay gọi API thành công.
 
-Yêu cầu văn bản dùng số dư TokenLab. Đối chiếu phản hồi với [bản ghi](https://tokenlab.sh/dashboard/runs?section=requests) trước khi thử công cụ. Để khôi phục, chọn nhà cung cấp cũ và chỉ xóa mục TokenLab đã thêm.
+```bash
+pi --list-models tokenlab
+pi --provider tokenlab --model gpt-5.6-luna
+```
+
+Prompt dùng số dư TokenLab. Kiểm tra phản hồi và [bản ghi yêu cầu](https://tokenlab.sh/dashboard/runs?section=requests) trước khi thử công cụ. Khi hoàn tác cấu hình thủ công, chỉ xóa mục nhà cung cấp đã thêm và giữ nguyên thiết lập cùng tài khoản khác.
 
 ## Skills và MCP
 

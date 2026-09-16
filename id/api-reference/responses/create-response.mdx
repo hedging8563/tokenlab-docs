@@ -4,7 +4,8 @@ openapi: "POST /v1/responses"
 description: "Membuat respons menggunakan format OpenAI Responses API"
 ---
 
-Responses adalah protokol respons stateful native OpenAI. TokenLab hanya menampilkannya ketika detail model mengiklankan format Responses dan tersedia rute upstream dengan protokol yang sama; hal ini tidak disimpulkan dari nama model atau provider dan tidak pernah fallback ke Chat Completions. TokenLab mempertahankan bentuk JSON, termasuk field yang tidak dikenal, `null` eksplisit, dan array kosong, lalu meneruskannya secara best-effort.
+Gunakan endpoint ini jika `accepted_request_formats` pada detail model memuat `openai_responses`. Permintaan dan respons menggunakan format Responses API. Field opsional dan nilai yang didukung bergantung pada model yang dipilih.
+
 ## Isi Permintaan
 
 <ParamField body="model" type="string" required>
@@ -21,7 +22,7 @@ Responses adalah protokol respons stateful native OpenAI. TokenLab hanya menampi
   - `function_call`: Permintaan pemanggilan fungsi
   - `function_call_output`: Output dari pemanggilan fungsi
 
-  Untuk input multimodal, `message.content` dapat berupa string biasa atau array blok konten. Untuk model yang mendukung gambar seperti varian GPT-5.4, kirim gambar sebagai blok `input_image` alih-alih menyematkan URL atau string Base64 langsung ke dalam teks biasa.
+  Untuk input multimodal, `message.content` dapat berupa string biasa atau array blok konten. Untuk model yang mendukung gambar seperti varian GPT-5.6 Terra, kirim gambar sebagai blok `input_image` alih-alih menyematkan URL atau string Base64 langsung ke dalam teks biasa.
 
   Contoh blok konten:
   - `{ "type": "input_text", "text": "Describe this image" }`
@@ -37,12 +38,12 @@ Responses adalah protokol respons stateful native OpenAI. TokenLab hanya menampi
   Jumlah maksimum token yang akan dihasilkan.
 </ParamField>
 
-<ParamField body="temperature" type="number" default="1">
-  Sampling temperature antara 0 dan 2.
+<ParamField body="temperature" type="number">
+  Suhu sampling. Nilai yang didukung dan nilai default bergantung pada model yang dipilih.
 </ParamField>
 
 <ParamField body="tools" type="array">
-  Daftar tool yang dapat dipanggil model. TokenLab meneruskan definisi tool native tanpa allowlist lokal; upstream terpilih menentukan tipe dan kombinasi yang didukung.
+  Alat yang dapat dipanggil model. Jenis dan kombinasi yang didukung bergantung pada model yang dipilih.
 </ParamField>
 
 <ParamField body="stream" type="boolean" default="false">
@@ -57,12 +58,20 @@ Responses adalah protokol respons stateful native OpenAI. TokenLab hanya menampi
   Menentukan apakah respons disimpan untuk pengambilan nanti.
 </ParamField>
 
+<ParamField body="background" type="boolean" default="false">
+  Meminta eksekusi asinkron. Dukungan bergantung pada model yang dipilih.
+</ParamField>
+
+<ParamField body="prompt" type="object">
+  Referensi ke templat prompt yang dapat digunakan kembali beserta variabelnya.
+</ParamField>
+
 <ParamField body="metadata" type="object">
   Metadata yang dilampirkan pada respons untuk keperluan pelacakan.
 </ParamField>
 
 <ParamField body="text" type="object">
-  Opsi konfigurasi untuk generasi teks. Perilaku `text.format` bergantung pada model dan jalur yang dipilih; tidak dijamin seragam di setiap model.
+  Pengaturan keluaran teks. Dukungan `text.format` bergantung pada model yang dipilih.
 </ParamField>
 
 <ParamField body="parallel_tool_calls" type="boolean" default="true">
@@ -74,9 +83,7 @@ Responses adalah protokol respons stateful native OpenAI. TokenLab hanya menampi
 </ParamField>
 
 <ParamField body="reasoning" type="object">
-  Konfigurasi reasoning untuk model yang mendukung reasoning seperti varian keluarga GPT-5.
-
-  - `effort` (string): Tingkat usaha reasoning (`low`, `medium`, `high`)
+  Opsi penalaran, termasuk `effort`, bergantung pada model yang dipilih.
 </ParamField>
 
 ## Respons
@@ -93,6 +100,10 @@ Responses adalah protokol respons stateful native OpenAI. TokenLab hanya menampi
   Timestamp Unix saat respons dibuat.
 </ResponseField>
 
+<ResponseField name="status" type="string">
+  Status respons: `queued`, `in_progress`, `completed`, `incomplete`, `failed`, atau `cancelled`. Periksa field ini meskipun permintaan HTTP berhasil.
+</ResponseField>
+
 <ResponseField name="output" type="array">
   Daftar item output yang dihasilkan oleh model.
 </ResponseField>
@@ -100,6 +111,13 @@ Responses adalah protokol respons stateful native OpenAI. TokenLab hanya menampi
 <ResponseField name="usage" type="object">
   Statistik penggunaan token.
 </ResponseField>
+
+## Endpoint terkait
+
+- `GET /v1/responses/{id}` mengambil respons tersimpan dan mendukung `include`, `include_obfuscation`, `stream`, dan `starting_after`.
+- `DELETE /v1/responses/{id}` menghapus respons tersimpan. Ini tidak membatalkan pembuatan respons.
+- `POST /v1/responses/compact` mengembalikan objek `response.compaction`.
+- Endpoint pembatalan, input-items, dan input-tokens saat ini belum tersedia.
 
 <RequestExample>
 ```bash cURL
@@ -268,14 +286,17 @@ Gunakan model yang mendukung gambar dengan menempatkan gambar di dalam `message.
 {
   "id": "resp_abc123",
   "object": "response",
-  "created": 1706000000,
+  "created_at": 1706000000,
+  "status": "completed",
   "model": "gpt-5.6-terra",
   "output": [
     {
+      "id": "msg_abc123",
       "type": "message",
+      "status": "completed",
       "role": "assistant",
       "content": [
-        {"type": "text", "text": "Hello! How can I help you today?"}
+        {"type": "output_text", "text": "Hello! How can I help you today?", "annotations": []}
       ]
     }
   ],

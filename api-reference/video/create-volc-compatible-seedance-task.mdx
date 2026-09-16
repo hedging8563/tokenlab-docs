@@ -1,12 +1,16 @@
 ---
 title: "Create Task (Volc Compatible)"
 openapi: "POST /api/v3/contents/generations/tasks"
-description: "Create a Seedance 2.0 task with the Volc-compatible API."
+description: "Create a Seedance task with the Volc-compatible API."
 ---
 
 ## Overview
 
 Existing Volc-style Seedance clients can use TokenLab by changing the API address and key.
+
+<Note>
+The examples use Seedance 2.0. This endpoint also supports Seedance 2.5 with the model-specific differences below. The reusable TokenLab material URI examples on this page apply to Seedance 2.0.
+</Note>
 
 See also [Seedance 2.0 Video Models](/guides/seedance-2-video) and [Video Generation](/guides/video-generation).
 
@@ -24,14 +28,23 @@ See also [Seedance 2.0 Video Models](/guides/seedance-2-video) and [Video Genera
 - `role: "reference_image"`, `reference_video`, and `reference_audio` are used as references.
 - `image_url.url` accepts a public image URL or a material URI such as `asset://asset-YYYYMMDDHHMMSS-xxxxx`. The `role` determines whether that material is a first frame, last frame, or reference image.
 - Do not mix first/last frame inputs with reference media in one request.
-- The request body accepts only fields supported by this format. Top-level `material_asset_id`, `material_asset_ids`, and `priority` are rejected. Put a TokenLab material URI inside `image_url.url` instead.
+- Top-level `material_asset_id` and `material_asset_ids` are rejected. Put a TokenLab material URI in `image_url.url`. `priority` is supported only for Seedance 2.5.
 
 ## Parameter Notes
 
+`duration` is an integer number of seconds; `-1` selects automatic duration. Defaults and limits differ by model:
+
+| Parameter | Seedance 2.0 | Seedance 2.5 |
+|---|---|---|
+| `duration` | `4`–`15` / `-1` (default: `5`) | `4`–`30` / `-1` (default: `-1`) |
+| `resolution` | `480p`, `720p`, `1080p` (default: `720p`) | `480p`, `720p` (default: `720p`) |
+| `generate_audio` | `boolean` (default: `false`) | `boolean` (default: `true`) |
+| `priority` | Not supported | `integer`: `0`–`9` |
+| `seed` | `integer`: `-1`–`4294967295` (default: `-1`) | Not supported |
+
+For Seedance 2.5, first-frame, first/last-frame, video extension, and video-to-video requests require `ratio: "adaptive"`; video-to-video also requires `duration: -1`. `output_format` accepts `mp4` or `mov` only for Seedance 2.5.
+
 - `ratio` accepts `16:9`, `4:3`, `1:1`, `3:4`, `9:16`, `21:9`, or `adaptive`.
-- `duration` is the video length in seconds, including model-supported automatic duration values.
-- `resolution` accepts `480p`, `720p`, or `1080p`.
-- `generate_audio` defaults to `false`; set it to `true` when synchronized audio is required.
 - `watermark`, `return_last_frame`, `seed`, `execution_expires_after`, and `safety_identifier` are accepted when valid for the selected model.
 - `callback_url` may point to a public HTTP(S) endpoint.
 
@@ -39,13 +52,13 @@ See also [Seedance 2.0 Video Models](/guides/seedance-2-video) and [Video Genera
 
 When `callback_url` is present, TokenLab sends an HTTP `POST` when task status changes. Callback statuses are `queued`, `running`, `succeeded`, `failed`, and `expired`. The JSON body matches the get-task response.
 
-A `2xx` response acknowledges delivery. For `succeeded` and `failed`, a delivery that does not succeed within five seconds is retried up to three times, matching the official behavior. The callback has only the standard JSON content header and no TokenLab-specific delivery headers. Redirects are not followed, and private or reserved network targets are rejected.
+A `2xx` response acknowledges delivery. For `succeeded` and `failed`, a delivery that does not succeed within five seconds is retried up to three times. The callback has only the standard JSON content header and no TokenLab-specific delivery headers. Redirects are not followed, and private or reserved network targets are rejected.
 
 Save the task ID. If a callback is not delivered, you can still retrieve the result with the get-task endpoint.
 
 ## Image Preparation
 
-When `content[]` contains image URLs, TokenLab prepares them as reusable materials when required by the selected Seedance model. If preparation is not complete within 60 seconds, the create request returns a retryable material-preparing error instead of submitting an incomplete video task.
+Public HTTP(S) image URLs and supported data URLs are used as supplied; they are not automatically saved as reusable materials. Explicit `asset://asset-...` references use existing TokenLab materials. TokenLab checks ownership and readiness before generation. If a referenced material is still preparing, wait until it is ready and retry; inspect `error.code` and `error.message` when creation fails.
 
 For existing materials, use the public `asset-YYYYMMDDHHMMSS-xxxxx` ID rather than an original asset ID returned by another system. TokenLab verifies material ownership before generation.
 
@@ -64,7 +77,7 @@ The create response contains only the task ID. Save it so you can retrieve statu
 Send a unique `Idempotency-Key` with create requests. If the connection closes before the response arrives, retry with the same API key, idempotency key, and request body:
 
 - If the original task was created, TokenLab returns the same `cgt-...` ID and adds `Idempotency-Replayed: true`.
-- If the original request is still being registered, TokenLab returns `409 IdempotencyRequestInProgress` with `Retry-After`; retry the same key and body after that delay.
+- If the original request is still being registered, TokenLab returns `409 IdempotencyRequestInProgress`; retry later with the same key and body.
 - Reusing the key with a different body returns `409 IdempotencyConflict` and never creates a second task.
 
 Idempotency applies to the official v3 REST create path. It does not change the JSON response shape, and it is not inferred from `X-Request-ID` or from identical request bodies without a key.

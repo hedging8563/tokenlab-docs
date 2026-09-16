@@ -26,7 +26,7 @@ playground: simple
 
 ## ملاحظات
 
-- تدعم حقول المبالغ المالية الدولار الأمريكي فقط. تم إيقاف مدخلات `CNY` وتعيد `400 currency_retired`.
+- تدعم حقول المبالغ المالية الدولار الأمريكي فقط.
 
 - هذه الاستجابة تدعم ترقيم الصفحات.
 - لا تتضمن الاستجابة إلا حقول الفوترة والتقارير العامة.
@@ -37,7 +37,7 @@ playground: simple
 
 <RequestExample>
 ```bash cURL
-curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page=1&limit=20&scene=video&startDate=2026-03-01&endDate=2026-03-31" \
+curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page=1&limit=20&scene=chat&startDate=2026-07-01&endDate=2026-07-31" \
   -H "Authorization: Bearer mt-your-management-token"
 ```
 </RequestExample>
@@ -66,7 +66,8 @@ curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page
     ],
     "expires_at": "2026-12-31T23:59:59.000Z",
     "last_used_at": "2026-07-08T03:12:45.000Z",
-    "created_at": "2026-07-01T10:00:00.000Z"
+    "created_at": "2026-07-01T10:00:00.000Z",
+    "delivery_policy": null
   },
   "items": [
     {
@@ -88,7 +89,10 @@ curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page
       "cache_write_tokens_1h": 0,
       "cost": 0.0012,
       "cost_decimal": "0.0012",
-      "created_at": "2026-07-08T03:15:00.000Z"
+      "created_at": "2026-07-08T03:15:00.000Z",
+      "requested_policy": null,
+      "resolved_tier": null,
+      "charged_price_basis": null
     }
   ],
   "pagination": {
@@ -188,6 +192,9 @@ curl "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456/usage?page
 <ResponseField name="items[].cache_write_tokens_1h" type="number">عدد رموز كتابة ذاكرة التخزين المؤقت لساعة واحدة.</ResponseField>
 <ResponseField name="items[].cost" type="number">التكلفة بالدولار الأمريكي كرقم JSON للعرض.</ResponseField>
 <ResponseField name="items[].cost_decimal" type="string">التكلفة الدقيقة بالدولار الأمريكي كسلسلة عشرية.</ResponseField>
+<ResponseField name="items[].requested_policy" type="string | null">`auto`, `verified`, `official`, `null`. سياسة التسليم المطلوبة، عند تسجيلها.</ResponseField>
+<ResponseField name="items[].resolved_tier" type="string | null">`verified`, `official`, `null`. مستوى التسليم المستخدم، عند تسجيله.</ResponseField>
+<ResponseField name="items[].charged_price_basis" type="object | null">السعر المطبق والكمية القابلة للفوترة، عند تسجيلهما.</ResponseField>
 <ResponseField name="items[].created_at" type="string">طابع زمني ISO لسطر الاستخدام.</ResponseField>
 <ResponseField name="summary.total_requests" type="number">إجمالي عدد الطلبات.</ResponseField>
 <ResponseField name="summary.total_cost" type="number">إجمالي التكلفة بالدولار الأمريكي كرقم JSON للعرض.</ResponseField>

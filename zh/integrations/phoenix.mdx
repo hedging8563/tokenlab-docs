@@ -22,6 +22,8 @@ export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 
 ## 注册 Phoenix
 
+运行示例前，先在本地启动 Phoenix 或使用已有部署。`register()` 默认向本机 `http://localhost:4317` 的 OTLP/gRPC collector 发送追踪数据。其他部署请按 [Phoenix 配置指南](https://arize.com/docs/phoenix/sdk-api-reference/python/arize-phoenix-otel)设置 collector 地址和鉴权。安装 SDK 不会启动 collector。
+
 ```python
 from phoenix.otel import register
 

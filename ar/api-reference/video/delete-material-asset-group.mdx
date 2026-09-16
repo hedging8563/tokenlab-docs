@@ -8,10 +8,12 @@ description: "حذف مجموعة مواد Seedance المملوكة للمؤس�
 
 إذا لم تتمكن مكتبة مواد TokenLab من إكمال عملية الحذف لأن حالة التفويض الحالية لا تسمح بذلك، فستعيد TokenLab خطأً محايداً في مكتبة المواد. بعد الحذف، لن يكون بالإمكان استخدام المجموعة وأصولها في إنشاء الفيديو.
 
+يعزل `project_name` الموارد داخل المؤسسة المصادق عليها. قيمته الافتراضية `default`؛ استخدم القيمة نفسها مع مراعاة حالة الأحرف للمجموعات والأصول المرتبطة. أرسله في جسم JSON مع POST/PUT وفي معاملات الاستعلام مع GET/DELETE.
+
 ## مثال على الطلب
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01 \
+curl "https://api.tokenlab.sh/v1/videos/assets/groups/group-20260720123456-vrt01?project_name=default" \
   -X DELETE \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```

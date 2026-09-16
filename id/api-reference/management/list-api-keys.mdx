@@ -12,11 +12,14 @@ Mengembalikan daftar API key pengguna di organisasi yang terkait dengan token ma
 
 ## Catatan
 
-- Kolom moneter hanya mendukung USD. Input `CNY` telah dihentikan dan mengembalikan `400 currency_retired`.
+- Kolom moneter hanya mendukung USD.
 
 - Key yang dikelola sistem tidak disertakan.
 
 ## Contoh
+
+<ParamField query="page" type="integer" default="1">Nomor halaman mulai dari 1.</ParamField>
+<ParamField query="limit" type="integer" default="50">Ukuran halaman dari 1 sampai 100.</ParamField>
 
 <RequestExample>
 ```bash cURL
@@ -51,7 +54,8 @@ Halaman ini menyediakan skema OpenAPI dan contoh permintaan yang dapat disalin. 
       ],
       "expires_at": "2026-12-31T23:59:59.000Z",
       "last_used_at": "2026-07-08T03:12:45.000Z",
-      "created_at": "2026-07-01T10:00:00.000Z"
+      "created_at": "2026-07-01T10:00:00.000Z",
+      "delivery_policy": null
     }
   ],
   "pagination": {
@@ -72,12 +76,13 @@ Halaman ini menyediakan skema OpenAPI dan contoh permintaan yang dapat disalin. 
 <ResponseField name="data[].id" type="string">Pengidentifikasi kunci API yang digunakan dalam panggilan API Manajemen berikutnya.</ResponseField>
 <ResponseField name="data[].name" type="string">Nama tampilan kunci API.</ResponseField>
 <ResponseField name="data[].key_prefix" type="string">Awalan kunci nonrahasia untuk tampilan dan dukungan.</ResponseField>
-<ResponseField name="data[].status" type="string">Salah satu dari `active`, `inactive`, atau `revoked`.</ResponseField>
+<ResponseField name="data[].status" type="string">Salah satu dari `active`, `inactive`, `suspended`, atau `revoked`.</ResponseField>
 <ResponseField name="data[].limit_amount" type="number | null">Batas pengeluaran USD sebagai angka JSON untuk tampilan. `null` berarti tanpa batas.</ResponseField>
 <ResponseField name="data[].limit_amount_decimal" type="string | null">Batas pengeluaran USD yang tepat sebagai string desimal. `null` berarti tanpa batas.</ResponseField>
 <ResponseField name="data[].used_amount" type="number">Akumulasi biaya penggunaan dalam USD sebagai angka JSON untuk tampilan.</ResponseField>
 <ResponseField name="data[].used_amount_decimal" type="string">Akumulasi biaya penggunaan yang tepat dalam USD sebagai string desimal.</ResponseField>
 <ResponseField name="data[].models" type="string[]">Daftar model yang diizinkan per kunci. Array kosong berarti tidak ada batasan model tambahan di tingkat kunci.</ResponseField>
+<ResponseField name="data[].delivery_policy" type="string | null">`auto`, `verified`, `official`, `null`. `null` mewarisi kebijakan pengiriman ruang kerja.</ResponseField>
 <ResponseField name="data[].expires_at" type="string | null">Stempel waktu ISO saat kunci kedaluwarsa, atau `null` jika tidak kedaluwarsa.</ResponseField>
 <ResponseField name="data[].last_used_at" type="string | null">Stempel waktu ISO penggunaan terbaru, atau `null` jika belum pernah digunakan.</ResponseField>
 <ResponseField name="data[].created_at" type="string">Stempel waktu ISO pembuatan.</ResponseField>

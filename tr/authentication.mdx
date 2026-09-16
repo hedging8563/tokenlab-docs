@@ -5,7 +5,7 @@ description: "TokenLab API isteklerinizi API anahtarlarıyla güvence altına al
 
 ## API Anahtarları
 
-Tüm TokenLab API istekleri bir API anahtarı gerektirir.
+Model çağrıları ve özel kaynaklar API anahtarı gerektirir. `GET /v1/models` ve `GET /v1/models/{model}` gibi genel uç noktalar anahtarsız çalışır. Keşif sorgusunun başarılı olması anahtarın çalıştığını doğrulamaz; hızlı başlangıçtaki adımlarla bir model isteği gönderin. Listedeki önek yerine kaydettiğiniz tam anahtarı kullanın.
 
 OpenAI uyumlu endpoint'ler için bunu şu şekilde gönderin:
 
@@ -51,38 +51,7 @@ Yönetim tokenları model çıkarımı için, normal `sk-...` API anahtarları i
 
 ## API Anahtarlarını Kullanma
 
-<CodeGroup>
-
-```bash cURL
-curl https://api.tokenlab.sh/v1/responses \
-  -H "Authorization: Bearer $TOKENLAB_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "gpt-5.6-terra",
-    "input": "Hello!"
-  }'
-```
-
-```python Python
-import os
-from openai import OpenAI
-
-client = OpenAI(
-    api_key=os.environ.get("TOKENLAB_API_KEY"),
-    base_url="https://api.tokenlab.sh/v1"
-)
-```
-
-```javascript JavaScript
-import OpenAI from 'openai';
-
-const client = new OpenAI({
-  apiKey: process.env.TOKENLAB_API_KEY,
-  baseURL: 'https://api.tokenlab.sh/v1'
-});
-```
-
-</CodeGroup>
+Ortam değişkenleri ve ilk tam istek için [hızlı başlangıca](/tr/quickstart) bakın. Seçilen [API biçimine](/tr/guides/api-formats) uygun SDK kullanın ve anahtarları sunucuda tutun.
 
 ## API Anahtarı Özellikleri
 
@@ -99,32 +68,12 @@ Her API anahtarı için bir kullanım limiti ayarlayabilirsiniz:
 
 Tüm TokenLab API anahtarları `sk-` ile başlar.
 
-## Anthropic Uyumluluğu
-
-`/v1/messages` endpoint'i için Anthropic tarzı header beklendiği gibi çalışır:
-
-```bash
-curl https://api.tokenlab.sh/v1/messages \
-  -H "x-api-key: sk-your-api-key" \
-  -H "anthropic-version: 2023-06-01" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "claude-sonnet-5",
-    "max_tokens": 1024,
-    "messages": [{"role": "user", "content": "Hello!"}]
-  }'
-```
-
-<Note>
-`/v1/responses`, `/v1/chat/completions`, `/v1/models` ve diğer TokenLab rotalarının çoğu gibi OpenAI uyumlu endpoint'ler için `Authorization: Bearer ...` kullanın.
-</Note>
-
 ## Hata Yanıtları
 
 | Durum Kodu | Tür | Kod | Açıklama |
 |-------------|------|------|-------------|
-| 401 | `invalid_api_key` | `invalid_api_key` | Eksik veya geçersiz API anahtarı |
-| 401 | `expired_api_key` | `expired_api_key` | API anahtarı iptal edildi |
+| 401 | `invalid_api_key` | `invalid_api_key` | API anahtarı eksik, geçersiz, etkin değil veya iptal edilmiş |
+| 401 | `expired_api_key` | `expired_api_key` | API anahtarının süresi doldu |
 | 402 | `insufficient_balance` | `insufficient_balance` | Hesap bakiyesi yetersiz |
 | 402 | `quota_exceeded` | `quota_exceeded` | API anahtarı kullanım limitine ulaşıldı |
 

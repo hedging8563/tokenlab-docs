@@ -9,10 +9,10 @@ description: "Bir Seedance uyumluluk görevini cgt görev kimliği ile alın."
 create tarafından döndürülen `cgt-...` kimliğini kullanın. Görev `queued` veya `running` durumundayken birkaç saniyede bir sorgulama (poll) yapın. Görev `succeeded`, `failed`, `cancelled` veya `expired` durumuna geldiğinde durun.
 
 <Warning>
-Burada birleşik v1 görev enum veya yanıt yapısını yeniden kullanmayın. `/v1/tasks/{id}` uç noktası `pending`, `processing`, `completed` ve `failed` durumlarını kullanır; bu v3 uç noktası ise yukarıdaki resmi enum değerlerini kullanır. v3 JSON nesnesinde, `duration` mevcut olduğunda bir string'dir ve `error` alanı görev başarısız olmadıkça dahil edilmez. Katı bir Go istemcisi, `Duration` alanını `json:"duration,omitempty"` etiketiyle `string` olarak tanımlamalı ve her v3 terminal durumunda durmalıdır.
+Burada birleşik v1 görev enum veya yanıt yapısını yeniden kullanmayın. `/v1/tasks/{id}` uç noktası `pending`, `processing`, `completed` ve `failed` durumlarını kullanır; bu v3 uç noktası ise yukarıdaki resmi enum değerlerini kullanır. v3 JSON nesnesinde, `duration` mevcut olduğunda bir string'dir ve `error` isteğe bağlıdır ve varsa hata ayrıntılarını içerir. Katı bir Go istemcisi, `Duration` alanını `json:"duration,omitempty"` etiketiyle `string` olarak tanımlamalı ve her v3 terminal durumunda durmalıdır.
 </Warning>
 
-Ayrıca bkz. [Seedance 2.0 Video Modelleri](/guides/seedance-2-video) ve [Video Oluşturma](/guides/video-generation).
+Ayrıca bkz. [Seedance 2.0 Video Modelleri](/tr/guides/seedance-2-video) ve [Video Oluşturma](/tr/guides/video-generation).
 
 ## Durum Değerleri
 
@@ -32,7 +32,7 @@ Ayrıca bkz. [Seedance 2.0 Video Modelleri](/guides/seedance-2-video) ve [Video 
 - `content.last_frame_url`: yalnızca talep edildiğinde ve mevcut olduğunda bulunur.
 - `usage`: mevcut olduğunda token kullanımı.
 - `created_at` ve `updated_at`: görev zaman damgaları.
-- `error`: yalnızca görev başarısız olduğunda bulunur; başarısız olmayan görevler için dahil edilmez.
+- `error`: Varsa isteğe bağlı hata ayrıntıları. `error.code` ve `error.message` alanlarını inceleyin; alanın varlığını yalnızca `status` değerinden çıkarmayın.
 
 Yanıt, `progress`, `return_last_frame`, `watermark`, `priority` veya `camera_fixed` gibi TokenLab alanlarını asla eklemez.
 

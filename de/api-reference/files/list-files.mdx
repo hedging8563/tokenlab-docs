@@ -37,11 +37,10 @@ Verwenden Sie das interaktive OpenAPI-Panel oben für das genaue Schema.
 
 - Verwenden Sie `custom_id` für idempotente nachgelagerte Abstimmungen.
 - Erwarten Sie `output_file_id` und `error_file_id` erst, nachdem der Worker den Batch abgeschlossen hat.
-- Die Preise für Batches können von den Preisen für synchrone Anfragen abweichen, da die Rabattregeln für `isBatchRequest=true` gelten.
 
 ## Filter
 
-- `limit` akzeptiert Werte von 1 bis 10000 und ist standardmäßig 10000.
+- Für Batch- und Bildreferenzdateien liegt `limit` zwischen 1 und 10000 (Standard 10000); `after` dient zur Seitennavigation. Im Anthropic-Files-Modus gilt 1–1000 (Standard 20). Verwenden Sie dort entweder `after_id` oder `before_id`, nicht beide.
 - `purpose` kann `batch`, `batch_output`, `user_data` oder `vision` sein.
 - `user_data` und `vision` geben verfügbare von TokenLab erstellte Bildreferenzdateien zurück.
 
@@ -51,7 +50,10 @@ Verwenden Sie das interaktive OpenAPI-Panel oben für das genaue Schema.
 ```json 200 OK
 {
   "object": "list",
-  "data": [{ "id": "file_abc123", "object": "file", "purpose": "batch" }]
+  "data": [{ "id": "file_abc123", "object": "file", "purpose": "batch" }],
+  "first_id": "file_abc123",
+  "last_id": "file_abc123",
+  "has_more": false
 }
 ```
 </ResponseExample>
@@ -60,3 +62,4 @@ Verwenden Sie das interaktive OpenAPI-Panel oben für das genaue Schema.
 
 <ResponseField name="object" type="string">Objekttyp der Antwort.</ResponseField>
 <ResponseField name="data" type="array">Zurückgegebene Liste oder Payload dieser Antwort.</ResponseField>
+<ResponseField name="has_more" type="boolean">Bei `has_more: true` sind weitere Ergebnisse verfügbar.</ResponseField>

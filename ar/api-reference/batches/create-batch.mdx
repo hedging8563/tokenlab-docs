@@ -14,7 +14,7 @@ description: "ينشئ مهمة دفعة متوافقة مع OpenAI من ملف 
 - `completion_window` حاليًا `24h`.
 - ترتيب الإخراج غير مضمون؛ يجب دائمًا المطابقة بواسطة `custom_id`.
 - لا يتم دعم البث داخل عناصر الدفعة.
-- نقاط نهاية عناصر الدفعة المدعومة حاليًا هي `/v1/chat/completions` و `/v1/embeddings`؛ يتم رفض مهام دفعة `/v1/responses` إلى أن يتوفر منفذ دفعات Responses أصلي.
+- نقاط النهاية المدعومة لعناصر الدفعة هي `/v1/chat/completions` و `/v1/embeddings`. لا تُدعم `/v1/responses`.
 
 ## مثال
 
@@ -39,7 +39,6 @@ curl -X POST "https://api.tokenlab.sh/v1/batches" \
 
 - استخدم `custom_id` للتسوية غير المتكررة في الأسفل.
 - توقع `output_file_id` و `error_file_id` فقط بعد أن ينهي العامل الدفعة.
-- قد تختلف أسعار الدفعة عن أسعار المعالجة المتزامنة لأن قواعد الخصم لـ `isBatchRequest=true` تنطبق.
 
 ## مثال الاستجابة
 

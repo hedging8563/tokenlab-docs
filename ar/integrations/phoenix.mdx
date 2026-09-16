@@ -29,6 +29,8 @@ export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 
 ## تسجيل Phoenix
 
+قبل تشغيل هذا المثال، شغّل Phoenix محلياً أو استخدم نشراً موجوداً. يرسل `register()` بيانات التتبع افتراضياً إلى مستقبل OTLP/gRPC المحلي على `http://localhost:4317`. للنشر في موقع آخر، اضبط نقطة نهاية المستقبل والمصادقة وفق [دليل Phoenix](https://arize.com/docs/phoenix/sdk-api-reference/python/arize-phoenix-otel). تثبيت SDK لا يشغّل المستقبل.
+
 ```python
 from phoenix.otel import register
 

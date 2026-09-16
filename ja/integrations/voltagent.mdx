@@ -15,6 +15,12 @@ VoltAgentは、AI SDKの言語モデルを直接受け入れることができ�
 **サポートの信頼性**: サポートされているOpenAI互換パス
 </Note>
 
+## インストール
+
+```bash
+npm install @voltagent/core@2 ai@6 @ai-sdk/openai@3 zod
+```
+
 ## 環境設定
 
 ```bash
@@ -35,7 +41,7 @@ const tokenlab = createOpenAI({
 const agent = new Agent({
   name: "tokenlab-agent",
   instructions: "Answer concisely.",
-  model: tokenlab("claude-sonnet-5"),
+  model: tokenlab.chat("claude-sonnet-5"),
 });
 ```
 

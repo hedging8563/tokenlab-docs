@@ -37,11 +37,10 @@ Use o painel OpenAPI interativo acima para ver o esquema exato.
 
 - Use `custom_id` para reconciliação downstream idempotente.
 - Espere `output_file_id` e `error_file_id` apenas depois que o worker finalizar o lote.
-- A precificação do lote pode ser diferente da precificação síncrona porque as regras de desconto `isBatchRequest=true` se aplicam.
 
 ## Filtros
 
-- `limit` aceita valores de 1 a 10000 e o padrão é 10000.
+- Para arquivos de lote e referências de imagem, `limit` aceita 1–10000 (padrão 10000), com `after` para paginação. No modo Anthropic Files, aceita 1–1000 (padrão 20); use `after_id` ou `before_id`, nunca ambos.
 - `purpose` pode ser `batch`, `batch_output`, `user_data` ou `vision`.
 - `user_data` e `vision` retornam arquivos de referência de imagem criados pelo TokenLab quando disponíveis.
 
@@ -51,7 +50,10 @@ Use o painel OpenAPI interativo acima para ver o esquema exato.
 ```json 200 OK
 {
   "object": "list",
-  "data": [{ "id": "file_abc123", "object": "file", "purpose": "batch" }]
+  "data": [{ "id": "file_abc123", "object": "file", "purpose": "batch" }],
+  "first_id": "file_abc123",
+  "last_id": "file_abc123",
+  "has_more": false
 }
 ```
 </ResponseExample>
@@ -60,3 +62,4 @@ Use o painel OpenAPI interativo acima para ver o esquema exato.
 
 <ResponseField name="object" type="string">Tipo de objeto da resposta.</ResponseField>
 <ResponseField name="data" type="array">Lista ou payload retornado por esta resposta.</ResponseField>
+<ResponseField name="has_more" type="boolean">Há mais resultados quando `has_more` é true.</ResponseField>

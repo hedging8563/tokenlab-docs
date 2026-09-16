@@ -4,7 +4,8 @@ openapi: "POST /v1beta/models/{model}:generateContent"
 description: "使用 Google Gemini API 格式生成內容"
 ---
 
-TokenLab 只對公開 Gemini 原生契約且具備同協議 upstream 路徑的模型提供此入口，絕不回落 Chat Completions。ProtoJSON lowerCamelCase 與原始 proto snake_case 名稱都是官方拼法，混合請求也會原樣保留。未知欄位會 best-effort 透傳，由 upstream 決定是否支援。
+使用 Gemini Models API 回傳的模型，以 Gemini 請求與回應格式呼叫。支援 ProtoJSON lowerCamelCase 和對應的 proto snake_case 欄位名稱；可選欄位與取值以所選模型為準。
+
 ## 路徑參數
 
 <ParamField path="model" type="string" required>
@@ -27,7 +28,7 @@ Gemini 端點支援多種驗證方式：
 ## 請求主體
 
 <ParamField body="contents" type="array" required>
-  對話內容。`role` 值與所有 `parts` 都會保持客戶端原樣；TokenLab 不做 trim/lowercase、Base64 改寫或 MIME 推斷。`inlineData` / `inline_data` 與 `fileData` / `file_data` 都是官方拼法，TokenLab 不會在本地強制要求 `fileData.mimeType`。引用 TokenLab 建立的 Files/Cache ID 時會檢查所有權並保留原 upstream 綁定；其他媒體與工具規則交由供應商判斷。
+  對話內容，包含 `parts` 和可選的 `role`。媒體欄位使用 `inlineData` / `inline_data` 或 `fileData` / `file_data`。TokenLab 建立的 Files 與 Cache ID 只能在所屬工作區使用。
 </ParamField>
 
 <ParamField body="systemInstruction" type="object">
@@ -35,7 +36,7 @@ Gemini 端點支援多種驗證方式：
 </ParamField>
 
 <ParamField body="generationConfig" type="object">
-  原生生成設定。`maxOutputTokens`、`candidateCount`、`thinkingConfig` 等 lowerCamelCase 與對應 snake_case 名稱都會原樣接受。TokenLab 不會在失敗後刪除 `thinkingConfig`，也不會對 streaming 的 `candidateCount` 設本地限制；範圍與組合由 upstream 判斷。
+  生成設定包括 `temperature`、`topP`、`topK`、`maxOutputTokens`、`stopSequences`、`candidateCount`、`responseModalities`、`responseMimeType`、`responseSchema` 和 `thinkingConfig`，也支援對應的 snake_case 名稱。取值範圍與組合以所選模型為準。
 </ParamField>
 
 <ParamField body="safetySettings" type="array">
@@ -87,11 +88,11 @@ print(response.text)
 ```javascript JavaScript
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI("sk-your-api-key", {
-  baseUrl: "https://api.tokenlab.sh"
-});
-
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
+const genAI = new GoogleGenerativeAI("sk-your-api-key");
+const model = genAI.getGenerativeModel(
+  { model: "gemini-2.5-pro" },
+  { baseUrl: "https://api.tokenlab.sh" }
+);
 const result = await model.generateContent("Hello, Gemini!");
 
 console.log(result.response.text());

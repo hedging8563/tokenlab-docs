@@ -6,12 +6,12 @@ description: "ينشئ مهمة توليد عالم باستخدام World Labs 
 
 أنشئ عوالم ثلاثية الأبعاد قابلة للاستكشاف باستخدام World Labs Marble. هذا API غير متزامن: تعيد استجابة الإنشاء هوية المهمة و `poll_url` للتحقق من الحالة.
 
-النماذج المدعومة هي `marble-1.0` و `marble-1.1` و `marble-1.1-plus`. توثق World Labs النموذج `marble-1.0-draft`، لكن TokenLab لا يتيح draft generation في هذا endpoint حالياً.
+اختر نموذج Marble متاحًا حاليًا عبر [Models API](/ar/api-reference/models/list-models).
 
 ## جسم الطلب
 
 <ParamField body="model" type="string" default="marble-1.0">
-  نموذج Marble المطلوب استخدامه: `marble-1.0` أو `marble-1.1` أو `marble-1.1-plus`.
+  اختر نموذج Marble متاحًا حاليًا عبر [Models API](/ar/api-reference/models/list-models).
 </ParamField>
 
 <ParamField body="prompt" type="string">
@@ -55,7 +55,7 @@ description: "ينشئ مهمة توليد عالم باستخدام World Labs 
 </ParamField>
 
 <ParamField body="permission" type="object">
-  كائن permission اختياري من World Labs.
+  إعدادات اختيارية للرؤية والوصول: `public` و `allow_id_access` و `allowed_readers` و `allowed_writers`. تطلب `public: true` إنشاء عالم مرئي للعامة.
 </ParamField>
 
 ## الاستجابة
@@ -94,11 +94,7 @@ description: "ينشئ مهمة توليد عالم باستخدام World Labs 
 
 ## التسعير
 
-تحاسب World Labs باستخدام credits. يخصم TokenLab الحد الأقصى لنوع الطلب مسبقاً، ثم يسوي حسب `cost.total_credits` من operation المكتملة عند توفرها. طلبات Marble القياسية تصل إلى 1,600 credits. طلبات `marble-1.1-plus` تصل إلى 3,100 credits.
-
-## النطاق
-
-تغطي نقاط الإدارة هذه أصول الوسائط المملوكة لـ TokenLab والعوالم المكتملة. لا يتيح TokenLab بعد إنشاء `marble-1.0-draft` أو أدوات pano/depth المستقلة.
+راجع [Pricing API](/ar/api-reference/pricing/get-pricing) للأسعار الحالية. يظهر المبلغ المفوتر في سجلات الاستخدام؛ وقيمة `cost.total_credits` المعادة تصف استخدام التوليد، وليست مبلغًا نقديًا.
 
 <RequestExample>
 ```bash cURL

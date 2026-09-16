@@ -1,48 +1,24 @@
 ---
 title: "OpenHands"
-description: "Konfigurasi model TokenLab untuk OpenHands CLI dan alur kerja headless"
+description: "Hubungkan OpenHands ke TokenLab"
 ---
+
 
 ## Gambaran Umum
 
-OpenHands dapat menggunakan TokenLab melalui konfigurasi model yang kompatibel dengan LiteLLM/OpenAI, terutama untuk alur kerja CLI dan headless di mana Anda menyediakan model, API key, dan base URL.
-
-<Note>
-**Tipe**: Coding Agent
-
-**Jalur Utama**: Konfigurasi model yang kompatibel dengan OpenAI
-
-**Tingkat Dukungan**: Jalur endpoint kustom didukung
-</Note>
-
-## Lingkungan
-
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
+Halaman ini untuk antarmuka OpenHands dengan LiteLLM dan **Settings → LLM → Advanced**. Pilih **OpenAI**, masukkan model khusus berprefiks `openai/`, kunci TokenLab pada kolom lokal, dan Base URL di bawah. Catat pilihan sebelumnya lalu pulihkan setelah selesai; pertahankan akun dan izin alat. Lihat [konfigurasi kompatibel OpenAI resmi](https://docs.openhands.dev/openhands/usage/llms/openai-llms). Instalasi CLI, cloud, dan dari sumber dapat memakai alur berbeda; ikuti edisi yang dipasang. `make setup-config` bukan perintah umum CLI yang telah terpasang.
 
 ## Pengaturan Model
 
-Gunakan:
+Simpan penyedia, model, dan pengaturan koneksi saat ini secara lokal sebelum mengedit. Kontrol ini mengubah model aktif; pulihkan nilai sebelumnya setelah selesai. Pertahankan akun yang masuk dan izin alat. Jangan timpa koneksi kompatibel OpenAI lain tanpa cadangan yang dapat dipulihkan.
 
 ```text
-Model: openai/claude-sonnet-5
-API key: sk-your-tokenlab-key
+Custom Model: openai/kimi-k3
 Base URL: https://api.tokenlab.sh/v1
 ```
 
-Awalan `openai/` memberi tahu jalur yang didukung LiteLLM untuk menggunakan konfigurasi penyedia yang kompatibel dengan OpenAI.
+Menyimpan pengaturan atau menampilkan model tidak memvalidasi kunci maupun permintaan yang selesai. Prompt memakai saldo TokenLab. Periksa respons dan [catatan permintaan terkait](https://tokenlab.sh/dashboard/runs?section=requests) sebelum mencoba alat; permintaan tambahan juga dapat dikenai biaya.
 
-## Pengaturan Headless
-
-Jika Anda sedang menyiapkan default lokal untuk penggunaan CLI atau headless, jalankan alur pengaturan OpenHands dan masukkan:
-
-```bash
-make setup-config
+```text
+Reply only with TOKENLAB_CONNECTION_OK. Do not use tools or modify files.
 ```
-
-Saat diminta detail model, gunakan ID model TokenLab dengan awalan `openai/` dan base URL `/v1` milik TokenLab.
-
-## Saran Model
-
-Gunakan `claude-sonnet-5` atau `gpt-5.4` untuk perencanaan coding-agent, `gpt-5.4-mini` untuk loop rutin yang lebih cepat, dan `deepseek-v4-pro` jika Anda menginginkan model penalaran alternatif yang kuat.

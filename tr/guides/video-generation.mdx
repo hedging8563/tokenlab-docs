@@ -7,7 +7,9 @@ import VideoModelContracts from "../snippets/generated/video-model-contracts.mdx
 
 Video üretimi asenkron bir süreçtir. `POST /v1/videos/generations` bir kamu görev kimliği ve genellikle bir `poll_url` döner; nihai video daha sonraki durum yanıtlarında görünür.
 
-Seçilen Seedance modeli TokenLab materyal kitaplığını kullanabiliyorsa, görsel URL’leri ve desteklenen inline data URL’leri oluşturma öncesinde yeniden kullanılabilir TokenLab materyalleri olarak hazırlanır. Hazırlık 60 saniyeyi aşarsa, dönen `auto_material_asset_ids` değerleri `ACTIVE` olduktan sonra tekrar deneyin. Seçilen model materyal kitaplığını kullanamıyorsa normal görsel girdileri standart görsel yolunda devam eder.
+Seçilen modelin desteklediği görsel alanlarında herkese açık HTTP(S) URL’leri veya desteklenen data URL’lerini gönderin. Bunlar normal medya girdisi olarak işlenir ve otomatik olarak yeniden kullanılabilir materyal kimliği oluşturmaz.
+
+Açıkça belirtilen materyal hâlâ hazırlanıyorsa `POST /v1/videos/generations`, `inactive_asset_ids` ile `409 seedance_material_preparing` döndürür. Varlıkları `ACTIVE` olana kadar sorgulayıp aynı kimliklerle yeniden deneyin. `FAILED` durumunda önce `error_message` değerine göre düzeltin veya yeniden içe aktarın.
 
 ## Kamu Sözleşmesi
 
@@ -27,20 +29,20 @@ Seçilen Seedance modeli TokenLab materyal kitaplığını kullanabiliyorsa, gö
 ## Model Keşfi
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \\
+curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \
   -H "Authorization: Bearer sk-your-api-key"
 ```
 
-`model` alanında TokenLab’da görünen model IDlerini kullanın; özellik varyantlarını `operation` ve ilgili medya girdileriyle seçin. Örnekler: `wan-2.7`, `happyhorse-1.0`, `viduq3`, `viduq3-mix`, `pixverse-v6`, `kling-3.0-video`, `veo3.1`, `seedance-2.0`; operasyona özel ekleri TokenLab model adı olarak kullanmayın.
+`model` alanında TokenLab’da görünen model IDlerini kullanın; özellik varyantlarını `operation` ve ilgili medya girdileriyle seçin. Örnekler: `wan-2.7`, `happyhorse-1.0`, `viduq3`, `viduq3-mix`, `pixverse-v6`, `veo3.1`, `seedance-2.0`; operasyona özel ekleri TokenLab model adı olarak kullanmayın.
 
 `reference_images`, `kling_elements`, `output_audio`, `duration`, `resolution` veya `aspect_ratio` gibi özel alanlara güvenmeden önce seçilen model detayını okuyun.
 
 ## İstek Oluşturma
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/generations \\
-  -H "Authorization: Bearer sk-your-api-key" \\
-  -H "Content-Type: application/json" \\
+curl https://api.tokenlab.sh/v1/videos/generations \
+  -H "Authorization: Bearer sk-your-api-key" \
+  -H "Content-Type: application/json" \
   -d '{
     "model": "veo3.1",
     "operation": "text-to-video",
@@ -55,9 +57,8 @@ curl https://api.tokenlab.sh/v1/videos/generations \\
 ## Girdiler ve Modele Özgü Alanlar
 
 - Veo 3 ailesi istekleri `output_audio` atlandığında varsayılan olarak sesli açılır. Model bu geçişi destekliyorsa ve kullanıcı deneyiminiz sese bağlıysa, bunu açıkça ayarlayın.
-- `kling_elements`, `kling-3.0-video` görüntü koşullu istekler içindir. Her bir öğeyi `prompt` içinde `@name` olarak referans gösterin; bunu `output_audio=true` ile birleştirmeyin.
 - Seedance 2.0 ailesinde 4K çıktı, Fast/Mini çözünürlük sınırları veya çok modlu referans girdileri kullanmadan önce [Seedance 2.0 video modelleri kılavuzunu](/tr/guides/seedance-2-video) okuyun.
-- `grok-imagine-video` için, video-to-video bir kamuya açık `.mp4` `video_url` kullanır; modele özgü sınırlamalar, örneğin `duration` ve `resolution`, model sözleşmesinden gelmelidir.
+- `grok-imagine-video` video-to-video için `prompt` ve herkese açık bir HTTPS `.mp4` adresini `video_url` olarak gönderin. Bu işlem `duration`, `resolution` veya `aspect_ratio` seçeneklerini kullanmaz.
 
 <VideoModelContracts />
 

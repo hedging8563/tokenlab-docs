@@ -23,17 +23,36 @@ export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 
 TokenLab의 `/v1` 엔드포인트를 `base_url`로 사용합니다:
 
+다음 구성을 `tokenlab-model.yaml`로 저장하세요:
+
 ```yaml
 provider: autogen_ext.models.openai.OpenAIChatCompletionClient
 config:
   model: claude-sonnet-5
   base_url: https://api.tokenlab.sh/v1
-  api_key: ${TOKENLAB_API_KEY}
   model_info:
     function_calling: true
     json_output: true
+    structured_output: false
     vision: false
     family: claude
+```
+
+YAML을 로드한 뒤 환경 변수에서 API 키를 읽어 설정하세요. YAML은 환경 변수를 자동으로 확장하지 않습니다:
+
+```python
+import os
+import yaml
+
+from autogen_agentchat.agents import AssistantAgent
+from autogen_core.models import ChatCompletionClient
+
+with open("tokenlab-model.yaml", encoding="utf-8") as config_file:
+    config = yaml.safe_load(config_file)
+
+config["config"]["api_key"] = os.environ["TOKENLAB_API_KEY"]
+model_client = ChatCompletionClient.load_component(config)
+agent = AssistantAgent("assistant", model_client=model_client)
 ```
 
 ## Python 클라이언트
@@ -51,12 +70,28 @@ model_client = OpenAIChatCompletionClient(
     model_info={
         "function_calling": True,
         "json_output": True,
+        "structured_output": False,
         "vision": False,
         "family": "claude",
     },
 )
 
 agent = AssistantAgent("assistant", model_client=model_client)
+```
+
+## 첫 요청 보내기
+
+```python
+import asyncio
+
+async def main():
+    try:
+        result = await agent.run(task="Reply with: Connected to TokenLab.")
+        print(result.messages[-1].content)
+    finally:
+        await model_client.close()
+
+asyncio.run(main())
 ```
 
 ## 엔드포인트 참고 사항

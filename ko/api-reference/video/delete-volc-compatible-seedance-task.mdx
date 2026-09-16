@@ -6,13 +6,15 @@ description: "대기 중이거나 취소 가능한 Seedance 호환 작업을 취
 
 ## 개요
 
-이 엔드포인트는 Volc 스타일 Seedance 작업 구조를 이미 사용하는 팀을 위한 것입니다. 인증은 TokenLab Bearer API Key를 사용합니다. 반환되는 작업 ID는 `cgt-`로 시작하며, `status`가 `succeeded`, `failed`, `cancelled`, `expired` 중 하나가 될 때까지 폴링하세요.
+TokenLab Bearer API 키와 `cgt-...` ID로 취소를 요청하세요. 취소는 최선을 다해 수행되며 작업이 아직 취소 가능한 경우에만 성공합니다.
 
 같이 보기 [Seedance 2.0 비디오 모델](/ko/guides/seedance-2-video) 및 [비디오 생성](/ko/guides/video-generation).
 
 ## 응답 형식
 
 취소 성공 시 HTTP 200과 빈 본문을 반환합니다. 최종 상태 확인이 필요하면 이후 작업을 조회하세요.
+
+작업이 완료, 실패, 만료되었거나 더 이상 취소할 수 없으면 오류가 반환됩니다. 작업을 조회하여 상태를 확인하세요. 취소된 작업에는 비디오 결과가 없습니다.
 
 ## 예시
 

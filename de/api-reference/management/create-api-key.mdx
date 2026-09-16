@@ -14,10 +14,11 @@ Dieser Endpunkt erstellt einen neuen API-Key vom Typ `type=user` in der Organisa
 
 | Feld | Typ | Standard / Grenzen | Beschreibung |
 |------|-----|--------------------|--------------|
-| `name` | string | erforderlich, Standard `Default Key`, Länge `1-50` | Anzeigename; führende und nachgestellte Leerzeichen werden serverseitig entfernt |
-| `limitAmount` | number \| null | min. `0`, Eingabe max. `1000000` | `null` oder weggelassen = unbegrenzt, `0` = Nullkontingent. Positive Werte werden auf ein gespeichertes Limit normalisiert, das 100000 USD Gegenwert nicht überschreiten kann. |
+| `name` | string | optional, Standard `Default Key`, Länge `1-50` | Anzeigename; führende und nachgestellte Leerzeichen werden serverseitig entfernt |
+| `limitAmount` | number \| string \| null | `0–100000` USD | `null` bedeutet unbegrenzt; `0` verhindert Ausgaben. Dezimalstrings erlauben bis zu 6 Nachkommastellen. Bei der Erstellung bedeutet das Weglassen unbegrenzt. |
 | `limitCurrency` | enum | Standardwert `USD` | Nur USD. Das Senden von `CNY` gibt `400 currency_retired` zurück. |
 | `models` | string[] | Standard `[]` | Optionale Allowlist für logische Modelle |
+| `deliveryPolicy` | string \| null | `auto`, `verified`, `official`, `null` | `null` übernimmt die Zustellrichtlinie des Workspace. |
 | `expiresAt` | string \| null | RFC3339-Datetime | `null` bedeutet ohne Ablaufzeit |
 
 ## Hinweise
@@ -68,7 +69,8 @@ Diese Seite enthält das OpenAPI-Schema und kopierbare Anfragebeispiele. Senden 
   ],
   "expires_at": "2026-12-31T23:59:59.000Z",
   "last_used_at": null,
-  "created_at": "2026-07-08T03:00:00.000Z"
+  "created_at": "2026-07-08T03:00:00.000Z",
+  "delivery_policy": null
 }
 ```
 </ResponseExample>
@@ -79,12 +81,13 @@ Diese Seite enthält das OpenAPI-Schema und kopierbare Anfragebeispiele. Senden 
 <ResponseField name="id" type="string">API-Schlüssel-ID für nachfolgende Management-API-Aufrufe.</ResponseField>
 <ResponseField name="name" type="string">Anzeigename des API-Schlüssels.</ResponseField>
 <ResponseField name="key_prefix" type="string">Nicht geheimer Schlüsselpräfix für Anzeige und Support.</ResponseField>
-<ResponseField name="status" type="string">Einer der Werte `active`, `inactive` oder `revoked`.</ResponseField>
+<ResponseField name="status" type="string">Einer der Werte `active`, `inactive`, `suspended` oder `revoked`.</ResponseField>
 <ResponseField name="limit_amount" type="number | null">Ausgabenlimit in USD als JSON-Zahl für die Anzeige. `null` bedeutet unbegrenzt.</ResponseField>
 <ResponseField name="limit_amount_decimal" type="string | null">Exaktes Ausgabenlimit in USD als Dezimalzeichenfolge. `null` bedeutet unbegrenzt.</ResponseField>
 <ResponseField name="used_amount" type="number">Kumulierte Nutzungskosten in USD als JSON-Zahl für die Anzeige.</ResponseField>
 <ResponseField name="used_amount_decimal" type="string">Exakte kumulierte Nutzungskosten in USD als Dezimalzeichenfolge.</ResponseField>
 <ResponseField name="models" type="string[]">Liste zulässiger Modelle pro Schlüssel. Ein leeres Array bedeutet, dass keine zusätzliche Modellbeschränkung auf Schlüsselebene gilt.</ResponseField>
+<ResponseField name="delivery_policy" type="string | null">`auto`, `verified`, `official`, `null`. `null` übernimmt die Zustellrichtlinie des Workspace.</ResponseField>
 <ResponseField name="expires_at" type="string | null">ISO-Zeitstempel, zu dem der Schlüssel abläuft, oder `null` ohne Ablaufdatum.</ResponseField>
 <ResponseField name="last_used_at" type="string | null">ISO-Zeitstempel der letzten Nutzung oder `null`, wenn noch nicht verwendet.</ResponseField>
 <ResponseField name="created_at" type="string">ISO-Zeitstempel der Erstellung.</ResponseField>

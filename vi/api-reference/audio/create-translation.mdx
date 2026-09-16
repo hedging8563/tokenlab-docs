@@ -8,16 +8,20 @@ description: "Dịch audio thành văn bản tiếng Anh"
 
 Dịch audio ở bất kỳ ngôn ngữ được hỗ trợ nào thành văn bản tiếng Anh. Không giống như transcription, endpoint này luôn trả về văn bản tiếng Anh bất kể ngôn ngữ đầu vào là gì.
 
+<Note>
+  Endpoint này dịch âm thanh sang tiếng Anh. Không gửi `language`; dịch âm thanh không hỗ trợ tham số này và có thể trả về `unsupported_parameter`. Để dịch văn bản, dùng `POST /v1/translations`; `recommended_for=translation` đề cập đến API văn bản đó.
+</Note>
+
 ## Nội dung yêu cầu
 
-**Timeout cho yêu cầu đồng bộ:** endpoint không phải chat này chờ model được định tuyến hoàn tất. Input lớn, audio dài, hoặc batch lớn có thể vượt quá mặc định 30s phổ biến của client, vì vậy hãy đặt timeout của HTTP client ít nhất là `120s`.
+Phản hồi được trả về khi dịch xong. Với âm thanh dài, đặt thời gian chờ HTTP ít nhất `120s`.
 
 <ParamField body="file" type="file" required>
   Tệp audio cần dịch. Các định dạng được hỗ trợ: `flac`, `mp3`, `mp4`, `mpeg`, `mpga`, `m4a`, `ogg`, `wav`, `webm`. Kích thước tệp tối đa là 25 MB.
 </ParamField>
 
 <ParamField body="model" type="string" default="whisper-1">
-  Model sẽ được sử dụng. Hiện tại chỉ hỗ trợ `whisper-1`.
+  ID mô hình dịch âm thanh, chẳng hạn `whisper-1`. Xác nhận hỗ trợ `POST /v1/audio/translations` trong chi tiết mô hình hiện tại.
 </ParamField>
 
 <ParamField body="prompt" type="string">
@@ -25,14 +29,16 @@ Dịch audio ở bất kỳ ngôn ngữ được hỗ trợ nào thành văn b�
 </ParamField>
 
 <ParamField body="response_format" type="string" default="json">
-  Định dạng của đầu ra. Các tùy chọn: `json`, `text`, `srt`, `verbose_json`, `vtt`.
+  Định dạng đầu ra. Whisper hỗ trợ `json`, `text`, `srt`, `verbose_json` và `vtt`; mô hình khác có thể hỗ trợ tập định dạng khác. Kiểm tra chi tiết mô hình.
 </ParamField>
 
 <ParamField body="temperature" type="number">
-  Nhiệt độ lấy mẫu, trong khoảng từ 0 đến 1. Các giá trị cao hơn như 0.8 tạo ra đầu ra ngẫu nhiên hơn, trong khi các giá trị thấp hơn như 0.2 khiến đầu ra tập trung và mang tính xác định hơn.
+  Nhiệt độ lấy mẫu từ 0 đến 1, chỉ dành cho mô hình hỗ trợ tham số này.
 </ParamField>
 
 ## Phản hồi
+
+Các trường dưới đây mô tả phản hồi JSON cho chép lời hoặc dịch. `text`, `srt` và `vtt` trả về văn bản hoặc phụ đề thô thay vì đối tượng JSON. Trường bổ sung phụ thuộc vào mô hình và định dạng đầu ra.
 
 <ResponseField name="text" type="string">
   Văn bản đã dịch bằng tiếng Anh.
@@ -41,7 +47,7 @@ Dịch audio ở bất kỳ ngôn ngữ được hỗ trợ nào thành văn b�
 Đối với định dạng `verbose_json`, phản hồi cũng bao gồm:
 
 <ResponseField name="language" type="string">
-  Ngôn ngữ được phát hiện của audio đầu vào.
+  Nhãn ngôn ngữ trong phản hồi, nếu được cung cấp.
 </ResponseField>
 
 <ResponseField name="duration" type="number">
@@ -130,7 +136,6 @@ echo $data['text'];
 ```json verbose_json
 {
   "task": "translate",
-  "language": "german",
   "duration": 8.470000267028809,
   "text": "Hello, my name is Wolfgang and I come from Germany. Where are you from?",
   "segments": [
@@ -158,7 +163,3 @@ echo $data['text'];
 | Ngôn ngữ đầu ra | Luôn là tiếng Anh | Giống với đầu vào |
 | Trường hợp sử dụng | Chuyển audio tiếng nước ngoài sang tiếng Anh | Giữ nguyên ngôn ngữ gốc |
 | Tham số ngôn ngữ | Không áp dụng | Gợi ý tùy chọn |
-
-<Note>
-  Endpoint dịch thuật tự động phát hiện ngôn ngữ nguồn và dịch sang tiếng Anh. Tham số `language` từ transcription sẽ bị bỏ qua.
-</Note>

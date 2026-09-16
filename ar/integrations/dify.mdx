@@ -1,22 +1,11 @@
 ---
 title: "Dify"
-description: "دمج TokenLab مع Dify باستخدام مزود OpenAI وعنوان أساسي (Base URL) مخصص"
+description: "دمج TokenLab مع Dify باستخدام مزود OpenAI-API-compatible وعنوان أساسي (Base URL) مخصص"
 ---
 
 ## نظرة عامة
 
-يعمل Dify بشكل جيد مع TokenLab من خلال تدفق مزود النموذج المتوافق مع OpenAI.
-
-هذا مسار تكامل موجه نحو إكمال المحادثات (chat-completions). لا ينبغي اعتباره ضماناً بأن Dify يكشف عن نفس الاستجابات أو سلوك WebSocket مثل تكاملات Codex المخصصة.
-
-بالنسبة لإصدارات Dify الحالية، المسار الأكثر أماناً هو عادةً:
-- اختيار مزود **OpenAI** المدمج
-- تعيين مفتاح API الخاص بـ TokenLab
-- تعيين عنوان أساسي (Base URL) مخصص هو `https://api.tokenlab.sh/v1`
-
-<Note>
-تعرض بعض إصدارات Dify الأقدم هذا كـ `OpenAI-API-compatible` بدلاً من مزود `OpenAI` المدمج مع حقل عنوان أساسي مخصص. إذا كانت واجهة Dify الخاصة بك تبدو مختلفة، فاستخدم أقرب تدفق مزود مخصص متوافق مع OpenAI متاح في ذلك الإصدار.
-</Note>
+استخدم إضافة مزود النماذج **OpenAI-API-compatible** لربط Dify بـ TokenLab. اضبط نوع النموذج على **LLM**، و**Completion mode** على **Chat**، و**API Type** على **Chat Completions API**. يستخدم هذا الدليل Chat Completions.
 
 <Note>
 **النوع**: إطار عمل أو منصة
@@ -45,8 +34,8 @@ description: "دمج TokenLab مع Dify باستخدام مزود OpenAI وعن�
   <Step title="فتح مزودي النماذج">
     في Dify، انتقل إلى **Settings** ← **Model Providers**
   </Step>
-  <Step title="اختيار OpenAI">
-    افتح إعدادات مزود **OpenAI**. إذا كان إصدار Dify الخاص بك لا يوفر عنواناً أساسياً مخصصاً هنا، فاستخدم خيار المزود المخصص المتوافق مع OpenAI الذي يوفره ذلك الإصدار بدلاً من ذلك.
+  <Step title="اختيار OpenAI-API-compatible">
+    افتح **OpenAI-API-compatible**. إذا لم تجده، فثبّت إضافة مزود النماذج هذه من Dify Marketplace. اختر **Add model** لإدخال إعدادات TokenLab.
   </Step>
   <Step title="إدخال إعدادات TokenLab">
     استخدم هذه القيم:
@@ -54,7 +43,10 @@ description: "دمج TokenLab مع Dify باستخدام مزود OpenAI وعن�
     | الحقل | القيمة |
     |-------|-------|
     | API Key | `sk-your-tokenlab-key` |
-    | API Base URL / Custom Base URL | `https://api.tokenlab.sh/v1` |
+    | Model type | LLM |
+    | Completion mode | Chat |
+    | API Type | Chat Completions API |
+    | API Base URL | `https://api.tokenlab.sh/v1` |
   </Step>
   <Step title="إضافة النماذج">
     أضف النماذج التي تريد استخدامها، على سبيل المثال:
@@ -70,7 +62,7 @@ description: "دمج TokenLab مع Dify باستخدام مزود OpenAI وعن�
 
 ### الخطوة 3: اختبار الاتصال
 
-1. اختر نموذجاً واحداً مثل `gpt-5-mini` أو `gpt-4o`
+1. اختر نموذجاً أضفته، مثل `gpt-5.4-mini`.
 2. أرسل رسالة اختبار (prompt)
 3. تأكد من أن Dify يتلقى استجابة صالحة
 
@@ -94,16 +86,16 @@ description: "دمج TokenLab مع Dify باستخدام مزود OpenAI وعن�
 ## أفضل الممارسات
 
 <AccordionGroup>
-  <Accordion title="ابدأ بمزود OpenAI المدمج">
-    في إصدارات Dify الأحدث، عادة ما يكون مزود OpenAI المدمج مع عنوان أساسي مخصص هو الإعداد الأنظف لـ TokenLab.
+  <Accordion title="إضافة OpenAI كخيار بديل">
+    يمكن استخدام إضافة **OpenAI** المنفصلة للنماذج التي يدعمها كتالوجها. اضبط عنوانها الأساسي المخصص على `https://api.tokenlab.sh/v1` و**API Protocol** على **Chat Completions**؛ فقد يكون الخيار الافتراضي Responses. ليست اسماً قديماً لإضافة OpenAI-API-compatible، ولا تقبل جميع معرّفات النماذج المخصصة.
   </Accordion>
 
   <Accordion title="استخدم نماذج أرخص للتكرار">
     استخدم `gpt-5.4-mini` أو `gemini-3.5-flash` أو `deepseek-v4-flash` أثناء التكرار، ثم قم بتحويل سير العمل الثقيل إلى نماذج أقوى فقط عند الحاجة.
   </Accordion>
 
-  <Accordion title="تذكر أن Dify موجه عادةً نحو إكمال المحادثات">
-    تستخدم معظم تدفقات Dify سلوك المحادثة المتوافق مع OpenAI. إذا كنت بحاجة إلى استجابات خاصة بـ Codex أو سلوك WebSocket، فاستخدم تكاملات Codex المخصصة بدلاً من Dify.
+  <Accordion title="يستخدم هذا الإعداد Chat Completions">
+    أبقِ **Completion mode = Chat** و**API Type = Chat Completions API** لهذا الإعداد. Responses خيار API مستقل؛ لا يضبط هذا الدليل ذلك الخيار أو اتصالات WebSocket.
   </Accordion>
 </AccordionGroup>
 

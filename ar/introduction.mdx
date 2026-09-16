@@ -5,108 +5,23 @@ description: "الوصول إلى مئات نماذج الذكاء الاصطن�
 
 ## ما هي TokenLab؟
 
-TokenLab هي منصة تجميع واجهات برمجة تطبيقات الذكاء الاصطناعي تمنحك وصولاً موحّداً إلى **مئات نماذج الذكاء الاصطناعي** من مزودين مثل OpenAI وAnthropic وGoogle وDeepSeek وMoonshot وMiniMax والمزيد.
-
-<CardGroup cols={2}>
-  <Card title="أصلي + متوافق" icon="plug">
-    استخدم مسارات Anthropic/Gemini الأصلية عندما يهم سلوك المزوّد، أو مسارات `/v1` المتوافقة مع OpenAI للأدوات الحالية على نمط OpenAI.
-  </Card>
-  <Card title="تنسيقات أصلية" icon="shuffle">
-    استدعِ نقاط نهاية بنمط OpenAI وAnthropic وGemini وResponses من منصة واحدة.
-  </Card>
-  <Card title="ادفع حسب الاستخدام" icon="coins">
-    لا اشتراكات. ادفع فقط مقابل ما تستخدمه فعليًا.
-  </Card>
-  <Card title="توفر عالي" icon="shield-check">
-    التوجيه الذكي، والتبديل عند الفشل، ودعم قنوات متعددة تحسّن الموثوقية.
-  </Card>
-</CardGroup>
+يربط TokenLab تطبيقك أو أداة البرمجة بنماذج الذكاء الاصطناعي باستخدام مفتاح API واحد ورصيد مشترك لمساحة العمل. اختر نموذجًا وصيغة API يدعمها؛ تُحاسب الطلبات بالسعر المنشور.
 
 ## الإمكانيات المدعومة
 
-يتغير الكتالوج العام بمرور الوقت. تحقق من التوفر الحالي عبر `/v1/models` أو `recommended_for` أو صفحة النماذج؛ تستخدم الأمثلة أدناه IDs عامة حالية.
+راجع [كتالوج النماذج](https://tokenlab.sh/ar/models) لمعرفة المعرّفات والتوافر والصيغ والأسعار الحالية.
 
-| الإمكانية | الوصف | نماذج أمثلة |
-|---|---|---|
-| المحادثة والاستدلال | توليد النص والتخطيط والأدوات | `gpt-5.4`, `claude-sonnet-4-6` |
-| الرؤية ومتعدد الوسائط | فهم الصور والمحادثة متعددة الوسائط | `gpt-4o`, `claude-sonnet-4-6`, `gemini-3.5-flash` |
-| توليد الصور وتحريرها | تحويل النص إلى صورة وتحرير الصور | `gpt-image-2`, `flux-pro` |
-| توليد الفيديو | نص/صورة/مرجع إلى فيديو والتحكم بالحركة | `veo3.1`, `wan-2.7`, `kling-3.0-video`, `happyhorse-1.0` |
-| الصوت وRealtime WebSocket | TTS والنسخ وترجمة الصوت وجلسات WebSocket الفورية | `gpt-4o-mini-tts`, `whisper-1`, `gpt-realtime` |
-| Embeddings وrerank | تمثيل النصوص وإعادة الترتيب | `text-embedding-3-small`, `qwen3-vl-rerank` |
-| الترجمة | ترجمة النص وترجمة الكلام عبر WebSocket | `doubao-seed-translation`, `gpt-realtime-translate` |
-| الموسيقى و3D | توليد الموسيقى وأصول 3D | `suno-music`, `tripo-h3.1` |
-| Worlds | توليد worlds وتتبع الحالة وتدفقات media assets | تحقق من التوفر عبر `/v1/worlds/generations` وModels API |
-
-## اختر صيغة الطلب
-
-ابدأ بالمسار الذي يطابق السلوك الذي تحتاجه. استخدم المسارات الأصلية لـ Anthropic/Gemini للميزات الأصلية الخاصة بالمزوّد؛ واستخدم `/v1/chat/completions` المتوافق مع OpenAI عند ترحيل شيفرة الدردشة الحالية بأسلوب OpenAI.
-
-<CodeGroup>
-
-```bash cURL
-curl https://api.tokenlab.sh/v1/chat/completions \
-  -H "Authorization: Bearer sk-your-api-key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "gpt-5.6-terra",
-    "messages": [
-      {"role": "user", "content": "Explain what TokenLab does in one sentence."}
-    ]
-  }'
-```
-
-```python Python
-from openai import OpenAI
-
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
-
-response = client.chat.completions.create(
-    model="gpt-5.6-terra",
-    messages=[{"role": "user", "content": "Explain what TokenLab does in one sentence."}]
-)
-
-print(response.choices[0].message.content)
-```
-
-```javascript JavaScript
-import OpenAI from 'openai';
-
-const client = new OpenAI({
-  apiKey: 'sk-your-api-key',
-  baseURL: 'https://api.tokenlab.sh/v1'
-});
-
-const response = await client.chat.completions.create({
-  model: 'gpt-5.6-terra',
-  messages: [{ role: 'user', content: 'Explain what TokenLab does in one sentence.' }],
-});
-
-console.log(response.choices[0].message.content);
-```
-
-<Note>
-استخدم `POST /v1/responses` فقط عندما تحتاج صراحةً إلى سلوك مخصص لـ Responses. ليست هذه هي مسار التوافق الافتراضي عبر جميع النماذج.
-</Note>
-
-</CodeGroup>
-
-## الميزات الرئيسية
-
-<CardGroup cols={2}>
-  <Card title="صيغ API متعددة" icon="layers" href="/guides/api-formats">
-    استخدم صيغ OpenAI أو Anthropic أو Gemini أو Responses-native بحساب واحد.
-  </Card>
-  <Card title="أخطاء موجهة للوكلاء" icon="wand-magic-sparkles" href="/guides/agent-first-api">
-    تلميحات مُهيكلة تساعد الوكلاء البرمجيين على تصحيح أنفسهم بصورة أسرع.
-  </Card>
-  <Card title="تغطية التكامل" icon="toolbox" href="/guides/ide-sdk-compatibility">
-    ربط IDEs وSDKs والأُطر وتطبيقات الدردشة مع تغييرات أقل خاصة بالمزود.
-  </Card>
-</CardGroup>
+| الإمكانية | الوصف |
+|---|---|
+| المحادثة والاستدلال | توليد النص والتخطيط والأدوات |
+| الرؤية ومتعدد الوسائط | فهم الصور والمحادثة متعددة الوسائط |
+| توليد الصور وتحريرها | تحويل النص إلى صورة وتحرير الصور |
+| توليد الفيديو | نص/صورة/مرجع إلى فيديو والتحكم بالحركة |
+| الصوت وRealtime WebSocket | TTS والنسخ وترجمة الصوت وجلسات WebSocket الفورية |
+| Embeddings وrerank | تمثيل النصوص وإعادة الترتيب |
+| الترجمة | ترجمة النص وترجمة الكلام عبر WebSocket |
+| الموسيقى و3D | توليد الموسيقى وأصول 3D |
+| Worlds | توليد worlds وتتبع الحالة وتدفقات media assets |
 
 ## الخطوات التالية
 

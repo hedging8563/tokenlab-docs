@@ -6,12 +6,12 @@ description: "根据输入文本生成音频"
 
 ## 请求体
 
-该接口会在音频生成完成后返回。内容较长时，请将 HTTP 客户端超时设为至少 `120s`。
+返回方式取决于所选模型和 `stream_format`。输入较长时，请将 HTTP 客户端超时设为至少 `120s`。
 
-可选字段取决于模型。OpenAI TTS 可使用 `voice`、`instructions`、`response_format`、`stream_format` 和 `speed`；MiniMax 语音还可使用 `voice_id`；Gemini TTS 可使用 `prompt`、`language_code` 和 `temperature`。不支持的字段会返回 `400 unsupported_parameter`。
+可选字段、音色、输出格式和 SSE 支持均以所选模型为准。发送前请查询 `GET /v1/models/{model}`；不支持的参数可能返回 `400 unsupported_parameter`。
 
 <ParamField body="model" type="string" default="tts-1">
-  TTS 模型 ID。通过 `GET /v1/models?recommended_for=tts` 获取当前可用模型。
+  TTS 模型 ID。通过 `GET /v1/models?recommended_for=tts` 获取当前可选模型。
 </ParamField>
 
 <ParamField body="input" type="string" required>
@@ -23,7 +23,7 @@ description: "根据输入文本生成音频"
 </ParamField>
 
 <ParamField body="voice_id" type="string">
-  MiniMax 语音模型使用的语音 ID。
+  适用于支持此参数的模型，例如兼容的 MiniMax 语音模型。
 </ParamField>
 
 <ParamField body="instructions" type="string">
@@ -56,7 +56,7 @@ description: "根据输入文本生成音频"
 
 ## 响应
 
-返回所请求格式的音频文件。
+`stream_format=audio` 返回音频字节；支持 `stream_format=sse` 的模型返回 `text/event-stream`，应解析其中的事件，不要将整个响应直接保存为音频文件。
 
 <RequestExample>
 ```bash cURL
@@ -142,5 +142,9 @@ file_put_contents('speech.mp3', $audio);
 
 ## 重要字段
 
-<ResponseField name="Content-Type" type="string">返回音频的媒体类型；使用 `sse` 时为事件流类型。</ResponseField>
-<ResponseField name="body" type="binary">音频内容，直接保存为文件。</ResponseField>
+<ResponseField name="Content-Type" type="string">
+  HTTP 响应的媒体类型：音频格式，或 SSE 使用的 `text/event-stream`。
+</ResponseField>
+<ResponseField name="body" type="binary | SSE">
+  `audio` 模式为音频字节，`sse` 模式为事件流。请按 `Content-Type` 和请求模式选择解析方式。
+</ResponseField>

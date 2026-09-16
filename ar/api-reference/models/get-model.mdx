@@ -7,7 +7,7 @@ description: "الحصول على قدرات النموذج، وتسعيره، �
 ## معامل المسار (Path Parameter)
 
 <ParamField path="model" type="string" required>
-  معرف النموذج (Model ID)، مثل `gpt-5.4` أو `claude-sonnet-4-6`.
+  معرف النموذج (Model ID)، مثل `gpt-5.6-terra` أو `claude-sonnet-4-6`.
 </ParamField>
 
 ## الاستجابة (Response)
@@ -33,7 +33,7 @@ description: "الحصول على قدرات النموذج، وتسعيره، �
 ## مثال
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models/gpt-5.4"
+curl "https://api.tokenlab.sh/v1/models/gpt-5.6-terra"
 ```
 
 ```json
@@ -43,8 +43,8 @@ curl "https://api.tokenlab.sh/v1/models/gpt-5.4"
   "owned_by": "openai",
   "tokenlab": {
     "category": "chat",
-    "capabilities": ["text"],
-    "accepted_request_formats": ["responses", "chat_completions"]
+    "capabilities": ["coding", "json-mode", "prompt-cache", "reasoning", "tool-use", "vision"],
+    "accepted_request_formats": ["openai_chat_completions", "openai_responses"]
   }
 }
 ```

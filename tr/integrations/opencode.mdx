@@ -22,7 +22,7 @@ OpenCode, terminalinizde çalışan açık kaynaklı bir AI kodlama asistanıdı
 [OpenCode](https://opencode.ai/docs/)
 
 ```bash
-npm install -g opencode-ai
+npm install -g opencode-ai@1.18.31
 ```
 
 Kurulumu doğrulayın:
@@ -35,22 +35,13 @@ opencode --version
 
 ### Adım 1: Environment Variable'ları Ayarlayın
 
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
-
-Kalıcı yapılandırma için, `~/.bashrc` veya `~/.zshrc` dosyanıza ekleyin:
-
-```bash
-echo 'export TOKENLAB_API_KEY="sk-your-tokenlab-key"' >> ~/.zshrc
-source ~/.zshrc
-```
+[Hızlı başlangıç](/tr/quickstart) içindeki macOS, Linux, WSL veya Windows PowerShell adımlarıyla anahtarı komut geçmişine yazmadan `TOKENLAB_API_KEY` değerini ayarlayın. OpenCode’u aynı terminalden başlatın. Sürekli kullanım için yerel bir sır yöneticisi kullanın; shell profiline düz metin anahtar eklemeyin.
 
 ### Adım 2: OpenCode'u Yapılandırın
 
-OpenCode'un mevcut dokümantasyonu, sağlayıcıların `opencode.json` veya `opencode.jsonc` üzerinden yapılandırılmasını önerir. TokenLab için, yerleşik `openai` sağlayıcısını aşırı yüklemek yerine özel bir sağlayıcı kullanın:
+Aşağıdaki yapılandırma **OpenCode 1.18.31** ile doğrulanmıştır. Diğer sürümler kendi resmî belgelerine göre ayrıca doğrulanmalıdır.
 
-Örnek desteklenen V1 biçimini kullanır. Sağlayıcıları ve izinleri koruyarak `~/.config/opencode/opencode.json` içine birleştirin. V2 desteklenen V1 ayarlarını okur; sağlayıcı içinde biçimleri karıştırmayın. [Resmî geçiş kılavuzuna](https://opencode.ai/v2/docs/migrate-v1/) bakın. `/models` kaydını kontrol edip ücretli testi TokenLab kaydıyla karşılaştırın. Geri almak için eski modeli seçip yalnızca bu girdiyi kaldırın.
+Yapılandırmayı ayrı bir `~/.config/opencode/tokenlab.jsonc` dosyasına kaydedin. `XDG_CONFIG_HOME` tanımlıysa bu dizinin altındaki `opencode/tokenlab.jsonc` yolunu kullanın. Normal `opencode.json` / `opencode.jsonc` dosyalarını, hesapları, varsayılan modeli ve izinleri koruyun. Ayrı dosya yalnızca o başlatmada `OPENCODE_CONFIG` ile seçilirse yüklenir. Dosya veya sağlayıcı adı zaten kullanılıyorsa başka bir ad seçip komutları uyarlayın.
 
 ```jsonc
 {
@@ -72,34 +63,46 @@ OpenCode'un mevcut dokümantasyonu, sağlayıcıların `opencode.json` veya `ope
         }
       }
     }
-  },
-  "model": "tokenlab/gpt-5.6-terra"
+  }
 }
 ```
 
 <Note>
-Sohbet tamamlama tarzı uyumluluk için `@ai-sdk/openai-compatible` kullanın. Özellikle `/v1/responses` üzerine kurulu bir sağlayıcı yoluna ihtiyacınız varsa, OpenCode'un sağlayıcı dokümantasyonu paketi `@ai-sdk/openai` olarak değiştirmenizi önerir.
+Bu yapılandırma `@ai-sdk/openai-compatible` ile Chat Completions gönderir. Güncel model ayrıntılarından Chat Completions ve gereken araç desteğini kontrol edin. Bu örnek başka protokol veya sürümlerin uyumluluğunu kanıtlamaz.
 </Note>
+
+İsteğe bağlı: Python 3.11+ ile [geri alınabilir OpenCode yapılandırma yardımcısı](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/skills/tokenlab-api-integration/references/opencode_setup.md) önizleme, uygulama ve özgün dosyayı geri yükleme sunar. TokenLab Skills eklentisi **0.1.2** bu betikleri içerir; bağımsız Skill de betikleri içeren bir sürüme güncellendiğinde kullanılabilir. Kurulu eklenti veya bağımsız Skill için [README güncelleme adımlarını](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/README.md#update-an-existing-installation) izleyip betiğin bulunduğunu doğrulayın. Bu sayfadaki elle yapılandırma yardımcı olmadan da tamamlanabilir.
 
 ## Temel Kullanım
 
-**Etkileşimli modu başlatın:**
+Hızlı başlangıca göre anahtarı ayarlayın; dosyayı yalnızca bu başlatma için yükleyip modeli açıkça seçin. Özel yol ve sağlayıcı adlarını komutlara yansıtın. Mevcut `OPENCODE_CONFIG` veya satır içi `OPENCODE_CONFIG_CONTENT` ayarlarını koruyup ayrı bir başlatma ortamı kullanın; proje ve yönetilen ayarlar yine öncelikli olabilir.
 
-```bash
-opencode
+<CodeGroup>
+```bash macOS / Linux / WSL
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode models tokenlab
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode --model tokenlab/gpt-5.6-terra
 ```
 
-**Bir prompt ile çalıştırın:**
-
-```bash
-opencode run "Explain this codebase"
+```powershell Windows PowerShell
+$tokenlabConfigRoot = if ($env:XDG_CONFIG_HOME) { $env:XDG_CONFIG_HOME } else { Join-Path $HOME '.config' }
+$previousConfig = $env:OPENCODE_CONFIG
+try {
+  $env:OPENCODE_CONFIG = Join-Path $tokenlabConfigRoot 'opencode/tokenlab.jsonc'
+  opencode models tokenlab
+  opencode --model tokenlab/gpt-5.6-terra
+} finally {
+  if ($null -eq $previousConfig) {
+    Remove-Item Env:OPENCODE_CONFIG -ErrorAction SilentlyContinue
+  } else {
+    $env:OPENCODE_CONFIG = $previousConfig
+  }
+}
 ```
+</CodeGroup>
 
-**Model belirtin:**
+Model listesi yerel yüklemeyi kontrol eder, anahtar geçerliliğini veya gerçek istek başarısını kanıtlamaz. İstem göndermek TokenLab bakiyesini kullanır; OpenCode başlık oluşturma gibi ayrı ücretlendirilen yardımcı istekler de gönderebilir. Yanıtı ve ilgili [istek kayıtlarını](https://tokenlab.sh/dashboard/runs?section=requests) kontrol edin.
 
-```bash
-opencode run --model tokenlab/gpt-5.6-terra "Fix the bugs in main.py"
-```
+Normal ayarlarınız için bu dosyayı yüklemeden başlatın. Bu kılavuz için `OPENCODE_CONFIG` değerini kabuk profiline kaydetmeyin. Elle yapılan ayarı geri alırken yalnızca oluşturduğunuz ayrı dosyayı silin veya önceden var olan dosyanın yedeğini geri yükleyin.
 
 ## Kullanılabilir Modeller
 
@@ -116,25 +119,25 @@ opencode run --model tokenlab/gpt-5.6-terra "Fix the bugs in main.py"
 **Kodu analiz edin:**
 
 ```bash
-opencode run "What does this function do?" < src/utils.ts
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode run --model tokenlab/gpt-5.6-terra "What does this function do?" < src/utils.ts
 ```
 
 **Kod üretin:**
 
 ```bash
-opencode run "Create a REST API with Express"
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode run --model tokenlab/gpt-5.6-terra "Create a REST API with Express"
 ```
 
 **Değişiklikleri inceleyin:**
 
 ```bash
-git diff | opencode run "Review these changes"
+git diff | OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode run --model tokenlab/gpt-5.6-terra "Review these changes"
 ```
 
 **Hataları düzeltin:**
 
 ```bash
-opencode run "Fix the TypeScript errors in this project"
+OPENCODE_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/tokenlab.jsonc" opencode run --model tokenlab/gpt-5.6-terra "Fix the TypeScript errors in this project"
 ```
 
 ## Etkileşimli Komutlar

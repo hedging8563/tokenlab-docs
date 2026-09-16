@@ -29,6 +29,8 @@ export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 
 ## Đăng ký Phoenix
 
+Trước khi chạy ví dụ, hãy khởi động Phoenix cục bộ hoặc dùng một bản triển khai hiện có. Theo mặc định, `register()` gửi trace đến collector OTLP/gRPC cục bộ tại `http://localhost:4317`. Với bản triển khai khác, cấu hình endpoint collector và xác thực theo [hướng dẫn Phoenix](https://arize.com/docs/phoenix/sdk-api-reference/python/arize-phoenix-otel). Việc cài SDK không khởi động collector.
+
 ```python
 from phoenix.otel import register
 

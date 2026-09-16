@@ -9,18 +9,22 @@ description: "在 OpenClaw 中將 TokenLab 設為自訂提供者，透過 OpenAI
 
 ## 建議：安裝外掛
 
-對於一般的 OpenClaw Agent 推論，請直接安裝 TokenLab 提供者外掛：
+選用：安裝已發布的供應商外掛 **0.1.0**，透過下文所述的相同 Gateway 環境提供 `TOKENLAB_API_KEY`，並只為工作階段選擇模型。外掛的入門精靈會改變預設模型，因此本指南不執行 `openclaw onboard`。保留原外掛項目與權限，在傳送請求前檢查外掛載入與模型清單。
+
+檢查安裝程式要求的能力，並依用戶端提示確認。不要授予無關權限或改變既有外掛的權限。
 
 ```bash
-openclaw plugins install @tokenlabai/openclaw-provider
-openclaw onboard
+openclaw plugins install @tokenlabai/openclaw-provider@0.1.0
+openclaw plugins list
+openclaw models list --provider tokenlab
 ```
 
-安裝插件後執行 `openclaw onboard`，選擇 TokenLab 並僅在本機憑據欄輸入金鑰。若插件無法在目前版本載入，可使用下方手動設定，並核對相容性。
+```text
+/model tokenlab/claude-sonnet-5 -s
+/model default -s
+```
 
-外掛會讀取 TokenLab 的即時聊天模型目錄，並內建 18 個備援模型供離線探索。模型使用 `tokenlab/<model-id>` 格式。
-
-[npm 套件](https://www.npmjs.com/package/@tokenlabai/openclaw-provider) · [ClawHub 頁面](https://clawhub.ai/tokenlabai/plugins/openclaw-provider) · [原始碼](https://github.com/hedging8563/tokenlab-openclaw-provider)
+[npm](https://www.npmjs.com/package/@tokenlabai/openclaw-provider/v/0.1.0) · [GitHub](https://github.com/hedging8563/tokenlab-openclaw-provider)
 
 ## 手動提供者設定
 
@@ -45,6 +49,7 @@ openclaw onboard
 ## 前置需求
 
 - 一個自我部署的 OpenClaw 實例
+- OpenClaw **2026.9.4** 需要 Node.js `>=24.16.0 <25 || >=26.1.0`（[版本需求](https://github.com/openclaw/openclaw/blob/v2026.9.4/package.json)）。使用其他 OpenClaw 版本時，請核對對應版本的需求。
 - 一個 TokenLab API Key — [在這裡取得](https://tokenlab.sh/dashboard/api?tab=keys)
 
 ## 設定
@@ -57,15 +62,10 @@ openclaw onboard
 
 請使用執行中 Gateway 對應的 profile、`OPENCLAW_STATE_DIR` 與 `OPENCLAW_CONFIG_PATH`，合併前備份實際設定。將 `TOKENLAB_API_KEY` 放入該實例可信的全域 `.env` 或服務環境；終端 export 或專案 `.env` 不一定能供背景 Gateway 讀取。參閱[環境說明](https://docs.openclaw.ai/help/environment)。
 
+先備份目前設定。只新增 TokenLab 項目，保留既有供應商、帳戶、預設模型與權限。如果名稱已被使用，另選名稱並同步修改指令。還原時只移除本次新增的項目，或還原其原始備份。
+
 ```json5
 {
-  agents: {
-    defaults: {
-      model: {
-        primary: "tokenlab-claude/claude-sonnet-5"
-      }
-    }
-  },
   models: {
     mode: "merge",
     providers: {
@@ -131,16 +131,11 @@ openclaw onboard
 
 OpenClaw 仍以 `provider/model` 格式來參考模型：
 
-```json5
-{
-  agents: {
-    defaults: {
-      model: {
-        primary: "tokenlab-gemini/gemini-3.5-flash"
-      }
-    }
-  }
-}
+在 **OpenClaw 2026.9.4** 使用 `-s` 只為目前工作階段選擇模型，保留 `agents.defaults.model`、Agent 預設設定與權限。執行 `/model default -s` 可讓本工作階段恢復使用已設定的預設模型。
+
+```text
+/model tokenlab-claude/claude-sonnet-5 -s
+/model default -s
 ```
 
 ### 模型範例

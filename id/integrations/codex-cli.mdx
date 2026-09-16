@@ -5,19 +5,7 @@ description: "Konfigurasi OpenAI Codex CLI untuk menggunakan TokenLab API"
 
 ## Gambaran Umum
 
-
-
-<Note>
-**Tipe**: Alat Pengkodean
-
-**Jalur Utama**: OpenAI Responses (jalur opsional lanjutan)
-
-**Kepercayaan Dukungan**: Didukung dengan batasan model/jalur
-</Note>
-
-OpenAI Codex adalah alat baris perintah (CLI) sumber terbuka yang berfungsi sebagai agen pengkodean ringan, mampu membaca, memodifikasi, dan menjalankan kode di terminal. Ini dibangun di atas model GPT dan dioptimalkan untuk pembuatan kode.
-
-Untuk TokenLab, Codex CLI dapat menggunakan `/v1/responses`, tetapi Anda harus menganggapnya sebagai jalur kompatibilitas lanjutan. Beberapa fitur khusus Responses tidak dijamin tersedia di setiap model dan jalur yang diarahkan.
+Codex CLI terhubung ke TokenLab melalui `/v1/responses`. Model yang dipilih harus mencantumkan `openai_responses` dalam `tokenlab.accepted_request_formats`; fitur dapat berbeda menurut model.
 
 Kompaksi jarak jauh Codex CLI didukung di `POST /v1/responses/compact`. Codex mengirim `model` sesi saat ini di `body.model` untuk `/compact` dan auto-compact, jadi model yang ingin dipakai untuk kompaksi harus tersedia di jalur Responses. Jangan mengonfigurasi `/v1/compact`.
 
@@ -28,7 +16,7 @@ Ikuti [panduan CLI resmi](https://learn.chatgpt.com/docs/codex/cli) untuk macOS,
 ## Instalasi
 
 ```bash
-npm install -g @openai/codex
+npm install -g @openai/codex@0.149.0
 ```
 
 Verifikasi instalasi:
@@ -41,33 +29,11 @@ codex --version
 
 ### Langkah 1: Atur API Key
 
-**Sementara (sesi saat ini):**
+Ikuti langkah terminal [panduan cepat](/id/quickstart) untuk macOS, Linux, WSL, atau Windows PowerShell guna mengatur `TOKENLAB_API_KEY` tanpa menulis kunci ke riwayat perintah. Jalankan Codex dari terminal tersebut. Untuk penggunaan berkelanjutan, gunakan pengelola rahasia lokal, bukan kunci teks biasa di profil shell.
 
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
+### Langkah 2: Konfigurasi tokenlab.config.toml
 
-**Konfigurasi permanen:**
-
-Tambahkan ke `~/.bashrc`, `~/.zshrc`, atau `~/.bash_profile`:
-
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
-
-Kemudian muat ulang:
-
-```bash
-source ~/.zshrc  # or source ~/.bashrc
-```
-
-### Langkah 2: Konfigurasi config.toml
-
-Gabungkan pengaturan ini ke `~/.codex/config.toml` tingkat pengguna; jangan mengganti seluruh file. Pertahankan penyedia, akun, pengaturan sandbox, dan aturan persetujuan lainnya. Pengaturan penyedia dan autentikasi harus berada dalam konfigurasi pengguna, bukan `.codex/config.toml` milik proyek. Lihat [panduan konfigurasi resmi](https://learn.chatgpt.com/docs/config-file/config-advanced#custom-model-providers).
-
-Untuk mempertahankan penyedia default, pada Codex 0.134.0 ke atas simpan contoh di `~/.codex/tokenlab.config.toml`, lalu jalankan `codex --profile tokenlab`. Gunakan direktori sebenarnya jika `CODEX_HOME` diubah. Jangan buat tabel `[profiles.tokenlab]` lama, timpa `auth.json`, keluar akun, atau ubah izin. Jalankan tanpa profil ini untuk memulihkan.
-
-Pada setiap grup perintah di bawah, pilih **Profil TokenLab** untuk `tokenlab.config.toml`. Gunakan **TokenLab default** hanya setelah menggabungkan pengaturan ke `config.toml`. Perintah `codex` tanpa opsi memakai konfigurasi default dan tidak mengingat profil yang dipilih pada sesi sebelumnya.
+Dengan Codex **0.149.0**, gunakan `tokenlab.config.toml` terpisah dalam `CODEX_HOME` aktif (biasanya `~/.codex`). Buat hanya jika namanya belum dipakai, atau cadangkan profil TokenLab yang ada sebelum mengeditnya. `codex --profile tokenlab` memuat profil secara eksplisit tanpa mengubah `config.toml`, `auth.json`, akun, atau izin. Jangan gunakan tabel lama `[profiles.tokenlab]`. Jalankan tanpa profil ini untuk kembali ke pengaturan biasa. Lihat [konfigurasi profil resmi](https://learn.chatgpt.com/docs/config-file/config-advanced#profiles).
 
 ```toml
 model_provider = "tokenlab"
@@ -92,54 +58,32 @@ Buat file konfigurasi yang dipilih jika belum ada. Setelah mengeditnya, mulai se
 Codex saat ini memakai `wire_api = "responses"`, bukan `chat/completions`. Hilangkan `requires_openai_auth` atau isi false agar penyedia memakai `env_key`.
 
 <Note>
-TokenLab meneruskan field Responses yang tidak dikenal secara best-effort tanpa diam-diam menurunkan request ke Chat Completions. Upstream yang dipilih menentukan apakah field atau kombinasi tersebut didukung.
+Permintaan Responses tidak diubah menjadi Chat Completions. Kolom opsional dan mendatang bergantung pada model yang dipilih.
 </Note>
 
 ## Penggunaan Dasar
 
 **Mulai mode interaktif:**
 
-<CodeGroup>
-```bash Profil TokenLab
+```bash
 codex --profile tokenlab
 ```
 
-```bash TokenLab default
-codex
-```
-</CodeGroup>
-
 **Perintah langsung:**
 
-<CodeGroup>
-```bash Profil TokenLab
+```bash
 codex --profile tokenlab "Fix the bug in main.py line 42"
 ```
 
-```bash TokenLab default
-codex "Fix the bug in main.py line 42"
-```
-</CodeGroup>
-
 **Menentukan model:**
 
-<CodeGroup>
-```bash Profil TokenLab
+```bash
 codex --profile tokenlab -m gpt-5.6-sol "Build a REST API server"
 ```
 
-```bash TokenLab default
-codex -m gpt-5.6-sol "Build a REST API server"
-```
-</CodeGroup>
+## Pilih model
 
-## Model yang Direkomendasikan
-
-| Model | Cocok Untuk |
-|-------|-------------|
-| `gpt-5.6-sol` | Pilihan default terbaik untuk pemrograman dan penalaran |
-| `gpt-5-mini` | Cadangan yang lebih cepat dan lebih murah untuk alur kerja pengodean |
-| `claude-sonnet-4-6` | Tinjauan kode, dokumentasi |
+Pilih model yang saat ini mencantumkan `openai_responses` dalam `tokenlab.accepted_request_formats`. Bandingkan model dengan tugas Anda dan periksa harga di [halaman model](https://tokenlab.sh/id/models).
 
 ## Perintah Interaktif
 
@@ -167,71 +111,41 @@ Jalankan Codex lalu `/status` untuk memeriksa model aktif dan izin. Jika menggun
 
 Saat siap mengirim request nyata, jalankan perintah berikut. Perintah ini menggunakan saldo TokenLab. Periksa balasan dan catatan yang sesuai di [Request](https://tokenlab.sh/dashboard/runs?section=requests). Variabel yang sudah diatur atau aplikasi yang berhasil dimulai belum membuktikan request berhasil.
 
-<CodeGroup>
-```bash Profil TokenLab
+```bash
 codex --profile tokenlab "Reply only with OK. Do not use tools or modify files."
 ```
-
-```bash TokenLab default
-codex "Reply only with OK. Do not use tools or modify files."
-```
-</CodeGroup>
 
 ## Kasus Penggunaan Umum
 
 **Tinjauan kode:**
 
-<CodeGroup>
-```bash Profil TokenLab
+```bash
 git diff | codex --profile tokenlab "Review these code changes"
 ```
 
-```bash TokenLab default
-git diff | codex "Review these code changes"
-```
-</CodeGroup>
-
 **Hasilkan pesan commit:**
 
-<CodeGroup>
-```bash Profil TokenLab
+```bash
 git diff --staged | codex --profile tokenlab "Generate a commit message for these changes"
 ```
 
-```bash TokenLab default
-git diff --staged | codex "Generate a commit message for these changes"
-```
-</CodeGroup>
-
 **Perbaiki kesalahan:**
 
-<CodeGroup>
-```bash Profil TokenLab
+```bash
 codex --profile tokenlab "Fix the TypeScript errors in src/components/"
 ```
 
-```bash TokenLab default
-codex "Fix the TypeScript errors in src/components/"
-```
-</CodeGroup>
-
 **Jelaskan kode:**
 
-<CodeGroup>
-```bash Profil TokenLab
+```bash
 cat main.py | codex --profile tokenlab "Explain what this code does"
 ```
-
-```bash TokenLab default
-cat main.py | codex "Explain what this code does"
-```
-</CodeGroup>
 
 ## Pemecahan Masalah
 
 <AccordionGroup>
   <Accordion title="Kesalahan Koneksi">
-    - Pastikan `base_url` di config.toml persis `https://api.tokenlab.sh/v1`
+    - Pastikan `base_url` di tokenlab.config.toml persis `https://api.tokenlab.sh/v1`
     - Periksa konektivitas jaringan
     - Pastikan tidak ada gangguan dari proxy
   </Accordion>

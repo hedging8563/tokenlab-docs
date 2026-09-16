@@ -5,6 +5,18 @@ description: "Keep the IDs needed to trace requests, tasks, and charges"
 
 Keep TokenLab request, task, and billing IDs in your logs. They connect a user action to its result and charge without storing the prompt or private media.
 
+## From a request to an investigation and support
+
+1. Open [Requests](https://tokenlab.sh/dashboard/runs) in the workspace that owns the request. Find its Request ID and select the row.
+
+2. Choose **Open full details** for a dedicated page. **Back to requests** restores the list filters. A link never grants access to another workspace; use an account authorized for that workspace.
+
+3. For pending or unknown status, refresh progress first. For a failure or interrupted response, choose **Investigate the issue** when available. This starts an investigation for that request in the in-app Agent; it does not replay the original model request. Successful requests do not need an investigation by default.
+
+4. If you still need help, choose the human-support action from the request or investigation. It opens a preview with the linked request and conversation when available. Review the summary and remove private content, then explicitly select **Submit**. An investigation or a preview alone does not send a support request.
+
+5. After submission, keep the confirmation and continue the same conversation in [Support](https://tokenlab.sh/dashboard/support). Reuse it for replies and extra information instead of submitting duplicates.
+
 ## IDs to keep
 
 | Identifier | Where it appears | Use it for |

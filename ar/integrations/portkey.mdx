@@ -5,7 +5,7 @@ description: "استخدم TokenLab كمزود أساسي (upstream provider) ف
 
 ## نظرة عامة
 
-يمكن لبوابة Portkey توجيه الطلبات إلى TokenLab كمزود أساسي. الخيار الافتراضي الأكثر أماناً هو إكمال المحادثات المتوافق مع OpenAI؛ استخدم Responses عندما يكشف إصدار Portkey الخاص بك عن هذا المسار لـ TokenLab.
+اضبط TokenLab في Portkey كمضيف مخصص متوافق مع OpenAI. استخدم Responses فقط إذا كان إصدار Portkey لديك يدعم نقطة نهاية Responses مخصصة.
 
 <Note>
 **النوع**: بوابة ذكاء اصطناعي (AI Gateway)
@@ -19,19 +19,22 @@ description: "استخدم TokenLab كمزود أساسي (upstream provider) ف
 
 | الحقل | القيمة |
 |-------|-------|
-| المزود | `tokenlab` |
-| Base URL | `https://api.tokenlab.sh/v1` |
+| المزود | `openai` |
+| Custom Host | `https://api.tokenlab.sh/v1` |
 | API key | `sk-your-tokenlab-key` |
-| النموذج الافتراضي | `gpt-5.4-mini` |
+| النموذج | معرّف نموذج TokenLab متاح حالياً |
 
 ## إكمال المحادثات (Chat Completions)
 
 استخدم TokenLab لطلبات المحادثة المتوافقة مع OpenAI:
 
+يتطلب هذا المثال بوابة Portkey Gateway ذاتية الاستضافة قيد التشغيل. استبدل عنوان البوابة بعنوان النشر لديك. عند استخدام Portkey Cloud، أرسل أيضاً مفتاح Portkey API عبر `x-portkey-api-key`. راجع [دليل إعداد Portkey](https://portkey.ai/docs/api-reference/inference-api/headers).
+
 ```bash
 curl https://your-portkey-gateway.example/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -H "x-portkey-provider: tokenlab" \
+  -H "x-portkey-provider: openai" \
+  -H "x-portkey-custom-host: https://api.tokenlab.sh/v1" \
   -H "Authorization: Bearer sk-your-tokenlab-key" \
   -d '{
     "model": "gpt-5.6-luna",
@@ -41,8 +44,8 @@ curl https://your-portkey-gateway.example/v1/chat/completions \
 
 ## الردود (Responses)
 
-إذا كان إصدار Portkey الخاص بك يوجه ردود TokenLab، فاستخدم `gpt-5.5` أو `gpt-5.4` أو `gpt-5.4-mini` مع `/v1/responses`.
+إذا كان إصدار Portkey لديك يدعم عنوان Responses مخصصاً، فاختر نموذجاً متاحاً يدعم Responses من [صفحة النماذج](https://tokenlab.sh/ar/models) واستخدم `/v1/responses`.
 
 ## ملاحظة حول نقطة النهاية الأصلية (Native Endpoint)
 
-يوفر TokenLab أيضاً نقاط نهاية متوافقة مع Anthropic Messages و Gemini بشكل مباشر. تعتمد إمكانية استخدامها من خلال Portkey على دعم المزود ونقطة النهاية في الإصدار الذي قمت بنشره.
+لا يمكن استخدام Anthropic Messages وGemini عبر Portkey إلا إذا كان إصدار Portkey لديك يدعم عناوين مخصصة لهاتين الصيغتين.

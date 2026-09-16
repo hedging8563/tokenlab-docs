@@ -1,12 +1,16 @@
 ---
 title: "创建任务（火山兼容）"
 openapi: "POST /api/v3/contents/generations/tasks"
-description: "通过火山兼容格式创建 Seedance 2.0 任务。"
+description: "通过火山兼容格式创建 Seedance 任务。"
 ---
 
 ## 概览
 
 已有火山风格 Seedance 客户端只需更换 API 地址和密钥，即可通过 TokenLab 创建任务。
+
+<Note>
+本页示例使用 Seedance 2.0；该接口也支持 Seedance 2.5，模型间差异见下文。 本页的可复用 TokenLab 素材 URI 用法适用于 Seedance 2.0。
+</Note>
 
 另见 [Seedance 2.0 视频模型](/zh/guides/seedance-2-video) 和 [视频生成](/zh/guides/video-generation)。
 
@@ -24,14 +28,23 @@ description: "通过火山兼容格式创建 Seedance 2.0 任务。"
 - `role: "reference_image"`、`reference_video`、`reference_audio` 表示参考素材。
 - `image_url.url` 可以是公网图片 URL，也可以是 `asset://asset-YYYYMMDDHHMMSS-xxxxx` 形式的 TokenLab 素材 URI；`role` 决定该素材是首帧、尾帧还是参考图。
 - 同一个请求里不要混用首尾帧输入和参考素材。
-- 请求体只接受该格式支持的顶层字段。`material_asset_id`、`material_asset_ids`、`priority` 等字段会被拒绝；TokenLab 素材 URI 应放入 `image_url.url`。
+- 不接受顶层 `material_asset_id` 和 `material_asset_ids`。请将 TokenLab 素材 URI 放入 `image_url.url`。`priority` 仅 Seedance 2.5 支持。
 
 ## 参数说明
 
+`duration` 为整数秒数，`-1` 表示自动时长。默认值和限制因模型而异：
+
+| 参数 | Seedance 2.0 | Seedance 2.5 |
+|---|---|---|
+| `duration` | `4`–`15` / `-1` (默认: `5`) | `4`–`30` / `-1` (默认: `-1`) |
+| `resolution` | `480p`, `720p`, `1080p` (默认: `720p`) | `480p`, `720p` (默认: `720p`) |
+| `generate_audio` | `boolean` (默认: `false`) | `boolean` (默认: `true`) |
+| `priority` | 不支持 | `integer`: `0`–`9` |
+| `seed` | `integer`: `-1`–`4294967295` (默认: `-1`) | 不支持 |
+
+Seedance 2.5 的首帧、首尾帧、视频延长和视频到视频请求必须使用 `ratio: "adaptive"`；视频到视频还必须使用 `duration: -1`。`output_format` 的 `mp4` 和 `mov` 选项仅 Seedance 2.5 支持。
+
 - `ratio` 支持 `16:9`、`4:3`、`1:1`、`3:4`、`9:16`、`21:9` 或 `adaptive`。
-- `duration` 表示秒数，也支持模型允许的自动时长值。
-- `resolution` 可传 `480p`、`720p` 或 `1080p`。
-- `generate_audio` 官方默认值是 `false`；需要同步音频时显式传 `true`。
 - `watermark`、`return_last_frame`、`seed`、`execution_expires_after` 和 `safety_identifier` 在符合所选模型规则时可用。
 - `callback_url` 可填写公网 HTTP(S) 地址。
 
@@ -45,7 +58,7 @@ description: "通过火山兼容格式创建 Seedance 2.0 任务。"
 
 ## 图片准备
 
-`content[]` 中的图片会在需要时保存为可复用素材。若 60 秒内尚未就绪，创建请求会返回可重试的素材准备中错误。
+公网 HTTP(S) 图片 URL 和受支持的 data URL 按输入使用，不会自动保存为可复用素材。显式 `asset://asset-...` 引用使用已有 TokenLab 素材，生成前会检查归属与就绪状态。如果引用的素材仍在准备，请等待就绪后重试；创建失败时查看 `error.code` 和 `error.message`。
 
 使用已有 TokenLab 素材时，请传 `asset-YYYYMMDDHHMMSS-xxxxx` ID。
 
@@ -64,10 +77,10 @@ description: "通过火山兼容格式创建 Seedance 2.0 任务。"
 创建请求建议携带唯一的 `Idempotency-Key`。如果连接在响应返回前中断，请使用同一枚 API 密钥、同一个 key 和相同的请求体重试：
 
 - 任务已经创建时，返回相同的 `cgt-...` ID，并附带 `Idempotency-Replayed: true`。
-- 请求仍在处理中时，返回 `409 IdempotencyRequestInProgress` 和 `Retry-After`；等待指定时间后再重试。
+- 请求仍在登记中时，返回 `409 IdempotencyRequestInProgress`；稍后使用同一个 key 和相同请求体重试。
 - 同一个 key 配不同请求体时返回 `409 IdempotencyConflict`，不会再创建第二个任务。
 
-`Idempotency-Key` 只适用于这个 v3 REST 创建接口。`X-Request-ID` 或相同请求体不会自动防止重复创建。
+`Idempotency-Key` 适用于这个 v3 REST 创建接口。`X-Request-ID` 或相同请求体不会自动防止重复创建。
 
 ## 示例
 

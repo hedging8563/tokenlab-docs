@@ -14,10 +14,11 @@ Geçerli yönetim token'ı ile ilişkili kuruluşta yeni bir `type=user` API ana
 
 | Alan | Tür | Varsayılan / Sınırlar | Notlar |
 |------|-----|----------------------|--------|
-| `name` | string | zorunlu, varsayılan `Default Key`, uzunluk `1-50` | Görünen ad, sunucu tarafında baştaki ve sondaki boşluklar kaldırılır |
-| `limitAmount` | number \| null | minimum `0`, girdi üst sınırı `1000000` | `null` veya atlanırsa = limitsiz, `0` = sıfır kota. Pozitif değerler `100000` USD eşdeğerini aşamayacak şekilde depolama limiti olarak normalize edilir |
+| `name` | string | isteğe bağlı, varsayılan `Default Key`, uzunluk `1-50` | Görünen ad, sunucu tarafında baştaki ve sondaki boşluklar kaldırılır |
+| `limitAmount` | number \| string \| null | `0–100000` USD | `null` sınırsız anlamına gelir; `0` harcamayı engeller. Ondalık dizeler en fazla 6 ondalık basamak destekler. Anahtar oluştururken bu alanı atlamak sınırsız anlamına gelir. |
 | `limitCurrency` | enum | varsayılan `USD` | Yalnızca USD. `CNY` gönderildiğinde `400 currency_retired` döner. |
 | `models` | string[] | varsayılan `[]` | Opsiyonel model allowlist'i |
+| `deliveryPolicy` | string \| null | `auto`, `verified`, `official`, `null` | `null`, çalışma alanının teslim politikasını devralır. |
 | `expiresAt` | string \| null | RFC3339 datetime | `null` son kullanma olmadığı anlamına gelir |
 
 ## Notlar
@@ -68,7 +69,8 @@ Bu sayfa OpenAPI şemasını ve kopyalanabilir istek örneklerini sunar. Yöneti
   ],
   "expires_at": "2026-12-31T23:59:59.000Z",
   "last_used_at": null,
-  "created_at": "2026-07-08T03:00:00.000Z"
+  "created_at": "2026-07-08T03:00:00.000Z",
+  "delivery_policy": null
 }
 ```
 </ResponseExample>
@@ -79,12 +81,13 @@ Bu sayfa OpenAPI şemasını ve kopyalanabilir istek örneklerini sunar. Yöneti
 <ResponseField name="id" type="string">Sonraki Yönetim API’si çağrılarında kullanılan API anahtarı tanımlayıcısı.</ResponseField>
 <ResponseField name="name" type="string">API anahtarının görünen adı.</ResponseField>
 <ResponseField name="key_prefix" type="string">Görüntüleme ve destek için gizli olmayan anahtar öneki.</ResponseField>
-<ResponseField name="status" type="string">`active`, `inactive` veya `revoked` değerlerinden biri.</ResponseField>
+<ResponseField name="status" type="string">`active`, `inactive`, `suspended` veya `revoked` değerlerinden biri.</ResponseField>
 <ResponseField name="limit_amount" type="number | null">Görüntüleme için JSON sayısı olarak USD harcama limiti. `null` sınırsız anlamına gelir.</ResponseField>
 <ResponseField name="limit_amount_decimal" type="string | null">Ondalık dize olarak kesin USD harcama limiti. `null` sınırsız anlamına gelir.</ResponseField>
 <ResponseField name="used_amount" type="number">Görüntüleme için JSON sayısı olarak USD cinsinden birikmiş kullanım harcaması.</ResponseField>
 <ResponseField name="used_amount_decimal" type="string">Ondalık dize olarak USD cinsinden kesin birikmiş kullanım harcaması.</ResponseField>
 <ResponseField name="models" type="string[]">Anahtar başına izin verilen model listesi. Boş dizi, anahtar düzeyinde ek model kısıtlaması olmadığı anlamına gelir.</ResponseField>
+<ResponseField name="delivery_policy" type="string | null">`auto`, `verified`, `official`, `null`. `null`, çalışma alanının teslim politikasını devralır.</ResponseField>
 <ResponseField name="expires_at" type="string | null">Anahtarın süresinin dolduğu ISO zaman damgası veya süre sonu yoksa `null`.</ResponseField>
 <ResponseField name="last_used_at" type="string | null">En son kullanımın ISO zaman damgası veya hiç kullanılmadıysa `null`.</ResponseField>
 <ResponseField name="created_at" type="string">Oluşturma ISO zaman damgası.</ResponseField>

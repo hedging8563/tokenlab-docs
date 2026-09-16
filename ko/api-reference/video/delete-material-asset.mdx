@@ -6,10 +6,12 @@ description: "현재 조직이 소유한 Seedance 머티리얼 에셋을 삭제�
 
 하나의 머티리얼 에셋을 삭제합니다. 이 작업은 포함된 머티리얼 그룹을 삭제하지는 않습니다. 삭제 후에는 해당 에셋 ID를 `material_asset_id`로 사용할 수 없습니다.
 
+`project_name`은 인증된 조직 내 리소스를 분리합니다. 기본값은 `default`이며 관련 그룹과 소재에는 대소문자를 구분하는 동일한 값을 사용하세요. POST/PUT은 JSON 본문에, GET/DELETE는 쿼리 매개변수에 지정합니다.
+
 ## 요청 예시
 
 ```bash
-curl https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr \
+curl "https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr?project_name=default" \
   -X DELETE \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```

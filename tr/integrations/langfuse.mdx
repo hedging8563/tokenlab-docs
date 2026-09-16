@@ -15,6 +15,12 @@ Langfuse, OpenAI SDK'sı TokenLab'in `/v1` temel URL'si ile yapılandırıldığ
 **Destek Güveni**: Desteklenen OpenAI uyumlu izleme yolu
 </Note>
 
+## Kurulum
+
+```bash
+pip install langfuse openai
+```
+
 ## Ortam
 
 ```bash
@@ -29,19 +35,25 @@ export TOKENLAB_API_KEY="sk-your-tokenlab-key"
 ```python
 import os
 
-from langfuse import observe
-from langfuse.openai import openai
+from langfuse import get_client, observe
+from langfuse.openai import OpenAI
 
-openai.api_key = os.environ["TOKENLAB_API_KEY"]
-openai.base_url = "https://api.tokenlab.sh/v1"
+client = OpenAI(
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh/v1",
+)
 
 
 @observe()
 def story():
-    return openai.chat.completions.create(
+    return client.chat.completions.create(
         model="claude-sonnet-5",
         messages=[{"role": "user", "content": "Write a short haiku."}],
     ).choices[0].message.content
+
+
+print(story())
+get_client().flush()
 ```
 
 ## Uç Nokta Notları

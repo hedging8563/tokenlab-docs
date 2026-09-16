@@ -14,7 +14,7 @@ Ce point de terminaison fait partie de l'API de lot compatible avec OpenAI de To
 - `completion_window` est actuellement `24h`.
 - L'ordre de sortie n'est pas garanti ; faites toujours correspondre par `custom_id`.
 - Le streaming n'est pas pris en charge à l'intérieur des éléments de lot.
-- Les points de terminaison d’éléments de lot actuellement pris en charge sont `/v1/chat/completions` et `/v1/embeddings` ; les travaux de lot `/v1/responses` sont refusés jusqu’à ce qu’un exécuteur de lot Responses natif soit disponible.
+- Les points de terminaison pris en charge pour les éléments de lot sont `/v1/chat/completions` et `/v1/embeddings`. `/v1/responses` n’est pas pris en charge.
 
 ## Exemple
 
@@ -39,7 +39,6 @@ Utilisez le panneau OpenAPI interactif ci-dessus pour le schéma exact.
 
 - Utilisez `custom_id` pour la réconciliation idempotente en aval.
 - Attendez-vous à ce que `output_file_id` et `error_file_id` ne soient disponibles qu'après que le travailleur finalise le lot.
-- La tarification des lots peut différer de la tarification synchrone car les règles de remise `isBatchRequest=true` s'appliquent.
 
 ## Exemple de réponse
 

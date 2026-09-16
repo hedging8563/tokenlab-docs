@@ -14,10 +14,11 @@ Membuat API key `type=user` baru di organisasi yang terkait dengan management to
 
 | Bidang | Tipe | Default / Batas | Catatan |
 |-------|------|-----------------|---------|
-| `name` | string | wajib, bawaan `Default Key`, panjang `1-50` | Nama tampilan, dipangkas di sisi server |
-| `limitAmount` | number \| null | minimum `0`, input maksimum `1000000` | `null` atau dihilangkan = tidak terbatas, `0` = kuota nol. Nilai positif dinormalisasi menjadi batas simpan yang tidak melebihi setara `100000` USD |
+| `name` | string | opsional, bawaan `Default Key`, panjang `1-50` | Nama tampilan, dipangkas di sisi server |
+| `limitAmount` | number \| string \| null | `0–100000` USD | `null` berarti tanpa batas; `0` mencegah pengeluaran. String desimal mendukung hingga 6 angka desimal. Saat membuat kunci, menghilangkan kolom ini berarti tanpa batas. |
 | `limitCurrency` | enum | bawaan `USD` | Hanya USD. Mengirim `CNY` menghasilkan `400 currency_retired`. |
 | `models` | string[] | bawaan `[]` | Daftar izin model opsional |
+| `deliveryPolicy` | string \| null | `auto`, `verified`, `official`, `null` | `null` mewarisi kebijakan pengiriman ruang kerja. |
 | `expiresAt` | string \| null | datetime RFC3339 | `null` berarti tidak kedaluwarsa |
 
 ## Catatan
@@ -68,7 +69,8 @@ Halaman ini menyediakan skema OpenAPI dan contoh permintaan yang dapat disalin. 
   ],
   "expires_at": "2026-12-31T23:59:59.000Z",
   "last_used_at": null,
-  "created_at": "2026-07-08T03:00:00.000Z"
+  "created_at": "2026-07-08T03:00:00.000Z",
+  "delivery_policy": null
 }
 ```
 </ResponseExample>
@@ -79,12 +81,13 @@ Halaman ini menyediakan skema OpenAPI dan contoh permintaan yang dapat disalin. 
 <ResponseField name="id" type="string">Pengidentifikasi kunci API yang digunakan dalam panggilan API Manajemen berikutnya.</ResponseField>
 <ResponseField name="name" type="string">Nama tampilan kunci API.</ResponseField>
 <ResponseField name="key_prefix" type="string">Awalan kunci nonrahasia untuk tampilan dan dukungan.</ResponseField>
-<ResponseField name="status" type="string">Salah satu dari `active`, `inactive`, atau `revoked`.</ResponseField>
+<ResponseField name="status" type="string">Salah satu dari `active`, `inactive`, `suspended`, atau `revoked`.</ResponseField>
 <ResponseField name="limit_amount" type="number | null">Batas pengeluaran USD sebagai angka JSON untuk tampilan. `null` berarti tanpa batas.</ResponseField>
 <ResponseField name="limit_amount_decimal" type="string | null">Batas pengeluaran USD yang tepat sebagai string desimal. `null` berarti tanpa batas.</ResponseField>
 <ResponseField name="used_amount" type="number">Akumulasi biaya penggunaan dalam USD sebagai angka JSON untuk tampilan.</ResponseField>
 <ResponseField name="used_amount_decimal" type="string">Akumulasi biaya penggunaan yang tepat dalam USD sebagai string desimal.</ResponseField>
 <ResponseField name="models" type="string[]">Daftar model yang diizinkan per kunci. Array kosong berarti tidak ada batasan model tambahan di tingkat kunci.</ResponseField>
+<ResponseField name="delivery_policy" type="string | null">`auto`, `verified`, `official`, `null`. `null` mewarisi kebijakan pengiriman ruang kerja.</ResponseField>
 <ResponseField name="expires_at" type="string | null">Stempel waktu ISO saat kunci kedaluwarsa, atau `null` jika tidak kedaluwarsa.</ResponseField>
 <ResponseField name="last_used_at" type="string | null">Stempel waktu ISO penggunaan terbaru, atau `null` jika belum pernah digunakan.</ResponseField>
 <ResponseField name="created_at" type="string">Stempel waktu ISO pembuatan.</ResponseField>

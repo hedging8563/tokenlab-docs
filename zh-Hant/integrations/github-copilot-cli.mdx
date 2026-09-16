@@ -18,20 +18,39 @@ description: "透過 BYOK 將 GitHub Copilot CLI 連接至 TokenLab"
 ## 安裝與設定
 
 ```bash
-npm install -g @github/copilot
+npm install -g @github/copilot@1.0.85
 copilot --version
 ```
 
-npm 安裝需要 Node.js 22 或更新版本。GitHub 目前要求有效的 Copilot 方案；組織帳號也需要啟用 Copilot CLI 政策。
+npm 安裝需要 Node.js 22 或更新版本。
 
-```bash
-export COPILOT_PROVIDER_TYPE="openai"
-export COPILOT_PROVIDER_BASE_URL="https://api.tokenlab.sh/v1"
-export COPILOT_PROVIDER_API_KEY="sk-your-tokenlab-key"
-export COPILOT_MODEL="kimi-k3"
+依[快速開始](/zh-Hant/quickstart)的 macOS、Linux、WSL 或 Windows PowerShell 步驟設定 `TOKENLAB_API_KEY`，避免把金鑰寫入命令歷史，再從同一終端機啟動 Copilot CLI。長期使用請透過本地秘密管理工具提供金鑰，不要把明文金鑰附加至 shell 設定檔。
 
-copilot
+這些變數只用於本次啟動，保留已儲存的帳戶、預設模型與權限。正常啟動時不加這些變數，即可繼續使用原設定；不要將它們寫入 shell 設定檔。
+
+<CodeGroup>
+```bash macOS / Linux / WSL
+COPILOT_PROVIDER_TYPE=openai COPILOT_PROVIDER_BASE_URL=https://api.tokenlab.sh/v1 COPILOT_PROVIDER_API_KEY="${TOKENLAB_API_KEY:?Set TOKENLAB_API_KEY first}" copilot --model kimi-k3
 ```
+
+```powershell Windows PowerShell
+if (-not $env:TOKENLAB_API_KEY) { throw 'Set TOKENLAB_API_KEY first' }
+$previous = @{}
+$previous['COPILOT_PROVIDER_TYPE'] = [Environment]::GetEnvironmentVariable('COPILOT_PROVIDER_TYPE', 'Process')
+$previous['COPILOT_PROVIDER_BASE_URL'] = [Environment]::GetEnvironmentVariable('COPILOT_PROVIDER_BASE_URL', 'Process')
+$previous['COPILOT_PROVIDER_API_KEY'] = [Environment]::GetEnvironmentVariable('COPILOT_PROVIDER_API_KEY', 'Process')
+try {
+  $env:COPILOT_PROVIDER_TYPE = 'openai'
+  $env:COPILOT_PROVIDER_BASE_URL = 'https://api.tokenlab.sh/v1'
+  $env:COPILOT_PROVIDER_API_KEY = $env:TOKENLAB_API_KEY
+  copilot --model kimi-k3
+} finally {
+  foreach ($name in $previous.Keys) {
+    [Environment]::SetEnvironmentVariable($name, $previous[$name], 'Process')
+  }
+}
+```
+</CodeGroup>
 
 | 變數 | TokenLab 值 |
 |---|---|
@@ -45,3 +64,5 @@ Copilot CLI 要求模型同時支援串流與工具呼叫。啟動後先要求�
 <Warning>
 請勿將 API Key 提交到 Git 追蹤的檔案。若 Key 出現在終端歷史、截圖或日誌中，請立即輪換。
 </Warning>
+
+儲存設定或列出模型不能證明金鑰有效或請求完成。傳送提示詞會使用 TokenLab 餘額；先核對回覆及對應[請求記錄](https://tokenlab.sh/dashboard/runs?section=requests)，再嘗試工具，輔助請求也可能計費。

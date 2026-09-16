@@ -30,7 +30,7 @@ import VideoModelContractNote from "../../snippets/generated/video-model-contrac
 
 <VideoModelContractNote />
 
-<ParamField body="prompt" type="string" required>
+<ParamField body="prompt" type="string">
   生成したい動画のテキスト説明です。大半の公開動画モデルで必須です。
 </ParamField>
 
@@ -51,7 +51,7 @@ import VideoModelContractNote from "../../snippets/generated/video-model-contrac
 </ParamField>
 
 <ParamField body="material_asset_id" type="string">
-  [素材を作成](/ja/api-reference/video/create-material-asset)または自動画像準備で返される TokenLab Seedance 素材 ID。素材が `ACTIVE` になった後、TokenLab 素材ライブラリを使用できる Seedance モデルで使用できます。
+  [素材を作成](/ja/api-reference/video/create-material-asset)で返される TokenLab Seedance 素材 ID。素材が `ACTIVE` になった後、TokenLab 素材ライブラリを使用できる Seedance モデルで使用できます。
 </ParamField>
 
 <ParamField body="material_asset_ids" type="array">
@@ -59,7 +59,7 @@ import VideoModelContractNote from "../../snippets/generated/video-model-contrac
 </ParamField>
 
 <Info>
-選択した Seedance モデルが TokenLab 素材ライブラリを使用できる場合、TokenLab は生成前に画像フィールド（`image`, `image_url`, `image_urls`, `reference_images`, `start_image`, `end_image`）を再利用可能な素材として準備します。60 秒以内に準備が完了しない場合、API は `auto_material_asset_ids` 付きの `409 seedance_material_preparing` を返します。素材が `ACTIVE` になってから再試行してください。選択したモデルが素材ライブラリを使用できない場合、通常の画像入力は通常の画像パスで処理され、明示的な素材 ID は再試行可能な素材可用性エラーで安全に失敗します。
+通常の画像 URL は画像入力として扱われ、再利用可能な素材を自動作成しません。再利用する素材は素材 API で作成し、TokenLab ID または `asset://asset-YYYYMMDDHHMMSS-xxxxx` URI を指定してください。明示した素材で `409 seedance_material_preparing` が返る場合は、`inactive_asset_ids` の素材を確認し、`ACTIVE` になってから再試行してください。
 </Info>
 
 
@@ -68,7 +68,7 @@ import VideoModelContractNote from "../../snippets/generated/video-model-contrac
 </ParamField>
 
 <ParamField body="kling_elements" type="array">
-  `kling-3.0-video` の要素参照定義です。画像条件付きリクエストでのみ利用できます。1-3 個の要素を定義でき、各要素には `name`、任意の `description`、2-4 個の画像 URL を含む `element_input_urls` を指定します。`prompt` では `@name` で参照します。`kling_elements` と `output_audio=true` は併用できません。要素参照を使う場合は `output_audio` を省略するか `false` にしてください。
+  選択モデルの現在の公開詳細に `kling_elements` がある場合のみ使用してください。画像入力と 1〜3 個の要素を指定します。各要素に `name`、任意の `description`、2〜4 個の `element_input_urls` を含め、`prompt` で `@name` として参照します。`output_audio=true` とは併用できません。
 </ParamField>
 
 <ParamField body="video_url" type="string">
@@ -200,7 +200,7 @@ import VideoModelContractNote from "../../snippets/generated/video-model-contrac
 </ParamField>
 
 <ParamField body="user" type="string">
-  エンドユーザーの一意な識別子です。Seedance では、このフィールドを省略した場合に TokenLab がこの値を `safety_identifier` としても使用します。
+  エンドユーザーの一意な識別子。Seedance で `safety_identifier` を省略した場合、TokenLab はこの値を使用します。
 </ParamField>
 
 ## 互換性メモ
@@ -241,6 +241,10 @@ curl -X POST "https://api.tokenlab.sh/v1/videos/generations" \
 
 ## レスポンス
 
+<Note>
+結果、エラー、タイムスタンプ、モデルのフィールドはタスクで利用可能な場合に返されます。
+</Note>
+
 <ResponseField name="id" type="string">
   正規の非同期タスク ID です。`id` と `task_id` の両方がある場合は、同じタスク識別子として扱ってください。
 </ResponseField>
@@ -258,7 +262,7 @@ curl -X POST "https://api.tokenlab.sh/v1/videos/generations" \
 </ResponseField>
 
 <ResponseField name="status" type="string">
-  初期ステータスは `pending` です。
+  タスクのステータス: `pending`, `processing`, `completed`, `failed`。
 </ResponseField>
 
 <ResponseField name="created" type="integer">
@@ -267,6 +271,18 @@ curl -X POST "https://api.tokenlab.sh/v1/videos/generations" \
 
 <ResponseField name="model" type="string">
   使用されたモデルです。
+</ResponseField>
+
+<ResponseField name="video" type="object">
+  利用可能な場合に `url`、`duration`、`width`、`height` を含む単一ビデオペイロード。
+</ResponseField>
+
+<ResponseField name="videos" type="array">
+  生成タスクが複数の出力を返す場合の複数ビデオペイロード。
+</ResponseField>
+
+<ResponseField name="error" type="string | object">
+  エラーメッセージ（失敗時）。
 </ResponseField>
 
 <RequestExample>
@@ -309,38 +325,14 @@ response = requests.post(
         "operation": "image-to-video",
         "image_url": "https://example.com/image.jpg",
         "duration": 6,
-        "aspect_ratio": "16:9"
+        "resolution": "768p"
     }
 )
 ```
 
 ## Kling 3.0 の要素
 
-`kling_elements` は、要素参照が必要な場合に `kling-3.0-video` と一緒に使います。画像条件付きリクエスト（`image_url`、`image_urls`、`start_image`、`end_image`）を指定し、各要素をプロンプト内で `@name` として参照します。`kling_elements` と `output_audio=true` は併用できません。要素参照を使う場合は `output_audio` を省略するか `false` にしてください。
-
-```python
-response = requests.post("https://api.tokenlab.sh/v1/videos/generations",
-    headers=headers,
-    json={
-        "model": "kling-3.0-video",
-        "prompt": "Place @hero_bag on a studio turntable with soft product lighting.",
-        "operation": "image-to-video",
-        "image_url": "https://example.com/studio-start.png",
-        "duration": 5,
-        "resolution": "720p",
-        "kling_elements": [
-            {
-                "name": "hero_bag",
-                "description": "black leather handbag",
-                "element_input_urls": [
-                    "https://example.com/bag-front.png",
-                    "https://example.com/bag-side.png"
-                ]
-            }
-        ]
-    }
-)
-```
+選択モデルの現在の公開詳細に `kling_elements` がある場合のみ使用してください。画像入力と 1〜3 個の要素を指定します。各要素に `name`、任意の `description`、2〜4 個の `element_input_urls` を含め、`prompt` で `@name` として参照します。`output_audio=true` とは併用できません。
 
 ## 参照画像から動画
 
@@ -376,7 +368,6 @@ response = requests.post(
     headers={"Authorization": "Bearer sk-your-api-key"},
     json={
         "model": "viduq2-pro",
-        "prompt": "Smooth transition from day to night",
         "operation": "start-end-to-video",
         "start_image": "https://example.com/day.jpg",
         "end_image": "https://example.com/night.jpg",
@@ -389,7 +380,7 @@ response = requests.post(
 
 ## 動画から動画
 
-`grok-imagine-video` の video-to-video では、公開 HTTPS の `.mp4` URL を `video_url` に渡します。TokenLab はこれを xAI REST の `video.url` ボディへ変換します。`resolution` は `480p` または `720p` に設定できます。この編集フローでは `duration` と `aspect_ratio` は受け付けません。
+`grok-imagine-video` の video-to-video では、公開 HTTPS の `.mp4` URL を `video_url` に、編集指示を `prompt` に指定します。この操作では `resolution`、`duration`、`aspect_ratio` を省略してください。
 
 既存の動画を主入力として使う場合は `operation=video-to-video` を使用します。
 
@@ -401,8 +392,7 @@ response = requests.post(
         "model": "grok-imagine-video",
         "operation": "video-to-video",
         "video_url": "https://example.com/source.mp4",
-        "prompt": "Enhance the clip while preserving the original motion.",
-        "resolution": "720p"
+        "prompt": "Enhance the clip while preserving the original motion."
     }
 )
 ```
@@ -431,11 +421,9 @@ response = requests.post(
 公開動画モデルの一覧と対応操作は時間とともに変わります。モデル固有のフローを実装する前に、[Models API](/ja/api-reference/models/list-models) を真値として確認してください：
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=video" \
-  -H "Authorization: Bearer sk-your-api-key"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=video"
 
-curl "https://api.tokenlab.sh/v1/models/veo3.1" \
-  -H "Authorization: Bearer sk-your-api-key"
+curl "https://api.tokenlab.sh/v1/models/veo3.1"
 ```
 
 モデル固有の操作やフィールドに依存する前に、モデル詳細レスポンスを確認してください。`audio-to-video` や `video-extension` などの操作はモデル固有です。本ページの静的な例ではなく、そこで現在の可用性を確認してください。

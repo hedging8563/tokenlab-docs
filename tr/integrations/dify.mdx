@@ -1,22 +1,11 @@
 ---
 title: "Dify"
-description: "OpenAI sağlayıcısını ve özel bir base URL kullanarak TokenLab'i Dify ile entegre edin"
+description: "OpenAI-API-compatible sağlayıcısını ve özel bir base URL kullanarak TokenLab'i Dify ile entegre edin"
 ---
 
 ## Genel Bakış
 
-Dify, OpenAI uyumlu model sağlayıcı akışı aracılığıyla TokenLab ile uyumlu bir şekilde çalışır.
-
-Bu, sohbet tamamlama (chat-completions) odaklı bir entegrasyon yoludur. Dify'ın özel Codex entegrasyonlarıyla aynı yanıtları veya WebSocket davranışlarını sunduğunun bir garantisi olarak okunmamalıdır.
-
-Mevcut Dify sürümleri için en güvenli yol genellikle şudur:
-- Yerleşik **OpenAI** sağlayıcısını seçin
-- TokenLab API anahtarınızı ayarlayın
-- `https://api.tokenlab.sh/v1` şeklinde özel bir base URL belirleyin
-
-<Note>
-Bazı eski Dify sürümleri bunu, özel base URL alanı olan yerleşik `OpenAI` sağlayıcısı yerine `OpenAI-API-compatible` olarak sunar. Dify arayüzünüz farklı görünüyorsa, o sürümde mevcut olan en yakın OpenAI uyumlu özel sağlayıcı akışını kullanın.
-</Note>
+Dify'ı TokenLab'e bağlamak için **OpenAI-API-compatible** model sağlayıcı eklentisini kullanın. Model türünü **LLM**, **Completion mode** değerini **Chat** ve **API Type** değerini **Chat Completions API** olarak ayarlayın. Bu kılavuz Chat Completions kullanır.
 
 <Note>
 **Tür**: Çerçeve veya Platform
@@ -45,8 +34,8 @@ Bazı eski Dify sürümleri bunu, özel base URL alanı olan yerleşik `OpenAI` 
   <Step title="Model Sağlayıcılarını Açın">
     Dify içinde **Settings** → **Model Providers** kısmına gidin
   </Step>
-  <Step title="OpenAI'ı Seçin">
-    **OpenAI** sağlayıcı ayarlarını açın. Dify sürümünüz burada özel bir base URL sunmuyorsa, bunun yerine o sürümde sunulan OpenAI uyumlu özel sağlayıcı seçeneğini kullanın.
+  <Step title="OpenAI-API-compatible'ı seçin">
+    **OpenAI-API-compatible** seçeneğini açın. Yoksa bu model sağlayıcı eklentisini Dify Marketplace'ten yükleyin. TokenLab ayarlarını girmek için **Add model** seçeneğini seçin.
   </Step>
   <Step title="TokenLab Ayarlarını Girin">
     Şu değerleri kullanın:
@@ -54,7 +43,10 @@ Bazı eski Dify sürümleri bunu, özel base URL alanı olan yerleşik `OpenAI` 
     | Alan | Değer |
     |-------|-------|
     | API Key | `sk-your-tokenlab-key` |
-    | API Base URL / Custom Base URL | `https://api.tokenlab.sh/v1` |
+    | Model type | LLM |
+    | Completion mode | Chat |
+    | API Type | Chat Completions API |
+    | API Base URL | `https://api.tokenlab.sh/v1` |
   </Step>
   <Step title="Modelleri Ekleyin">
     Kullanmak istediğiniz modelleri ekleyin, örneğin:
@@ -70,7 +62,7 @@ Bazı eski Dify sürümleri bunu, özel base URL alanı olan yerleşik `OpenAI` 
 
 ### Adım 3: Bağlantıyı Test Edin
 
-1. `gpt-5-mini` veya `gpt-4o` gibi bir model seçin
+1. `gpt-5.4-mini` gibi eklediğiniz bir modeli seçin.
 2. Bir test istemi (prompt) gönderin
 3. Dify'ın geçerli bir yanıt aldığını doğrulayın
 
@@ -94,16 +86,16 @@ Ardından, ilgili bilgi bankası veya uygulama ayarlarında bunu varsayılan emb
 ## En İyi Uygulamalar
 
 <AccordionGroup>
-  <Accordion title="Yerleşik OpenAI sağlayıcısı ile başlayın">
-    Daha yeni Dify sürümlerinde, özel base URL'ye sahip yerleşik OpenAI sağlayıcısı genellikle TokenLab için en temiz kurulumdur.
+  <Accordion title="Alternatif olarak OpenAI eklentisi">
+    Ayrı bir eklenti olan **OpenAI**, kendi kataloğunda desteklenen modeller için kullanılabilir. Özel base URL değerini `https://api.tokenlab.sh/v1`, **API Protocol** değerini **Chat Completions** olarak ayarlayın; varsayılan değer Responses olabilir. Bu, OpenAI-API-compatible eklentisinin eski adı değildir ve her özel model kimliğini kabul etmez.
   </Accordion>
 
   <Accordion title="İterasyon için daha ucuz modeller kullanın">
     İterasyon yaparken `gpt-5.4-mini`, `gemini-3.5-flash` veya `deepseek-v4-flash` kullanın, ardından daha ağır iş akışlarını yalnızca gerektiğinde daha güçlü modellere geçirin.
   </Accordion>
 
-  <Accordion title="Dify'ın genellikle sohbet tamamlama odaklı olduğunu unutmayın">
-    Çoğu Dify akışı, OpenAI uyumlu sohbet davranışını kullanır. Codex'e özgü yanıtlar veya WebSocket davranışı gerekiyorsa, Dify yerine özel Codex entegrasyonlarını kullanın.
+  <Accordion title="Bu yapılandırma Chat Completions kullanır">
+    Bu yapılandırmada **Completion mode = Chat** ve **API Type = Chat Completions API** ayarlarını koruyun. Responses ayrı bir API seçeneğidir; bu kılavuz onu veya WebSocket bağlantılarını yapılandırmaz.
   </Accordion>
 </AccordionGroup>
 

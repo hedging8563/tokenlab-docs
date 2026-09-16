@@ -3,6 +3,12 @@ title: "✨ Skill d’intégration API TokenLab"
 description: "Installez le skill d’intégration API TokenLab maintenu et apprenez aux coding agents à découvrir les modèles, lire les contrats publics et récupérer des erreurs API."
 ---
 
+```text
+Lisez cette page et ajoutez le Skill TokenLab à mon agent actuel. Vérifiez d’abord la version et la configuration active. Conservez les comptes, fournisseurs, permissions et réglages existants. Sauvegardez les fichiers et montrez les modifications. Je saisirai la clé API localement ; ne la demandez ni ne l’affichez dans le chat. Vérifiez le chargement de la configuration et expliquez tout test payant avant de l’exécuter.
+https://docs.tokenlab.sh/fr/integrations/coding-agent-skill
+```
+
+
 <Note>
 Cette page documente le skill partagé `tokenlab-api-integration` maintenu. La distribution canonique se trouve dans [hedging8563/tokenlab-skills](https://github.com/hedging8563/tokenlab-skills), où le dépôt public conserve volontairement uniquement ce skill.
 </Note>
@@ -70,11 +76,7 @@ Ne collez pas les API keys dans les prompts ou les fichiers source. Le skill doi
 
 ## Workflow Agent recommandé
 
-1. Commencez par le plus petit exemple fonctionnel adapté au langage et à la famille API demandés.
-2. Si le choix du modèle est ouvert, appelez `/v1/models` ou `https://api.tokenlab.sh/llms.txt` avant de coder un modèle en dur.
-3. Pour les tâches non-chat, appelez `/v1/models?recommended_for=<scene>` où `<scene>` vaut `image`, `video`, `music`, `3d`, `tts`, `stt`, `embedding`, `rerank` ou `translation`.
-4. Avant de modifier une requête non-chat échouée, lisez `/v1/models/:model` et alignez `supported_operations`, `supported_parameters`, `request_endpoint`, `request_endpoint_by_operation`, `request_shape_mode` et `recommended_request`.
-5. Si l’API renvoie une erreur Agent-First, utilisez les champs structurés pour corriger la requête et ne réessayez que si l’erreur est retryable.
+Lisez la liste actuelle puis `tokenlab.accepted_request_formats` et les champs publics du modèle choisi. Gardez le même format pour une conversation et ses appels d’outils ; les champs ne sont pas convertis automatiquement. Ne changez pas de modèle ou de protocole de votre propre initiative en cas d’erreur.
 
 ## Exemple chat minimal
 
@@ -86,12 +88,12 @@ from openai import OpenAI
 
 client = OpenAI(
     api_key=os.environ["TOKENLAB_API_KEY"],
-    base_url="https://api.tokenlab.sh/v1"
+    base_url="https://api.tokenlab.sh/v1",
 )
 
 response = client.chat.completions.create(
-    model="gpt-4o-mini",
-    messages=[{"role": "user", "content": "Hello!"}]
+    model="gpt-5.6-luna",
+    messages=[{"role": "user", "content": "Hello!"}],
 )
 
 print(response.choices[0].message.content)
@@ -114,19 +116,19 @@ Préférez la découverte en direct aux listes embarquées obsolètes :
 curl https://api.tokenlab.sh/llms.txt
 
 # Lister les modèles
-curl "https://api.tokenlab.sh/v1/models" -H "Authorization: Bearer sk-KEY"
-curl "https://api.tokenlab.sh/v1/models?category=image" -H "Authorization: Bearer sk-KEY"
+curl "https://api.tokenlab.sh/v1/models" -H "Authorization: Bearer $TOKENLAB_API_KEY"
+curl "https://api.tokenlab.sh/v1/models?category=image" -H "Authorization: Bearer $TOKENLAB_API_KEY"
 
 # Listes courtes non-chat classées
-curl "https://api.tokenlab.sh/v1/models?recommended_for=image" -H "Authorization: Bearer sk-KEY"
-curl "https://api.tokenlab.sh/v1/models?recommended_for=video" -H "Authorization: Bearer sk-KEY"
-curl "https://api.tokenlab.sh/v1/models?recommended_for=translation" -H "Authorization: Bearer sk-KEY"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=image" -H "Authorization: Bearer $TOKENLAB_API_KEY"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=video" -H "Authorization: Bearer $TOKENLAB_API_KEY"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=translation" -H "Authorization: Bearer $TOKENLAB_API_KEY"
 
 # Lire le détails du modèle d’un modèle avant de relancer une requête non-chat
-curl "https://api.tokenlab.sh/v1/models/gpt-image-2" -H "Authorization: Bearer sk-KEY"
+curl "https://api.tokenlab.sh/v1/models/gpt-image-2" -H "Authorization: Bearer $TOKENLAB_API_KEY"
 
 # Détail des prix uniquement
-curl "https://api.tokenlab.sh/v1/models/gpt-image-2/pricing" -H "Authorization: Bearer sk-KEY"
+curl "https://api.tokenlab.sh/v1/models/gpt-image-2/pricing" -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```
 
 ## Sélection du protocole natif
@@ -141,12 +143,7 @@ Les endpoints sont `/v1/chat/completions` pour Chat Completions, `/v1/responses`
 
 Les erreurs incluent des champs que les coding agents peuvent parser sans scraper la documentation :
 
-| Erreur | Champs utiles | Action de l’agent |
-|---|---|---|
-| Nom de modèle incorrect | `did_you_mean`, `suggestions`, `hint` | Réessayer avec le modèle corrigé ou une alternative suggérée |
-| Solde insuffisant | `balance_usd`, `estimated_cost_usd`, `suggestions` | Demander une approbation ou passer à un modèle abordable |
-| Limite de débit ou indisponibilité temporaire | `retryable`, `retry_after`, `alternatives` | Attendre, réessayer ou choisir une alternative listée |
-| Requête non-chat incompatible | `supported_operations`, `supported_parameters`, `request_endpoint`, `request_endpoint_by_operation`, `request_shape_mode`, `recommended_request` | Reconstruire la requête à partir des détails du modèle et renvoyer une erreur explicite pour les champs qui modifient l’intention |
+Utilisez d’abord le statut HTTP et le `code` d’erreur. `did_you_mean` peut corriger un nom, mais ne changez pas de modèle sans le choix de l’utilisateur. Pour `429`, respectez `Retry-After` ou `retry_after` et ne réessayez que si l’erreur le permet et que cette action est explicitement choisie. Corrigez d’abord les erreurs de validation, d’authentification, de solde ou de permission. Après un délai dépassé lors d’une création, vérifiez si une tâche existe déjà avant de renvoyer la demande.
 
 ## Familles API prises en charge
 
@@ -204,21 +201,4 @@ Les erreurs incluent des champs que les coding agents peuvent parser sans scrape
 
 ## Ressources
 
-<CardGroup cols={2}>
-  <Card title="Agent-First API" icon="robot" href="/fr/guides/agent-first-api">
-    Indices d’erreur structurés et comportement de récupération
-  </Card>
-  <Card title="Documentation API" icon="book" href="https://docs.tokenlab.sh">
-    Configuration par endpoint et API Reference
-  </Card>
-  <Card title="Modèles" icon="sparkles" href="https://tokenlab.sh/fr/models">
-    Parcourir les modèles disponibles
-  </Card>
-  <Card title="llms.txt" icon="file-lines" href="https://api.tokenlab.sh/llms.txt">
-    Vue d’ensemble API lisible par machine pour agents
-  </Card>
-</CardGroup>
-
-<Info>
-Des questions ? Utilisez [GitHub Issues](https://github.com/hedging8563/tokenlab-skills/issues) ou contactez [support@tokenlab.sh](mailto:support@tokenlab.sh).
-</Info>
+Pour les questions API ou de compte, utilisez le [support intégré](https://tokenlab.sh/dashboard/support), vérifiez l’aperçu et envoyez explicitement. Pour une requête précise, partez de [Requêtes](https://tokenlab.sh/dashboard/runs) et du [guide de dépannage](/fr/guides/observability-troubleshooting). Signalez les défauts du Skill dans [GitHub Issues](https://github.com/hedging8563/tokenlab-skills/issues).

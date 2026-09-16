@@ -13,7 +13,7 @@ Endpoint ini dipertahankan untuk client variasi legacy yang kompatibel dengan Op
 **Timeout permintaan sinkron:** beberapa penyedia gambar yang dirutekan mengembalikan gambar final secara inline dan menunggu proses generasi selesai. Permintaan resolusi tinggi atau kualitas tinggi dapat memakan waktu hampir satu menit atau lebih, jadi atur timeout HTTP client Anda minimal `120s`. Jika respons pembuatan berisi `status: "pending"`, `task_id`, atau `poll_url`, ikuti `poll_url` yang dikembalikan.
 
 <ParamField body="image" type="file" required>
-  Gambar yang digunakan sebagai dasar untuk variasi. Harus berupa file PNG yang valid, kurang dari 50MB, dan berbentuk persegi.
+  Gambar sumber multipart. File dan seluruh body permintaan masing-masing tidak boleh melebihi 50 MiB. Format dan dimensi bergantung pada model; detail model saat ini harus mencantumkan `/v1/images/variations` secara eksplisit.
 </ParamField>
 
 <ParamField body="model" type="string" required>
@@ -21,14 +21,14 @@ Endpoint ini dipertahankan untuk client variasi legacy yang kompatibel dengan Op
 </ParamField>
 
 <ParamField body="n" type="integer" default="1">
-  Jumlah gambar yang akan dihasilkan. Harus antara 1 dan 10.
+  Jumlah gambar yang dibuat (1-10, tergantung model).
 </ParamField>
 
 <ParamField body="size" type="string">
   Ukuran gambar yang dihasilkan untuk rute legacy yang kompatibel dengan variasi. Nilai yang didukung bergantung pada model yang dipilih.
 </ParamField>
 
-<ParamField body="response_format" type="string" default="url">
+<ParamField body="response_format" type="string">
   Format pengembalian gambar yang dihasilkan. Harus `url` atau `b64_json`.
 </ParamField>
 

@@ -15,13 +15,26 @@ Prompt flow'un OpenAI bağlantısı, özel bir `base_url` değerini destekler. B
 **Destek Güveni**: Desteklenen OpenAI uyumlu yol
 </Note>
 
-## Bağlantı Oluşturma
+## Kurulum
 
 ```bash
-pf connection create \
-  --file ./my_chatbot/openai.yaml \
-  --set api_key=sk-your-tokenlab-key base_url=https://api.tokenlab.sh/v1 \
-  --name open_ai_connection
+pip install promptflow promptflow-tools
+```
+
+## Bağlantı Oluşturma
+
+Aşağıdaki bağlantıyı `openai.yaml` olarak kaydedin. Komut API anahtarını yerel olarak sorar. OpenAI düğümünde TokenLab model kimliğini `inputs.model` alanına yazın; `deployment_name` Azure OpenAI içindir.
+
+```yaml
+$schema: https://azuremlschemas.azureedge.net/promptflow/latest/OpenAIConnection.schema.json
+name: open_ai_connection
+type: open_ai
+base_url: https://api.tokenlab.sh/v1
+api_key: "<user-input>"
+```
+
+```bash
+pf connection create --file openai.yaml
 ```
 
 ## Akış Notları
@@ -29,11 +42,18 @@ pf connection create \
 `flow.dag.yaml` dosyanızda, bağlantı adını yukarıdaki komutla uyumlu tutun:
 
 ```yaml
-connection: open_ai_connection
-deployment_name: claude-sonnet-5
+nodes:
+  - name: chat
+    type: llm
+    source:
+      type: code
+      path: chat.jinja2
+    inputs:
+      model: claude-sonnet-5
+    api: chat
+    connection: open_ai_connection
 ```
 
-Bazı Prompt flow şablonları bu değere `deployment_name` adını verir çünkü aynı şablonlar Azure OpenAI dağıtımlarını da destekler. TokenLab ile birlikte TokenLab model kimliğini kullanın.
 
 ## Uç Nokta Notları
 

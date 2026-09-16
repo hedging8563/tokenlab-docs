@@ -9,7 +9,7 @@ Los materiales de Seedance son referencias de imagen, video o audio reutilizable
 
 | Objetivo | Flujo necesario |
 | --- | --- |
-| Usar una URL de imagen una sola vez | Enviar la URL directamente en la solicitud de video; un modelo compatible prepara el material automáticamente |
+| Usar una URL de imagen una sola vez | Enviar la URL en un campo de imagen admitido; no se crea un ID de recurso reutilizable |
 | Reutilizar avatar, producto o estilo | Crear grupo `aigc_avatar` y material, esperar `ACTIVE` y usar el ID |
 | Reutilizar una persona real | Completar verificación visual, obtener `GroupId`, crear material, esperar `ACTIVE` y usar el ID |
 | Migrar un cliente de materiales Volcengine | Conservar el formato Action y usar la referencia compatible con Volcengine: [Actions de materiales (compatibles con Volcengine)](/es/api-reference/video/volc-compatible-material-actions) |
@@ -27,11 +27,13 @@ Los materiales de Seedance son referencias reutilizables con alcance de organiza
 
 Mantenga `group_id` y el `id` del activo de material separados. `group_id` es para organizar las cargas; el `id` del activo de material es para la generación de video. Si una solicitud de video devuelve `Seedance material asset not found or not accessible`, confirme que ha pasado un `id` de activo de material, no un `group_id`, y que el activo pertenece a la misma organización, no ha sido eliminado y tiene `status: "ACTIVE"`.
 
-## Materiales de imagen automáticos
+## URL de imágenes y recursos reutilizables
 
-Cuando el modelo Seedance seleccionado puede usar la biblioteca de materiales de TokenLab, puedes enviar URLs de imagen o data URLs inline compatibles directamente en `image`, `image_url`, `image_urls`, `reference_images`, `start_image` o `end_image`. TokenLab importa esas imágenes al grupo predeterminado de materiales de avatar virtual de la organización y conserva su rol como primer fotograma, último fotograma o imagen de referencia.
+Envía URL HTTP(S) públicas o data URL admitidas en los campos de imagen del modelo elegido. Se procesan como entradas multimedia normales y no crean automáticamente ID de recursos reutilizables.
 
-Si los materiales pasan a `ACTIVE` en 60 segundos, la generación continúa en la misma solicitud. Si no, la API devuelve `409 seedance_material_preparing` con `auto_material_asset_ids`; consulta esos materiales hasta que estén `ACTIVE` y luego reintenta con `material_asset_id` o `material_asset_ids`. Si el modelo seleccionado no puede usar la biblioteca de materiales, las URLs de imagen o data URLs normales permanecen en el flujo de imagen habitual; los IDs de material explícitos fallan de forma segura con un error de disponibilidad de material. Los IDs de materiales de avatar virtual o persona real existentes se usan tal cual y no se importan de nuevo.
+Para reutilizar un recurso, créalo mediante la API de materiales, espera a `ACTIVE` y usa `material_asset_id`, `material_asset_ids` o `asset://<id>` en un campo multimedia admitido. Conserva su función de primer fotograma, último fotograma o imagen de referencia.
+
+Si un recurso indicado explícitamente sigue preparándose, `POST /v1/videos/generations` devuelve `409 seedance_material_preparing` con `inactive_asset_ids`. Consulta esos recursos hasta `ACTIVE` y reintenta con los mismos ID. Si aparece `FAILED`, revisa `error_message` y corrige o vuelve a importar el recurso antes de reintentar.
 
 ## Verificación de material de persona real
 
@@ -44,6 +46,8 @@ Utilice la verificación de material de persona real cuando su producto requiera
 5. Guarde `GroupId` y úselo como `group_id` al crear materiales `liveness_face`.
 
 `BytedToken` es válido durante 30 minutos. Use el mismo `ProjectName` en ambas solicitudes Action. La autenticación usa `Authorization: Bearer <TOKENLAB_API_KEY>`; no se aceptan firmas AK/SK de Volc.
+
+Abre el `H5Link` devuelto inmediatamente después de crearlo. La validez del token no garantiza que puedas abrir la página de verificación por primera vez en cualquier momento de ese periodo.
 
 Opcional: utilice la [consola de prueba](https://tokenlab.sh/dashboard/seedance-assets) para verificar su flujo de solicitud y callback, inspeccionar grupos de materiales y revisar el historial de verificación. Su integración de producción debe llamar a las APIs directamente.
 
@@ -63,9 +67,11 @@ Para `aigc_avatar`, `group_id` es opcional; TokenLab utiliza o crea el grupo de 
 
 | Tipo | Entrada admitida |
 |------|-----------------|
-| Imagen | `jpeg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`; relación de aspecto `(0.4, 2.5)`; ancho y alto `(300, 6000)` px; menos de 30 MB. |
-| Video | `mp4`, `mov`; `480p`, `720p` o `1080p`; 2-15 segundos; relación de aspecto `[0.4, 2.5]`; ancho y alto `[300, 6000]` px; píxeles totales entre 409600 y 2068676; hasta 200 MB; 24-60 FPS. |
-| Audio | `aac`, `wav`, `mp3`; 2-15 segundos; hasta 15 MB. |
+| Imagen | `jpeg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`; ≤ 30 MiB; ancho y alto [300, 6000] px; relación de aspecto [0.4, 2.5] |
+| Video | `mp4`, `mov`; ≤ 200 MiB |
+| Audio | `aac`, `wav`, `mp3`; ≤ 15 MiB |
+
+La tabla indica límites de importación. Una solicitud aceptada no garantiza que se supere la validación del medio o de la persona. Espera `ACTIVE`; ante `FAILED`, corrige el origen según `error_message` antes de importarlo de nuevo.
 
 La ingesta de material es asíncrona. Realice sondeos (polling) a [Obtener activo de material](/es/api-reference/video/get-material-asset) hasta que el `status` sea `ACTIVE`. Una respuesta HTTP exitosa solo significa que la solicitud fue aceptada; lea siempre el estado comercial. Si el estado es `FAILED`, inspeccione `error_message`, corrija el material de origen y cree un nuevo activo.
 

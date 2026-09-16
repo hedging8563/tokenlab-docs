@@ -9,7 +9,7 @@ Material Seedance adalah referensi gambar, video, atau audio yang dapat digunaka
 
 | Tujuan | Alur wajib |
 | --- | --- |
-| Memakai URL gambar satu kali | Kirim URL langsung dalam request video; model kompatibel menyiapkan material otomatis |
+| Memakai URL gambar satu kali | Kirim URL pada field gambar yang didukung; ini tidak membuat ID material yang dapat digunakan kembali |
 | Menggunakan ulang avatar, produk, atau gaya | Buat grup `aigc_avatar` dan material, tunggu `ACTIVE`, lalu gunakan ID |
 | Menggunakan ulang orang asli | Selesaikan verifikasi visual, dapatkan `GroupId`, buat material, tunggu `ACTIVE`, lalu gunakan ID |
 | Memigrasikan klien material Volcengine | Pertahankan bentuk Action dan gunakan referensi kompatibel Volcengine: [Action material kompatibel Volcengine](/id/api-reference/video/volc-compatible-material-actions) |
@@ -27,11 +27,13 @@ Materi Seedance adalah referensi yang dapat digunakan kembali dan dicakup oleh o
 
 Pisahkan `group_id` dan `id` aset materi. `group_id` digunakan untuk mengatur unggahan; `id` aset materi digunakan untuk pembuatan video. Jika permintaan video mengembalikan `Seedance material asset not found or not accessible`, pastikan Anda memberikan `id` aset materi, bukan `group_id`, dan bahwa aset tersebut milik organisasi yang sama, tidak dihapus, dan memiliki `status: "ACTIVE"`.
 
-## Material Gambar Otomatis
+## URL gambar dan material yang dapat digunakan kembali
 
-Jika model Seedance yang dipilih dapat menggunakan pustaka material TokenLab, Anda dapat mengirim URL gambar atau data URL inline yang didukung langsung di `image`, `image_url`, `image_urls`, `reference_images`, `start_image`, atau `end_image`. TokenLab mengimpor gambar tersebut ke grup material avatar virtual default organisasi dan mempertahankan perannya sebagai frame pertama, frame terakhir, atau gambar referensi.
+Kirim URL HTTP(S) publik atau data URL yang didukung pada field gambar model pilihan. Input ini mengikuti pemrosesan media biasa dan tidak otomatis membuat ID material yang dapat digunakan kembali.
 
-Jika material menjadi `ACTIVE` dalam 60 detik, generasi berlanjut dalam request yang sama. Jika belum siap, API mengembalikan `409 seedance_material_preparing` dengan `auto_material_asset_ids`; lihat material tersebut sampai `ACTIVE`, lalu coba lagi dengan `material_asset_id` atau `material_asset_ids`. Jika model yang dipilih tidak dapat menggunakan pustaka material, URL gambar atau data URL biasa tetap berada di jalur gambar normal; ID material eksplisit gagal secara aman dengan error ketersediaan material yang dapat dicoba ulang. ID material avatar virtual atau real-person yang sudah ada digunakan apa adanya dan tidak diimpor ulang.
+Untuk menggunakan kembali material, buat aset melalui API material, tunggu `ACTIVE`, lalu gunakan `material_asset_id`, `material_asset_ids`, atau `asset://<id>` pada field media yang didukung. Pertahankan perannya sebagai bingkai awal, bingkai akhir, atau gambar referensi.
+
+Jika material yang disebutkan secara eksplisit masih dipersiapkan, `POST /v1/videos/generations` mengembalikan `409 seedance_material_preparing` beserta `inactive_asset_ids`. Periksa aset hingga `ACTIVE`, lalu ulangi dengan ID yang sama. Jika `FAILED`, periksa `error_message` dan perbaiki atau impor ulang terlebih dahulu.
 
 ## Verifikasi Materi Orang Asli
 
@@ -44,6 +46,8 @@ Gunakan verifikasi materi orang asli ketika produk Anda memerlukan persetujuan d
 5. Simpan `GroupId` dan gunakan sebagai `group_id` saat membuat material `liveness_face`.
 
 `BytedToken` berlaku selama 30 menit. Gunakan `ProjectName` yang sama dalam kedua permintaan Action. Autentikasi menggunakan `Authorization: Bearer <TOKENLAB_API_KEY>`; tanda tangan AK/SK Volc tidak diterima.
+
+Buka `H5Link` yang dikembalikan segera setelah dibuat. Masa berlaku token tidak menjamin halaman verifikasi dapat dibuka pertama kali kapan saja dalam rentang tersebut.
 
 Opsional: gunakan [konsol pengujian](https://tokenlab.sh/dashboard/seedance-assets) untuk memverifikasi permintaan dan alur callback Anda, memeriksa grup materi, dan meninjau riwayat verifikasi. Integrasi produksi Anda harus memanggil API secara langsung.
 
@@ -63,9 +67,11 @@ Untuk `aigc_avatar`, `group_id` bersifat opsional; TokenLab menggunakan atau mem
 
 | Tipe | Input yang didukung |
 |------|-----------------|
-| Gambar | `jpeg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`; rasio aspek `(0.4, 2.5)`; lebar dan tinggi `(300, 6000)` px; di bawah 30 MB. |
-| Video | `mp4`, `mov`; `480p`, `720p`, atau `1080p`; 2-15 detik; rasio aspek `[0.4, 2.5]`; lebar dan tinggi `[300, 6000]` px; total piksel antara 409600 dan 2068676; hingga 200 MB; 24-60 FPS. |
-| Audio | `aac`, `wav`, `mp3`; 2-15 detik; hingga 15 MB. |
+| Gambar | `jpeg`, `png`, `webp`, `bmp`, `tiff`, `gif`, `heic`, `heif`; ≤ 30 MiB; lebar dan tinggi [300, 6000] px; rasio aspek [0.4, 2.5] |
+| Video | `mp4`, `mov`; ≤ 200 MiB |
+| Audio | `aac`, `wav`, `mp3`; ≤ 15 MiB |
+
+Tabel menunjukkan batas impor file. Permintaan diterima tidak menjamin media atau verifikasi orang asli lolos. Tunggu `ACTIVE`; jika `FAILED`, perbaiki sumber berdasarkan `error_message` sebelum mengimpor ulang.
 
 Penyerapan materi bersifat asinkron. Lakukan polling pada [Mendapatkan Material Asset](/id/api-reference/video/get-material-asset) hingga `status` menjadi `ACTIVE`. Respons HTTP yang berhasil hanya berarti permintaan telah diterima; selalu baca status bisnisnya. Jika statusnya `FAILED`, periksa `error_message`, perbaiki materi sumber, dan buat aset baru.
 

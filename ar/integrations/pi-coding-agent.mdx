@@ -8,11 +8,13 @@ description: "استخدم Pi مع TokenLab. Pi هو أداة برمجة طرف�
 اتبع [التثبيت الرسمي](https://pi.dev/). حزمة npm هي `@earendil-works/pi-coding-agent`. يستخدم Windows برنامج Git Bash افتراضيًا؛ راجع [إعداد الصدفة](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/windows.md). تجاوز التثبيت إن كان Pi موجودًا.
 
 ```bash
-npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+npm install -g --ignore-scripts @earendil-works/pi-coding-agent@0.85.1
 pi --version
 ```
 
-ادمج هذه العناصر في `~/.pi/agent/models.json` أو في مجلد `PI_CODING_AGENT_DIR`. احتفظ بنسخة احتياطية وبالمزودات الأخرى. عيّن `TOKENLAB_API_KEY` محليًا في بيئة التشغيل ولا تلصقه في المحادثة. متغير Base URL وحده لا ينشئ المزود.
+تم التحقق من الإعداد أدناه باستخدام **Pi 0.85.1**. تحتاج الإصدارات الأخرى إلى تحقق مستقل وفق وثائقها الرسمية.
+
+احتفظ بنسخة من `~/.pi/agent/models.json` ثم أضف `tokenlab` بعد العناصر الموجودة داخل `providers`؛ أنشئ الملف فقط إن لم يكن موجودًا. يحدد `PI_CODING_AGENT_DIR` غير الفارغ مجلد `models.json`. احتفظ بترتيب المزوّدين و`settings.json` والحسابات وحقول النموذج الافتراضي والأذونات. إذا كان `tokenlab` موجودًا في الإعداد أو الحسابات المحفوظة، فاستخدم اسمًا آخر وعدّل أمر التشغيل. عيّن `TOKENLAB_API_KEY` محليًا وفق [البدء السريع](/ar/quickstart) لأنظمة macOS أو Linux أو WSL أو Windows PowerShell، ولا تلصق المفتاح في المحادثة.
 
 ```json
 {
@@ -29,11 +31,18 @@ pi --version
 
 علامة `$` في `"$TOKENLAB_API_KEY"` مطلوبة؛ بدونها تصبح القيمة نصًا حرفيًا. اختر نموذجًا حاليًا يدعم Chat Completions والأدوات، واضبط الحدود وخيارات الصور والتفكير وفق تفاصيله.
 
+اختياريًا، يتيح [مساعد إعداد Pi القابل للاستعادة](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/skills/tokenlab-api-integration/references/pi_setup.md) المعاينة والتطبيق واستعادة الملف الأصلي باستخدام Python 3.11+. تتضمن إضافة TokenLab Skills **0.1.2** هذه السكربتات؛ ويمكن أيضًا استخدام Skill مستقل بعد تحديثه إلى إصدار يحتوي عليها. للإضافة أو Skill المستقل المثبّت مسبقًا، اتبع [تعليمات تحديث README](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/README.md#update-an-existing-installation) وتأكد من وجود السكربت. تظل خطوات الإعداد اليدوي هنا كافية دون المساعد.
+
 ## التحقق والاستعادة
 
-شغّل `pi --list-models` ثم اختر `tokenlab/gpt-5.6-luna` من `/model`. تعيد القائمة تحميل `models.json`. هذا يتحقق من تسجيل النموذج ووجود بيانات الاعتماد، وليس صلاحيتها أو نجاح الطلب.
+تحقق من التحميل من الطرفية ومجلد Agent نفسيهما، ثم اختر TokenLab صراحةً لهذه الجلسة. قد يختفي المزوّد من القائمة إن لم يُضبط `TOKENLAB_API_KEY`. تؤكد القائمة التسجيل ووجود بيانات الاعتماد، لا صلاحيتها أو نجاح طلب API.
 
-الطلب النصي يستخدم رصيد TokenLab. طابق الرد مع [سجل الطلب](https://tokenlab.sh/dashboard/runs?section=requests) قبل تجربة الأدوات. للاستعادة، اختر المزود السابق واحذف عنصر TokenLab الذي أضفته فقط.
+```bash
+pi --list-models tokenlab
+pi --provider tokenlab --model gpt-5.6-luna
+```
+
+يستخدم إرسال مطالبة رصيد TokenLab. راجع الرد و[سجل الطلب](https://tokenlab.sh/dashboard/runs?section=requests) قبل اختبار الأدوات. للتراجع عن الإعداد اليدوي، احذف عنصر المزوّد الذي أضفته فقط واحتفظ ببقية الإعدادات والحسابات.
 
 ## Skills وMCP
 

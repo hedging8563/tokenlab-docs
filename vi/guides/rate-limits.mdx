@@ -1,31 +1,11 @@
 ---
-title: "Giới hạn tốc độ"
-description: "Tìm hiểu và xử lý giới hạn tốc độ"
+title: "Giới hạn yêu cầu"
+description: "Giới hạn yêu cầu"
 ---
 
-## Tổng quan
+Mặc định mỗi phút là User 1.000, Partner 10.000 và VIP 10.000; cấu hình thực tế có thể khác. Với các yêu cầu cần xác thực, các giới hạn này áp dụng theo khóa API. Endpoint khám phá công khai như `GET /v1/models` có giới hạn riêng. Khi gặp 429, dùng `X-RateLimit-Limit` và `Retry-After` thay vì bảng sao chép.
 
-TokenLab triển khai giới hạn tốc độ để đảm bảo việc sử dụng công bằng và sự ổn định của nền tảng. Giới hạn sẽ khác nhau tùy theo cấp tài khoản.
-
-## Các cấp giới hạn tốc độ
-
-| Cấp | Yêu cầu/phút | Mô tả |
-|------|-------------|-------------|
-| **User** | 1,000 | Cấp mặc định cho tất cả tài khoản |
-| **Partner** | 10,000 | Dành cho đối tác tích hợp |
-| **VIP** | 10,000 | Người dùng có khối lượng sử dụng cao |
-
-<Note>
-  Giới hạn tốc độ có thể thay đổi. Liên hệ support@tokenlab.sh để yêu cầu giới hạn tùy chỉnh.
-</Note>
-
-## Phản hồi giới hạn tốc độ
-
-Khi bạn vượt quá giới hạn tốc độ, API sẽ trả về mã trạng thái `429` cùng với header `Retry-After` cho biết cần chờ bao lâu trước khi thử lại.
-
-## Vượt quá giới hạn tốc độ
-
-Khi bạn vượt quá giới hạn, bạn sẽ nhận được phản hồi `429`:
+## 429 / Retry-After
 
 ```json
 {
@@ -39,118 +19,30 @@ Khi bạn vượt quá giới hạn, bạn sẽ nhận được phản hồi `42
 }
 ```
 
-Phản hồi bao gồm header `Retry-After`:
+```http
+Retry-After: 8
 ```
-Retry-After: 60  # Seconds to wait before retrying
-```
 
-## Xử lý giới hạn tốc độ
-
-### Backoff theo hàm mũ
-
-Triển khai exponential backoff cho các lần thử lại tự động:
+Đợi số giây trong `Retry-After`; nếu không có, dùng thời gian lùi theo cấp số nhân với độ lệch ngẫu nhiên. Ví dụ giới hạn bốn lần thử, tắt retry của SDK và giữ mô hình đã chọn.
 
 ```python
+import random
 import time
-from openai import OpenAI, RateLimitError
+from openai import RateLimitError
 
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
-
-def make_request_with_backoff(messages, max_retries=5):
-    for attempt in range(max_retries):
+def chat_with_rate_limit_retry(client, model, messages, attempts=4):
+    for attempt in range(attempts):
         try:
-            return client.chat.completions.create(
-                model="gpt-5.6-terra",
-                messages=messages
+            return client.with_options(max_retries=0).chat.completions.create(
+                model=model,
+                messages=messages,
             )
-        except RateLimitError as e:
-            if attempt == max_retries - 1:
+        except RateLimitError as exc:
+            if attempt == attempts - 1:
                 raise
-
-            wait_time = 2 ** attempt  # 1, 2, 4, 8, 16 seconds
-            print(f"Rate limited. Waiting {wait_time}s...")
-            time.sleep(wait_time)
+            header = exc.response.headers.get("Retry-After")
+            wait = float(header) if header else min(30, 2 ** attempt + random.random())
+            time.sleep(wait)
 ```
 
-### Xếp hàng yêu cầu
-
-Đối với các ứng dụng có khối lượng lớn, hãy triển khai hàng đợi yêu cầu:
-
-```python
-import asyncio
-from collections import deque
-
-class RateLimitedClient:
-    def __init__(self, requests_per_minute=1000):
-        self.rpm = requests_per_minute
-        self.interval = 60 / requests_per_minute
-        self.last_request = 0
-
-    async def request(self, messages):
-        # Wait if needed to respect rate limit
-        now = asyncio.get_event_loop().time()
-        wait_time = max(0, self.last_request + self.interval - now)
-        if wait_time > 0:
-            await asyncio.sleep(wait_time)
-
-        self.last_request = asyncio.get_event_loop().time()
-        return await self.client.chat.completions.create(
-            model="gpt-5.6-terra",
-            messages=messages
-        )
-```
-
-### Xử lý theo lô
-
-Đối với các thao tác hàng loạt, hãy xử lý theo lô với khoảng trễ:
-
-```python
-def process_batch(items, batch_size=50, delay=1):
-    results = []
-    for i in range(0, len(items), batch_size):
-        batch = items[i:i + batch_size]
-        for item in batch:
-            result = client.chat.completions.create(
-                model="gpt-5.6-terra",
-                messages=[{"role": "user", "content": item}]
-            )
-            results.append(result)
-        time.sleep(delay)  # Pause between batches
-    return results
-```
-
-## Các phương pháp tốt nhất
-
-<AccordionGroup>
-  <Accordion title="Theo dõi mức sử dụng của bạn">
-    Theo dõi các header giới hạn tốc độ để chủ động duy trì dưới ngưỡng giới hạn.
-  </Accordion>
-
-  <Accordion title="Triển khai caching">
-    Cache phản hồi cho các yêu cầu giống hệt nhau để giảm số lần gọi API.
-  </Accordion>
-
-  <Accordion title="Sử dụng model phù hợp">
-    Các model nhanh hơn (như gpt-5-mini) cho phép thông lượng cao hơn.
-  </Accordion>
-
-  <Accordion title="Liên hệ với chúng tôi để có giới hạn cao hơn">
-    Nếu bạn cần giới hạn cao hơn, hãy liên hệ support@tokenlab.sh.
-  </Accordion>
-</AccordionGroup>
-
-## Nâng cấp cấp của bạn
-
-Để yêu cầu nâng cấp cấp:
-
-1. Đăng nhập vào [Dashboard](https://tokenlab.sh/dashboard) của bạn
-2. Đi tới **Settings → Account**
-3. Liên hệ bộ phận hỗ trợ kèm theo trường hợp sử dụng của bạn
-
-Hoặc gửi email tới support@tokenlab.sh với:
-- Email tài khoản của bạn
-- Khối lượng yêu cầu dự kiến
-- Mô tả trường hợp sử dụng
+Giới hạn đồng thời, xếp hàng khi lưu lượng tăng đột biến và chỉ cache kết quả an toàn để tái sử dụng. Không thử lại lỗi dữ liệu, xác thực, quyền hoặc số dư. Mô hình nhanh hơn không làm tăng hạn mức. Gửi tài khoản, lưu lượng dự kiến và mục đích tới support@tokenlab.sh để đề nghị điều chỉnh.

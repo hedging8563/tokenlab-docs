@@ -28,7 +28,7 @@ curl "https://api.tokenlab.sh/v1/models?recommended_for=stt" \
 
 ## Permintaan Audio Sinkron
 
-Permintaan speech, transcription, dan translation mengembalikan respons langsung dari HTTP request. Input besar bisa lebih lama dari timeout umum client, jadi gunakan timeout longgar dan simpan request ID untuk dukungan.
+Sintesis suara mengembalikan audio dalam respons HTTP. Transkripsi dan terjemahan dapat mengembalikan teks final atau tugas yang diterima. Jika respons berisi ID dan status tugas, simpan ID lalu ikuti `poll_url` hingga selesai atau gagal. Sediakan waktu cukup untuk berkas besar dan simpan Request ID.
 
 ```bash
 curl -X POST "https://api.tokenlab.sh/v1/audio/speech" \
@@ -48,14 +48,27 @@ Buka WebSocket dengan model di query string dan API key di header Authorization.
 
 Panduan ini hanya mencakup WebSocket subset. TokenLab saat ini tidak menyediakan endpoint REST OpenAI Realtime untuk client secret, translation client secret, Calls, atau manajemen legacy beta session.
 
+Untuk contoh server, instal `ws` dan atur `TOKENLAB_REALTIME_MODEL` ke model saat ini yang detailnya menyatakan `/v1/realtime`. Berikan `TOKENLAB_API_KEY` lewat lingkungan server; nama saja tidak membuktikan dukungan realtime.
+
+```bash
+npm install ws
+```
+
 ```javascript
 import WebSocket from 'ws';
 
-const socket = new WebSocket('wss://api.tokenlab.sh/v1/realtime?model=gpt-realtime', {
-  headers: { Authorization: 'Bearer sk-your-api-key' }
-});
+const model = process.env.TOKENLAB_REALTIME_MODEL;
+const apiKey = process.env.TOKENLAB_API_KEY;
+if (!model || !apiKey) throw new Error('Set TOKENLAB_REALTIME_MODEL and TOKENLAB_API_KEY');
 
+const url = new URL('wss://api.tokenlab.sh/v1/realtime');
+url.searchParams.set('model', model);
+const socket = new WebSocket(url, {
+  headers: { Authorization: `Bearer ${apiKey}` },
+});
 socket.on('message', (event) => console.log(event.toString()));
+socket.on('error', (error) => console.error(error.message));
+process.once('SIGINT', () => socket.close(1000, 'Client stopped'));
 ```
 
 ## Penanganan Status

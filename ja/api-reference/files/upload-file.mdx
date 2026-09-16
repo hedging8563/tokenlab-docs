@@ -1,7 +1,7 @@
 ---
 title: "ファイルのアップロード"
 openapi: "POST /v1/files"
-description: "後でバッチ作成のためにJSONLバッチ入力ファイルをアップロードします。"
+description: "バッチファイル、画像参照ファイル、または Anthropic 形式のファイルをアップロードします。"
 ---
 
 ## 概要
@@ -43,7 +43,6 @@ curl -X POST "https://api.tokenlab.sh/v1/files" \
 
 - 冪等性のある下流の調整には`custom_id`を使用してください。
 - ワーカーがバッチを最終化した後にのみ`output_file_id`と`error_file_id`を期待してください。
-- バッチの価格は、`isBatchRequest=true`の割引ルールが適用されるため、同期価格とは異なる場合があります。
 ## 画像ファイル入力
 
 同じ `/v1/files` ルートで `/v1/images/edits` 用の画像参照ファイルもアップロードできます。

@@ -1,40 +1,24 @@
 ---
 title: "OpenHands"
-description: "OpenHands CLIおよびヘッドレスワークフロー向けにTokenLabモデルを設定する"
+description: "OpenHands を TokenLab に接続する"
 ---
+
 
 ## 概要
 
-OpenHandsは、LiteLLM/OpenAI互換モデル設定を通じてTokenLabを使用できます。これは特に、モデル、APIキー、ベースURLを自身で指定するCLIやヘッドレスワークフローにおいて有効です。
-
-## 環境設定
-
-```bash
-export TOKENLAB_API_KEY="sk-your-tokenlab-key"
-```
+このページは LiteLLM を使い、**Settings → LLM → Advanced** がある OpenHands UI 向けです。**OpenAI** を選び、`openai/` 接頭辞付きのカスタムモデル、ローカル欄への TokenLab キー、以下の Base URL を入力します。以前の選択を記録し、終了後に戻してください。アカウントとツール権限は維持します。[公式 OpenAI 互換設定](https://docs.openhands.dev/openhands/usage/llms/openai-llms)を参照してください。CLI、クラウド、ソースからの導入では手順が異なる場合があります。導入した版の説明に従い、`make setup-config` を汎用 CLI コマンドとして使わないでください。
 
 ## モデル設定
 
-以下を使用してください：
+変更前に、現在のプロバイダー、モデル、接続設定をローカルに保存してください。これらの設定はアクティブなモデルを変更するため、使用後は元の値に戻します。ログイン済みアカウントとツール権限は変更しません。復元可能なバックアップなしに既存の OpenAI 互換接続を上書きしないでください。
 
 ```text
-Model: openai/claude-sonnet-5
-API key: sk-your-tokenlab-key
+Custom Model: openai/kimi-k3
 Base URL: https://api.tokenlab.sh/v1
 ```
 
-`openai/` プレフィックスは、LiteLLMベースのパスに対してOpenAI互換のプロバイダー設定を使用するように指示します。
+設定の保存やモデル一覧だけでは、キーの有効性やリクエストの完了は確認できません。プロンプト送信には TokenLab 残高を使います。応答と対応する[リクエスト記録](https://tokenlab.sh/dashboard/runs?section=requests)を照合してからツールを試してください。補助リクエストにも料金が発生する場合があります。
 
-## ヘッドレスセットアップ
-
-CLIやヘッドレス利用のためにローカルのデフォルト設定を準備する場合は、OpenHandsのセットアップフローを実行し、以下を入力してください：
-
-```bash
-make setup-config
+```text
+Reply only with TOKENLAB_CONNECTION_OK. Do not use tools or modify files.
 ```
-
-モデルの詳細を求められたら、`openai/` プレフィックスを付けたTokenLabモデルIDと、TokenLabの `/v1` ベースURLを使用してください。
-
-## モデルの推奨
-
-コーディングエージェントのプランニングには `claude-sonnet-5` または `gpt-5.4` を、より高速なルーチンループには `gpt-5.4-mini` を、強力な代替推論モデルが必要な場合は `deepseek-v4-pro` を使用してください。

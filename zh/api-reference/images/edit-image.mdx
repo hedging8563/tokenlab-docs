@@ -18,7 +18,7 @@ description: "根据提示词和源图片生成编辑结果"
 
 `gpt-image-2` 编辑不接受 `resolution`，输出尺寸使用 `size`。`background` 可以是 `auto` 或 `opaque`，暂不支持 `transparent`。多图或耗时较长时可以设置 `async: true`，再通过返回地址查询。
 
-Nano Banana 参考图请求（`nano-banana`、`nano-banana-2` 和 `nano-banana-pro`）公开在 `/v1/images/generations`，应使用 `operation: "image-to-image"` 和 `image_urls`，不要发送到本 `/v1/images/edits` 端点。
+Nano Banana 参考图请求（`nano-banana-edit`、`nano-banana-2` 和 `nano-banana-pro`）公开在 `/v1/images/generations`，应使用 `operation: "image-to-image"` 和 `image_urls`，不要发送到本 `/v1/images/edits` 端点。
 
 xAI Grok Imagine 图像编辑模型（`grok-imagine-image`、`grok-imagine-image-quality` 以及 legacy `grok-imagine-image-pro`）最多接受 3 张源图。超过 3 张的请求会在输入校验阶段返回 `400 too_many_images`。
 
@@ -29,18 +29,20 @@ xAI Grok Imagine 图像编辑模型（`grok-imagine-image`、`grok-imagine-image
 
 **请求超时：** 同步图片编辑可能需要较长时间，建议把 HTTP 超时设为至少 `120s`。响应包含 `pending`、`task_id` 或 `poll_url` 时，通过 `poll_url` 查询结果。
 
-远程图片必须使用公网 `http` / `https` URL，不能包含用户名密码或 fragment，也不能指向 localhost、内网或保留 IP。图片必须是 PNG、JPEG 或 WebP。单张不超过 `50MB`，单次请求中的远程图片合计不超过 `200MB`；读取超时为 `10s`，最多跟随 `3` 次重定向。
+远程图片必须使用公网 `http` / `https` URL，不能包含用户名密码或 fragment，也不能指向 localhost、内网或保留 IP。图片必须是 PNG、JPEG 或 WebP。单张不超过 `50 MiB`，单次请求中的远程图片合计不超过 `200 MiB`；读取超时为 `10s`，最多跟随 `3` 次重定向。
+
+JSON 请求必须且只能选择 `image_url`、`image_urls`、`images` 中的一项。每个 `images[]` 对象必须且只能包含 `image_url` 或 `file_id` 中的一项。200 MiB 总量限制包括所有源图片和遮罩。
 
 <ParamField body="image" type="file">
-  multipart 源图片。需要多张 GPT Image 源图时，可以重复发送 `image` 字段。文件必须是 PNG、JPEG 或 WebP，最多 16 张源图，每张不超过 `50MB`。xAI Grok Imagine 编辑模型使用相同输入字段，但源图最多 3 张。
+  multipart 源图片。需要多张 GPT Image 源图时，可以重复发送 `image` 字段。文件必须是 PNG、JPEG 或 WebP，最多 16 张源图，每张不超过 `50 MiB`。xAI Grok Imagine 编辑模型使用相同输入字段，但源图最多 3 张。
 </ParamField>
 
 <ParamField body="prompt" type="string" required>
   描述所需编辑的文本。
 </ParamField>
 
-<ParamField body="mask" type="file">
-  一个附加图像，其完全透明的区域指示应编辑图像的位置。必须是有效的 PNG 文件，小于 50MB，且与 `image` 具有相同的尺寸。
+<ParamField body="mask" type="file | object">
+  一个附加图像，其完全透明的区域指示应编辑图像的位置。必须是有效的 PNG 文件，小于 50 MiB，且与 `image` 具有相同的尺寸。
 
   对于 JSON 请求，`mask` 也可以是一个对象，并且只能包含 `image_url` 或 `file_id` 其中之一；`file_id` 必须来自 `/v1/files`，并且绑定到同一套图像编辑配置。
 </ParamField>
@@ -50,7 +52,7 @@ xAI Grok Imagine 图像编辑模型（`grok-imagine-image`、`grok-imagine-image
 </ParamField>
 
 <ParamField body="n" type="integer" default="1">
-  要生成的图像数量。必须在 1 到 10 之间。
+  要生成的图片数量（1-10，取决于模型）。
 </ParamField>
 
 <ParamField body="size" type="string">
@@ -60,7 +62,7 @@ xAI Grok Imagine 图像编辑模型（`grok-imagine-image`、`grok-imagine-image
 <ParamField body="response_format" type="string" default="url">
   返回生成图像的格式。必须是 `url` 或 `b64_json`，默认 `url`。
 
-  请求 `url` 时，结果位于 `data[].url`；请求 `b64_json` 时，结果直接返回 Base64。URL 生成失败时不会自动改成 Base64。
+  `url` 通过 `data[].url` 返回图片地址；`b64_json` 通过 `data[].b64_json` 返回 Base64 图片数据。
 </ParamField>
 
 <ParamField body="async" type="boolean" default="false">

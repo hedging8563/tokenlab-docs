@@ -1,7 +1,7 @@
 ---
 title: "上傳檔案"
 openapi: "POST /v1/files"
-description: "上傳 JSONL 批次輸入檔案以便後續批次創建。"
+description: "上傳批次檔案、圖片參考檔案或 Anthropic 格式檔案。"
 ---
 
 ## 概述
@@ -43,7 +43,6 @@ curl -X POST "https://api.tokenlab.sh/v1/files" \
 
 - 使用 `custom_id` 進行冪等的下游對帳。
 - 只有在工作者完成批次後，才會期待 `output_file_id` 和 `error_file_id`。
-- 批次定價可能與同步定價不同，因為適用 `isBatchRequest=true` 的折扣規則。
 ## 圖像檔案輸入
 
 同一個 `/v1/files` 路由也可以為 `/v1/images/edits` 上傳圖像參考檔案。

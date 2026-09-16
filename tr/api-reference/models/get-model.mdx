@@ -7,7 +7,7 @@ description: "Bir modelin yeteneklerini, fiyatlandırmasını ve API formatları
 ## Yol Parametresi
 
 <ParamField path="model" type="string" required>
-  `gpt-5.4` veya `claude-sonnet-4-6` gibi Model ID.
+  `gpt-5.6-terra` veya `claude-sonnet-4-6` gibi Model ID.
 </ParamField>
 
 ## Yanıt
@@ -33,7 +33,7 @@ Bazı medya modelleri ayrıca bir öneri durumu ve güncelleme zamanı içerir. 
 ## Örnek
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models/gpt-5.4"
+curl "https://api.tokenlab.sh/v1/models/gpt-5.6-terra"
 ```
 
 ```json
@@ -43,8 +43,8 @@ curl "https://api.tokenlab.sh/v1/models/gpt-5.4"
   "owned_by": "openai",
   "tokenlab": {
     "category": "chat",
-    "capabilities": ["text"],
-    "accepted_request_formats": ["responses", "chat_completions"]
+    "capabilities": ["coding", "json-mode", "prompt-cache", "reasoning", "tool-use", "vision"],
+    "accepted_request_formats": ["openai_chat_completions", "openai_responses"]
   }
 }
 ```

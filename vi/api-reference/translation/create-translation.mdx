@@ -9,14 +9,13 @@ description: "Dịch văn bản sang ngôn ngữ đích"
 Sử dụng `/v1/translations` cho **dịch văn bản sang văn bản**.
 
 <Note>
-Endpoint này khác với [Dịch Âm Thanh](/vi/api-reference/audio/create-translation), endpoint này nhận một tệp âm thanh và luôn xuất ra văn bản tiếng Anh.
+Endpoint này khác với [Dịch Âm Thanh](/vi/api-reference/audio/create-translation), dịch âm thanh nhận một tệp âm thanh và luôn xuất ra văn bản tiếng Anh.
 </Note>
 
 Với các luồng agent, trước tiên hãy khám phá các model dịch được khuyến nghị hiện tại:
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=translation" \
-  -H "Authorization: Bearer sk-your-api-key"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=translation"
 ```
 
 Sau đó gửi rõ model đã chọn đến `/v1/translations`.
@@ -82,13 +81,7 @@ curl -X POST "https://api.tokenlab.sh/v1/translations" \
 ```
 
 ```python Python
-from openai import OpenAI
 import requests
-
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
 
 response = requests.post(
     "https://api.tokenlab.sh/v1/translations",

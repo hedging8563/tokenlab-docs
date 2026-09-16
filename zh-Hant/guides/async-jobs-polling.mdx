@@ -81,7 +81,8 @@ curl "https://api.tokenlab.sh/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" 
 
 | 症狀 | 可能原因 | 檢查內容 |
 |---------|--------------|---------------|
-| `async_task_not_found` | 任務未知、過期、對此 API 密鑰不可訪問，或不是公共非同步任務 | 確認 API 密鑰擁有權和存儲的公共 `task_id` |
+| `404 async_task_not_found` | 任務已過期或已不可用 | 檢查已儲存的 `task_id` 和 `poll_url` |
+| `403 task_not_owned` | 無法確認任務屬於目前工作區 | 確認 API 金鑰所屬的工作區或組織 |
 | 任務似乎永遠無法完成 | 客戶端不斷輪詢錯誤的 URL 或在終端狀態之前停止 | 使用 `poll_url` 或 `/v1/tasks/{id}` 並檢查最新狀態 |
 | 最終媒體 URL 缺失 | 任務未完成，或上游任務完成但沒有可用輸出 | 繼續輪詢直到終端，然後將缺失的輸出視為失敗 |
 | 用戶看到重複項 | 重試路徑在超時或刷新後創建了新任務 | 通過您自己的任務 ID 和存儲的 `task_id` 去重 |

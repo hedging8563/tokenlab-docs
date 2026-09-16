@@ -8,11 +8,13 @@ description: "將 TokenLab 與 Pi 結合使用。Pi 是一個極簡終端編碼�
 使用 [Pi 官方安裝說明](https://pi.dev/)，npm 套件為 `@earendil-works/pi-coding-agent`。Windows 請依[官方終端設定](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/windows.md)操作，CLI 預設使用 Git Bash。已安裝時跳過。
 
 ```bash
-npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+npm install -g --ignore-scripts @earendil-works/pi-coding-agent@0.85.1
 pi --version
 ```
 
-將下方設定合併至 `~/.pi/agent/models.json`；若設定了 `PI_CODING_AGENT_DIR`，使用該目錄。先備份並保留其他供應商，在啟動 Pi 的本機環境設定 `TOKENLAB_API_KEY`。請勿將金鑰貼入對話；僅設定 Base URL 環境變數不會建立供應商。
+以下設定已在 **Pi 0.85.1** 驗證；其他版本須依其官方文件另行確認。
+
+先備份 `~/.pi/agent/models.json`，再將 `tokenlab` 加至 `providers` 既有項目的末尾；檔案不存在時才建立。非空的 `PI_CODING_AGENT_DIR` 指定 `models.json` 所在目錄。保留原供應商順序、`settings.json`、帳戶、預設模型欄位與權限。若設定或已儲存帳戶中已有 `tokenlab`，請另選供應商名稱並同步修改啟動指令。依[快速開始](/zh-Hant/quickstart)的 macOS、Linux、WSL 或 Windows PowerShell 步驟，在啟動環境設定 `TOKENLAB_API_KEY`，請勿將金鑰貼入對話。
 
 ```json
 {
@@ -29,11 +31,18 @@ pi --version
 
 `"$TOKENLAB_API_KEY"` 的 `$` 必須保留，否則會成為字面字串。請選擇目前支援 Chat Completions 和工具呼叫的模型，容量、圖片和思考設定均以該模型詳情為準。
 
+可選：使用[可還原的 Pi 設定工具](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/skills/tokenlab-api-integration/references/pi_setup.md)，透過 Python 3.11+ 預覽、套用並還原原始檔案。TokenLab Skills 外掛 **0.1.2** 已包含新腳本；獨立安裝的 Skill 更新至包含這些腳本的版本後也可使用。已安裝外掛或獨立 Skill 的使用者請依 [README 更新說明](https://github.com/hedging8563/tokenlab-skills/blob/247bb17c53754c8288d2d5cb00824fbd9f32899b/README.md#update-an-existing-installation)更新，並確認腳本已安裝。也可直接完成本頁的手動設定。
+
 ## 驗證與還原
 
-執行 `pi --list-models`，再開啟 `/model` 選擇 `tokenlab/gpt-5.6-luna`。選擇器會重新載入 `models.json`。這只確認模型註冊及憑據存在，不代表驗證或請求成功。
+在同一終端機與 Agent 目錄下確認載入，再為本次工作階段明確選取 TokenLab。未設定 `TOKENLAB_API_KEY` 時，清單可能不顯示此供應商。清單僅能確認模型註冊及憑據存在，不能證明金鑰有效或 API 請求成功。
 
-簡短文字請求會使用 TokenLab 餘額。核對回覆與[請求記錄](https://tokenlab.sh/dashboard/runs?section=requests)後再測試工具。還原時選擇原供應商，僅移除新增的 TokenLab 項目。
+```bash
+pi --list-models tokenlab
+pi --provider tokenlab --model gpt-5.6-luna
+```
+
+傳送提示詞會使用 TokenLab 餘額。核對回覆及對應[請求記錄](https://tokenlab.sh/dashboard/runs?section=requests)後再測試工具。撤銷手動設定時，只移除本次新增的供應商項目，保留其他設定與帳戶。
 
 ## Skills 與 MCP
 

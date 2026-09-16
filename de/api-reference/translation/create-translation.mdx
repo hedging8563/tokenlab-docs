@@ -15,8 +15,7 @@ Dieser Endpunkt unterscheidet sich von [Audio-Übersetzung](/de/api-reference/au
 Ermitteln Sie für Agent-Workflows zuerst die aktuell empfohlenen Übersetzungsmodelle:
 
 ```bash
-curl "https://api.tokenlab.sh/v1/models?recommended_for=translation" \
-  -H "Authorization: Bearer sk-your-api-key"
+curl "https://api.tokenlab.sh/v1/models?recommended_for=translation"
 ```
 
 Senden Sie dann das ausgewählte Modell explizit an `/v1/translations`.
@@ -82,13 +81,7 @@ curl -X POST "https://api.tokenlab.sh/v1/translations" \
 ```
 
 ```python Python
-from openai import OpenAI
 import requests
-
-client = OpenAI(
-    api_key="sk-your-api-key",
-    base_url="https://api.tokenlab.sh/v1"
-)
 
 response = requests.post(
     "https://api.tokenlab.sh/v1/translations",

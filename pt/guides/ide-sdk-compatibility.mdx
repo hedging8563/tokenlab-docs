@@ -1,388 +1,82 @@
 ---
-title: "Compatibilidade de IDE e SDK"
-description: "Diretrizes de compatibilidade baseadas em evidências para ferramentas de codificação, SDKs e frameworks de IA"
+title: "Compatibilidade de ferramentas e SDKs"
+description: "Encontre a configuração do TokenLab para ferramentas de programação, aplicativos de chat, SDKs e frameworks"
 ---
 
-## Visão Geral
-
-O TokenLab expõe múltiplos formatos de API para que ferramentas de codificação, SDKs e frameworks comuns possam se integrar com o mínimo de código de adaptação.
-
-Esta página é intencionalmente mais restrita do que uma matriz de marketing:
-
-- **Suportado** significa que documentamos um caminho de configuração concreto e o TokenLab expõe o formato de protocolo que esse caminho espera.
-- **Caminho nativo forte** significa que o repositório também possui evidências diretas de adaptador ou formato de solicitação para essa família de protocolos.
-- **Melhor esforço** significa que a integração pode funcionar, mas o cliente upstream não trata este fluxo de gateway personalizado como um contrato estável.
-
-<Note>
-  Campos não suportados não são tratados de forma uniforme. Em rotas de compatibilidade, alguns campos são ignorados ou normalizados. Em `/v1/responses`, campos não suportados podem retornar erros explícitos `400` ou `503` quando essa rota não pode garantir o comportamento solicitado.
-</Note>
-
-## Formatos de API Suportados
-
-| Endpoint | Formato | Caso de Uso |
-|----------|--------|----------|
-| `/v1/chat/completions` | OpenAI Chat | Compatibilidade universal |
-| `/v1/responses` | OpenAI Responses | Conversas com estado (stateful) |
-| `/v1/messages` | Anthropic Messages | Recursos nativos do Claude |
-| `/v1beta/models/:model:generateContent` | Google Gemini | Recursos nativos do Gemini |
-
-## Compatibilidade de IDE e CLI
-
-### Caminhos de Ferramentas Documentados
-
-| Ferramenta | Nível de Suporte | Formato | Notas |
-|------|---------------|--------|-------|
-| **Cursor** | Suportado com limites | Compatível com OpenAI | Funciona para fluxos padrão de chat/editor BYOK, não como substituto para recursos gerenciados pelo Cursor, como o Tab Completion |
-| **Claude Code CLI** | Caminho nativo forte | Anthropic | Rota nativa `/v1/messages` com cobertura de adaptador para raciocínio (thinking) e `tool_choice` |
-| **Codex CLI** | Suportado com limites de modelo/caminho | OpenAI Responses | Trate `/v1/responses` como um caminho avançado para fluxos de trabalho específicos do Codex; alguns campos exclusivos de Responses não são garantidos em todos os modelos e caminhos roteados |
-| **Gemini CLI** | Melhor esforço / experimental | Gemini | O fluxo de URL base personalizado do TokenLab não é uma integração oficial da Gemini CLI |
-| **OpenCode** | Suportado | Compatível com OpenAI | Use um provedor compatível com OpenAI por padrão; mude para um provedor baseado em Responses apenas quando precisar explicitamente |
-| **OpenHands** | Suportado | Compatível com OpenAI | Use o caminho LiteLLM/compatível com OpenAI com `openai/<model>` e a URL base `/v1` do TokenLab |
-
-<Note>
-  Outros editores e ferramentas de agente compatíveis com OpenAI geralmente funcionam com o mesmo padrão de URL base; verifique o suporte a provedores personalizados da própria ferramenta antes de usá-la em produção.
-</Note>
-
-### Exemplos de Configuração
-
-<Tabs>
-  <Tab title="Cursor">
-    ```
-    Base URL: https://api.tokenlab.sh/v1
-    API Key: sk-your-tokenlab-key
-    ```
-    O Cursor usa internamente o formato de ferramentas estilo Anthropic. O TokenLab suporta ambos:
-    - Formato OpenAI: `{ type: "function", function: { name, parameters } }`
-    - Formato Anthropic: `{ name, input_schema }` (sem o campo type)
-  </Tab>
-  <Tab title="Claude Code">
-    ```bash
-    export ANTHROPIC_BASE_URL="https://api.tokenlab.sh"
-    export ANTHROPIC_API_KEY="sk-your-tokenlab-key"
-    ```
-  </Tab>
-  <Tab title="OpenCode">
-    ```bash
-    export OPENAI_API_KEY="sk-your-tokenlab-key"
-    export LOCAL_ENDPOINT="https://api.tokenlab.sh/v1"
-    ```
-  </Tab>
-  <Tab title="Aider">
-    ```bash
-    export OPENAI_API_KEY="sk-your-tokenlab-key"
-    export OPENAI_BASE_URL="https://api.tokenlab.sh/v1"
-    aider --model gpt-5.4
-    ```
-  </Tab>
-</Tabs>
-
-## Compatibilidade de SDK
-
-### Caminhos de SDK e Framework Documentados
-
-| SDK / Framework | Linguagem | Nível de Suporte | Notas |
-|-----------------|----------|---------------|-------|
-| **OpenAI SDK** | Python/JS/Go | Caminho principal suportado | Caminho de compatibilidade para Chat Completions e Embeddings `/v1`; use rotas de provedor nativas para comportamentos específicos do provedor e não presuma que campos exclusivos de Responses funcionem em todos os modelos |
-| **Anthropic SDK** | Python/JS | Caminho nativo forte | Rota Messages nativa com evidência direta para ferramentas, raciocínio e cache de prompt |
-| **Vercel AI SDK** | TypeScript | Padrão de integração recomendado | Prefira `@ai-sdk/openai-compatible`; use `@ai-sdk/openai` apenas quando desejar explicitamente o comportamento nativo de Responses |
-| **LangChain** | Python/JS | Superfícies padrão suportadas | `ChatOpenAI` e `OpenAIEmbeddings` são o escopo pretendido; extras nativos de fornecedores estão fora do escopo |
-| **LlamaIndex** | Python | Suportado via `OpenAILike` | Use `OpenAILike`, não as classes internas da OpenAI, para gateways de terceiros como o TokenLab |
-| **OpenAI Agents SDK** | Python | Caminho de chat-completions suportado | Use `AsyncOpenAI(base_url="https://api.tokenlab.sh/v1")` com `OpenAIChatCompletionsModel`; o comportamento nativo de Responses depende do modelo e da rota selecionados |
-| **AutoGen** | Python | Caminho de endpoint personalizado suportado | Use `OpenAIChatCompletionClient` com `base_url: https://api.tokenlab.sh/v1` |
-| **Semantic Kernel** | .NET | Caminho de endpoint personalizado suportado | Use o endpoint personalizado do conector de chat completion da OpenAI e aponte para `https://api.tokenlab.sh/v1` |
-| **CrewAI** | Python | Caminho de endpoint personalizado suportado | Defina `OPENAI_API_BASE` ou `LLM(base_url=...)` para o endpoint `/v1` do TokenLab |
-| **Pydantic AI** | Python | Caminho de provedor compatível com OpenAI suportado | Use `OpenAIChatModel` com `OpenAIProvider(base_url="https://api.tokenlab.sh/v1")` |
-| **DSPy** | Python | Caminho de endpoint personalizado suportado | Use `dspy.LM("openai/<model>", api_base="https://api.tokenlab.sh/v1")` |
-| **Langflow** | Python / Web | Suportado com limites de escopo | Use o campo **OpenAI API Base** do componente OpenAI com o endpoint `/v1` do TokenLab |
-| **Haystack** | Python | Caminho de endpoint personalizado suportado | Use `OpenAIChatGenerator(api_base_url="https://api.tokenlab.sh/v1")` |
-| **Graphiti** | Python | Caminho de endpoint personalizado suportado | Use `OpenAIGenericClient` com o endpoint `/v1` do TokenLab |
-| **Dify** | - | Suportado com limites de escopo | O provedor OpenAI e fluxos orientados a chat-completions são o caminho pretendido; não é adequado para Responses específicos do Codex ou comportamento de WebSocket |
-| **Flowise** | Web / Node | Suportado com limites de escopo | Use o nó de chat do TokenLab quando disponível, ou um nó compatível com ChatOpenAI apontado para `https://api.tokenlab.sh/v1` |
-| **Mem0** | Python | Caminho de endpoint personalizado suportado | Mantenha o provedor OpenAI e defina `openai_base_url` para o endpoint `/v1` do TokenLab |
-| **Agno** | Python | Caminho suportado | Use o wrapper de modelo do TokenLab quando disponível, ou o caminho de URL base compatível com OpenAI |
-| **Browser Use** | Python | Caminho de endpoint personalizado suportado | Use `ChatOpenAILike` com o endpoint `/v1` do TokenLab |
-| **VoltAgent** | TypeScript | Caminho de endpoint personalizado suportado | Passe um provedor OpenAI do AI SDK configurado com `baseURL: "https://api.tokenlab.sh/v1"` |
-| **Ragas** | Python | Caminho de endpoint personalizado suportado | Passe `AsyncOpenAI(base_url="https://api.tokenlab.sh/v1")` para o `llm_factory` |
-| **Guardrails** | Python | Caminho de validação suportado | Passe um callable de chat completions do SDK OpenAI configurado com o endpoint `/v1` do TokenLab |
-| **Prompt flow** | Python / CLI | Caminho de endpoint personalizado suportado | Crie uma conexão OpenAI com `base_url=https://api.tokenlab.sh/v1` |
-| **Promptfoo** | CLI / Node | Caminho suportado | Use provedores de chat ou Responses da OpenAI com `apiBaseUrl: https://api.tokenlab.sh/v1` |
-| **Portkey Gateway** | Gateway | Caminho suportado | Use o TokenLab como um provedor upstream para tráfego de chat e Responses compatível com OpenAI |
-| **Helicone** | Gateway / Observabilidade | Caminho de observabilidade suportado | Roteie solicitações compatíveis com OpenAI através do Helicone Gateway com `Helicone-Target-Url: https://api.tokenlab.sh` |
-| **Langfuse** | Observabilidade | Caminho de rastreamento suportado | Configure a integração OpenAI do Langfuse com a URL base `/v1` do TokenLab |
-| **OpenLIT** | Observabilidade | Caminho de rastreamento suportado | Instrumente um cliente SDK OpenAI configurado com a URL base `/v1` do TokenLab |
-| **OpenLLMetry** | Observabilidade | Caminho de rastreamento suportado | Use a instrumentação do SDK OpenAI com a URL base `/v1` do TokenLab |
-| **Phoenix** | Observabilidade | Caminho de rastreamento suportado | Auto-instrumente o cliente SDK OpenAI configurado com a URL base `/v1` do TokenLab |
-| **Opik** | Observabilidade | Caminho de rastreamento suportado | Envolva um cliente SDK OpenAI configurado com a URL base `/v1` do TokenLab |
-| **LangBot** | Bot Platform | Caminho de chat suportado | Use o solicitante do TokenLab quando disponível, ou configure um solicitante compatível com OpenAI com o endpoint `/v1` do TokenLab |
-| **Open WebUI** | Web Chat | Caminho de chat-app suportado | Adicione o TokenLab como uma conexão de API compatível com OpenAI e atualize a lista de modelos |
-| **Chatbox / DeepChat / Jan / LibreChat / Cherry Studio** | Desktop / Web | Caminho de chat-app suportado | Use o fluxo de provedor personalizado compatível com OpenAI de cada aplicativo; esses aplicativos geralmente são orientados a chat-completions |
-
-## Parâmetros de Chat Completions
-
-### Parâmetros Principais
-
-| Parâmetro | Tipo | Descrição |
-|-----------|------|-------------|
-| `model` | string | Identificador do modelo (obrigatório) |
-| `messages` | array | Mensagens da conversa (obrigatório) |
-| `max_tokens` | integer | Tokens máximos de saída |
-| `temperature` | number | Temperatura de amostragem (0-2) |
-| `top_p` | number | Amostragem de núcleo (0-1) |
-| `stream` | boolean | Habilitar streaming |
-
-### Chamada de Ferramentas (Tool Calling)
-
-```json
-{
-  "tools": [
-    {
-      "type": "function",
-      "function": {
-        "name": "get_weather",
-        "description": "Obter previsão do tempo para um local",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "location": { "type": "string" }
-          }
-        },
-        "strict": true
-      }
-    }
-  ],
-  "tool_choice": "auto",
-  "parallel_tool_calls": true
-}
-```
-
-### Opções de Escolha de Ferramenta (Tool Choice)
-
-| Formato | Exemplo | Descrição |
-|--------|---------|-------------|
-| String | `"auto"`, `"none"`, `"required"` | Seleção simples |
-| Objeto OpenAI | `{ "type": "function", "function": { "name": "fn" } }` | Forçar função específica |
-| Objeto Anthropic | `{ "type": "tool", "name": "fn", "disable_parallel_tool_use": true }` | Formato nativo Anthropic |
-
-### Parâmetros Avançados
-
-| Parâmetro | Tipo | Descrição |
-|-----------|------|-------------|
-| `stream_options` | object | Apenas Chat Completions: `{ include_usage: true }` para contagem de tokens |
-| `reasoning_effort` | string | `"low"`, `"medium"`, `"high"` para modelos GPT-5 com raciocínio habilitado |
-| `service_tier` | string | `"auto"` ou `"default"` |
-| `seed` | integer | Saídas determinísticas |
-| `logprobs` | boolean | Retornar log probabilidades |
-| `top_logprobs` | integer | Número de top logprobs (0-20) |
-| `logit_bias` | object | Mapa de viés de token (-100 a 100) |
-| `frequency_penalty` | number | Penalidade de repetição (-2 a 2) |
-| `presence_penalty` | number | Penalidade de tópico (-2 a 2) |
-| `stop` | string/array | Sequências de parada |
-| `n` | integer | Número de conclusões (1-128) |
-| `user` | string | Identificador de usuário para rastreamento |
-
-### Recursos Avançados da OpenAI
-
-| Parâmetro | Tipo | Descrição |
-|-----------|------|-------------|
-| `modalities` | array | `["text", "audio"]` para multimodal |
-| `audio` | object | Configuração de saída de áudio (voz, formato) |
-| `prediction` | object | Saída prevista para conclusão mais rápida |
-| `metadata` | object | Pares chave-valor para rastreamento |
-| `store` | boolean | Armazenar para recuperação posterior |
-
-### Opções Específicas do Provedor
-
-```json
-{
-  "anthropic_options": {
-    "thinking": {
-      "type": "enabled",
-      "budget_tokens": 10000
-    },
-    "prompt_caching": true
-  },
-  "google_options": {
-    "safety_settings": [...],
-    "google_search": true,
-    "code_execution": true
-  }
-}
-```
-
-## Parâmetros de Anthropic Messages
-
-### Parâmetros Principais
-
-| Parâmetro | Tipo | Descrição |
-|-----------|------|-------------|
-| `model` | string | Identificador do modelo |
-| `messages` | array | Mensagens da conversa |
-| `max_tokens` | integer | Saída máxima (até 128000) |
-| `system` | string/array | Prompt do sistema |
-| `stream` | boolean | Habilitar streaming |
-
-### Chamada de Ferramentas (Tool Calling)
-
-```json
-{
-  "tools": [
-    {
-      "name": "get_weather",
-      "description": "Obter previsão do tempo",
-      "input_schema": {
-        "type": "object",
-        "properties": {
-          "location": { "type": "string" }
-        }
-      }
-    }
-  ],
-  "tool_choice": {
-    "type": "auto",
-    "disable_parallel_tool_use": false
-  }
-}
-```
-
-### Raciocínio Estendido (Extended Thinking)
-
-```json
-{
-  "model": "claude-opus-5",
-  "thinking": {
-    "type": "enabled",
-    "budget_tokens": 10000
-  }
-}
-```
-
-## Parâmetros da API de Responses
-
-### Parâmetros Principais
-
-| Parâmetro | Tipo | Descrição |
-|-----------|------|-------------|
-| `model` | string | Identificador do modelo |
-| `input` | string/array | Conteúdo de entrada |
-| `instructions` | string | Instruções do sistema |
-| `max_output_tokens` | integer | Tokens máximos de saída |
-| `previous_response_id` | string | Continuar conversa |
-
-### Parâmetros Avançados
-
-| Parâmetro | Tipo | Descrição |
-|-----------|------|-------------|
-| `truncation_strategy` | string | `"auto"` ou `"disabled"` |
-| `include` | array | `["reasoning.encrypted_content"]` |
-| `reasoning_effort` | string | Para modelos de raciocínio |
-| `service_tier` | string | Nível de prioridade |
-
-### Formato de Ferramenta
-
-Suporta formatos de ferramenta da OpenAI e Anthropic:
-
-```json
-// Formato OpenAI
-{ "type": "function", "name": "fn", "parameters": {...} }
-
-// Formato Anthropic (compatibilidade com Cursor)
-{ "name": "fn", "input_schema": {...} }
-```
-
-## Parâmetros da API Gemini
-
-### Parâmetros Principais
-
-| Parâmetro | Tipo | Descrição |
-|-----------|------|-------------|
-| `contents` | array | Conteúdo da conversa |
-| `systemInstruction` | object | Prompt do sistema |
-| `generationConfig` | object | Configurações de geração |
-
-### Ferramentas
-
-```json
-{
-  "tools": [{
-    "functionDeclarations": [{
-      "name": "search",
-      "description": "Pesquisar na web",
-      "parameters": {...}
-    }],
-    "codeExecution": {},
-    "googleSearch": {}
-  }],
-  "toolConfig": {
-    "functionCallingConfig": {
-      "mode": "AUTO"
-    }
-  }
-}
-```
-
-### Configurações de Segurança
-
-```json
-{
-  "safetySettings": [
-    {
-      "category": "HARM_CATEGORY_HARASSMENT",
-      "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-    }
-  ]
-}
-```
-
-### Parâmetros Adicionais
-
-| Parâmetro | Tipo | Descrição |
-|-----------|------|-------------|
-| `cachedContent` | string | Referência de conteúdo em cache |
-| `responseMimeType` | string | `"text/plain"` ou `"application/json"` |
-| `responseSchema` | object | Esquema JSON para saída estruturada |
-
-## Streaming
-
-Endpoints de geração que expõem `stream: true`, incluindo Chat Completions e Responses, usam Server-Sent Events (SSE):
-
-```bash
-# Chat Completions
-curl https://api.tokenlab.sh/v1/chat/completions \
-  -H "Authorization: Bearer sk-xxx" \
-  -d '{"model": "gpt-5.6-terra", "messages": [...], "stream": true}'
-
-# Rastreamento de uso de Chat Completions
--d '{"...", "stream_options": {"include_usage": true}}'
-```
-
-## Tratamento de Erros
-
-O TokenLab retorna respostas de erro compatíveis com a OpenAI:
-
-```json
-{
-  "error": {
-    "message": "Chave de API inválida",
-    "type": "invalid_api_key",
-    "code": "invalid_api_key"
-  }
-}
-```
-
-Veja o [Guia de Tratamento de Erros](/guides/error-handling) para detalhes.
-
-## Melhores Práticas
-
-<AccordionGroup>
-  <Accordion title="Use passthrough para parâmetros desconhecidos">
-    Parâmetros desconhecidos são encaminhados apenas quando a rota pública e o modelo selecionados os suportam.
-  </Accordion>
-
-  <Accordion title="Use stream_options.include_usage apenas para Chat Completions">
-    Para streaming de Chat Completions, habilite `stream_options.include_usage` para contagens precisas de tokens. Responses possui seu próprio contrato de streaming e não expõe essa opção exclusiva de Chat.
-  </Accordion>
-
-  <Accordion title="Use o formato de tool_choice apropriado">
-    Combine com o formato esperado pelo seu SDK. O TokenLab aceita formatos da OpenAI e da Anthropic.
-  </Accordion>
-</AccordionGroup>
+A maioria das ferramentas se conecta ao TokenLab alterando a chave de API e a URL base. A configuração exata depende do formato de API que a ferramenta pode usar.
+
+| Formato de API | URL base | Clientes comuns |
+| --- | --- | --- |
+| Chat Completions (Compatível com OpenAI) | `https://api.tokenlab.sh/v1` | SDKs da OpenAI, diversos aplicativos de chat e frameworks |
+| OpenAI Responses | `https://api.tokenlab.sh/v1` | Clientes de Responses e ferramentas que usam eventos de Responses |
+| Anthropic Messages | `https://api.tokenlab.sh` | SDKs da Anthropic e ferramentas voltadas ao Claude |
+| Gemini | `https://api.tokenlab.sh` | Clientes REST e SDKs do Gemini que permitem um host personalizado |
+
+O modelo escolhido deve incluir o mesmo formato em `accepted_request_formats`. Streaming e chamadas de ferramentas também dependem dos recursos do modelo e do cliente. Veja exemplos em [Formatos de API](/pt/guides/api-formats).
+
+## Indicadores de compatibilidade
+
+| Indicador | Significado |
+| --- | --- |
+| **Compatível** | A configuração do TokenLab na página vinculada usa as opções documentadas do cliente |
+| **Compatível com limitações** | A configuração se aplica a funções ou métodos de autenticação específicos; os demais serviços do fornecedor mantêm seus próprios requisitos |
+
+Esses indicadores descrevem a configuração da página vinculada. Os recursos disponíveis também dependem do modelo escolhido e da versão do cliente.
+
+## Ferramentas de programação
+
+| Ferramenta | Status | Formato de API | Observações |
+| --- | --- | --- | --- |
+| [Claude Code](/pt/integrations/claude-code) | Compatível | Anthropic Messages | Usa `ANTHROPIC_BASE_URL` e uma chave de API do TokenLab |
+| [Codex CLI](/pt/integrations/codex-cli) | Compatível com limitações | Responses | Usa Responses; os recursos disponíveis dependem do modelo escolhido |
+| [Cursor](/pt/integrations/cursor) | Compatível com limitações | Compatível com OpenAI | Aplica-se aos recursos do Cursor que aceitam chave de API e URL personalizadas |
+| [Cline](/pt/integrations/cline) | Compatível | Compatível com OpenAI | Selecione **OpenAI Compatible** e informe a URL base e o ID do modelo |
+| [Kilo Code](/pt/integrations/kilo-code) | Compatível | Compatível com OpenAI | Usa um provedor personalizado e um ID de modelo |
+| [OpenCode](/pt/integrations/opencode) | Compatível | Compatível com OpenAI | Carregue uma configuração de provedor separada com `OPENCODE_CONFIG` |
+| [OpenHands](/pt/integrations/openhands) | Compatível | Compatível com OpenAI | Interface baseada em LiteLLM: **Advanced → Custom Model** (prefixo `openai/`) e **Base URL** |
+| [Gemini CLI](/pt/integrations/gemini-cli) | Compatível com limitações | Gemini | Use `GOOGLE_GEMINI_BASE_URL` com autenticação por chave de API; um `GEMINI_CLI_HOME` separado preserva a configuração existente |
+
+## Aplicativos de chat
+
+| Aplicativo | Status | Observações |
+| --- | --- | --- |
+| [Chatbox](/pt/integrations/chatbox) | Compatível | Adicione um provedor **OpenAI API Compatible** |
+| [Cherry Studio](/pt/integrations/cherry-studio) | Compatível | Adicione um provedor e conclua **Verify and Enable** |
+| [DeepChat](/pt/integrations/deepchat) | Compatível | Escolha **OpenAI Completions** para usar Chat Completions |
+| [Jan](/pt/integrations/jan) | Compatível | Adicione um serviço compatível com OpenAI |
+| [LibreChat](/pt/integrations/librechat) | Compatível | Configure um endpoint personalizado compatível com OpenAI |
+| [Open WebUI](/pt/integrations/open-webui) | Compatível | Adicione uma conexão compatível com OpenAI com API Type em **Chat** |
+
+## SDKs e frameworks
+
+| Cliente | Status | Configuração |
+| --- | --- | --- |
+| [SDK da OpenAI](/pt/integrations/openai-sdk) | Compatível | Defina `base_url` / `baseURL` como `https://api.tokenlab.sh/v1` |
+| [SDK da Anthropic](/pt/integrations/anthropic-sdk) | Compatível | Defina a URL base como `https://api.tokenlab.sh` |
+| [Vercel AI SDK](/pt/integrations/vercel-ai-sdk) | Compatível | Crie um provedor personalizado compatível com OpenAI |
+| [LangChain](/pt/integrations/langchain) | Compatível | Configure `ChatOpenAI` ou `OpenAIEmbeddings` com a URL do TokenLab |
+| [LlamaIndex](/pt/integrations/llamaindex) | Compatível | Use as opções de cliente compatível com OpenAI |
+| [OpenAI Agents SDK](/pt/integrations/openai-agents-sdk) | Compatível com limitações | O guia usa `OpenAIChatCompletionsModel`; verifique os recursos do modelo e do SDK antes de usar Responses |
+| [AutoGen](/pt/integrations/autogen) | Compatível | Use um cliente de modelos compatível com OpenAI |
+| [CrewAI](/pt/integrations/crewai) | Compatível | Configure o cliente LLM compatível com OpenAI |
+| [PydanticAI](/pt/integrations/pydantic-ai) | Compatível | Forneça um provedor compatível com OpenAI |
+
+Outros frameworks, ferramentas de observabilidade, gateways e produtos de avaliação estão na navegação de Integrations.
+
+## Consumo em respostas de streaming
+
+Os fluxos de Chat Completions aceitam `stream_options: { include_usage: true }`, que adiciona um último bloco de consumo antes de encerrar o fluxo. A API Responses não oferece `include_usage`; seus fluxos informam o consumo no evento final.
+
+## O que uma chave de API personalizada não substitui
+
+Alguns produtos combinam chamadas ao modelo com recursos hospedados pelo fornecedor. Uma chave do TokenLab pode atender às solicitações de modelo disponíveis nas configurações BYOK, mas não substitui outras assinaturas, serviços de preenchimento automático, funções de conta ou extensões proprietárias.
+
+Se uma atualização alterar a configuração de uma ferramenta, consulte a página de integração atual em vez de copiar um exemplo antigo de variáveis de ambiente.
+
+## Antes de depender de um recurso
+
+- Confirme que a ferramenta permite uma URL base personalizada para o formato necessário.
+- Confirme que o modelo inclui esse formato em `accepted_request_formats`.
+- Teste streaming e chamadas de ferramentas se seu fluxo de trabalho precisar deles.
+- Guarde a chave de API em uma máquina ou servidor confiável.
+- Registre o ID da solicitação ao relatar uma falha.

@@ -6,12 +6,12 @@ description: "入力テキストから音声を生成します"
 
 ## リクエストボディ
 
-**同期リクエストのタイムアウト:** この非チャットエンドポイントは、ルーティング先モデルの処理完了を待ちます。大きな入力、長い音声、大きなバッチは一般的な 30s のクライアント既定値を超えることがあるため、HTTP クライアントのタイムアウトは少なくとも `120s` に設定してください。
+応答形式は選択したモデルと `stream_format` によって異なります。入力が長い場合、HTTP クライアントのタイムアウトを少なくとも `120s` に設定してください。
 
-サポートされる任意フィールドはモデルファミリーによって異なります。TokenLab はルーティング前にこのフィールド行列を検証します。OpenAI TTS は `voice`、`instructions`、`response_format`、`stream_format`、`speed` を受け付けます。MiniMax speech は `voice`、`voice_id`、`response_format`、`stream_format`、`speed` を受け付けます。Gemini TTS は `prompt`、`language_code`、`voice`、`response_format`、`stream_format`、`speed`、`temperature` を受け付けます。より狭い Vidu/Kling 系 TTS ルートでは `input` と `stream_format` のみを受け付ける場合があります。`user` を含む未知のトップレベルフィールドは無視されず、`400 unsupported_parameter` を返します。
+任意フィールド、音声、出力形式、SSE 対応はモデルごとに異なります。送信前に `GET /v1/models/{model}` を確認してください。未対応のパラメーターは `400 unsupported_parameter` を返す場合があります。
 
 <ParamField body="model" type="string" default="tts-1">
-  TTS モデル。例: `tts-1`、`gpt-4o-mini-tts`、`speech-02-hd`、`gemini-2.5-flash-tts`。現在の候補は `GET /v1/models?recommended_for=tts` で確認してください。
+  TTS モデル ID。現在の候補は `GET /v1/models?recommended_for=tts` で確認できます。
 </ParamField>
 
 <ParamField body="input" type="string" required>
@@ -23,7 +23,7 @@ description: "入力テキストから音声を生成します"
 </ParamField>
 
 <ParamField body="voice_id" type="string">
-  MiniMax 互換 speech モデル向けのプロバイダー native 音声セレクターです。
+  互換 MiniMax 音声モデルなど、このパラメーターに対応するモデルの音声 ID。
 </ParamField>
 
 <ParamField body="instructions" type="string">
@@ -56,7 +56,7 @@ description: "入力テキストから音声を生成します"
 
 ## レスポンス
 
-要求された形式の音声ファイルを返します。
+`stream_format=audio` は音声バイト列を返します。`stream_format=sse` に対応するモデルは `text/event-stream` を返すため、応答全体を音声ファイルに保存せず、イベントを解析してください。
 
 <RequestExample>
 ```bash cURL
@@ -134,6 +134,8 @@ file_put_contents('speech.mp3', $audio);
 
 ## 音声音声サンプル
 
+利用できる音声はモデルによって異なります。以下は例であり、すべての TTS モデルに共通する一覧ではありません。
+
 | Voice | 説明 |
 |-------|-------------|
 | `alloy` | ニュートラルでバランスの取れた音声 |
@@ -158,5 +160,9 @@ file_put_contents('speech.mp3', $audio);
 
 ## 重要フィールド
 
-<ResponseField name="Content-Type" type="string">API が返す event または message type です。</ResponseField>
-<ResponseField name="body" type="binary">生のレスポンス body です。JSON として解析せず直接保存してください。</ResponseField>
+<ResponseField name="Content-Type" type="string">
+  HTTP 応答のメディアタイプ。音声形式、または SSE の `text/event-stream` です。
+</ResponseField>
+<ResponseField name="body" type="binary | SSE">
+  `audio` は音声バイト列、`sse` はイベントストリームです。`Content-Type` と要求したモードに応じて解析してください。
+</ResponseField>

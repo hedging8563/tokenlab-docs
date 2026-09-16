@@ -6,17 +6,29 @@ description: "查詢目前組織最近的 Seedance 相容任務。"
 
 ## 概覽
 
-這些介面面向已經使用火山風格 Seedance 任務結構的團隊。鑑權使用 TokenLab Bearer API Key。返回的任務 ID 以 `cgt-` 開頭；請輪詢狀態介面，直到 `status` 變為 `succeeded`、`failed`、`cancelled` 或 `expired`。
+使用 TokenLab Bearer API 金鑰列出目前工作區最近的相容任務。不傳 `filter.task_ids` 時查詢最近七天的任務範圍；指定精確 ID 時直接查詢這些任務。
 
 另見 [Seedance 2.0 影片模型](/zh-Hant/guides/seedance-2-video) 和 [影片生成](/zh-Hant/guides/video-generation).
 
 ## 回應結構
 
-列表回應返回 `items` 和 `total`。支援 `filter.status`、`filter.task_ids`、`filter.model`、`filter.service_tier` 過濾，並支援 `page_num`、`page_size` 分頁。
+- `page_num`: 預設 `1`，取值為 `1`–`500` 的整數。
+- `page_size`: 預設 `20`，取值為 `1`–`500` 的整數。
+- `filter.status`: `queued`, `running`, `succeeded`, `failed`, `cancelled`, `expired`.
+- `filter.task_ids`: 查詢多個精確任務 ID 時重複傳入此參數，不要用逗號串接。
+- `filter.model`: 模型識別碼。
+- `filter.service_tier`: `default`, `flex`.
+
+回應包含篩選結果的 `items` 和 `total`，每項均採用取得任務端點的回應結構。已知任務 ID 時，用取得任務端點更新狀態。
 
 ## 範例
 
 ```bash
 curl "https://api.tokenlab.sh/api/v3/contents/generations/tasks?page_num=1&page_size=20&filter.status=succeeded" \
+  -H "Authorization: Bearer $TOKENLAB_API_KEY"
+```
+
+```bash
+curl "https://api.tokenlab.sh/api/v3/contents/generations/tasks?filter.task_ids=cgt-20260102030405-a1b2c" \
   -H "Authorization: Bearer $TOKENLAB_API_KEY"
 ```

@@ -18,6 +18,10 @@ description: "استرجاع حالة ونتيجة أي مهمة غير متزا
 
 ## الاستجابة
 
+<Note>
+تُعاد حقول النتائج والأخطاء والطوابع الزمنية والنموذج عند توفرها للمهمة.
+</Note>
+
 <ResponseField name="id" type="string">
   معرّف المهمة.
 </ResponseField>
@@ -54,13 +58,33 @@ description: "استرجاع حالة ونتيجة أي مهمة غير متزا
   URL الأصل الناتج عند اكتمال المهمة وإنتاج فيديو.
 </ResponseField>
 
-<ResponseField name="error" type="string">
+<ResponseField name="video" type="object">
+  حمولة فيديو مفردة تحتوي على الحقول `url`, `duration`, `width`, و `height` عندما تتوفر.
+</ResponseField>
+
+<ResponseField name="videos" type="array">
+  حمولات فيديو متعددة عندما تعيد مهمة التوليد أكثر من مخرج واحد.
+</ResponseField>
+
+<ResponseField name="created" type="integer">
+  طابع زمني للإنشاء.
+</ResponseField>
+
+<ResponseField name="updated" type="integer">
+  طابع زمني لآخر تحديث.
+</ResponseField>
+
+<ResponseField name="model" type="string">
+  النموذج المستخدم للمهمة.
+</ResponseField>
+
+<ResponseField name="error" type="string | object">
   رسالة الخطأ عند فشل المهمة.
 </ResponseField>
 
 ## سلوك الخطأ
 
-إذا لم تعد المهمة موجودة، أو انتهت صلاحيتها، أو تعذر حلها عبر عقد المهمة غير المتزامنة العام، فستعيد TokenLab:
+قد تعيد المهمة العامة المنتهية أو غير المتاحة `404 async_task_not_found`. إذا تعذر إثبات ملكية المهمة لمفتاح API الحالي، تكون الاستجابة `403 task_not_owned`.
 
 ```json
 {

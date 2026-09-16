@@ -15,6 +15,12 @@ O Graphiti oferece suporte a endpoints `/v1` compatíveis com OpenAI por meio do
 **Nível de Suporte**: Caminho compatível com OpenAI suportado
 </Note>
 
+## Instalação
+
+```bash
+pip install graphiti-core httpx
+```
+
 ## Ambiente
 
 ```bash
@@ -36,7 +42,10 @@ llm_config = LLMConfig(
     base_url="https://api.tokenlab.sh/v1",
 )
 
-llm_client = OpenAIGenericClient(config=llm_config)
+llm_client = OpenAIGenericClient(
+    config=llm_config,
+    structured_output_mode="json_object",
+)
 ```
 
 Passe o `llm_client` para sua instância `Graphiti(...)` juntamente com as configurações do seu banco de dados de grafos e do embedder.

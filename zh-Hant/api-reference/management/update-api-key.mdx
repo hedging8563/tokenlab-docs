@@ -18,9 +18,10 @@ PATCH 請求至少需要提供一個欄位。
 |------|------|---------------|------|
 | `status` | enum | - | `active`, `inactive`, `revoked` |
 | `name` | string | 長度 `1-50` | 更新後的顯示名稱 |
-| `limitAmount` | number \| null | 最小 `0`，輸入上限 `1000000` | `null` = 不限額，`0` = 零額度，正數會被規範化為一個儲存上限，且不能超過 `100000` USD 等值 |
-| `limitCurrency` | 列舉 | 預設 `USD` | 僅限 USD。傳送 `CNY` 會回傳 `400 currency_retired`。 |
+| `limitAmount` | number \| string \| null | `0–100000` USD | `null` 表示不設限，`0` 表示無法產生費用。十進位字串最多支援 6 位小數。 |
+| `limitCurrency` | 列舉 | 預設 `USD` | 僅限 USD。傳送 `CNY` 會回傳 `400 currency_retired`。 設定時必須同時提供 `limitAmount`。 |
 | `models` | string[] | - | 更新後的模型白名單 |
+| `deliveryPolicy` | string \| null | `auto`, `verified`, `official`, `null` | `null` 表示繼承工作區交付策略。 |
 | `expiresAt` | string \| null | RFC3339 datetime | `null` 表示移除過期時間 |
 
 ## 說明
@@ -67,7 +68,8 @@ curl -X PATCH "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456" 
   ],
   "expires_at": "2026-12-31T23:59:59.000Z",
   "last_used_at": "2026-07-08T03:12:45.000Z",
-  "created_at": "2026-07-01T10:00:00.000Z"
+  "created_at": "2026-07-01T10:00:00.000Z",
+  "delivery_policy": null
 }
 ```
 </ResponseExample>
@@ -77,12 +79,13 @@ curl -X PATCH "https://api.tokenlab.sh/v1/management/api-keys/key_abc123def456" 
 <ResponseField name="id" type="string">用於後續管理 API 呼叫的 API Key 識別碼。</ResponseField>
 <ResponseField name="name" type="string">API Key 的顯示名稱。</ResponseField>
 <ResponseField name="key_prefix" type="string">用於顯示和支援排查的非敏感 Key 前綴。</ResponseField>
-<ResponseField name="status" type="string">值為 `active`、`inactive` 或 `revoked`。</ResponseField>
+<ResponseField name="status" type="string">值為 `active`、`inactive`、`suspended` 或 `revoked`。</ResponseField>
 <ResponseField name="limit_amount" type="number | null">以 JSON 數字回傳的 USD 消費上限，供顯示使用。`null` 表示不設限。</ResponseField>
 <ResponseField name="limit_amount_decimal" type="string | null">以十進位字串回傳的 USD 精確消費上限。`null` 表示不設限。</ResponseField>
 <ResponseField name="used_amount" type="number">以 JSON 數字回傳的 USD 累計用量支出，供顯示使用。</ResponseField>
 <ResponseField name="used_amount_decimal" type="string">以十進位字串回傳的 USD 精確累計用量支出。</ResponseField>
 <ResponseField name="models" type="string[]">單一 Key 的模型白名單。空陣列表示沒有額外的 Key 層級模型限制。</ResponseField>
+<ResponseField name="delivery_policy" type="string | null">`auto`, `verified`, `official`, `null`. `null` 表示繼承工作區交付策略。</ResponseField>
 <ResponseField name="expires_at" type="string | null">Key 到期時間的 ISO 時間戳記；`null` 表示永不到期。</ResponseField>
 <ResponseField name="last_used_at" type="string | null">最近一次使用的 ISO 時間戳記；從未使用時為 `null`。</ResponseField>
 <ResponseField name="created_at" type="string">建立時間的 ISO 時間戳記。</ResponseField>

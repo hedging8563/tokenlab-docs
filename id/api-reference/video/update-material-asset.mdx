@@ -6,6 +6,8 @@ description: "Memperbarui aset material Seedance yang dimiliki oleh organisasi s
 
 Perbarui nama material atau metadata. URL sumber dan tipe aset bersifat tetap setelah pembuatan; buat aset baru jika file sumber berubah.
 
+`project_name` memisahkan sumber daya dalam organisasi yang terautentikasi. Nilai default adalah `default`; gunakan nilai yang sama dan peka huruf besar-kecil untuk grup dan aset terkait. Kirim di body JSON untuk POST/PUT dan parameter kueri untuk GET/DELETE.
+
 ## Contoh Permintaan
 
 ```bash
@@ -13,7 +15,7 @@ curl https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr \
   -X PUT \
   -H "Authorization: Bearer $TOKENLAB_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"asset_name":"Front view approved","metadata":{"approved_by":"creative-team"}}'
+  -d '{"asset_name":"Front view approved","metadata":{"approved_by":"creative-team"},"project_name":"default"}'
 ```
 
 ## Contoh Respons
@@ -22,14 +24,15 @@ curl https://api.tokenlab.sh/v1/videos/assets/asset-20260720123456-qn7wr \
 {
   "id": "asset-20260720123456-qn7wr",
   "object": "seedance.material_asset",
+  "project_name": "default",
   "group_id": "group-20260720123456-vrt01",
   "library_type": "aigc_avatar",
   "asset_name": "Front view approved",
   "asset_type": "Image",
-  "status": "PROCESSING",
-  "ready": false,
+  "status": "ACTIVE",
+  "ready": true,
   "error_message": null,
-  "metadata": null,
+  "metadata": {"approved_by": "creative-team"},
   "created_at": 1782998400000
 }
 ```

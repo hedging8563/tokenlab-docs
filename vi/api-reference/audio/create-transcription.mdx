@@ -6,14 +6,14 @@ description: "Chép lời audio sang ngôn ngữ đầu vào"
 
 ## Nội dung Request
 
-**Timeout cho yêu cầu đồng bộ:** endpoint không phải chat này chờ model được định tuyến hoàn tất. Input lớn, audio dài, hoặc batch lớn có thể vượt quá mặc định 30s phổ biến của client, vì vậy hãy đặt timeout của HTTP client ít nhất là `120s`.
+Chép lời có thể trả ngay văn bản hoặc chấp nhận tác vụ bất đồng bộ với HTTP `200`, `id` và `status`. Với tác vụ được chấp nhận, theo `poll_url` hoặc truy vấn `/v1/tasks/{id}`. Với âm thanh dài được xử lý đồng bộ, đặt thời gian chờ ít nhất `120s`.
 
 <ParamField body="file" type="file" required>
-  Tệp audio cần chép lời. Các định dạng được hỗ trợ: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, webm.
+  Tệp audio cần chép lời. Các định dạng được hỗ trợ: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, webm. Kích thước tệp tối đa: 25 MB.
 </ParamField>
 
 <ParamField body="model" type="string" default="whisper-1">
-  Model sẽ sử dụng. Hiện tại chỉ hỗ trợ `whisper-1`.
+  ID mô hình chép lời, chẳng hạn `whisper-1` hoặc `gpt-4o-transcribe`. Xem các lựa chọn hiện tại bằng `GET /v1/models?recommended_for=stt`.
 </ParamField>
 
 <ParamField body="language" type="string">
@@ -25,18 +25,20 @@ description: "Chép lời audio sang ngôn ngữ đầu vào"
 </ParamField>
 
 <ParamField body="response_format" type="string" default="json">
-  Định dạng đầu ra: `json`, `text`, `srt`, `verbose_json`, `vtt`.
+  Định dạng đầu ra. Whisper hỗ trợ `json`, `text`, `srt`, `verbose_json` và `vtt`; mô hình khác có thể hỗ trợ tập định dạng khác. Kiểm tra chi tiết mô hình.
 </ParamField>
 
-<ParamField body="temperature" type="number" default="0">
-  Nhiệt độ lấy mẫu (0 đến 1).
+<ParamField body="temperature" type="number">
+  Nhiệt độ lấy mẫu từ 0 đến 1, chỉ dành cho mô hình hỗ trợ tham số này.
 </ParamField>
 
 <ParamField body="timestamp_granularities" type="array">
-  Độ chi tiết của dấu thời gian: `word` và/hoặc `segment`. Yêu cầu `verbose_json`.
+  `word` và/hoặc `segment`, nếu mô hình hỗ trợ. Whisper yêu cầu `response_format=verbose_json`. Trong multipart, lặp lại `timestamp_granularities[]` để gửi nhiều giá trị.
 </ParamField>
 
 ## Phản hồi
+
+Các trường dưới đây mô tả phản hồi JSON cho chép lời hoặc dịch. `text`, `srt` và `vtt` trả về văn bản hoặc phụ đề thô thay vì đối tượng JSON. Trường bổ sung phụ thuộc vào mô hình và định dạng đầu ra.
 
 <ResponseField name="text" type="string">
   Văn bản đã được chép lời.
@@ -45,7 +47,7 @@ description: "Chép lời audio sang ngôn ngữ đầu vào"
 Đối với `verbose_json`:
 
 <ResponseField name="task" type="string">
-  Luôn là `transcribe`.
+  Tên tác vụ khi được trả về, chẳng hạn `transcribe`.
 </ResponseField>
 
 <ResponseField name="language" type="string">
@@ -62,6 +64,24 @@ description: "Chép lời audio sang ngôn ngữ đầu vào"
 
 <ResponseField name="words" type="array">
   Dấu thời gian ở cấp độ từ (nếu được yêu cầu).
+</ResponseField>
+
+Tác vụ chép lời bất đồng bộ được chấp nhận trả về các trường sau thay vì văn bản:
+
+<ResponseField name="id" type="string">
+  ID của tác vụ.
+</ResponseField>
+
+<ResponseField name="task_id" type="string">
+  Bí danh của mã tác vụ bất đồng bộ khi có sẵn.
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Trạng thái tác vụ: `pending`, `processing`, `completed`, hoặc `failed`.
+</ResponseField>
+
+<ResponseField name="poll_url" type="string">
+  URL polling ưu tiên khi phản hồi tạo tác vụ cung cấp.
 </ResponseField>
 
 <RequestExample>
@@ -155,9 +175,18 @@ echo $data['text'];
       "start": 0.0,
       "end": 2.5,
       "text": "Hello, this is a test",
-      "tokens": [...]
+      "tokens": [50364, 2425, 11]
     }
   ]
+}
+```
+
+```json HTTP 200 (async)
+{
+  "id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "task_id": "ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "status": "pending",
+  "poll_url": "/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 }
 ```
 </ResponseExample>
@@ -167,8 +196,11 @@ echo $data['text'];
 Để dịch audio sang tiếng Anh, hãy sử dụng endpoint translations:
 
 ```python
-response = client.audio.translations.create(
-    model="whisper-1",
-    file=audio_file
-)
+with open("audio.mp3", "rb") as audio_file:
+    response = client.audio.translations.create(
+        model="whisper-1",
+        file=audio_file
+    )
+
+print(response.text)
 ```
