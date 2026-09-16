@@ -3,7 +3,7 @@
   'use strict';
 
   const AUTH_STORAGE_KEY = 'tokenlab-api-key';
-  const API_ORIGINS = new Set(['https://api.tokenlab.sh', 'https://api.lemondata.cc']);
+  const API_ORIGINS = new Set(['https://api.tokenlab.sh']);
   // Only explicit Playground hooks are supported. Never infer a container from
   // a translated Send button, which can also belong to search or the assistant.
   const PLAYGROUND_SELECTOR = '[data-testid="playground"], [class*="PlaygroundContainer"], [class*="playground-container"], [class*="Playground_"]';
