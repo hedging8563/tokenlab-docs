@@ -1,100 +1,63 @@
 ---
 title: "Cursor"
-description: "在 Cursor AI 程式碼編輯器中使用 TokenLab"
+description: "為 Cursor 支援的聊天模型設定 TokenLab，驗證連線，並按需加入 MCP 或 Skills"
 ---
 
-## 概覽
+## 適用範圍
 
+本頁適用於 macOS、Windows、Linux 的 **Cursor 桌面編輯器**。OpenAI BYOK 的官方範圍是標準、非推理聊天模型；Tab 補全仍使用 Cursor 模型。修改 OpenAI Base URL 不代表所有 TokenLab 模型或 Cursor 功能都能使用。詳見 [Cursor API Key 限制](https://cursor.com/help/models-and-usage/api-keys)。
 
+只需要圖像、影片等 API 工具時，可保留目前聊天供應商，另外加入 [MCP](/zh-Hant/integrations/tokenlab-mcp-server)。[Skill](/zh-Hant/integrations/coding-agent-skill) 提供操作說明，不會切換主模型。
 
-<Note>
-**類型**: 程式工具
+## 把任務交給現有 Agent
 
-**主要路徑**: OpenAI 相容
-
-**支援級別**: 支援，但有邊界
-</Note>
-
-[Cursor](https://cursor.sh) 支援自備金鑰（BYOK）供應商，但自訂 API key 僅適用於標準 chat model。請在此將 TokenLab 作為與 OpenAI 相容的端點，用於聊天風格的編輯器工作流程，而非完全取代 Cursor 每一項 model 功能。
-
-## 設定
-
-1. 開啟 Cursor Settings（`Cmd/Ctrl + ,`）
-2. 在左側邊欄中前往 **Models**
-3. 向下捲動至 **OpenAI API Key** 區段
-4. 輸入你的 TokenLab API key
-5. 啟用 **Override OpenAI Base URL**
-6. 將 Base URL 設定為：
-
+```text
+閱讀 https://docs.tokenlab.sh/zh-Hant/integrations/cursor，核對已安裝版本與作業系統。
+確認我要使用 TokenLab 主模型、MCP 工具還是 API Skill。
+保留既有帳戶、供應商設定和權限，說明改動後如何還原。
+不要在聊天中索取或填寫 API key；我會在本機填入並完成必要的介面操作。
+先說明一次小驗證的費用，只有我明確選擇該測試後，才協助執行並核對 TokenLab 請求記錄。
 ```
+
+## 開啟正確的設定
+
+1. 從 [Cursor 下載頁](https://cursor.com/downloads)安裝或更新桌面版；本頁不設定 CLI 或 Cloud Agents。
+2. 從命令面板開啟 **Cursor Settings**，或按 `Cmd/Ctrl + Shift + J`。`Cmd/Ctrl + ,` 是編輯器通用設定。
+3. 進入 **Models**，記下既有 OpenAI key 與 Base URL 設定以便還原，保留其他供應商。
+4. 在 **OpenAI API Key** 中本機填入並儲存 TokenLab key；不要傳到聊天或提交至 git。
+5. 啟用 **Override OpenAI Base URL**，填入：
+
+```text
 https://api.tokenlab.sh/v1
 ```
 
-<Warning>
-Cursor 自訂 API key 僅適用於標準 chat model。Tab Completion 和其他由 Cursor 管理的專用功能將繼續使用 Cursor 內建的供應商。
-</Warning>
+BYOK 請求仍經過 Cursor 伺服器組裝提示詞，並非編輯器直接連至 TokenLab。
 
-<Warning>
-Cursor 的自訂 API key 流程僅適用於標準 chat model。需要由 Cursor 管理的專用 model 的功能，例如 Tab Completion 和某些特定於 reasoning 的流程，將繼續使用 Cursor 的內建供應商。Cursor 也指出，請求仍會經過其後端以進行最終 prompt 組裝。
-</Warning>
+## 選擇模型
 
-## Model 選擇
+從目前 [TokenLab 模型目錄](https://tokenlab.sh/zh-TW/models)複製精確 ID，再確認 Cursor 的 OpenAI BYOK 路徑接受該模型。TokenLab 的 chat 分類不代表 Cursor 相容性。
 
-完成設定後，建議優先使用透過 TokenLab 提供的標準 chat model：
+首次文字測試可用仍在目錄中的 `gpt-4.1-mini` 作為非推理模型範例。在 **Models** 啟用既有項目；沒有時才用 **Add model**，然後在聊天選擇器選中它。不要用不同拼寫重複加入內建模型，也不要假設 Claude 或 Gemini 會經過 OpenAI override。參見 [Cursor 自訂模型說明](https://forum.cursor.com/t/add-custom-model-fail-no-models-available/163488)。
 
-### 推薦用於程式開發的 Models
+## 驗證一次小請求
 
-| 模型 | 最適合用途 |
-|-------|----------|
-| `gpt-5.4` | 一般程式開發、除錯、chat |
-| `gpt-5-mini` | 快速編輯與輕量 prompt |
+使用所選模型建立新聊天，傳送：
 
-## 最適合的使用情境
+```text
+只回覆 TOKENLAB_CONNECTION_OK。不要使用工具，也不要修改檔案。
+```
 
-### Chat 與編輯器流程
-
-透過 Cursor 使用 TokenLab 可用於：
-
-- 程式碼說明
-- 修復 bug
-- 重構建議
-- 文件產生
-
-### 仍由 Cursor 管理 model 的功能
-
-這些功能無法可靠地切換到你的 TokenLab 端點：
-
-- Tab 補全
-- 非標準 chat model 的專用功能
-- Cursor 僅在內建 model 上啟用的供應商特定功能
+這次請求會計費。檢查回覆，並到 [TokenLab 請求記錄](https://tokenlab.sh/dashboard/runs?section=requests)核對模型、時間與狀態。只看到模型列表或收到回覆，沒有對應記錄，不能確認已接通。
 
 ## 疑難排解
 
-<AccordionGroup>
-  <Accordion title="Models 沒有顯示">
-    Cursor 會快取 model 與供應商狀態。設定 API key 和 base URL 後，請重新啟動 Cursor。
-  </Accordion>
+- **模型缺失或被拒絕：**核對 ID 及 Cursor 的 BYOK 支援範圍；優先使用既有內建項目。重啟無法解決不相容。
+- **鑑權錯誤：**核對 OpenAI 欄位的 TokenLab key 和 Base URL；餘額或額度不足與無效 key 是不同問題。
+- **沒有 TokenLab 記錄：**核對聊天模型與 override，再看 Cursor 錯誤。Tab 補全不能驗證這條連線。
+- **其他供應商失效：**還原原有 OpenAI 設定或關閉 override，再建立新聊天。
 
-  <Accordion title="BYOK 模式中不支援該 model">
-    自訂 API key 僅適用於標準 chat model。如果某個 model 使用 Cursor 的專用基礎架構，請切換為標準 chat model，例如 `gpt-5.4`。
-  </Accordion>
+## 另外加入 MCP 與 Skills
 
-  <Accordion title="驗證錯誤">
-    請確認你的 API key 正確且餘額充足。
-  </Accordion>
+[MCP](/zh-Hant/integrations/tokenlab-mcp-server) 增加可呼叫工具，透過 Cursor MCP 設定或 `.cursor/mcp.json` 配置。先確認工具發現，再按需執行計費生成；MCP 不會替換主模型。
 
-  <Accordion title="啟用 TokenLab 後，另一個供應商停止運作">
-    Cursor 的 BYOK 設定可能會影響其他供應商流程。如果在啟用 OpenAI base URL 覆寫後，另一條 model 路徑失效，請停用該覆寫並重新啟動 Cursor。
-  </Accordion>
-</AccordionGroup>
-
-## 提示
-
-<CardGroup cols={2}>
-  <Card title="使用合適的 model" icon="gauge-high">
-    快速 chat 類型任務請使用 `gpt-5-mini`，較繁重的程式開發工作則使用 `gpt-5.4`。
-  </Card>
-  <Card title="檢查你的餘額" icon="wallet">
-    請在你的 TokenLab dashboard 中監控使用量。
-  </Card>
-</CardGroup>
+[Skills](/zh-Hant/integrations/coding-agent-skill) 是 API 使用說明。把完整目錄放到 `.cursor/skills/tokenlab-api-integration/`，保留 `SKILL.md` 與引用檔案，在 **Customize → Skills** 檢查發現。Skill 不提供 key，也不安裝 MCP server。入口以官方 [MCP](https://cursor.com/docs/mcp) 和 [Skills](https://cursor.com/docs/skills) 文件為準。

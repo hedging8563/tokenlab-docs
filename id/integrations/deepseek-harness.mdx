@@ -1,76 +1,82 @@
 ---
 title: "DeepSeek Harness"
-description: "Pasang TokenLab di DeepSeek Harness sebagai penyedia model berprotokol native dengan alat multimedia dan asinkron yang lengkap"
+description: "Konfigurasikan model TokenLab di Harness, verifikasi permintaan, lalu pilih MCP, Skills, atau bundle yang telah terbit"
 ---
 
-## Ikhtisar
+## Pilih cara koneksi
 
-Bundle TokenLab untuk DeepSeek Harness menambahkan dua permukaan integrasi:
+Untuk memakai TokenLab sebagai model utama, tambahkan **custom provider** di Harness Web UI. Bundle TokenLab tidak wajib. [MCP](/id/integrations/tokenlab-mcp-server) menambahkan alat, sedangkan [Skill](/id/integrations/coding-agent-skill) menyediakan petunjuk API; keduanya tidak otomatis mengganti model utama.
 
-- tiga rute model yang saling eksklusif untuk OpenAI Responses, Anthropic Messages, dan OpenAI Chat Completions;
-- profile TokenLab MCP `full` untuk penemuan model, gambar, video, musik, 3D, audio, berkas, embeddings, rerank, terjemahan, dan tugas asinkron.
+Harness masih pratinjau pengembang. Langkah ini dicocokkan dengan dokumentasi resmi dan paket terbit `@deepseek-ai/dsh` `0.1.5-rc.1` pada 16 September 2026, bukan jaminan bahwa bundle lama kompatibel dengan seluruh rilis `0.1.x`.
 
-Nama paketnya `@tokenlabai/dsh-provider`, ditujukan untuk DeepSeek Harness `0.1.1-rc.2` dan kontrak plugin `0.1.x` yang kompatibel.
+## Tugas untuk agen Anda saat ini
 
-<Note>
-Halaman ini adalah dokumentasi yang siap dirilis. Terbitkan dan baca kembali paket npm terlebih dahulu sebelum menayangkan halaman atau mengirim cantumannya ke pasar.
-</Note>
+```text
+Baca https://docs.tokenlab.sh/id/integrations/deepseek-harness dan periksa versi terpasang serta sistem operasi saya.
+Pastikan apakah saya membutuhkan TokenLab sebagai model utama, alat MCP, atau Skill API.
+Pertahankan akun, konfigurasi penyedia, dan izin yang ada; jelaskan cara memulihkan perubahan.
+Jangan minta kunci API di chat. Saya akan mengisinya secara lokal dan melakukan langkah UI yang diperlukan.
+Jelaskan biaya satu permintaan verifikasi kecil. Hanya setelah saya memilih pengujian itu secara eksplisit, bantu jalankan dan cocokkan catatan TokenLab-nya.
+```
 
-## Instalasi
+## Jalankan Harness
 
-Simpan key di `.env` proyek atau Harness home:
+Gunakan Node yang didukung di macOS, Linux, atau Windows; Node 24 LTS dapat dipakai untuk memulai. Jalankan dari direktori proyek di terminal atau PowerShell:
+
+```bash
+node --version
+npx @deepseek-ai/dsh@0.1.5-rc.1 web
+```
+
+Buka URL lokal yang dicetak, lalu tambahkan dan pilih proyek melalui **Choose workspace**. Perintah ini memakai profile `web`; profile `desktop` milik Electron tidak dikelola oleh alur CLI ini. Lihat [panduan awal](https://github.com/deepseek-ai/deepseek-harness) dan [Web UI](https://deepseek-harness.github.io/deepseek-harness/en/guide/quickstart).
+
+## Konfigurasikan satu provider TokenLab
+
+1. Buka **Settings → Models → Add a custom provider** dan pertahankan penyedia serta izin yang ada.
+2. Isi Provider ID huruf kecil, misalnya `tokenlab-chat`, lalu pilih satu pasangan protokol dan Base URL dari tabel.
+3. Simpan kunci TokenLab melalui formulir lokal. Kunci UI disimpan di `$DSH_HOME/.credentials.yaml`; pengaturan hanya menyimpan referensi. Jangan kirim kunci ke chat atau git.
+4. Tambahkan ID persis dari [katalog terkini](https://tokenlab.sh/id/models), lalu cocokkan `tokenlab.accepted_request_formats` pada [detail model](/id/api-reference/models/get-model).
+5. Simpan provider, pilih model, lalu buat **sesi baru**. Sesi yang sudah mengirim permintaan tetap memakai model yang tercatat.
+
+| Contoh Provider ID | Harness API protocol | Base URL | Format permintaan publik yang diperlukan |
+| --- | --- | --- | --- |
+| `tokenlab-chat` | `openai-completions` | `https://api.tokenlab.sh/v1` | `openai_chat_completions` |
+| `tokenlab-responses` | `openai-responses` | `https://api.tokenlab.sh/v1` | `openai_responses` |
+| `tokenlab-messages` | `anthropic-messages` | `https://api.tokenlab.sh` | `anthropic_messages` |
+
+Pengujian teks pertama dapat memakai `gpt-4.1-mini` yang masih tersedia melalui baris Chat. **Fetch available models → Add selected** membantu pencarian, tetapi tetap perlu disimpan; masukkan ID manual jika gagal. Daftar tidak membuktikan kompatibilitas protokol. Gemini native tidak tersedia di sini; gunakan Chat hanya jika detail model menyatakan dukungan. Input gambar dan kontrol penalaran mungkin perlu kolom tambahan di `settings.yaml`; ikuti [panduan provider resmi](https://deepseek-harness.github.io/deepseek-harness/en/guide/providers) dan detail model.
+
+## Verifikasi satu permintaan kecil
+
+Kirim dalam sesi baru:
+
+```text
+Balas hanya TOKENLAB_CONNECTION_OK. Jangan gunakan alat atau ubah berkas.
+```
+
+Permintaan ini berbayar. Cocokkan jawaban serta model, waktu, dan status pada [catatan TokenLab](https://tokenlab.sh/dashboard/runs?section=requests). Pengujian awal tidak perlu tiga protokol atau generasi media berbayar. Daftar model atau penemuan MCP saja belum membuktikan akses generasi.
+
+## Opsional: bundle TokenLab yang telah terbit
+
+[`@tokenlabai/dsh-provider@0.1.1`](https://www.npmjs.com/package/@tokenlabai/dsh-provider/v/0.1.1) telah terbit dan menargetkan Harness `0.1.1-rc.2`; kompatibilitas versi baru perlu diperiksa terpisah. Untuk pemasangan baru, gunakan custom provider di atas. Bundle memuat **snapshot model tetap tanggal 2026-08-26**, tiga rute model, 80 alat `full` dari `@tokenlabai/mcp-server@0.6.17`, serta `tokenlab_wait_task`. Katalog tidak diperbarui otomatis. Periksa katalog terkini dan tambahkan ID baru melalui custom provider.
+
+Pada instalasi kompatibel yang sudah ada, pastikan `pnpm` tersedia di PATH. Gunakan versi `dsh` dan profile yang sama untuk pemasangan serta peluncuran. Jika memakai `npx`, ganti `dsh` berikut dengan peluncur berversi yang sama:
+
+```bash
+dsh --version
+pnpm --version
+dsh plugin --profile web add --workspace-root @tokenlabai/dsh-provider@0.1.1
+```
+
+Sebelum memulai profile, atur kunci dalam lingkungan peluncuran atau `.env` yang dibaca:
 
 ```dotenv
 TOKENLAB_API_KEY=sk-your-tokenlab-key
 ```
 
-Pasang bundle ke profile yang digunakan, lalu mulai ulang:
+Harness membaca `.env` pada direktori peluncuran dan `$DSH_HOME` (biasanya `~/.dsh`), dengan prioritas pada variabel lingkungan yang diwarisi. Memilih workspace setelahnya tidak mengganti `.env`. Jangan commit berkas itu; mulai ulang profile yang sama setelah perubahan. Kunci model dari UI tidak otomatis menjadi `TOKENLAB_API_KEY` untuk bundle. Untuk `headless`, pemasangan dan peluncuran harus sama-sama memakai profile tersebut, bukan `web`. Pengaturan `llm-pi-ai` yang ada mengalahkan default bundle; pertahankan dan gabungkan provider di `$DSH_HOME/settings.yaml`, jangan menggantinya dengan seluruh Cordis patch.
 
-```bash
-dsh plugin --profile web add --workspace-root @tokenlabai/dsh-provider
-```
-
-Untuk tugas sekali jalan, gunakan profile headless:
-
-```bash
-dsh plugin --profile headless add --workspace-root @tokenlabai/dsh-provider
-```
-
-## Perutean endpoint native
-
-Harness memilih wire protocol pada tingkat provider route. Karena itu, bundle mendaftarkan tiga provider dan menempatkan setiap model chat publik tepat pada satu rute.
-
-| Harness provider | TokenLab endpoint | Pemilihan |
-| --- | --- | --- |
-| `TokenLab · Responses` | `POST /v1/responses` | owner OpenAI dan detail contract publik menyatakan `openai_responses` |
-| `TokenLab · Messages` | `POST /v1/messages` | owner Anthropic dan detail contract publik menyatakan `anthropic_messages` |
-| `TokenLab · Chat` | `POST /v1/chat/completions` | model lain yang menyatakan kompatibilitas OpenAI Chat Completions |
-
-Snapshot dibuat dari `GET /v1/models` dan `GET /v1/models/{id}`. Protokol tidak ditebak dari substring nama model atau rute internal.
-
-<Note>
-Custom provider Harness saat ini mendukung `openai-responses`, `anthropic-messages`, dan `openai-completions`, tetapi belum menyediakan Gemini native yang dapat dikonfigurasi. Model Gemini di Harness memakai Chat fallback yang dinyatakan secara publik. Aplikasi yang memerlukan Gemini `generateContent` harus memanggil `/v1beta/models/{model}:generateContent` dari client yang kompatibel.
-</Note>
-
-## Alat multimedia dan pengembang
-
-Bundle menjalankan versi tetap `@tokenlabai/mcp-server` secara lokal melalui stdio dan MCP bridge resmi. Profile `full` mendaftarkan 80 alat di bawah `mcp__tokenlab__...`, meliputi catalog/pricing, empat API LLM, gambar, video, musik, 3D, audio, berkas, response lifecycle, batches, embeddings, rerank, terjemahan, worlds, dan aset media.
-
-Model menerima portable schemas, sedangkan MCP server memvalidasi panggilan menggunakan kontrak OpenAPI lengkap.
-
-## Media asinkron
-
-Pembuatan video, musik, dan 3D bersifat asinkron. Bergantung pada model, gambar dapat mengembalikan hasil langsung atau tugas.
-
-1. Baca `delivery.mode`.
-2. Untuk `sync`, gunakan hasil secara langsung.
-3. Untuk `async`, kirim `delivery.task_id` ke `tokenlab_wait_task`.
-4. Gunakan `status`, `response` lengkap, dan `result_urls`.
-5. Saat timeout, status nonterminal terbaru dikembalikan agar polling dapat dilanjutkan dengan aman.
-
-`tokenlab_wait_task` hanya baca. Alat ini meneruskan pembatalan ke semua request dan delay, membatasi retry sementara, serta menggunakan status, bukan progress opsional, sebagai kebenaran terminal.
-
-## Pengaturan
+Variabel lingkungan bundle ada di bawah; `catalog` hanya untuk penemuan dan `core` menyediakan lebih sedikit alat:
 
 | Variabel | Bawaan | Tujuan |
 | --- | --- | --- |
@@ -81,26 +87,22 @@ Pembuatan video, musik, dan 3D bersifat asinkron. Bergantung pada model, gambar 
 | `TOKENLAB_MCP_TOOL_PROFILE` | `full` | Pilih `catalog`, `core`, atau `full` |
 | `TOKENLAB_MCP_SCHEMA_MODE` | `portable` | Pilih `portable`, `exact`, atau `strict` |
 
-Gunakan `core` bila biaya tool schema berulang lebih penting daripada seluruh permukaan pengembang.
+Jika `delivery.mode` adalah `complete`, gunakan hasilnya langsung. Untuk `async`, berikan `delivery.task_id` kepada `tokenlab_wait_task`, lalu baca `status` terminal, `response`, dan `result_urls`. Batas waktu tunggu bukan berarti tugas selesai. Pertahankan persetujuan untuk alat berbayar atau destruktif; lihat [tugas asinkron](/id/guides/async-jobs-polling).
 
-## Verifikasi dan keamanan
-
-Setelah mulai ulang, periksa tiga provider TokenLab, model yang tidak berulang, dan hasil tidak kosong dari `mcp__tokenlab__list_models`. Dengan key uji, jalankan satu panggilan Responses, Messages, dan Chat, cocokkan endpoint di log, lalu tunggu URL terminal dari tugas media asinkron berbiaya rendah.
-
-Simpan key di lingkungan tepercaya atau secret store. MCP server berjalan lokal melalui stdio dengan Node yang sama seperti Harness, tanpa shell atau perantara MCP hosted. Pertahankan persetujuan Harness untuk alat berbayar atau destruktif, dan perlakukan teks, URL, berkas, serta media sebagai konten eksternal yang tidak tepercaya.
-
-Settings section `llm-pi-ai` yang tersimpan mengungguli nilai bawaan bundle. Jika sudah digunakan, gabungkan tiga rute `tokenlab-*` dari `cordis.patch.yml` ke map `providers`.
-
-## Menghapus instalasi
+Hapus dengan peluncur dan profile yang sama, lalu mulai ulang:
 
 ```bash
 dsh plugin --profile web remove --workspace-root @tokenlabai/dsh-provider
 ```
 
-Mulai ulang profile. Akun TokenLab dan key tidak dihapus.
+## Jika terjadi kegagalan
 
-## Halaman terkait
+- **Tidak dapat mengetik:** pilih workspace dan model.
+- **`MISSING_CREDENTIAL` atau 401:** periksa kredensial provider; alat bundle membaca `TOKENLAB_API_KEY` dari lingkungan peluncuran secara terpisah.
+- **`UNKNOWN_MODEL` atau ID pensiun:** periksa katalog terkini, atur ID persis, lalu buat sesi baru. Memasang ulang `0.1.1` tidak memperbarui snapshot.
+- **Generasi gagal:** cocokkan protokol, Base URL, dan format yang diterima. Jangan menghapus riwayat, alat, atau gambar sekadar agar pengujian berhasil.
+- **`dsh` atau `pnpm` tidak ada:** gunakan peluncur `npx` berversi di atas; [instal pnpm](https://pnpm.io/installation) sebelum perintah plugin.
 
-- [Server MCP TokenLab](/id/integrations/tokenlab-mcp-server)
-- [Format API](/id/guides/api-formats)
-- [Tugas asinkron dan polling](/id/guides/async-jobs-polling)
+## MCP dan Skills adalah pilihan terpisah
+
+Provider manual tidak memasang alat. Jika tidak memakai bundle, ikuti [panduan TokenLab MCP](/id/integrations/tokenlab-mcp-server) dan periksa penemuan sebelum generasi. Letakkan folder [Skill](/id/integrations/coding-agent-skill) lengkap dengan `SKILL.md` dan referensinya di `.dsh/skills/tokenlab-api-integration/` pada akar proyek. Harness juga membaca `.agents/skills/`. Skill tidak memasang provider, server MCP, atau kunci. Lihat [referensi Skills resmi](https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/skill/skill-filesystem/README.md).

@@ -1,90 +1,63 @@
 ---
 title: "Cursor"
-description: "Use o TokenLab com o editor de código Cursor AI"
+description: "Configure o TokenLab para modelos de chat compatíveis com o Cursor, verifique a conexão e adicione MCP ou Skills"
 ---
 
-## Visão geral
+## Escopo
 
-O [Cursor](https://cursor.sh) oferece suporte a provedores bring-your-own-key (BYOK), mas chaves de API personalizadas funcionam apenas com modelos de chat padrão. Use o TokenLab aqui como um ponto de terminação compatível com OpenAI para fluxos de trabalho do editor no estilo chat, e não como uma substituição completa para todos os recursos de modelo do Cursor.
+Este guia se aplica ao **editor Cursor para desktop** no macOS, Windows e Linux. O suporte oficial a OpenAI BYOK abrange modelos de chat padrão sem raciocínio; a conclusão Tab continua usando modelos do Cursor. Alterar a OpenAI Base URL não habilita todos os modelos do TokenLab nem todos os recursos do Cursor. Veja os [limites oficiais](https://cursor.com/help/models-and-usage/api-keys).
 
-## Configuração
+Se precisar apenas de ferramentas de imagem, vídeo ou outras APIs, mantenha seu provedor de chat e adicione [MCP](/pt/integrations/tokenlab-mcp-server). Um [Skill](/pt/integrations/coding-agent-skill) fornece instruções sem trocar o modelo principal.
 
-1. Abra as Configurações do Cursor (`Cmd/Ctrl + ,`)
-2. Navegue até **Models** na barra lateral esquerda
-3. Role para baixo até a seção **OpenAI API Key**
-4. Insira sua chave de API do TokenLab
-5. Ative **Override OpenAI Base URL**
-6. Defina a Base URL como:
+## Tarefa para seu agente atual
 
+```text
+Leia https://docs.tokenlab.sh/pt/integrations/cursor e confira minha versão instalada e meu sistema operacional.
+Confirme se preciso do TokenLab como modelo principal, ferramentas MCP ou um Skill de API.
+Preserve contas, configurações dos provedores e permissões; explique como restaurar as alterações.
+Não peça chaves de API no chat. Eu as inserirei localmente e farei as etapas necessárias na interface.
+Explique o custo de uma pequena requisição de verificação. Só após minha escolha explícita desse teste, ajude a executá-lo e a conferir seu registro no TokenLab.
 ```
+
+## Abra as configurações corretas
+
+1. Instale ou atualize o editor em [Cursor Downloads](https://cursor.com/downloads). Este guia não configura CLI nem Cloud Agents.
+2. Abra **Cursor Settings** pela paleta de comandos ou com `Cmd/Ctrl + Shift + J`. `Cmd/Ctrl + ,` abre as configurações gerais do editor.
+3. Em **Models**, anote a configuração OpenAI atual para poder restaurá-la. Preserve os outros provedores.
+4. Insira e salve sua chave TokenLab localmente em **OpenAI API Key**. Não a envie no chat nem a inclua em commits.
+5. Ative **Override OpenAI Base URL** e informe:
+
+```text
 https://api.tokenlab.sh/v1
 ```
 
-<Warning>
-As chaves de API personalizadas do Cursor se aplicam apenas a modelos de chat padrão. O Tab Completion e outros recursos especializados gerenciados pelo Cursor continuarão usando os provedores integrados do Cursor.
-</Warning>
+As requisições BYOK também passam pelos servidores do Cursor para montar o prompt. O editor não se conecta diretamente ao TokenLab.
 
-<Warning>
-O fluxo de chave de API personalizada do Cursor se aplica apenas a modelos de chat padrão. Recursos que exigem modelos especializados gerenciados pelo Cursor, como Tab Completion e alguns fluxos específicos de reasoning, continuarão usando os provedores integrados do Cursor. O Cursor também observa que as solicitações ainda passam pelo seu servidor intermediário para a montagem final do prompt.
-</Warning>
+## Escolha um modelo
 
-## Seleção de modelo
+Copie o ID exato do [catálogo atual do TokenLab](https://tokenlab.sh/pt/models) e confirme o suporte no OpenAI BYOK do Cursor. A categoria chat no TokenLab não comprova essa compatibilidade.
 
-Após a configuração, prefira modelos de chat padrão expostos por meio do TokenLab:
+Para o primeiro teste de texto, `gpt-4.1-mini` é um exemplo sem raciocínio, caso ainda esteja disponível. Ative a entrada existente em **Models** ou use **Add model** se ela não existir, e selecione-a no chat. Não duplique modelos integrados com outra grafia nem suponha que Claude ou Gemini usem o override OpenAI. Veja a [orientação do Cursor](https://forum.cursor.com/t/add-custom-model-fail-no-models-available/163488).
 
-### Modelos recomendados para programação
+## Verifique uma pequena requisição
 
-| Modelo | Melhor para |
-|-------|----------|
-| `gpt-5.4` | Programação geral, debugging, chat |
-| `gpt-5-mini` | Edições rápidas e prompts leves |
+Crie um novo chat com o modelo escolhido e envie:
 
-## O que funciona melhor
+```text
+Responda apenas TOKENLAB_CONNECTION_OK. Não use ferramentas nem altere arquivos.
+```
 
-### Fluxos de chat e editor
+Essa requisição é cobrada. Confira a resposta e o modelo, horário e status nas [requisições do TokenLab](https://tokenlab.sh/dashboard/runs?section=requests). Um modelo visível ou uma resposta sem registro correspondente não confirma esse caminho.
 
-Use o TokenLab por meio do Cursor para:
+## Se houver falha
 
-- Explicações de código
-- Correção de bugs
-- Sugestões de refatoração
-- Geração de documentação
+- **Modelo ausente ou recusado:** confira o ID e o suporte BYOK; use a entrada integrada quando existir. Reiniciar não resolve incompatibilidade.
+- **Erro de autenticação:** confira a chave TokenLab no campo OpenAI e a Base URL. Erros de saldo ou cota são diferentes de uma chave inválida.
+- **Sem registro no TokenLab:** confira o modelo do chat, o override e o erro do Cursor. A conclusão Tab não testa essa conexão.
+- **Outro provedor parou:** restaure a configuração OpenAI anterior ou desative o override e abra um novo chat.
 
-### O que permanece em modelos gerenciados pelo Cursor
+## Adicione MCP e Skills separadamente
 
-Estes recursos não mudam de forma confiável para o seu ponto de terminação do TokenLab:
+[MCP](/pt/integrations/tokenlab-mcp-server) adiciona ferramentas pelas configurações MCP do Cursor ou por `.cursor/mcp.json`. Verifique a descoberta primeiro e só depois execute as gerações pagas desejadas. MCP não substitui o modelo principal.
 
-- Conclusão por Tab
-- Modelos especializados que não são de chat padrão
-- Recursos específicos de provedor que o Cursor só habilita em modelos integrados
-
-## Solução de problemas
-
-<AccordionGroup>
-  <Accordion title="Modelos não aparecem">
-    O Cursor armazena em cache o estado do modelo e do fornecedor. Reinicie o Cursor após configurar a chave de API e a URL de base.
-  </Accordion>
-
-  <Accordion title="Modelo não suportado no modo BYOK">
-    Chaves de API personalizadas funcionam apenas com modelos de chat padrão. Se um modelo usar infraestrutura especializada do Cursor, mude para um modelo de chat padrão, como `gpt-5.4`.
-  </Accordion>
-
-  <Accordion title="Erros de autenticação">
-    Verifique se sua chave de API está correta e tem saldo suficiente.
-  </Accordion>
-
-  <Accordion title="Outro provedor parou de funcionar após ativar o TokenLab">
-    A configuração BYOK do Cursor pode afetar outros fluxos de fornecedor. Se outro caminho de modelo parar de funcionar após ativar a substituição da URL de base OpenAI, desative a substituição e reinicie o Cursor.
-  </Accordion>
-</AccordionGroup>
-
-## Dicas
-
-<CardGroup cols={2}>
-  <Card title="Use modelos apropriados" icon="gauge-high">
-    Use `gpt-5-mini` para tarefas rápidas no estilo chat e `gpt-5.4` para trabalhos de programação mais pesados.
-  </Card>
-  <Card title="Verifique seu saldo" icon="wallet">
-    Monitore o uso no seu dashboard do TokenLab.
-  </Card>
-</CardGroup>
+[Skills](/pt/integrations/coding-agent-skill) fornecem instruções de API. Coloque a pasta completa com `SKILL.md` e referências em `.cursor/skills/tokenlab-api-integration/` e confira **Customize → Skills**. Um Skill não fornece chave nem instala servidor MCP. Consulte os guias oficiais de [MCP](https://cursor.com/docs/mcp) e [Skills](https://cursor.com/docs/skills) para sua versão.

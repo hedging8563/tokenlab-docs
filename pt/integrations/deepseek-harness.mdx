@@ -1,106 +1,107 @@
 ---
 title: "DeepSeek Harness"
-description: "Instale o TokenLab no DeepSeek Harness como provedor de modelos com protocolos nativos e ferramentas completas de multimídia e tarefas assíncronas"
+description: "Configure um modelo TokenLab no Harness, verifique uma solicitação e escolha MCP, Skills ou o bundle de provedor publicado"
 ---
 
-## Visão geral
+## Escolha a conexão de que você precisa
 
-O bundle do TokenLab para DeepSeek Harness adiciona duas superfícies de integração:
+Para usar o TokenLab como modelo principal do agente, adicione um **custom provider** na interface web do Harness. Isso funciona independentemente do bundle opcional do TokenLab. Adicione [ferramentas MCP](/pt/integrations/tokenlab-mcp-server) para mídia e outras APIs, ou um [Skill](/pt/integrations/coding-agent-skill) com instruções de uso das APIs; nenhuma dessas opções altera o modelo principal por conta própria.
 
-- três rotas exclusivas de modelos para OpenAI Responses, Anthropic Messages e OpenAI Chat Completions;
-- o perfil TokenLab MCP `full` para descoberta de modelos, imagens, vídeo, música, 3D, áudio, arquivos, embeddings, rerank, tradução e tarefas assíncronas.
+O Harness é uma versão de prévia para desenvolvedores. Estas etapas da interface web foram conferidas com a documentação oficial e o pacote publicado `@deepseek-ai/dsh` `0.1.5-rc.1` em 16 de setembro de 2026. Isso não significa que o bundle anterior do TokenLab funcione com todas as versões `0.1.x`.
 
-O pacote é `@tokenlabai/dsh-provider` e foi preparado para DeepSeek Harness `0.1.1-rc.2` e contratos de plugin `0.1.x` compatíveis.
+## Passe esta tarefa ao seu agente
 
-<Note>
-Esta página contém a documentação pronta para lançamento. Publique e confira primeiro o pacote npm antes de implantar a página ou enviar sua ficha ao mercado.
-</Note>
+```text
+Leia https://docs.tokenlab.sh/pt/integrations/deepseek-harness e confira minha versão instalada e meu sistema operacional.
+Confirme se preciso do TokenLab como modelo principal, de ferramentas MCP ou de Skills para APIs.
+Preserve as contas, as configurações de provedores e as permissões existentes; explique como restaurar as configurações alteradas.
+Não peça que eu cole chaves de API no chat. Vou inserir a chave localmente e realizar as etapas necessárias na interface.
+Explique o custo de uma pequena solicitação de verificação. Somente depois que eu escolher explicitamente fazer esse teste, ajude a executá-lo e a conferir o registro da solicitação no TokenLab.
+```
 
-## Instalação
+## Inicie o Harness
 
-Guarde a key no `.env` do projeto ou do Harness home:
+Use a CLI do Node no macOS, Linux ou Windows com uma versão do Node compatível; o Node 24 LTS é um bom ponto de partida. No diretório do seu projeto, execute os comandos abaixo em um terminal ou no PowerShell:
+
+```bash
+node --version
+npx @deepseek-ai/dsh@0.1.5-rc.1 web
+```
+
+Abra a URL local exibida pelo comando. Ao acessar a interface web pela primeira vez, use **Choose workspace** para adicionar e selecionar o diretório do projeto antes de enviar uma mensagem. Esses comandos usam o perfil `web`; o perfil `desktop` do aplicativo Electron não é gerenciado por esse fluxo da CLI. Consulte o [guia de inicialização](https://github.com/deepseek-ai/deepseek-harness) e o [guia da interface web](https://deepseek-harness.github.io/deepseek-harness/en/guide/quickstart) oficiais.
+
+## Configure um provedor TokenLab
+
+1. Abra **Settings → Models → Add a custom provider**. Preserve os provedores e as permissões existentes.
+2. Informe um Provider ID em letras minúsculas, como `tokenlab-chat`, e escolha um protocolo e sua Base URL correspondente na tabela abaixo. Cada provedor usa um único protocolo.
+3. Informe sua chave de API do TokenLab no formulário local. O Harness armazena as chaves gerenciadas pela interface em `$DSH_HOME/.credentials.yaml`; o documento de configurações contém uma referência. Não envie a chave no chat nem a inclua em um commit.
+4. Adicione um ID de modelo atual do [catálogo do TokenLab](https://tokenlab.sh/pt/models). Confira seu campo `tokenlab.accepted_request_formats` na [API de detalhes do modelo](/pt/api-reference/models/get-model), sem deduzir a compatibilidade pelo nome.
+5. Salve o provedor, selecione seu modelo e inicie uma **nova sessão**. Uma sessão existente que já enviou uma solicitação mantém o modelo registrado para ela.
+
+| Exemplo de Provider ID | Protocolo de API do Harness | Base URL | Formato de solicitação exigido |
+| --- | --- | --- | --- |
+| `tokenlab-chat` | `openai-completions` | `https://api.tokenlab.sh/v1` | `openai_chat_completions` |
+| `tokenlab-responses` | `openai-responses` | `https://api.tokenlab.sh/v1` | `openai_responses` |
+| `tokenlab-messages` | `anthropic-messages` | `https://api.tokenlab.sh` | `anthropic_messages` |
+
+Para uma primeira solicitação de texto, uma entrada de `gpt-4.1-mini` que esteja disponível atualmente pode usar a linha Chat. **Fetch available models → Add selected** pode ajudar a preencher um custom provider, mas obter a lista de modelos não verifica a compatibilidade com o protocolo nem o funcionamento de uma solicitação faturável; salve o provedor depois. Informe o ID manualmente se a descoberta de modelos não estiver disponível.
+
+O Harness não oferece aqui um protocolo Gemini nativo para custom providers. Use Chat somente se os detalhes do modelo incluírem Chat Completions entre os formatos de solicitação aceitos. Entradas de imagem e controles de raciocínio podem exigir campos adicionais em `settings.yaml`; consulte a [configuração de provedores do Harness](https://deepseek-harness.github.io/deepseek-harness/en/guide/providers) e os campos aceitos pelo modelo selecionado antes de ativá-los.
+
+## Verifique uma solicitação pequena
+
+Na nova sessão, envie:
+
+```text
+Reply only with TOKENLAB_CONNECTION_OK. Do not use tools or modify files.
+```
+
+Essa solicitação é cobrada. Confira a resposta e o modelo, o horário e o status correspondentes em [TokenLab Requests](https://tokenlab.sh/dashboard/runs?section=requests). Pare após esse teste de texto; não é necessário testar os três protocolos nem gerar mídia paga para estabelecer a primeira conexão. A listagem de modelos ou a descoberta MCP, por si só, não valida a permissão da chave para gerar conteúdo.
+
+## Opcional: o bundle publicado do TokenLab
+
+[`@tokenlabai/dsh-provider@0.1.1`](https://www.npmjs.com/package/@tokenlabai/dsh-provider/v/0.1.1) está publicado. Ele é destinado ao Harness `0.1.1-rc.2`; a compatibilidade com versões mais recentes do Harness precisa ser conferida separadamente. Para uma nova configuração, prefira as etapas nativas de custom provider descritas acima.
+
+Esse bundle contém um **snapshot fixo dos modelos de 26 de agosto de 2026**, três rotas de provedor, `@tokenlabai/mcp-server@0.6.17` com as 80 ferramentas do perfil `full` e `tokenlab_wait_task`. Instalar essa versão não atualiza o catálogo de modelos. Confira cada ID no catálogo atual; adicione modelos mais recentes por meio de um custom provider, em vez de presumir que o bundle já os inclui.
+
+Se você já tem uma instalação compatível do Harness, primeiro confirme que `pnpm` está no `PATH`. Use o mesmo executável `dsh`, a mesma versão e o mesmo perfil na instalação e na inicialização. Se você inicia o Harness com `npx`, substitua `dsh` abaixo pelo mesmo comando de inicialização com a versão indicada:
+
+```bash
+dsh --version
+pnpm --version
+dsh plugin --profile web add --workspace-root @tokenlabai/dsh-provider@0.1.1
+```
+
+Antes de iniciar esse perfil, defina a chave no ambiente de inicialização ou no arquivo `.env` que ele lê:
 
 ```dotenv
 TOKENLAB_API_KEY=sk-your-tokenlab-key
 ```
 
-Instale o bundle no profile usado e reinicie-o:
+O Harness lê `.env` no diretório em que você o inicia e em `$DSH_HOME` (normalmente `~/.dsh`); uma variável de ambiente herdada tem prioridade. Selecionar um espaço de trabalho depois não seleciona outro `.env`. Mantenha esse arquivo fora do Git e reinicie após alterá-lo. Uma chave salva na interface para um custom provider não fornece automaticamente o `TOKENLAB_API_KEY` necessário para o bundle.
 
-```bash
-dsh plugin --profile web add --workspace-root @tokenlabai/dsh-provider
-```
+Reinicie o mesmo perfil e confira suas listas de modelos e ferramentas. Para `headless`, instale e inicie usando `headless` em vez de `web`; instalar em um perfil não configura o outro. As configurações existentes de `llm-pi-ai` têm prioridade sobre os padrões do bundle. Preserve-as e mescle as entradas de provedor necessárias em `$DSH_HOME/settings.yaml`, em vez de substituir suas configurações pelo patch Cordis inteiro do bundle.
 
-Para tarefas pontuais, use o profile headless:
+O bundle usa por padrão `TOKENLAB_MCP_TOOL_PROFILE=full` e `TOKENLAB_MCP_SCHEMA_MODE=portable`. Use `catalog` apenas para descoberta ou `core` para um conjunto menor de ferramentas. `TOKENLAB_API_BASE` e `TOKENLAB_ANTHROPIC_BASE_URL` têm como padrão `https://api.tokenlab.sh`; `TOKENLAB_OPENAI_BASE_URL` tem como padrão `https://api.tokenlab.sh/v1`.
 
-```bash
-dsh plugin --profile headless add --workspace-root @tokenlabai/dsh-provider
-```
+Nas ferramentas de mídia do bundle, confira `delivery.mode`: use diretamente a saída `complete`; para um resultado `async`, passe `delivery.task_id` para `tokenlab_wait_task` e leia o `status` terminal, a `response` e os `result_urls`. O esgotamento do tempo de espera não significa que a tarefa foi concluída. Mantenha as aprovações para ferramentas faturáveis ou destrutivas. Consulte as [tarefas assíncronas](/pt/guides/async-jobs-polling).
 
-## Roteamento de endpoints nativos
-
-O Harness seleciona o wire protocol no nível da provider route. Por isso, o bundle registra três provedores e associa cada modelo chat público a apenas um deles.
-
-| Harness provider | TokenLab endpoint | Seleção |
-| --- | --- | --- |
-| `TokenLab · Responses` | `POST /v1/responses` | owner OpenAI e `openai_responses` declarado no detail contract público |
-| `TokenLab · Messages` | `POST /v1/messages` | owner Anthropic e `anthropic_messages` declarado no detail contract público |
-| `TokenLab · Chat` | `POST /v1/chat/completions` | demais modelos com compatibilidade OpenAI Chat Completions declarada |
-
-O snapshot é gerado por `GET /v1/models` e `GET /v1/models/{id}`. Substrings do nome e rotas internas não são usadas para inferir compatibilidade.
-
-<Note>
-Os custom providers atuais do Harness aceitam `openai-responses`, `anthropic-messages` e `openai-completions`, mas não oferecem Gemini native configurável. No Harness, modelos Gemini usam o Chat fallback público. Aplicações que precisam de Gemini `generateContent` devem chamar `/v1beta/models/{model}:generateContent` com um cliente compatível.
-</Note>
-
-## Ferramentas multimídia e de desenvolvimento
-
-O bundle inicia localmente uma versão fixada de `@tokenlabai/mcp-server` via stdio e pela MCP bridge oficial. O perfil `full` registra 80 ferramentas sob `mcp__tokenlab__...`, cobrindo catalog/pricing, quatro APIs LLM, imagens, vídeo, música, 3D, áudio, arquivos, response lifecycle, batches, embeddings, rerank, tradução, worlds e recursos de mídia.
-
-O modelo recebe portable schemas, enquanto o MCP server valida as chamadas com o contrato OpenAPI completo.
-
-## Mídia assíncrona
-
-A criação de vídeo, música e 3D é assíncrona. Conforme o modelo, imagens podem retornar imediatamente ou gerar uma tarefa.
-
-1. Leia `delivery.mode`.
-2. Em `sync`, use diretamente o resultado.
-3. Em `async`, envie `delivery.task_id` para `tokenlab_wait_task`.
-4. Use `status`, a `response` completa e `result_urls`.
-5. Um timeout retorna o último estado não terminal para continuar o polling.
-
-`tokenlab_wait_task` é somente leitura. Ele propaga cancelamento para requests e delays, limita novas tentativas transitórias e usa status, não um progress opcional, como verdade terminal.
-
-## Ajustes
-
-| Variável | Padrão | Finalidade |
-| --- | --- | --- |
-| `TOKENLAB_API_KEY` | nenhum | Autenticação de modelos, MCP e polling assíncrono |
-| `TOKENLAB_API_BASE` | `https://api.tokenlab.sh` | Root das APIs MCP e task |
-| `TOKENLAB_OPENAI_BASE_URL` | `https://api.tokenlab.sh/v1` | Base URL de Responses e Chat |
-| `TOKENLAB_ANTHROPIC_BASE_URL` | `https://api.tokenlab.sh` | Base URL de Messages |
-| `TOKENLAB_MCP_TOOL_PROFILE` | `full` | `catalog`, `core` ou `full` |
-| `TOKENLAB_MCP_SCHEMA_MODE` | `portable` | `portable`, `exact` ou `strict` |
-
-Use `core` quando reduzir o custo recorrente de tool schemas for mais importante que a superfície completa de desenvolvimento.
-
-## Verificação e segurança
-
-Depois de reiniciar, confira os três provedores TokenLab, a associação única dos modelos e um resultado não vazio de `mcp__tokenlab__list_models`. Com uma key de teste, faça chamadas Responses, Messages e Chat, confirme o endpoint nos logs e aguarde a URL terminal de uma tarefa assíncrona de mídia de baixo custo.
-
-Mantenha a key em um ambiente confiável ou secret store. O MCP server é executado localmente por stdio com o mesmo Node do Harness, sem shell nem intermediário MCP hospedado. Preserve as aprovações para ferramentas faturáveis ou destrutivas e trate textos, URLs, arquivos e mídias como conteúdo externo não confiável.
-
-Uma seção `llm-pi-ai` salva tem precedência sobre os valores do bundle. Se ela já existir, mescle as três rotas `tokenlab-*` de `cordis.patch.yml` em seu map `providers`.
-
-## Desinstalação
+Para remover o bundle, use o mesmo comando de inicialização e o mesmo perfil, e depois reinicie:
 
 ```bash
 dsh plugin --profile web remove --workspace-root @tokenlabai/dsh-provider
 ```
 
-Reinicie o profile. A conta TokenLab e a key não são removidas.
+## Se algo falhar
 
-## Páginas relacionadas
+- **O campo de mensagem está desativado:** selecione tanto um espaço de trabalho quanto um modelo.
+- **`MISSING_CREDENTIAL` ou 401:** confira a credencial do provedor selecionado. Para as ferramentas do bundle, verifique `TOKENLAB_API_KEY` no ambiente de inicialização; a chave do modelo salva na interface é uma configuração separada.
+- **`UNKNOWN_MODEL` ou um ID retirado:** confira o catálogo atual, configure o ID exato disponível e crie uma nova sessão. Reinstalar o bundle `0.1.1` não atualiza seu snapshot.
+- **A URL está acessível, mas a geração falha:** compare o protocolo, a Base URL e os formatos aceitos pelo modelo. Não remova o histórico, as ferramentas ou as entradas de imagem apenas para transformar um erro em um teste bem-sucedido.
+- **`dsh` ou `pnpm` não foi encontrado:** use o comando `npx` com versão indicado acima para o Harness; instale o [pnpm](https://pnpm.io/installation) antes de usar os comandos de plugin. Uma falha na instalação do plugin não é uma falha da chave de API.
 
-- [Servidor MCP do TokenLab](/pt/integrations/tokenlab-mcp-server)
-- [Formatos de API](/pt/guides/api-formats)
-- [Tarefas assíncronas e consulta](/pt/guides/async-jobs-polling)
+## MCP e Skills são escolhas independentes
+
+Adicionar um custom provider manualmente não instala ferramentas. Siga o [guia MCP do TokenLab](/pt/integrations/tokenlab-mcp-server) se precisar de ferramentas de API que possam ser chamadas sem o bundle, e confira a descoberta antes de gerar conteúdo.
+
+Para [TokenLab Skills](/pt/integrations/coding-agent-skill), mantenha a pasta completa do Skill em `.dsh/skills/tokenlab-api-integration/` na raiz do projeto, incluindo `SKILL.md` e os arquivos referenciados. O Harness também descobre `.agents/skills/`. Essas instruções não instalam um provedor, um servidor MCP ou uma chave. A [referência oficial de Skills no sistema de arquivos](https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/skill/skill-filesystem/README.md) define os locais compatíveis.

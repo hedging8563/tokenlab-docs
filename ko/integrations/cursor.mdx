@@ -1,90 +1,63 @@
 ---
 title: "Cursor"
-description: "Cursor AI 코드 에디터에서 TokenLab 사용"
+description: "Cursor가 지원하는 채팅 모델에 TokenLab을 설정하고 연결을 확인한 뒤 MCP 또는 Skills 추가하기"
 ---
 
-## 개요
+## 지원 범위
 
-[Cursor](https://cursor.sh)는 BYOK(Bring-Your-Own-Key) 방식의 제공자를 지원하지만, 커스텀 API 키는 표준 채팅 모델에서만 작동합니다. 여기서는 TokenLab를 Cursor의 모든 모델 기능을 완전히 대체하는 수단이 아니라, 채팅형 에디터 작업을 위한 OpenAI 호환 엔드포인트로 사용하세요.
+macOS, Windows, Linux의 **Cursor 데스크톱 에디터**를 위한 안내입니다. 공식 OpenAI BYOK 지원 범위는 표준 비추론 채팅 모델이며, Tab 자동 완성은 Cursor 모델을 사용합니다. OpenAI Base URL을 바꾼다고 모든 TokenLab 모델이나 Cursor 기능을 사용할 수 있는 것은 아닙니다. [공식 제한 사항](https://cursor.com/help/models-and-usage/api-keys)을 확인하세요.
 
-## 구성
+이미지·동영상 같은 API 도구만 필요하다면 기존 채팅 제공자를 유지하고 [MCP](/ko/integrations/tokenlab-mcp-server)를 추가하세요. [Skill](/ko/integrations/coding-agent-skill)은 API 사용 지침이며 주 모델을 바꾸지 않습니다.
 
-1. Cursor Settings를 엽니다 (`Cmd/Ctrl + ,`)
-2. 왼쪽 사이드바에서 **Models**로 이동합니다
-3. 아래로 스크롤하여 **OpenAI API Key** 섹션으로 이동합니다
-4. TokenLab API 키를 입력합니다
-5. **Override OpenAI Base URL**을 활성화합니다
-6. Base URL을 다음과 같이 설정합니다:
+## 기존 에이전트에 전달할 작업
 
+```text
+https://docs.tokenlab.sh/ko/integrations/cursor 문서를 읽고 설치된 버전과 운영 체제를 확인하세요.
+TokenLab 주 모델, MCP 도구, API Skill 중 무엇이 필요한지 확인하세요.
+기존 계정, 제공자 설정, 권한을 보존하고 변경을 복원하는 방법을 설명하세요.
+채팅으로 API 키를 요구하지 마세요. 제가 로컬로 입력하고 필요한 UI 단계를 수행합니다.
+작은 검증 요청의 비용을 설명하고, 제가 해당 테스트를 명시적으로 선택한 뒤에만 실행을 돕고 TokenLab 기록과 대조하세요.
 ```
+
+## 올바른 설정 열기
+
+1. [Cursor 다운로드](https://cursor.com/downloads)에서 데스크톱 버전을 설치하거나 업데이트합니다. CLI와 Cloud Agents는 이 안내의 대상이 아닙니다.
+2. 명령 팔레트에서 **Cursor Settings**를 열거나 `Cmd/Ctrl + Shift + J`를 누릅니다. `Cmd/Ctrl + ,`는 일반 에디터 설정입니다.
+3. **Models**에서 기존 OpenAI 키와 Base URL 설정을 복원할 수 있도록 기록하고 다른 제공자 설정을 유지합니다.
+4. **OpenAI API Key**에 TokenLab 키를 로컬로 입력해 저장합니다. 채팅에 보내거나 git에 커밋하지 마세요.
+5. **Override OpenAI Base URL**을 켜고 다음 값을 입력합니다.
+
+```text
 https://api.tokenlab.sh/v1
 ```
 
-<Warning>
-Cursor 커스텀 API 키는 표준 채팅 모델에만 적용됩니다. Tab Completion 및 기타 Cursor가 관리하는 특수 기능은 계속해서 Cursor의 내장 제공자를 사용합니다.
-</Warning>
-
-<Warning>
-Cursor의 커스텀 API 키 경로는 표준 채팅 모델에만 적용됩니다. Tab Completion 및 일부 추론 전용 흐름처럼 Cursor가 관리하는 특수 모델이 필요한 기능은 계속해서 Cursor의 내장 제공자를 사용합니다. 또한 Cursor는 최종 프롬프트 구성을 위해 요청이 여전히 자체 백엔드를 통과한다고 밝히고 있습니다.
-</Warning>
+BYOK 요청도 프롬프트 구성을 위해 Cursor 서버를 통과합니다. 에디터가 TokenLab에 직접 연결되는 방식이 아닙니다.
 
 ## 모델 선택
 
-구성 후에는 TokenLab를 통해 제공되는 표준 채팅 모델을 우선적으로 사용하세요:
+현재 [TokenLab 모델 목록](https://tokenlab.sh/ko/models)에서 정확한 ID를 복사하고 Cursor의 OpenAI BYOK 경로가 해당 모델을 지원하는지 확인합니다. TokenLab에서 chat으로 분류된다고 Cursor 호환성이 보장되지는 않습니다.
 
-### 코딩용 권장 모델
+첫 텍스트 검사에는 현재 제공 중이라면 비추론 모델 예시인 `gpt-4.1-mini`를 사용할 수 있습니다. **Models**의 기존 항목을 켜고, 없을 때만 **Add model**로 추가한 뒤 채팅에서 선택하세요. 내장 모델을 다른 철자로 중복 추가하지 마세요. Claude나 Gemini 항목이 OpenAI override를 사용한다고 가정하지 마세요. [Cursor 안내](https://forum.cursor.com/t/add-custom-model-fail-no-models-available/163488)를 참고하세요.
 
-| 모델 | 가장 적합한 용도 |
-|-------|----------|
-| `gpt-5.4` | 일반 코딩, 디버깅, 채팅 |
-| `gpt-5-mini` | 빠른 수정 및 가벼운 프롬프트 |
+## 작은 요청 한 번으로 확인
 
-## 가장 잘 작동하는 항목
+선택한 모델로 새 채팅을 만들고 다음을 보냅니다.
 
-### 채팅 및 에디터 작업 흐름
+```text
+TOKENLAB_CONNECTION_OK만 답하세요. 도구를 사용하거나 파일을 수정하지 마세요.
+```
 
-Cursor에서 TokenLab를 다음 용도로 사용하세요:
-
-- 코드 설명
-- 버그 수정
-- 리팩토링 제안
-- 문서 생성
-
-### Cursor 관리 모델에 남는 항목
-
-다음 기능은 안정적으로 TokenLab 엔드포인트로 전환되지 않습니다:
-
-- 탭 자동 완성
-- 특수한 비표준 채팅 모델
-- Cursor가 내장 모델에서만 활성화하는 제공자별 기능
+이 요청에는 요금이 부과됩니다. 응답과 함께 [TokenLab 요청 기록](https://tokenlab.sh/dashboard/runs?section=requests)의 모델, 시간, 상태를 대조하세요. 모델이 표시되거나 응답이 왔더라도 해당 기록이 없다면 경로가 확인된 것이 아닙니다.
 
 ## 문제 해결
 
-<AccordionGroup>
-  <Accordion title="모델이 표시되지 않음">
-    Cursor는 모델 및 제공자 상태를 캐시합니다. API 키와 base URL을 구성한 후 Cursor를 다시 시작하세요.
-  </Accordion>
+- **모델 누락 또는 거부:** 정확한 ID와 BYOK 지원 범위를 확인하고 내장 항목이 있으면 사용하세요. 재시작은 미지원 모델의 호환성을 해결하지 못합니다.
+- **인증 오류:** OpenAI 필드의 TokenLab 키와 Base URL을 확인하세요. 잔액·할당량 오류는 잘못된 키와 별개입니다.
+- **TokenLab 기록 없음:** 선택 모델, override, Cursor 오류를 확인하세요. Tab 자동 완성은 연결 검사가 아닙니다.
+- **다른 제공자 오류:** 원래 OpenAI 설정으로 되돌리거나 override를 끄고 새 채팅을 시작하세요.
 
-  <Accordion title="BYOK 모드에서 지원되지 않는 모델">
-    커스텀 API 키는 표준 채팅 모델에서만 작동합니다. 해당 모델이 특수한 Cursor 인프라를 사용하는 경우 `gpt-5.4`와 같은 표준 채팅 모델로 전환하세요.
-  </Accordion>
+## MCP와 Skills 별도 추가
 
-  <Accordion title="인증 오류">
-    API 키가 올바르고 충분한 잔액이 있는지 확인하세요.
-  </Accordion>
+[MCP](/ko/integrations/tokenlab-mcp-server)는 호출 가능한 도구를 추가합니다. Cursor MCP 설정 또는 `.cursor/mcp.json`에서 구성하고, 도구 검색을 확인한 뒤 필요한 유료 생성을 실행하세요. 주 모델은 교체하지 않습니다.
 
-  <Accordion title="TokenLab를 활성화한 후 다른 제공자가 작동을 멈춤">
-    Cursor의 BYOK 구성은 다른 제공자 경로에 영향을 줄 수 있습니다. OpenAI base URL override를 활성화한 후 다른 모델 경로가 작동하지 않으면 override를 비활성화하고 Cursor를 다시 시작하세요.
-  </Accordion>
-</AccordionGroup>
-
-## 팁
-
-<CardGroup cols={2}>
-  <Card title="적절한 모델 사용" icon="gauge-high">
-    빠른 채팅형 작업에는 `gpt-5-mini`를 사용하고, 더 무거운 코딩 작업에는 `gpt-5.4`를 사용하세요.
-  </Card>
-  <Card title="잔액 확인" icon="wallet">
-    TokenLab dashboard에서 사용량을 모니터링하세요.
-  </Card>
-</CardGroup>
+[Skills](/ko/integrations/coding-agent-skill)는 API 사용 지침입니다. `SKILL.md`와 참조 파일을 포함한 전체 폴더를 `.cursor/skills/tokenlab-api-integration/`에 넣고 **Customize → Skills**에서 확인하세요. Skill은 키를 제공하거나 MCP 서버를 설치하지 않습니다. 버전별 설정은 공식 [MCP](https://cursor.com/docs/mcp) 및 [Skills](https://cursor.com/docs/skills) 문서를 참고하세요.

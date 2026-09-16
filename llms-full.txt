@@ -12490,134 +12490,112 @@ Use the local npm server for paid API calls, local file uploads, or the `core` a
 
 ### DeepSeek Harness
 
-> Install TokenLab as a native-protocol model provider with full multimodal and asynchronous tools in DeepSeek Harness
+> Configure a TokenLab model in Harness, verify a request, and choose MCP, Skills, or the published provider bundle
 
 URL: https://docs.tokenlab.sh/integrations/deepseek-harness
 
-## Overview
+## Choose the connection you need
 
-The TokenLab DeepSeek Harness bundle combines two integration surfaces:
+To use TokenLab as the agent's main model, add a **custom provider** in the Harness Web UI. This works independently of the optional TokenLab provider bundle. Add [MCP tools](/integrations/tokenlab-mcp-server) for media and other APIs, or a [Skill](/integrations/coding-agent-skill) for API instructions; neither changes the main model by itself.
 
-- three exclusive model-provider routes for OpenAI Responses, Anthropic Messages, and OpenAI Chat Completions;
-- the TokenLab MCP full profile for model discovery, images, video, music, 3D, audio, files, embeddings, rerank, translation, and asynchronous tasks.
+Harness is a developer preview. These Web UI steps were checked against the official documentation and the published `@deepseek-ai/dsh` `0.1.5-rc.1` package on September 16, 2026. They are not a claim that the older TokenLab bundle works with every `0.1.x` release.
 
-The package is `@tokenlabai/dsh-provider`. It targets DeepSeek Harness `0.1.1-rc.2` and the current `0.1.x` plugin contract.
+## Give this task to your agent
 
-> Note: This page is release-ready documentation for the package. Publish the npm package and read it back before deploying this page or submitting its marketplace listing.
+```text
+Read https://docs.tokenlab.sh/integrations/deepseek-harness and check my installed version and operating system.
+Confirm whether I need TokenLab as the main model, MCP tools, or API Skills.
+Preserve existing accounts, provider configuration, and permissions; explain how to restore changed settings.
+Keep API keys local; do not ask me to paste them into chat. I will enter the key locally and perform required UI steps.
+Explain the cost of a small verification request. Only after I explicitly choose that test, help run it and match the TokenLab request record.
+```
 
-## Install
+## Start Harness
 
-Store the key in the project `.env` or Harness-home `.env`:
+Use the Node CLI on macOS, Linux, or Windows with a supported Node release; Node 24 LTS is a suitable starting point. From your project directory, run this in a terminal or PowerShell:
+
+```bash
+node --version
+npx @deepseek-ai/dsh@0.1.5-rc.1 web
+```
+
+Open the local URL printed by the command. In a fresh Web UI, use **Choose workspace** to add and select your project directory before sending a message. These commands use the `web` profile; the Electron application's `desktop` profile is not managed by this CLI workflow. See the official [startup guide](https://github.com/deepseek-ai/deepseek-harness) and [Web UI guide](https://deepseek-harness.github.io/deepseek-harness/en/guide/quickstart).
+
+## Configure one TokenLab provider
+
+1. Open **Settings → Models → Add a custom provider**. Preserve any existing providers and permissions.
+2. Enter a lowercase Provider ID, such as `tokenlab-chat`, and choose one protocol and its matching Base URL below. Each provider uses one protocol.
+3. Enter your TokenLab API key in the local form. Harness stores UI-managed keys in `$DSH_HOME/.credentials.yaml`; the settings document holds a reference. Do not send the key in chat or commit it.
+4. Add one current model ID from [TokenLab Models](https://tokenlab.sh/en/models). Check its `tokenlab.accepted_request_formats` in the [model detail API](/api-reference/models/get-model), rather than guessing support from its name.
+5. Save the provider, select its model, and start a **new session**. An existing session that has already sent a request retains its recorded model.
+
+| Provider ID example | Harness API protocol | Base URL | Required public request format |
+| --- | --- | --- | --- |
+| `tokenlab-chat` | `openai-completions` | `https://api.tokenlab.sh/v1` | `openai_chat_completions` |
+| `tokenlab-responses` | `openai-responses` | `https://api.tokenlab.sh/v1` | `openai_responses` |
+| `tokenlab-messages` | `anthropic-messages` | `https://api.tokenlab.sh` | `anthropic_messages` |
+
+For a first text request, a currently available `gpt-4.1-mini` entry can use the Chat row. **Fetch available models → Add selected** can help populate a custom provider, but listing success does not verify protocol support or a billable request; save the provider afterward. Enter the ID manually if discovery is unavailable.
+
+Harness does not offer a Gemini-native custom-provider protocol here. Use Chat only when that model's details list Chat Completions as an accepted request format. Image input and reasoning controls can need additional `settings.yaml` fields; follow [Harness provider configuration](https://deepseek-harness.github.io/deepseek-harness/en/guide/providers) and the selected model's supported fields before enabling them.
+
+## Verify one small request
+
+In the new session, send:
+
+```text
+Reply only with TOKENLAB_CONNECTION_OK. Do not use tools or modify files.
+```
+
+This request is billable. Check the reply and the matching model, time, and status in [TokenLab Requests](https://tokenlab.sh/dashboard/runs?section=requests). Stop after this text check; testing three protocols or generating paid media is not required to establish the first connection. A model listing or MCP discovery alone does not validate the key's generation access.
+
+## Optional: the published TokenLab bundle
+
+[`@tokenlabai/dsh-provider@0.1.1`](https://www.npmjs.com/package/@tokenlabai/dsh-provider/v/0.1.1) is published. It targets Harness `0.1.1-rc.2`; compatibility with newer Harness releases must be checked separately. Prefer the native custom-provider steps above for a new setup.
+
+This bundle contains a **fixed model snapshot from August 26, 2026**, three provider routes, `@tokenlabai/mcp-server@0.6.17` with its 80-tool `full` profile, and `tokenlab_wait_task`. Installing that version does not refresh the model catalog. Check each ID against the live catalog; add newer models through a custom provider rather than assuming the bundle already includes them.
+
+For an existing compatible Harness installation, first ensure `pnpm` is on `PATH`. Use the same `dsh` executable/version and profile for installation and startup; if you launch through `npx`, replace `dsh` below with that same versioned launcher:
+
+```bash
+dsh --version
+pnpm --version
+dsh plugin --profile web add --workspace-root @tokenlabai/dsh-provider@0.1.1
+```
+
+Before starting that profile, set the key in the launch environment or its `.env` file:
 
 ```dotenv
 TOKENLAB_API_KEY=sk-your-tokenlab-key
 ```
 
-Install the bundle into the profile you use, then restart that profile:
+Harness reads `.env` in the directory where you launch it and in `$DSH_HOME` (normally `~/.dsh`); an inherited environment variable takes precedence. Selecting a workspace later does not select a different `.env`. Keep that file out of git and restart after changing it. A key saved for a custom provider in the UI does not automatically supply this bundle's `TOKENLAB_API_KEY`.
 
-```bash
-dsh plugin --profile web add --workspace-root @tokenlabai/dsh-provider
-```
+Restart the same profile, then inspect its model and tool lists. For `headless`, install into and launch `headless` instead of `web`; installing into one profile does not configure the other. Existing `llm-pi-ai` settings override bundle defaults, so preserve and merge the needed provider entries in `$DSH_HOME/settings.yaml` rather than replacing your settings with the bundle's entire Cordis patch.
 
-For one-shot tasks, use the headless profile instead:
+The bundle defaults to `TOKENLAB_MCP_TOOL_PROFILE=full` and `TOKENLAB_MCP_SCHEMA_MODE=portable`. Use `catalog` for discovery only or `core` for a smaller tool set. `TOKENLAB_API_BASE` and `TOKENLAB_ANTHROPIC_BASE_URL` default to `https://api.tokenlab.sh`; `TOKENLAB_OPENAI_BASE_URL` defaults to `https://api.tokenlab.sh/v1`.
 
-```bash
-dsh plugin --profile headless add --workspace-root @tokenlabai/dsh-provider
-```
+For bundle media tools, inspect `delivery.mode`: consume `complete` output directly; pass an `async` result's `delivery.task_id` to `tokenlab_wait_task` and read its terminal `status`, `response`, and `result_urls`. A wait timeout is not a completed task. Keep approvals for billable or destructive tools. See [async tasks](/guides/async-jobs-polling).
 
-## Native endpoint routing
-
-DeepSeek Harness configures the wire protocol at the provider-route level. The TokenLab bundle therefore registers three provider entries and assigns every public chat model to exactly one entry.
-
-| Harness provider | TokenLab endpoint | Selection |
-| --- | --- | --- |
-| `TokenLab · Responses` | `POST /v1/responses` | OpenAI-owned models whose public detail contract declares `openai_responses` |
-| `TokenLab · Messages` | `POST /v1/messages` | Anthropic-owned models whose public detail contract declares `anthropic_messages` |
-| `TokenLab · Chat` | `POST /v1/chat/completions` | Remaining models that declare OpenAI Chat Completions compatibility |
-
-The checked-in model snapshot is generated from `GET /v1/models` plus `GET /v1/models/{id}`. It does not infer protocol support from a model-name substring or an internal provider route.
-
-> Note: Current Harness custom providers support `openai-responses`, `anthropic-messages`, and `openai-completions`. They do not expose a configurable Gemini-native protocol. Gemini models therefore use their declared Chat Completions compatibility path in Harness; applications that require native Gemini `generateContent` should call `/v1beta/models/{model}:generateContent` from a compatible client.
-
-## Multimodal and developer tools
-
-The bundle starts the pinned `@tokenlabai/mcp-server` locally over stdio through the official Harness MCP bridge. The default `full` profile exposes 80 tools under `mcp__tokenlab__...`.
-
-| Family | Representative tools |
-| --- | --- |
-| Catalog and pricing | `list_models`, `get_model`, `compare_models`, `get_pricing` |
-| Native LLM APIs | `create_response`, `create_anthropic_message`, `create_chat_completion`, `create_gemini_content` |
-| Images | generation, edit, variation, file input, and status |
-| Video, music, and 3D | create operations and task-specific status |
-| Audio | speech, transcription, and translation |
-| Developer APIs | files, response lifecycle, batches, embeddings, rerank, text translation, worlds, and media assets |
-| Async control | generic task status and cancellation |
-
-The package uses the portable schema mode for provider compatibility while the MCP server validates calls against the complete generated OpenAPI contract.
-
-## Asynchronous media
-
-Video, music, and 3D create tools return asynchronous tasks. Image tools may return either a completed result or a task, depending on the selected model.
-
-1. Inspect `delivery.mode` in the create-tool result.
-2. For `sync`, consume the returned media result directly.
-3. For `async`, pass `delivery.task_id` to `tokenlab_wait_task`.
-4. Use its `status`, complete `response`, and `result_urls` fields.
-5. A wait timeout returns the latest nonterminal status so polling can resume safely.
-
-`tokenlab_wait_task` is read-only. It forwards caller cancellation through every request and delay, limits transient retries, respects the overall timeout, and uses task status—not optional progress—as terminal truth. Use the generated cancellation tool only when cancellation is intended and supported.
-
-## Configuration
-
-| Variable | Default | Purpose |
-| --- | --- | --- |
-| `TOKENLAB_API_KEY` | none | Credential for model routes, MCP tools, and async polling |
-| `TOKENLAB_API_BASE` | `https://api.tokenlab.sh` | MCP and task API root |
-| `TOKENLAB_OPENAI_BASE_URL` | `https://api.tokenlab.sh/v1` | Responses and Chat adapter base |
-| `TOKENLAB_ANTHROPIC_BASE_URL` | `https://api.tokenlab.sh` | Messages adapter base |
-| `TOKENLAB_MCP_TOOL_PROFILE` | `full` | Select `catalog`, `core`, or `full` |
-| `TOKENLAB_MCP_SCHEMA_MODE` | `portable` | Select `portable`, `exact`, or `strict` |
-
-Use `core` instead of `full` when a smaller recurring tool-schema cost matters more than the broader developer surface.
-
-## Verify
-
-After restart:
-
-1. Confirm the model picker shows the three TokenLab providers.
-2. Confirm each model ID appears on only one provider route.
-3. Ask the agent to call `mcp__tokenlab__list_models`; a non-empty result proves MCP startup, tool discovery, and TokenLab catalog reachability.
-4. With a test key, run one Responses model, one Messages model, and one Chat model, and verify the expected endpoint path in request logs.
-5. Submit one low-cost async media task, wait for a terminal status, and verify the returned media URL.
-
-An HTTP 200 alone is not strict compatibility proof if a client removed history, tools, signatures, or media input before retrying.
-
-## Existing `llm-pi-ai` settings
-
-Harness currently has one shared `llm-pi-ai` settings section. A provider configuration saved through the Models page has higher precedence than bundle defaults and can replace the three TokenLab routes. If you already use that section, merge the `tokenlab-responses`, `tokenlab-messages`, and `tokenlab-chat` blocks from the package's `cordis.patch.yml` into its `providers` map.
-
-## Security
-
-- Keep `TOKENLAB_API_KEY` in a trusted environment or secret store; never commit it.
-- The MCP server runs locally with the same Node executable as Harness, without a shell or hosted MCP intermediary.
-- Full-profile tools include billable generation and destructive operations. Keep Harness approvals enabled for those calls.
-- Treat model text, URLs, files, and generated media as untrusted external content.
-- Review the pinned MCP version before upgrading it.
-
-## Uninstall
+To remove the bundle, use the same launcher and profile, then restart:
 
 ```bash
 dsh plugin --profile web remove --workspace-root @tokenlabai/dsh-provider
 ```
 
-Restart the profile. Uninstalling the bundle removes its provider routes and tools but does not delete your TokenLab account or key.
+## If it fails
 
-## Related
+- **The composer is disabled:** select both a workspace and a model.
+- **`MISSING_CREDENTIAL` or 401:** check the selected provider's credential. For bundle tools, check `TOKENLAB_API_KEY` in the launch environment; a UI-saved model key is a separate setting.
+- **`UNKNOWN_MODEL` or a retired ID:** check the live catalog, configure the current exact ID, then create a new session. Reinstalling bundle `0.1.1` does not update its snapshot.
+- **The URL is reachable but generation fails:** compare the protocol, Base URL, and model's accepted formats. Do not remove history, tools, or image input merely to turn an error into a successful check.
+- **`dsh` or `pnpm` is missing:** use the versioned `npx` launcher above for Harness; install [pnpm](https://pnpm.io/installation) before using plugin commands. A plugin installation failure is not an API-key failure.
 
-- [TokenLab MCP Server](/integrations/tokenlab-mcp-server)
-- [API formats](/guides/api-formats)
-- [Async jobs and polling](/guides/async-jobs-polling)
-- [Model details API](/api-reference/models/get-model)
+## MCP and Skills are separate choices
+
+A manual custom provider does not install tools. Follow the [TokenLab MCP guide](/integrations/tokenlab-mcp-server) if you need callable API tools without the bundle, and check discovery before any generation.
+
+For [TokenLab Skills](/integrations/coding-agent-skill), keep the complete skill folder at `.dsh/skills/tokenlab-api-integration/` under the project root, including `SKILL.md` and referenced files. Harness also discovers `.agents/skills/`. These instructions do not install a provider, MCP server, or key. The official [filesystem Skills reference](https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/skill/skill-filesystem/README.md) defines the supported locations.
 
 ---
 
@@ -12710,73 +12688,68 @@ Copilot CLI rejects models without both capabilities. Choose a tool-capable chat
 
 ### Cursor
 
-> Use TokenLab with Cursor AI code editor
+> Configure TokenLab for supported Cursor chat models, verify the connection, and add MCP or Skills separately
 
 URL: https://docs.tokenlab.sh/integrations/cursor
 
-## Overview
+## What this connection does
 
-[Cursor](https://cursor.sh) supports bring-your-own-key (BYOK) providers, but custom API keys only work with standard chat models. Use TokenLab here as an OpenAI-compatible endpoint for chat-style editor workflows, not as a full replacement for every Cursor model feature.
+Use TokenLab for supported chat requests in the **Cursor desktop editor** on macOS, Windows, or Linux. Cursor documents OpenAI BYOK support for standard, non-reasoning chat models; Tab completion still uses Cursor's models. An OpenAI Base URL override does not turn Cursor into a client for every TokenLab model or protocol. See [Cursor's API-key limits](https://cursor.com/help/models-and-usage/api-keys).
 
-## Configuration
+If you only need TokenLab image, video, or other API tools, keep your current chat provider and add [MCP](/integrations/tokenlab-mcp-server) instead. A [Skill](/integrations/coding-agent-skill) teaches the agent how to use the APIs; it does not change the chat provider.
 
-1. Open Cursor Settings (`Cmd/Ctrl + ,`)
-2. Navigate to **Models** in the left sidebar
-3. Scroll down to the **OpenAI API Key** section
-4. Enter your TokenLab API key
-5. Enable **Override OpenAI Base URL**
-6. Set the Base URL to:
+## Give this task to your agent
 
+```text
+Read https://docs.tokenlab.sh/integrations/cursor and check my installed version and operating system.
+Confirm whether I need TokenLab as the main model, MCP tools, or API Skills.
+Preserve existing accounts, provider configuration, and permissions; explain how to restore changed settings.
+Keep API keys local; do not ask me to paste them into chat. I will enter the key locally and perform required UI steps.
+Explain the cost of a small verification request. Only after I explicitly choose that test, help run it and match the TokenLab request record.
 ```
+
+## Open the correct settings
+
+1. Install or update the desktop editor from [Cursor Downloads](https://cursor.com/downloads). This guide does not configure Cursor CLI or Cloud Agents.
+2. Open **Cursor Settings** from the command palette, or press `Cmd/Ctrl + Shift + J`. `Cmd/Ctrl + ,` opens the general editor settings instead.
+3. Open **Models** and note your existing OpenAI key and Base URL configuration so you can restore it. Keep other provider settings intact.
+4. In **OpenAI API Key**, enter your TokenLab key locally and save it. Do not paste the key into an agent conversation or commit it to a project.
+5. Enable **Override OpenAI Base URL** and enter:
+
+```text
 https://api.tokenlab.sh/v1
 ```
 
-> Warning: Cursor custom API keys only apply to standard chat models. Tab Completion and other Cursor-managed specialized features will continue using Cursor's built-in providers.
+Cursor sends BYOK requests through its backend for prompt assembly; this is not a direct connection from your editor to TokenLab.
 
-> Warning: Cursor’s custom API key flow only applies to standard chat models. Features that require specialized Cursor-managed models, such as Tab Completion and some reasoning-specific flows, will continue using Cursor’s built-in providers. Cursor also notes that requests still pass through its backend for final prompt assembly.
+## Select a supported model
 
-## Choose a model
+Copy the exact model ID from the current [TokenLab catalog](https://tokenlab.sh/en/models), and check that Cursor accepts it through its OpenAI BYOK path. A model being listed as chat on TokenLab does not establish Cursor compatibility.
 
-Use a current chat model ID from the [Models page](https://tokenlab.sh/en/models). Cursor's BYOK settings do not make every Cursor-managed feature available through a custom API key.
+For an initial text check, `gpt-4.1-mini` is an example of a non-reasoning OpenAI chat model; confirm it is still available before using it. Enable the existing entry in **Models**, or use **Add model** if it is absent, then select that exact model in the chat picker. Do not duplicate a built-in model under a different spelling, and do not assume Claude or Gemini entries use the OpenAI override. [Cursor's custom-model guidance](https://forum.cursor.com/t/add-custom-model-fail-no-models-available/163488) explains these routing limits.
 
-## What Works Best
+## Verify one small request
 
-### Chat and editor flows
+Start a new chat with the selected model and send:
 
-Use TokenLab through Cursor for:
+```text
+Reply only with TOKENLAB_CONNECTION_OK. Do not use tools or modify files.
+```
 
-- Code explanations
-- Bug fixing
-- Refactoring suggestions
-- Documentation generation
+This is a billable model request. Check both the reply and the matching model, time, and status in [TokenLab Requests](https://tokenlab.sh/dashboard/runs?section=requests). A saved key, a visible model, or a reply without a matching TokenLab request does not confirm this route.
 
-### What stays on Cursor-managed models
+## If it fails
 
-These features do not reliably switch to your TokenLab endpoint:
+- **The model is missing or rejected:** check the exact ID and Cursor's current BYOK support. Use an existing built-in entry when available; restarting alone cannot make an unsupported model compatible.
+- **Authentication fails:** re-enter the TokenLab key in the OpenAI field and check the Base URL. A balance or quota error is separate from an invalid key; follow the returned error and the corresponding TokenLab request.
+- **No TokenLab request appears:** confirm the selected model and override, then inspect Cursor's error. Tab completion and other Cursor-managed features are not a connection test.
+- **Another provider stops working:** restore the previous OpenAI settings or disable the override, then start a new chat. Avoid changing unrelated provider keys to repair this route.
 
-- Tab Completion
-- Specialized non-standard chat models
-- Provider-specific features that Cursor only enables on built-in models
+## Add tools or instructions separately
 
-## Troubleshooting
+[TokenLab MCP](/integrations/tokenlab-mcp-server) adds callable tools. Configure it through Cursor's MCP settings or `.cursor/mcp.json`; first check tool discovery, then deliberately run any billable generation you need. Installing MCP does not replace the main chat model.
 
-#### Models not showing up
-
-Cursor caches model and provider state. Restart Cursor after configuring the API key and base URL.
-
-#### Model unsupported in BYOK mode
-
-Custom API keys only work with standard chat models. Choose a current chat model from the TokenLab Models page.
-
-#### Authentication errors
-
-Verify your API key is correct and has sufficient balance.
-
-#### Another provider stopped working after enabling TokenLab
-
-Cursor’s BYOK configuration can affect other provider flows. If another model path breaks after enabling the OpenAI base URL override, disable the override and restart Cursor.
-
-Model IDs and prices change. Choose a current chat model from the [Models page](https://tokenlab.sh/en/models), then compare it on your own project.
+[TokenLab Skills](/integrations/coding-agent-skill) supply API instructions. For a project-local installation, keep the complete skill directory at `.cursor/skills/tokenlab-api-integration/`, including `SKILL.md` and its referenced files. Check **Customize → Skills** for discovery. Skills do not supply a key or install an MCP server. See the official [MCP](https://cursor.com/docs/mcp) and [Skills](https://cursor.com/docs/skills) guides for your Cursor version.
 
 ---
 

@@ -1,77 +1,63 @@
 ---
 title: "Cursor"
-description: "在 Cursor AI 代码编辑器中使用 TokenLab"
+description: "为 Cursor 支持的聊天模型配置 TokenLab，验证连接，并按需添加 MCP 或 Skills"
 ---
 
-## 概述
+## 这条接入路径能做什么
 
+在 macOS、Windows 或 Linux 的 **Cursor 桌面编辑器**中，用 TokenLab 处理受支持的聊天请求。Cursor 官方把 OpenAI BYOK 的范围限定为标准、非推理聊天模型；Tab 补全仍使用 Cursor 自己的模型。修改 OpenAI Base URL 不代表 Cursor 能使用 TokenLab 的所有模型或协议。详见 [Cursor API Key 限制](https://cursor.com/help/models-and-usage/api-keys)。
 
+如果只需要 TokenLab 的图像、视频等 API 工具，可以保留当前聊天提供商，单独接入 [MCP](/zh/integrations/tokenlab-mcp-server)。[Skill](/zh/integrations/coding-agent-skill) 为 Agent 提供 API 使用说明，不会切换聊天提供商。
 
+## 把任务交给现有 Agent
 
-[Cursor](https://cursor.sh) 的 BYOK 设置可以使用 TokenLab 处理标准聊天请求，但不能替代 Cursor 自己提供的全部模型功能。
-
-## 配置
-
-1. 打开 Cursor 设置（`Cmd/Ctrl + ,`）
-2. 在左侧边栏中导航到 **Models**
-3. 向下滚动到 **OpenAI API 密钥** 部分
-4. 输入你的 TokenLab API 密钥
-5. 启用 **Override OpenAI Base URL**
-6. 将 Base URL 设置为：
-
+```text
+阅读 https://docs.tokenlab.sh/zh/integrations/cursor，核对我安装的版本和操作系统。
+确认我需要 TokenLab 主模型、MCP 工具还是 API Skill。
+保留已有账户、提供商配置和权限，说明改动后如何恢复。
+不要在聊天中索要或填写 API key；由我在本地填写，并操作必要的界面步骤。
+先说明一次小验证的费用，只有我明确选择这次测试后，才协助执行并核对 TokenLab 请求记录。
 ```
+
+## 打开正确的设置
+
+1. 从 [Cursor 下载页](https://cursor.com/downloads)安装或更新桌面编辑器。本页不配置 Cursor CLI 或 Cloud Agents。
+2. 从命令面板打开 **Cursor Settings**，或按 `Cmd/Ctrl + Shift + J`。`Cmd/Ctrl + ,` 打开的是编辑器通用设置。
+3. 进入 **Models**，先记录已有 OpenAI key 和 Base URL 的配置，以便恢复；保留其他提供商设置。
+4. 在 **OpenAI API Key** 中本地填写并保存 TokenLab key。不要把 key 发到 Agent 聊天中，也不要提交到项目。
+5. 启用 **Override OpenAI Base URL**，填写：
+
+```text
 https://api.tokenlab.sh/v1
 ```
 
-<Warning>
-Cursor 自定义 API 密钥 仅适用于标准聊天模型。Tab Completion 和其他由 Cursor 管理的专用功能将继续使用 Cursor 的内置提供商。
-</Warning>
+Cursor 的 BYOK 请求仍会经过其服务端组装提示词，并不是编辑器直接连接 TokenLab。
 
-<Warning>
-Cursor 的自定义 API 密钥只适用于标准聊天模型。Tab Completion 等 Cursor 自营功能仍使用 Cursor 自己的服务；Cursor 也会在自己的服务端完成最终提示词组装。
-</Warning>
+## 选择受支持的模型
 
-## 选择模型
+从当前 [TokenLab 模型目录](https://tokenlab.sh/zh/models)复制精确模型 ID，并确认 Cursor 的 OpenAI BYOK 路径接受它。TokenLab 将模型列为 chat，并不能证明 Cursor 支持该模型。
 
-请从[模型页](https://tokenlab.sh/zh/models)复制当前聊天模型 ID。使用自定义 API 密钥并不会开放 Cursor 自营的全部功能。
+首次文本检查可用 `gpt-4.1-mini` 作为非推理 OpenAI 聊天模型的示例，使用前确认它仍在售。在 **Models** 中启用已有条目；没有时使用 **Add model**，然后在聊天选择器里选中该精确模型。不要换一种拼写重复添加内置模型，也不要假设 Claude 或 Gemini 条目会经过 OpenAI override。[Cursor 官方的自定义模型说明](https://forum.cursor.com/t/add-custom-model-fail-no-models-available/163488)解释了这些路由限制。
 
-## 最适用的场景
+## 验证一次小请求
 
-### 聊天与编辑器功能
+用所选模型新建聊天，发送：
 
-通过 Cursor 使用 TokenLab 可用于：
+```text
+只回复 TOKENLAB_CONNECTION_OK。不要使用工具，也不要修改文件。
+```
 
-- 代码解释
-- Bug 修复
-- 重构建议
-- 文档生成
+这次模型请求会计费。除了检查回复，还应在 [TokenLab 请求记录](https://tokenlab.sh/dashboard/runs?section=requests)中核对相同模型、时间和状态。保存成功、模型出现在列表里，或收到回复但没有对应 TokenLab 记录，都不能确认这条路由已经接通。
 
-### 仍由 Cursor 管理模型处理的功能
+## 失败时检查什么
 
-这些功能无法可靠地切换到你的 TokenLab 端点：
+- **模型缺失或被拒绝：**核对精确 ID 和 Cursor 当前的 BYOK 支持范围。有内置条目时直接使用；重启不能让不受支持的模型变得兼容。
+- **鉴权失败：**重新在 OpenAI 字段填写 TokenLab key，并检查 Base URL。余额或额度错误与无效 key 不同，应按返回错误和对应请求记录定位。
+- **没有 TokenLab 请求记录：**核对聊天选择的模型与 override，再查看 Cursor 的错误。Tab 补全等 Cursor 自营功能不能作为这条连接的验证。
+- **其他提供商不可用：**恢复原 OpenAI 设置或关闭 override，再新建聊天；不要为了修复这条路径改动无关提供商的 key。
 
-- Tab 补全
-- 专用的非标准聊天模型
-- Cursor 仅在内置模型上启用的提供商特定功能
+## 单独添加工具或使用说明
 
-## 故障排查
+[TokenLab MCP](/zh/integrations/tokenlab-mcp-server) 添加可调用工具。通过 Cursor 的 MCP 设置或 `.cursor/mcp.json` 配置；先确认工具能被发现，再按需执行会计费的生成。安装 MCP 不会替换主聊天模型。
 
-<AccordionGroup>
-  <Accordion title="模型未显示">
-    Cursor 会缓存模型状态。配置 API 密钥和 Base URL 后，请重启 Cursor。
-  </Accordion>
-
-  <Accordion title="BYOK 模式下不支持该模型">
-    自定义 API 密钥只适用于标准聊天模型。Cursor 专用功能无法使用时，请换成模型页中的聊天模型。
-  </Accordion>
-
-  <Accordion title="身份验证错误">
-    请确认 API 密钥正确且余额充足。
-  </Accordion>
-
-  <Accordion title="启用 TokenLab 后另一个提供商停止工作">
-    Cursor 的 BYOK 设置可能影响其他模型服务。开启 OpenAI Base URL override 后，如果其他模型无法使用，请关闭 override 并重启 Cursor。
-  </Accordion>
-</AccordionGroup>
-
-模型 ID 和价格会更新。请从[模型页](https://tokenlab.sh/zh/models)选择当前聊天模型，并在自己的项目中比较效果和费用。
+[TokenLab Skills](/zh/integrations/coding-agent-skill) 提供 API 使用说明。项目级安装时，把完整 Skill 目录放到 `.cursor/skills/tokenlab-api-integration/`，保留 `SKILL.md` 及其引用文件，在 **Customize → Skills** 中检查是否识别。Skill 不会提供 key，也不会安装 MCP server。不同 Cursor 版本的入口以官方 [MCP](https://cursor.com/docs/mcp) 和 [Skills](https://cursor.com/docs/skills) 文档为准。

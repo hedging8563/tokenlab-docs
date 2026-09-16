@@ -1,76 +1,82 @@
 ---
 title: "DeepSeek Harness"
-description: "在 DeepSeek Harness 中將 TokenLab 安裝為原生協定模型供應商，並啟用完整多媒體與非同步工具"
+description: "在 Harness 設定 TokenLab 模型、驗證請求，並按需選擇 MCP、Skills 或已發布的 provider bundle"
 ---
 
-## 概覽
+## 選擇接入方式
 
-TokenLab 的 DeepSeek Harness bundle 同時提供兩層能力：
+要以 TokenLab 作為 Agent 主模型，在 Harness Web UI 新增 **custom provider** 即可，不依賴可選的 TokenLab bundle。[MCP](/zh-Hant/integrations/tokenlab-mcp-server) 提供工具，[Skill](/zh-Hant/integrations/coding-agent-skill) 提供 API 使用說明，兩者都不會自行切換主模型。
 
-- 三條互斥的模型路由，分別使用 OpenAI Responses、Anthropic Messages 與 OpenAI Chat Completions；
-- TokenLab MCP `full` profile，涵蓋模型探索、圖像、影片、音樂、3D、音訊、檔案、embeddings、rerank、翻譯與非同步任務。
+Harness 仍是開發者預覽版。本頁於 2026 年 9 月 16 日對照官方文件及已發布的 `@deepseek-ai/dsh` `0.1.5-rc.1` 包核對，不表示舊 bundle 相容所有 `0.1.x` 版本。
 
-套件名稱為 `@tokenlabai/dsh-provider`，目標版本是 DeepSeek Harness `0.1.1-rc.2` 與相容的 `0.1.x` 插件契約。
+## 把任務交給現有 Agent
 
-<Note>
-本頁是待發佈套件的完整文件。必須先發佈並讀回 npm 套件，之後才能部署本頁或提交市場條目。
-</Note>
+```text
+閱讀 https://docs.tokenlab.sh/zh-Hant/integrations/deepseek-harness，核對已安裝版本與作業系統。
+確認我要使用 TokenLab 主模型、MCP 工具還是 API Skill。
+保留既有帳戶、供應商設定和權限，說明改動後如何還原。
+不要在聊天中索取或填寫 API key；我會在本機填入並完成必要的介面操作。
+先說明一次小驗證的費用，只有我明確選擇該測試後，才協助執行並核對 TokenLab 請求記錄。
+```
 
-## 安裝
+## 啟動 Harness
 
-將 key 儲存在專案 `.env` 或 Harness home 的 `.env`：
+在 macOS、Linux 或 Windows 使用受支援的 Node 版本，初次安裝可用 Node 24 LTS。在專案目錄的終端或 PowerShell 執行：
+
+```bash
+node --version
+npx @deepseek-ai/dsh@0.1.5-rc.1 web
+```
+
+開啟命令輸出的本機地址，先以 **Choose workspace** 新增並選中專案。這些命令使用 `web` profile；Electron 的 `desktop` profile 不由這套 CLI 管理。參見官方[啟動指南](https://github.com/deepseek-ai/deepseek-harness)與 [Web UI 指南](https://deepseek-harness.github.io/deepseek-harness/en/guide/quickstart)。
+
+## 設定一個 TokenLab provider
+
+1. 開啟 **Settings → Models → Add a custom provider**，保留既有供應商和權限。
+2. 填寫小寫 Provider ID，例如 `tokenlab-chat`，從下表選一種協定及 Base URL。
+3. 在本機表單填入 TokenLab key。UI 管理的 key 儲存在 `$DSH_HOME/.credentials.yaml`，設定只存引用；不要傳到聊天或提交至 git。
+4. 從[目前模型目錄](https://tokenlab.sh/zh-TW/models)加入一個精確 ID，依[模型詳情](/zh-Hant/api-reference/models/get-model)的 `tokenlab.accepted_request_formats` 選協定。
+5. 儲存 provider、選中模型並**建立新會話**。已發過請求的舊會話保留原模型。
+
+| Provider ID 範例 | Harness API protocol | Base URL | 必須宣告的請求格式 |
+| --- | --- | --- | --- |
+| `tokenlab-chat` | `openai-completions` | `https://api.tokenlab.sh/v1` | `openai_chat_completions` |
+| `tokenlab-responses` | `openai-responses` | `https://api.tokenlab.sh/v1` | `openai_responses` |
+| `tokenlab-messages` | `anthropic-messages` | `https://api.tokenlab.sh` | `anthropic_messages` |
+
+第一次文字測試可用仍在目錄中的 `gpt-4.1-mini`，選 Chat 列。**Fetch available models → Add selected** 只是發現模型，之後仍需儲存；失敗時可手動輸入 ID。列表不證明協定相容。此處沒有 Gemini native 協定，只能在模型宣告支援時使用 Chat。圖像輸入或推理控制需要按模型詳情核對額外的 `settings.yaml` 欄位，參見[官方 provider 文件](https://deepseek-harness.github.io/deepseek-harness/en/guide/providers)。
+
+## 驗證一次小請求
+
+在新會話傳送：
+
+```text
+只回覆 TOKENLAB_CONNECTION_OK。不要使用工具，也不要修改檔案。
+```
+
+本次請求會計費。核對回覆與 [TokenLab 請求記錄](https://tokenlab.sh/dashboard/runs?section=requests)的模型、時間和狀態。初次接通不需要跑遍三種協定或生成付費媒體；模型列表或 MCP 發現成功也不能驗證生成權限。
+
+## 可選：已發布的 TokenLab bundle
+
+[`@tokenlabai/dsh-provider@0.1.1`](https://www.npmjs.com/package/@tokenlabai/dsh-provider/v/0.1.1) 已發布，面向 Harness `0.1.1-rc.2`；新版相容性需另查。新接入優先使用上方原生 provider。包內是 **2026-08-26 的固定模型快照**、三條模型路由、`@tokenlabai/mcp-server@0.6.17` 的 80 個 `full` 工具及 `tokenlab_wait_task`，不會自動同步新模型。請核對即時目錄，以 custom provider 加入需要的新 ID。
+
+已有相容安裝時，先確認 `pnpm` 在 PATH。安裝與啟動使用同一個 `dsh` 版本和 profile；若使用 `npx`，把下列 `dsh` 換成原本帶版本號的啟動命令：
+
+```bash
+dsh --version
+pnpm --version
+dsh plugin --profile web add --workspace-root @tokenlabai/dsh-provider@0.1.1
+```
+
+啟動 profile 前，在啟動環境或其 `.env` 中設定：
 
 ```dotenv
 TOKENLAB_API_KEY=sk-your-tokenlab-key
 ```
 
-安裝到實際使用的 profile，然後重新啟動：
+Harness 讀取啟動目錄與 `$DSH_HOME`（通常為 `~/.dsh`）的 `.env`，繼承的環境變數優先。後來選工作區不會切換 `.env`。勿提交此檔；修改後重啟同一 profile。UI 儲存的模型 key 不會自動成為 bundle 的 `TOKENLAB_API_KEY`。使用 `headless` 時，安裝與啟動都要選 `headless`；`web` 安裝不會配置它。既有 `llm-pi-ai` 設定優先於 bundle，請保留並合併 `$DSH_HOME/settings.yaml` 的 provider，不要以整份 Cordis patch 覆蓋設定。
 
-```bash
-dsh plugin --profile web add --workspace-root @tokenlabai/dsh-provider
-```
-
-一次性任務可安裝到 headless profile：
-
-```bash
-dsh plugin --profile headless add --workspace-root @tokenlabai/dsh-provider
-```
-
-## 原生端點路由
-
-DeepSeek Harness 在 provider route 層選擇 wire protocol，因此 bundle 註冊三條 provider，且每個公開 chat 模型只出現一次。
-
-| Harness provider | TokenLab 端點 | 選擇規則 |
-| --- | --- | --- |
-| `TokenLab · Responses` | `POST /v1/responses` | owner 為 OpenAI，且公開 detail contract 宣告 `openai_responses` |
-| `TokenLab · Messages` | `POST /v1/messages` | owner 為 Anthropic，且公開 detail contract 宣告 `anthropic_messages` |
-| `TokenLab · Chat` | `POST /v1/chat/completions` | 其餘宣告相容 OpenAI Chat Completions 的模型 |
-
-模型快照由 `GET /v1/models` 與 `GET /v1/models/{id}` 產生，不會依模型名稱 substring 或內部渠道推測協定。
-
-<Note>
-目前 Harness custom provider 支援 `openai-responses`、`anthropic-messages` 與 `openai-completions`，但無法設定 Gemini native。Gemini 在 Harness 中使用公開宣告的 Chat fallback；需要 Gemini `generateContent` 的應用程式應從相容用戶端呼叫 `/v1beta/models/{model}:generateContent`。
-</Note>
-
-## 多媒體與開發工具
-
-bundle 透過官方 Harness MCP bridge，在本機 stdio 啟動固定版本的 `@tokenlabai/mcp-server`。預設 `full` profile 會註冊 80 個 `mcp__tokenlab__...` 工具，涵蓋 catalog/pricing、四種 LLM API、圖像、影片、音樂、3D、音訊、檔案、response lifecycle、batches、embeddings、rerank、翻譯、worlds 與媒體素材。
-
-模型側使用 portable schema；MCP server 仍以完整生成的 OpenAPI contract 驗證每次呼叫。
-
-## 非同步媒體
-
-影片、音樂與 3D 建立工具會回傳非同步任務；圖像依模型可能同步回傳，也可能回傳任務。
-
-1. 讀取建立結果的 `delivery.mode`。
-2. `sync` 直接使用媒體結果。
-3. `async` 將 `delivery.task_id` 傳給 `tokenlab_wait_task`。
-4. 使用其 `status`、完整 `response` 與 `result_urls`。
-5. wait 逾時會回傳最新非終態，可安全繼續 poll。
-
-`tokenlab_wait_task` 為唯讀工具，會將呼叫者取消訊號傳到請求與 delay，限制暫態重試，並以 status 而非可選 progress 判定終態。只有意圖明確且模型支援時才使用取消工具。
-
-## 設定
+bundle 可透過以下環境變數調整；`catalog` 僅作發現，`core` 提供較小工具集：
 
 | 變數 | 預設值 | 用途 |
 | --- | --- | --- |
@@ -81,36 +87,22 @@ bundle 透過官方 Harness MCP bridge，在本機 stdio 啟動固定版本的 `
 | `TOKENLAB_MCP_TOOL_PROFILE` | `full` | 可選 `catalog`、`core`、`full` |
 | `TOKENLAB_MCP_SCHEMA_MODE` | `portable` | 可選 `portable`、`exact`、`strict` |
 
-若更重視每輪重複的 tool schema 成本，而非完整開發介面，可改用 `core`。
+媒體工具的 `delivery.mode` 為 `complete` 時直接取結果；為 `async` 時把 `delivery.task_id` 交給 `tokenlab_wait_task`，讀取終態 `status`、`response` 與 `result_urls`。等待逾時不等於完成。保留計費或破壞性工具的審批，參見[非同步任務](/zh-Hant/guides/async-jobs-polling)。
 
-## 驗證
-
-重新啟動後確認：模型選擇器顯示三條 TokenLab provider；相同模型只出現一次；`mcp__tokenlab__list_models` 回傳非空；以測試 key 分別執行 Responses、Messages、Chat 並從日誌核對 endpoint；最後提交一個低成本非同步媒體任務並取得終態 URL。
-
-若用戶端為取得 HTTP 200 而刪除歷史、工具、簽名或媒體輸入，這不構成嚴格相容證明。
-
-## 既有 `llm-pi-ai` 設定
-
-Harness 目前只有一個共用 `llm-pi-ai` settings section。Models 頁面儲存的設定優先於 bundle 預設值，可能覆蓋三條 TokenLab 路由。已有該 section 時，請把套件 `cordis.patch.yml` 中的 `tokenlab-responses`、`tokenlab-messages`、`tokenlab-chat` 合併到其 `providers` map。
-
-## 安全
-
-- key 只存於可信環境或 secret store，不提交到儲存庫。
-- MCP server 使用與 Harness 相同的 Node，在本機 stdio 執行，不經過 shell 或託管 MCP 中介。
-- `full` 工具包含計費生成與破壞性操作，應保留 Harness 核准流程。
-- 模型文字、URL、檔案與生成媒體都視為不可信外部內容。
-
-## 解除安裝
+卸載使用同一入口和 profile，然後重啟：
 
 ```bash
 dsh plugin --profile web remove --workspace-root @tokenlabai/dsh-provider
 ```
 
-重新啟動 profile。解除安裝只移除 provider 與工具，不會刪除 TokenLab 帳號或 key。
+## 疑難排解
 
-## 相關文件
+- **輸入框不可用：**選中工作區與模型。
+- **`MISSING_CREDENTIAL` 或 401：**核對 provider 憑據；bundle 工具另外讀取啟動環境的 `TOKENLAB_API_KEY`。
+- **`UNKNOWN_MODEL` 或舊 ID 下線：**核對即時目錄、設定精確 ID，再開新會話。重裝 `0.1.1` 不會刷新快照。
+- **生成失敗：**核對協定、Base URL 和接受的格式；不要靠刪掉歷史、工具或圖像來製造成功。
+- **缺少 `dsh` 或 `pnpm`：**可用上面的版本化 `npx` 啟動；plugin 命令前需[安裝 pnpm](https://pnpm.io/installation)。
 
-- [TokenLab MCP Server](/zh-Hant/integrations/tokenlab-mcp-server)
-- [API 格式](/zh-Hant/guides/api-formats)
-- [非同步任務與輪詢](/zh-Hant/guides/async-jobs-polling)
-- [模型詳細資料 API](/zh-Hant/api-reference/models/get-model)
+## MCP 和 Skills 是獨立選擇
+
+手動 provider 不安裝工具。若不需要 bundle，可按 [TokenLab MCP 指南](/zh-Hant/integrations/tokenlab-mcp-server)加入工具，先檢查發現，再執行生成。[Skill](/zh-Hant/integrations/coding-agent-skill) 的完整目錄應放在專案根目錄 `.dsh/skills/tokenlab-api-integration/`，保留 `SKILL.md` 與引用檔案；Harness 也會讀取 `.agents/skills/`。Skill 不安裝 provider、MCP server 或 key，詳見[官方 Skills 文件](https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/skill/skill-filesystem/README.md)。

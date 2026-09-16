@@ -1,116 +1,107 @@
 ---
 title: "DeepSeek Harness"
-description: "在 DeepSeek Harness 中将 TokenLab 安装为原生协议模型提供商，并启用完整多媒体与异步工具"
+description: "在 Harness 中配置 TokenLab 模型，验证请求，并按需选择 MCP、Skills 或已发布的 provider bundle"
 ---
 
-## 概览
+## 选择需要的接入方式
 
-TokenLab 的 DeepSeek Harness bundle 同时提供两层能力：
+要把 TokenLab 用作 Agent 的主模型，在 Harness Web UI 中添加 **custom provider** 即可，不依赖可选的 TokenLab provider bundle。需要媒体等 API 时添加 [MCP 工具](/zh/integrations/tokenlab-mcp-server)，需要 API 使用说明时安装 [Skill](/zh/integrations/coding-agent-skill)；两者都不会自行切换主模型。
 
-- 三条互斥的模型路由，分别使用 OpenAI Responses、Anthropic Messages 和 OpenAI Chat Completions；
-- TokenLab MCP `full` profile，覆盖模型发现、图像、视频、音乐、3D、音频、文件、embeddings、rerank、翻译和异步任务。
+Harness 仍是开发者预览版。以下 Web UI 步骤于 2026 年 9 月 16 日对照官方文档及已发布的 `@deepseek-ai/dsh` `0.1.5-rc.1` 包核对，不代表旧 TokenLab bundle 兼容所有 `0.1.x` 版本。
 
-包名为 `@tokenlabai/dsh-provider`，目标版本是 DeepSeek Harness `0.1.1-rc.2` 及兼容的 `0.1.x` 插件契约。
+## 把任务交给现有 Agent
 
-<Note>
-本页是待发布包的完整文档。必须先发布并读回 npm 包，之后才能部署本页或提交市场条目。
-</Note>
+```text
+阅读 https://docs.tokenlab.sh/zh/integrations/deepseek-harness，核对我安装的版本和操作系统。
+确认我需要 TokenLab 主模型、MCP 工具还是 API Skill。
+保留已有账户、提供商配置和权限，说明改动后如何恢复。
+不要在聊天中索要或填写 API key；由我在本地填写，并操作必要的界面步骤。
+先说明一次小验证的费用，只有我明确选择这次测试后，才协助执行并核对 TokenLab 请求记录。
+```
 
-## 安装
+## 启动 Harness
 
-把 key 保存到项目 `.env` 或 Harness home 的 `.env`：
+在 macOS、Linux 或 Windows 上使用 Node CLI；选择受支持的 Node 版本，初次安装可使用 Node 24 LTS。在项目目录的终端或 PowerShell 中运行：
+
+```bash
+node --version
+npx @deepseek-ai/dsh@0.1.5-rc.1 web
+```
+
+打开命令输出的本地地址。首次进入 Web UI 时，通过 **Choose workspace** 添加并选中项目目录后才能发送消息。这些命令使用 `web` profile；Electron 应用的 `desktop` profile 不由这套 CLI 流程管理。参见官方[启动指南](https://github.com/deepseek-ai/deepseek-harness)和 [Web UI 指南](https://deepseek-harness.github.io/deepseek-harness/en/guide/quickstart)。
+
+## 配置一个 TokenLab provider
+
+1. 打开 **Settings → Models → Add a custom provider**，保留已有提供商和权限设置。
+2. 填写小写 Provider ID，例如 `tokenlab-chat`，从下表选一种协议及对应 Base URL。每个 provider 使用一种协议。
+3. 在本地表单填写 TokenLab API key。Harness 把 UI 管理的 key 保存到 `$DSH_HOME/.credentials.yaml`，设置文件只保存引用。不要把 key 发到聊天中或提交到仓库。
+4. 从 [TokenLab 模型目录](https://tokenlab.sh/zh/models)添加一个当前模型 ID，并在[模型详情 API](/zh/api-reference/models/get-model)中核对 `tokenlab.accepted_request_formats`，不要按名字猜协议。
+5. 保存 provider，选中它的模型，再**新建会话**。已经发过请求的旧会话会保留日志中记录的模型。
+
+| Provider ID 示例 | Harness API protocol | Base URL | 必须声明的公开请求格式 |
+| --- | --- | --- | --- |
+| `tokenlab-chat` | `openai-completions` | `https://api.tokenlab.sh/v1` | `openai_chat_completions` |
+| `tokenlab-responses` | `openai-responses` | `https://api.tokenlab.sh/v1` | `openai_responses` |
+| `tokenlab-messages` | `anthropic-messages` | `https://api.tokenlab.sh` | `anthropic_messages` |
+
+第一次文本请求可选当前仍可用的 `gpt-4.1-mini`，按 Chat 行配置。**Fetch available models → Add selected** 可以帮助填充 custom provider，但发现模型不代表协议已匹配或计费请求已跑通；之后仍需保存 provider。发现失败时可手动填写 ID。
+
+这里没有 Gemini native 的 custom-provider 协议。仅当模型详情列出 Chat 请求格式 时才使用该路径。图像输入和推理控制可能需要额外的 `settings.yaml` 字段；开启前请对照 [Harness provider 配置](https://deepseek-harness.github.io/deepseek-harness/en/guide/providers)和所选模型支持的字段。
+
+## 验证一次小请求
+
+在新会话中发送：
+
+```text
+只回复 TOKENLAB_CONNECTION_OK。不要使用工具，也不要修改文件。
+```
+
+这次请求会计费。检查回复，并在 [TokenLab 请求记录](https://tokenlab.sh/dashboard/runs?section=requests)中核对相同模型、时间和状态。完成首次文本检查即可，不必为了证明接通而测试三种协议或生成付费媒体。模型列表或 MCP 工具发现成功，也不代表 key 已获得生成权限。
+
+## 可选：已发布的 TokenLab bundle
+
+[`@tokenlabai/dsh-provider@0.1.1`](https://www.npmjs.com/package/@tokenlabai/dsh-provider/v/0.1.1) 已发布，面向 Harness `0.1.1-rc.2`；更新 Harness 后需要另行核对兼容性。新接入优先使用上面的原生 custom-provider 步骤。
+
+这个版本包含 **2026 年 8 月 26 日的固定模型快照**、三条 provider 路由、`@tokenlabai/mcp-server@0.6.17` 的 80 个 `full` 工具，以及 `tokenlab_wait_task`。安装它不会刷新模型目录。使用前应核对实时目录；新模型可通过 custom provider 添加，不能假设旧 bundle 已经收录。
+
+已有兼容 Harness 安装时，先确认 `PATH` 中存在 `pnpm`。安装和启动必须使用相同的 `dsh` 入口、版本及 profile；如果通过 `npx` 启动，把下面的 `dsh` 换成同一个带版本号的启动命令：
+
+```bash
+dsh --version
+pnpm --version
+dsh plugin --profile web add --workspace-root @tokenlabai/dsh-provider@0.1.1
+```
+
+启动该 profile 前，在启动环境或它读取的 `.env` 中设置：
 
 ```dotenv
 TOKENLAB_API_KEY=sk-your-tokenlab-key
 ```
 
-安装到实际使用的 profile，随后重启：
+Harness 读取启动目录和 `$DSH_HOME`（通常是 `~/.dsh`）里的 `.env`，继承的环境变量优先。进入 Web UI 后选择工作区，不会切换到那个目录的 `.env`。不要把文件提交到 git；修改后需重启。通过 UI 为 custom provider 保存的 key，不会自动成为 bundle 所需的 `TOKENLAB_API_KEY`。
 
-```bash
-dsh plugin --profile web add --workspace-root @tokenlabai/dsh-provider
-```
+重启同一个 profile，再查看模型和工具列表。使用 `headless` 时，安装和启动都改为 `headless`；安装到 `web` 不会配置另一个 profile。已有 `llm-pi-ai` 设置优先于 bundle 默认值，应保留并合并 `$DSH_HOME/settings.yaml` 中需要的 provider 条目，不要用整份 Cordis patch 替换设置。
 
-一次性任务可安装到 headless profile：
+bundle 默认使用 `TOKENLAB_MCP_TOOL_PROFILE=full` 和 `TOKENLAB_MCP_SCHEMA_MODE=portable`。只做发现可选 `catalog`，需要较小工具集可选 `core`。`TOKENLAB_API_BASE` 与 `TOKENLAB_ANTHROPIC_BASE_URL` 默认均为 `https://api.tokenlab.sh`；`TOKENLAB_OPENAI_BASE_URL` 默认是 `https://api.tokenlab.sh/v1`。
 
-```bash
-dsh plugin --profile headless add --workspace-root @tokenlabai/dsh-provider
-```
+使用 bundle 的媒体工具时，检查 `delivery.mode`：`complete` 直接取结果；`async` 把 `delivery.task_id` 交给 `tokenlab_wait_task`，读取终态 `status`、`response` 和 `result_urls`。等待超时不代表任务完成。保留计费或破坏性工具的审批，详见[异步任务](/zh/guides/async-jobs-polling)。
 
-## 原生端点路由
-
-DeepSeek Harness 在 provider route 层选择 wire protocol，因此 bundle 注册三条 provider，并让每个公开 chat 模型只出现一次。
-
-| Harness provider | TokenLab 端点 | 选择规则 |
-| --- | --- | --- |
-| `TokenLab · Responses` | `POST /v1/responses` | 模型 owner 为 OpenAI，且公开 detail contract 声明 `openai_responses` |
-| `TokenLab · Messages` | `POST /v1/messages` | 模型 owner 为 Anthropic，且公开 detail contract 声明 `anthropic_messages` |
-| `TokenLab · Chat` | `POST /v1/chat/completions` | 其余声明兼容 OpenAI Chat Completions 的模型 |
-
-模型快照由 `GET /v1/models` 和 `GET /v1/models/{id}` 生成，不按模型名 substring 或内部渠道推断协议。
-
-<Note>
-当前 Harness custom provider 支持 `openai-responses`、`anthropic-messages` 和 `openai-completions`，但不能配置 Gemini native。Gemini 在 Harness 中使用其公开声明的 Chat fallback；确实需要 Gemini `generateContent` 的应用应从兼容客户端调用 `/v1beta/models/{model}:generateContent`。
-</Note>
-
-## 多媒体与开发工具
-
-bundle 通过官方 Harness MCP bridge，在本地 stdio 上启动固定版本的 `@tokenlabai/mcp-server`。默认 `full` profile 会注册 80 个 `mcp__tokenlab__...` 工具，覆盖 catalog/pricing、四种 LLM API、图像、视频、音乐、3D、音频、文件、response lifecycle、batches、embeddings、rerank、翻译、worlds 和媒体素材。
-
-模型侧使用 portable schema；MCP server 仍会用完整生成的 OpenAPI contract 校验每次调用。
-
-## 异步媒体
-
-视频、音乐、3D 创建工具返回异步任务；图像根据模型可能同步返回，也可能返回任务。
-
-1. 读取创建结果的 `delivery.mode`。
-2. `sync` 直接消费媒体结果。
-3. `async` 把 `delivery.task_id` 交给 `tokenlab_wait_task`。
-4. 读取它返回的 `status`、完整 `response` 和 `result_urls`。
-5. wait 超时会返回最新非终态，之后可安全续 poll。
-
-`tokenlab_wait_task` 是只读工具，会把调用方取消信号传给请求和 delay，限制暂态重试，并以 status 而不是可选 progress 判断终态。只有明确需要且模型支持时才调用取消工具。
-
-## 配置
-
-| 变量 | 默认值 | 用途 |
-| --- | --- | --- |
-| `TOKENLAB_API_KEY` | 无 | 模型路由、MCP 工具和异步 poll 的凭据 |
-| `TOKENLAB_API_BASE` | `https://api.tokenlab.sh` | MCP 和 task API root |
-| `TOKENLAB_OPENAI_BASE_URL` | `https://api.tokenlab.sh/v1` | Responses 与 Chat base URL |
-| `TOKENLAB_ANTHROPIC_BASE_URL` | `https://api.tokenlab.sh` | Messages base URL |
-| `TOKENLAB_MCP_TOOL_PROFILE` | `full` | 可选 `catalog`、`core`、`full` |
-| `TOKENLAB_MCP_SCHEMA_MODE` | `portable` | 可选 `portable`、`exact`、`strict` |
-
-如果更在意每轮重复的 tool schema 成本，而不是完整开发接口，可改用 `core`。
-
-## 验证
-
-重启后确认：模型选择器出现三条 TokenLab provider；同一模型只出现一次；`mcp__tokenlab__list_models` 返回非空；测试 key 分别跑通一条 Responses、Messages、Chat 请求并从日志核对 endpoint；最后提交一个低成本异步媒体任务并取得终态 URL。
-
-如果客户端为了得到 HTTP 200 删除了历史、工具、签名或媒体输入，这不构成严格兼容证明。
-
-## 已有 `llm-pi-ai` 设置
-
-Harness 当前只有一个共享 `llm-pi-ai` settings section。Models 页面保存的配置优先级高于 bundle 默认值，可能覆盖三条 TokenLab 路由。已有该 section 时，把包内 `cordis.patch.yml` 的 `tokenlab-responses`、`tokenlab-messages`、`tokenlab-chat` 合并到它的 `providers` map。
-
-## 安全
-
-- key 只放在可信环境或 secret store，不提交到仓库。
-- MCP server 使用与 Harness 相同的 Node，在本地 stdio 上运行，不经过 shell 或托管 MCP 中间方。
-- `full` 工具包含计费生成和破坏性操作，应保留 Harness 审批。
-- 模型文本、URL、文件和生成媒体均按不可信外部内容处理。
-
-## 卸载
+卸载时使用同一个入口和 profile，然后重启：
 
 ```bash
 dsh plugin --profile web remove --workspace-root @tokenlabai/dsh-provider
 ```
 
-重启 profile。卸载只移除 provider 和工具，不会删除 TokenLab 账号或 key。
+## 失败时检查什么
 
-## 相关文档
+- **输入框不可用：**确认已经选中工作区和模型。
+- **`MISSING_CREDENTIAL` 或 401：**核对所选 provider 的凭据。bundle 工具读取启动环境的 `TOKENLAB_API_KEY`，与 UI 保存的模型 key 是两处设置。
+- **`UNKNOWN_MODEL` 或旧 ID 已下线：**核对实时目录，配置当前精确 ID，再新建会话。重装 bundle `0.1.1` 不会更新其快照。
+- **地址可访问但生成失败：**核对协议、Base URL 和模型接受的格式。不要为了得到一次成功而删掉历史、工具或图像输入。
+- **找不到 `dsh` 或 `pnpm`：**Harness 可使用上面的带版本号 `npx` 命令；运行 plugin 命令前先[安装 pnpm](https://pnpm.io/installation)。插件安装失败与 API key 错误不是一回事。
 
-- [TokenLab MCP Server](/zh/integrations/tokenlab-mcp-server)
-- [API 格式](/zh/guides/api-formats)
-- [异步任务与轮询](/zh/guides/async-jobs-polling)
-- [模型详情 API](/zh/api-reference/models/get-model)
+## MCP 和 Skills 是独立选择
+
+手动添加 custom provider 不会安装工具。不需要 bundle 时，可按 [TokenLab MCP 指南](/zh/integrations/tokenlab-mcp-server)接入可调用的 API 工具，先检查发现，再执行生成。
+
+安装 [TokenLab Skills](/zh/integrations/coding-agent-skill) 时，将完整 Skill 目录放在项目根目录的 `.dsh/skills/tokenlab-api-integration/`，保留 `SKILL.md` 及引用文件。Harness 也会发现 `.agents/skills/`。这些说明不会安装 provider、MCP server 或 key；支持的目录以官方[文件系统 Skills 文档](https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/skill/skill-filesystem/README.md)为准。

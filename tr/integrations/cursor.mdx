@@ -1,100 +1,63 @@
 ---
 title: "Cursor"
-description: "TokenLab'yı Cursor AI kod editörü ile kullanın"
+description: "Cursor’ın desteklediği sohbet modelleri için TokenLab’i yapılandırın, bağlantıyı doğrulayın ve MCP veya Skills ekleyin"
 ---
 
-## Genel Bakış
+## Kapsam
 
+Bu kılavuz macOS, Windows ve Linux üzerindeki **Cursor masaüstü düzenleyicisi** içindir. Resmî OpenAI BYOK desteği standart, akıl yürütmesiz sohbet modellerini kapsar; Tab tamamlama Cursor modellerini kullanmaya devam eder. OpenAI Base URL değişikliği tüm TokenLab modellerini veya Cursor özelliklerini açmaz. [Resmî sınırları](https://cursor.com/help/models-and-usage/api-keys) inceleyin.
 
+Yalnızca görsel, video veya diğer API araçlarına ihtiyacınız varsa mevcut sohbet sağlayıcınızı koruyup [MCP](/tr/integrations/tokenlab-mcp-server) ekleyin. [Skill](/tr/integrations/coding-agent-skill), API kullanım talimatları sağlar; ana modeli değiştirmez.
 
-<Note>
-**Tür**: Kodlama aracı
+## Mevcut ajanınıza verilecek görev
 
-**Birincil yol**: OpenAI ile uyumlu
-
-**Destek seviyesi**: Sınırlı olarak desteklenir
-</Note>
-
-[Cursor](https://cursor.sh), bring-your-own-key (BYOK) sağlayıcılarını destekler, ancak özel API anahtarları yalnızca standart chat modelleriyle çalışır. TokenLab'yı burada, chat tarzı editör iş akışları için OpenAI uyumlu bir uç nokta olarak kullanın; Cursor'daki her model özelliğinin tam bir yerine geçecek çözüm olarak değil.
-
-## Yapılandırma
-
-1. Cursor Ayarları'nı açın (`Cmd/Ctrl + ,`)
-2. Sol kenar çubuğunda **Models** bölümüne gidin
-3. **OpenAI API Key** bölümüne kadar aşağı kaydırın
-4. TokenLab API anahtarınızı girin
-5. **Override OpenAI Base URL** seçeneğini etkinleştirin
-6. Base URL'yi şu şekilde ayarlayın:
-
+```text
+https://docs.tokenlab.sh/tr/integrations/cursor adresini oku, kurulu sürümümü ve işletim sistemimi kontrol et.
+TokenLab ana modeli, MCP araçları veya API Skill seçeneklerinden hangisine ihtiyacım olduğunu doğrula.
+Mevcut hesapları, sağlayıcı ayarlarını ve izinleri koru; değişikliklerin nasıl geri alınacağını açıkla.
+Sohbette API anahtarı isteme. Anahtarı yerel olarak girip gerekli arayüz adımlarını ben uygulayacağım.
+Küçük bir doğrulama isteğinin maliyetini açıkla. Yalnızca bu testi açıkça seçtikten sonra çalıştırmaya ve TokenLab kaydıyla eşleştirmeye yardım et.
 ```
+
+## Doğru ayarları açın
+
+1. Masaüstü düzenleyicisini [Cursor Downloads](https://cursor.com/downloads) üzerinden kurun veya güncelleyin. Bu adımlar CLI ya da Cloud Agents için değildir.
+2. Komut paletinden **Cursor Settings** açın veya `Cmd/Ctrl + Shift + J` kullanın. `Cmd/Ctrl + ,` genel düzenleyici ayarlarını açar.
+3. **Models** bölümünde mevcut OpenAI yapılandırmasını geri yükleyebilmek için not edin. Diğer sağlayıcıları koruyun.
+4. TokenLab anahtarını yerel olarak **OpenAI API Key** alanına girip kaydedin. Sohbete göndermeyin veya git’e eklemeyin.
+5. **Override OpenAI Base URL** seçeneğini açıp şu adresi girin:
+
+```text
 https://api.tokenlab.sh/v1
 ```
 
-<Warning>
-Cursor özel API anahtarları yalnızca standart chat modelleri için geçerlidir. Tab Completion ve Cursor tarafından yönetilen diğer özelleşmiş özellikler, Cursor'un yerleşik sağlayıcılarını kullanmaya devam edecektir.
-</Warning>
+BYOK istekleri de istemi oluşturmak için Cursor sunucularından geçer. Düzenleyici TokenLab’e doğrudan bağlanmaz.
 
-<Warning>
-Cursor’un özel API anahtarı akışı yalnızca standart chat modelleri için geçerlidir. Tab Completion ve bazı akıl yürütme odaklı akışlar gibi Cursor tarafından yönetilen özelleşmiş modeller gerektiren özellikler, Cursor’un yerleşik sağlayıcılarını kullanmaya devam edecektir. Cursor ayrıca, isteklerin son prompt oluşturma işlemi için yine de kendi backend'i üzerinden geçtiğini belirtir.
-</Warning>
+## Model seçin
 
-## Model Seçimi
+Güncel [TokenLab kataloğundan](https://tokenlab.sh/tr/models) tam model kimliğini kopyalayın ve Cursor’ın OpenAI BYOK desteğini kontrol edin. TokenLab’de chat kategorisinde olması Cursor uyumluluğunu kanıtlamaz.
 
-Yapılandırmadan sonra, TokenLab üzerinden sunulan standart chat modellerini tercih edin:
+İlk metin testi için hâlâ sunuluyorsa akıl yürütmesiz bir örnek olarak `gpt-4.1-mini` kullanılabilir. **Models** içindeki mevcut kaydı etkinleştirin; yoksa **Add model** ile ekleyip sohbette seçin. Yerleşik modeli farklı yazımla tekrar eklemeyin; Claude veya Gemini’nin OpenAI override kullandığını varsaymayın. [Cursor açıklamasına](https://forum.cursor.com/t/add-custom-model-fail-no-models-available/163488) bakın.
 
-### Kodlama için Önerilen Modeller
+## Küçük bir istekle doğrulayın
 
-| Model | En Uygun Olduğu Alan |
-|-------|----------|
-| `gpt-5.4` | Genel kodlama, debugging, chat |
-| `gpt-5-mini` | Hızlı düzenlemeler ve hafif prompt'lar |
+Seçilen modelle yeni sohbet açıp şunu gönderin:
 
-## En İyi Çalışanlar
+```text
+Yalnızca TOKENLAB_CONNECTION_OK yanıtını ver. Araç kullanma ve dosya değiştirme.
+```
 
-### Chat ve editör akışları
+Bu istek ücretlidir. Yanıtı ve [TokenLab istek kayıtlarındaki](https://tokenlab.sh/dashboard/runs?section=requests) model, zaman ve durumu karşılaştırın. Modelin görünmesi veya eşleşen kayıt olmadan yanıt alınması bu yolu doğrulamaz.
 
-Cursor üzerinden TokenLab'yı şunlar için kullanın:
+## Hata durumunda
 
-- Kod açıklamaları
-- Hata düzeltme
-- Refactoring önerileri
-- Dokümantasyon oluşturma
+- **Model yok veya reddediliyor:** kimliği ve BYOK desteğini kontrol edin; varsa yerleşik kaydı kullanın. Yeniden başlatmak uyumsuzluğu çözmez.
+- **Kimlik doğrulama hatası:** OpenAI alanındaki TokenLab anahtarını ve Base URL’yi kontrol edin. Bakiye veya kota hatası geçersiz anahtardan farklıdır.
+- **TokenLab kaydı yok:** sohbet modelini, override ayarını ve Cursor hatasını kontrol edin. Tab tamamlama bu bağlantıyı sınamaz.
+- **Başka sağlayıcı çalışmıyor:** önceki OpenAI ayarlarını geri yükleyin veya override seçeneğini kapatıp yeni sohbet açın.
 
-### Cursor tarafından yönetilen modellerde kalanlar
+## MCP ve Skills öğelerini ayrı ekleyin
 
-Bu özellikler TokenLab endpoint'inize güvenilir şekilde geçmez:
+[MCP](/tr/integrations/tokenlab-mcp-server), Cursor MCP ayarları veya `.cursor/mcp.json` üzerinden çağrılabilir araçlar ekler. Önce araç keşfini kontrol edin, ardından yalnızca gereken ücretli üretimleri çalıştırın. MCP ana modeli değiştirmez.
 
-- Sekme Tamamlama
-- Özelleşmiş standart dışı chat modelleri
-- Cursor'un yalnızca yerleşik modellerde etkinleştirdiği sağlayıcıya özgü özellikler
-
-## Sorun Giderme
-
-<AccordionGroup>
-  <Accordion title="Modeller görünmüyor">
-    Cursor, model ve sağlayıcı durumunu önbelleğe alır. API anahtarını ve temel URL'yi yapılandırdıktan sonra Cursor'u yeniden başlatın.
-  </Accordion>
-
-  <Accordion title="BYOK modunda model desteklenmiyor">
-    Özel API anahtarları yalnızca standart chat modelleriyle çalışır. Bir model özelleşmiş Cursor altyapısı kullanıyorsa, `gpt-5.4` gibi standart bir chat modeline geçin.
-  </Accordion>
-
-  <Accordion title="Kimlik doğrulama hataları">
-    API anahtarınızın doğru olduğunu ve yeterli bakiyeye sahip olduğunu doğrulayın.
-  </Accordion>
-
-  <Accordion title="TokenLab etkinleştirildikten sonra başka bir sağlayıcı çalışmayı durdurdu">
-    Cursor’un BYOK yapılandırması diğer sağlayıcı akışlarını etkileyebilir. OpenAI temel URL override özelliğini etkinleştirdikten sonra başka bir model yolu bozulursa, override'ı devre dışı bırakın ve Cursor'u yeniden başlatın.
-  </Accordion>
-</AccordionGroup>
-
-## İpuçları
-
-<CardGroup cols={2}>
-  <Card title="Uygun modelleri kullanın" icon="gauge-high">
-    Hızlı chat tarzı görevler için `gpt-5-mini`, daha ağır kodlama işleri için `gpt-5.4` kullanın.
-  </Card>
-  <Card title="Bakiyenizi kontrol edin" icon="wallet">
-    TokenLab panelinizden kullanımı izleyin.
-  </Card>
-</CardGroup>
+[Skills](/tr/integrations/coding-agent-skill), API talimatları sunar. `SKILL.md` ve başvuru dosyalarıyla birlikte tüm klasörü `.cursor/skills/tokenlab-api-integration/` konumuna koyun ve **Customize → Skills** bölümünü kontrol edin. Skill anahtar sağlamaz veya MCP sunucusu kurmaz. Sürümünüze ait resmî [MCP](https://cursor.com/docs/mcp) ve [Skills](https://cursor.com/docs/skills) kılavuzlarına bakın.
