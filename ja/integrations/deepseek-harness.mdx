@@ -1,13 +1,13 @@
 ---
 title: "DeepSeek Harness"
-description: "Harness に TokenLab モデルを設定して接続を確認し、MCP、Skills、公開済み bundle を必要に応じて選ぶ"
+description: "Harness に TokenLab モデルを設定して接続を確認し、MCP、Skills、provider bundle を必要に応じて選ぶ"
 ---
 
 ## 接続方法を選ぶ
 
 TokenLab を主モデルにするには、Harness Web UI で **custom provider** を追加します。任意の TokenLab bundle は必須ではありません。[MCP](/ja/integrations/tokenlab-mcp-server) はツール、[Skill](/ja/integrations/coding-agent-skill) は API の手順を追加し、どちらも主モデルを自動では変更しません。
 
-Harness は開発者向けプレビューです。2026 年 9 月 16 日に公式文書と公開済み `@deepseek-ai/dsh` `0.1.5-rc.1` パッケージを照合しました。旧 bundle がすべての `0.1.x` と互換であるという意味ではありません。
+Harness は開発者向けプレビューです。2026 年 9 月 16 日に公式文書と公開済み `@deepseek-ai/dsh` `0.1.5-rc.1` パッケージを照合しました。以下の bundle 手順もこの版を対象としています。他の Harness 版との互換性は別途確認してください。
 
 ## 既存のエージェントに渡すタスク
 
@@ -56,16 +56,18 @@ TOKENLAB_CONNECTION_OK だけを返してください。ツールを使わず、
 
 このリクエストは課金対象です。応答と [TokenLab リクエスト記録](https://tokenlab.sh/dashboard/runs?section=requests)のモデル・時刻・状態を照合します。初回確認に三つのプロトコルや有料メディア生成は不要です。モデル一覧や MCP 検出の成功だけでは生成権限を確認できません。
 
-## 任意：公開済み TokenLab bundle
+## 任意：TokenLab bundle
 
-[`@tokenlabai/dsh-provider@0.1.1`](https://www.npmjs.com/package/@tokenlabai/dsh-provider/v/0.1.1) は公開済みで、Harness `0.1.1-rc.2` を対象にしています。新しい版との互換性は別途確認が必要です。新規接続には上記の標準 provider 設定を優先してください。内容は **2026-08-26 の固定モデルスナップショット**、三つのモデル経路、`@tokenlabai/mcp-server@0.6.17` の `full` の 80 ツール、`tokenlab_wait_task` です。モデル一覧は自動更新されません。現在のカタログを確認し、新しい ID は custom provider に追加してください。
+[`@tokenlabai/dsh-provider@0.1.3`](https://www.npmjs.com/package/@tokenlabai/dsh-provider/v/0.1.3) は Harness `0.1.5-rc.1` を対象としています。一つのモデルを設定する場合は上記の標準 custom-provider 手順を使い、設定済みのモデル経路やツールが必要な場合は bundle を導入できます。
+
+bundle には **2026 年 9 月 16 日に確認した公開チャットモデル 124 件の固定スナップショット**が含まれます。内訳は Responses 23 件、Messages 9 件、Chat 92 件で、各モデルは一つの経路にのみ登録されます。`@tokenlabai/mcp-server@0.6.19` を固定し、独立した `tokenlab_wait_task` ツールも含みます。この版をインストールしてもカタログは更新されません。現在のカタログで ID を確認し、必要に応じて新しいモデルを custom provider に追加してください。
 
 互換性のある既存環境では、まず PATH に `pnpm` があることを確認します。導入と起動で同じ `dsh` の版・profile を使ってください。`npx` を使う場合は、下の `dsh` を同じ版指定の起動コマンドに置き換えます。
 
 ```bash
 dsh --version
 pnpm --version
-dsh plugin --profile web add --workspace-root @tokenlabai/dsh-provider@0.1.1
+dsh plugin --profile web add --workspace-root @tokenlabai/dsh-provider@0.1.3
 ```
 
 profile の起動前に環境変数または読み込まれる `.env` に設定します。
@@ -74,9 +76,13 @@ profile の起動前に環境変数または読み込まれる `.env` に設定�
 TOKENLAB_API_KEY=sk-your-tokenlab-key
 ```
 
-Harness は起動ディレクトリと `$DSH_HOME`（通常 `~/.dsh`）の `.env` を読み、継承した環境変数を優先します。後から選ぶ workspace は `.env` を切り替えません。git に含めず、変更後は同じ profile を再起動してください。UI のモデルキーは bundle の `TOKENLAB_API_KEY` に自動共有されません。`headless` を使う場合は導入・起動ともにその profile を指定します。既存の `llm-pi-ai` 設定が bundle に優先するため、`$DSH_HOME/settings.yaml` の provider を保持してマージし、Cordis patch 全体で置き換えないでください。
+Harness は起動ディレクトリと `$DSH_HOME`（通常 `~/.dsh`）の `.env` を読み、継承した環境変数を優先します。後から選ぶ workspace は `.env` を切り替えません。git に含めず、変更後は同じ profile を再起動してください。UI のモデルキーは bundle の `TOKENLAB_API_KEY` に自動共有されません。`headless` を使う場合は導入・起動ともにその profile を指定します。
 
-bundle の環境変数は以下です。`catalog` は検出のみ、`core` は少ないツールを提供します。
+Harness `0.1.5-rc.1` は保存済みの `llm-pi-ai.providers` を provider key ごとにマージします。異なるキーの provider は共存します。保存済みの `tokenlab-responses`、`tokenlab-messages`、`tokenlab-chat` は bundle の同名経路を上書きするため、古いカタログから更新する際はこれらの項目を確認してください。`$DSH_HOME/settings.yaml` の他の provider とモデルを保持し、設定文書全体を Cordis patch で置き換えないでください。
+
+公開モデル詳細は reasoning の能力を示しますが、モデルごとの対応 effort 値は列挙していません。そのため bundle は `reasoningEfforts` を宣言しません。Harness はこれらのカスタム経路に effort レベルを表示しませんが、サーバー側の推論を無効にするものではありません。`reasoningEfforts` を独自に設定する場合は、別途検証した値のみを provider の `models` リスト内の対象モデルに設定し、他のモデルを保持してください。reasoning 対応だけでは `xhigh` や `max` に対応する根拠にはなりません。
+
+bundle の既定値は `TOKENLAB_MCP_TOOL_PROFILE=core`（MCP ツール 31 個）と `TOKENLAB_MCP_SCHEMA_MODE=portable` です。検索のみなら `catalog`（6 個）、response のライフサイクル、batch、Seedance のアセット・グループ、worlds などの追加操作を含む全 80 個が必要なら `full` を選びます。独立したポーリングツール `tokenlab_wait_task` はどの profile でも使え、この MCP ツール数には含まれません。その他の環境変数は以下のとおりです。
 
 | 変数 | 既定値 | 用途 |
 | --- | --- | --- |
@@ -84,7 +90,7 @@ bundle の環境変数は以下です。`catalog` は検出のみ、`core` は�
 | `TOKENLAB_API_BASE` | `https://api.tokenlab.sh` | MCP と task API root |
 | `TOKENLAB_OPENAI_BASE_URL` | `https://api.tokenlab.sh/v1` | Responses と Chat の base URL |
 | `TOKENLAB_ANTHROPIC_BASE_URL` | `https://api.tokenlab.sh` | Messages の base URL |
-| `TOKENLAB_MCP_TOOL_PROFILE` | `full` | `catalog`、`core`、`full` |
+| `TOKENLAB_MCP_TOOL_PROFILE` | `core` | `catalog` (6) / `core` (31) / `full` (80) |
 | `TOKENLAB_MCP_SCHEMA_MODE` | `portable` | `portable`、`exact`、`strict` |
 
 メディア結果の `delivery.mode` が `complete` なら結果を使い、`async` なら `delivery.task_id` を `tokenlab_wait_task` に渡して終端の `status`、`response`、`result_urls` を確認します。待機タイムアウトは完了ではありません。課金・破壊的操作の承認を保持してください。[非同期タスク](/ja/guides/async-jobs-polling)も参照してください。
@@ -99,7 +105,7 @@ dsh plugin --profile web remove --workspace-root @tokenlabai/dsh-provider
 
 - **入力できない：**workspace とモデルを選択します。
 - **`MISSING_CREDENTIAL` または 401：**provider の認証情報を確認します。bundle ツールは起動環境の `TOKENLAB_API_KEY` を別に使います。
-- **`UNKNOWN_MODEL` または廃止 ID：**最新カタログを確認して正確な ID を設定し、新しいセッションを作ります。`0.1.1` の再インストールでスナップショットは更新されません。
+- **`UNKNOWN_MODEL` または廃止 ID：**最新カタログを確認して正確な ID を設定し、新しいセッションを作ります。`0.1.3` の再インストールでスナップショットは更新されません。
 - **生成が失敗する：**プロトコル・Base URL・対応形式を照合します。成功させるために履歴、ツール、画像を削らないでください。
 - **`dsh` や `pnpm` がない：**上の版指定 `npx` を使えます。plugin コマンドには [pnpm の導入](https://pnpm.io/installation)が必要です。
 

@@ -1,13 +1,13 @@
 ---
 title: "DeepSeek Harness"
-description: "إعداد نموذج TokenLab في Harness والتحقق من الطلب واختيار MCP أو Skills أو الحزمة المنشورة"
+description: "إعداد نموذج TokenLab في Harness والتحقق من الطلب واختيار MCP أو Skills أو حزمة المزوّد"
 ---
 
 ## اختيار طريقة الاتصال
 
 لاستخدام TokenLab كنموذج رئيسي، أضف **custom provider** في واجهة Harness Web. حزمة TokenLab الاختيارية ليست شرطًا. يضيف [MCP](/ar/integrations/tokenlab-mcp-server) أدوات وتوفّر [Skill](/ar/integrations/coding-agent-skill) تعليمات API؛ ولا يغيّر أيّ منهما النموذج الرئيسي تلقائيًا.
 
-Harness معاينة للمطورين. روجعت هذه الخطوات في 16 سبتمبر 2026 مقابل الوثائق الرسمية والحزمة المنشورة `@deepseek-ai/dsh` `0.1.5-rc.1`، ولا تعني توافق الحزمة القديمة مع جميع إصدارات `0.1.x`.
+Harness معاينة للمطورين. روجعت هذه الخطوات في 16 سبتمبر 2026 مقابل الوثائق الرسمية والحزمة المنشورة `@deepseek-ai/dsh` `0.1.5-rc.1`. تستهدف تعليمات الحزمة أدناه الإصدار نفسه؛ تحقّق من التوافق مع إصدارات Harness الأخرى بشكل مستقل.
 
 ## مهمة لوكيلك الحالي
 
@@ -56,16 +56,18 @@ npx @deepseek-ai/dsh@0.1.5-rc.1 web
 
 هذا الطلب مدفوع. طابق الإجابة والنموذج والوقت والحالة في [طلبات TokenLab](https://tokenlab.sh/dashboard/runs?section=requests). لا يلزم اختبار ثلاثة بروتوكولات أو توليد وسائط مدفوعة للتحقق الأول. نجاح قائمة النماذج أو اكتشاف MCP لا يثبت صلاحية التوليد.
 
-## اختياري: حزمة TokenLab المنشورة
+## اختياري: حزمة TokenLab
 
-حزمة [`@tokenlabai/dsh-provider@0.1.1`](https://www.npmjs.com/package/@tokenlabai/dsh-provider/v/0.1.1) منشورة وتستهدف Harness `0.1.1-rc.2`؛ يحتاج التوافق مع الإصدارات الأحدث إلى تحقق مستقل. للإعداد الجديد، ابدأ بالمزوّد الأصلي أعلاه. تتضمن الحزمة **لقطة نماذج ثابتة بتاريخ 2026-08-26** وثلاثة مسارات ونحو 80 أداة في profile `full` من `@tokenlabai/mcp-server@0.6.17`، إضافة إلى `tokenlab_wait_task`. لا تتحدّث القائمة تلقائيًا؛ راجع الكتالوج الحالي وأضف المعرّفات الجديدة عبر custom provider.
+تستهدف [`@tokenlabai/dsh-provider@0.1.3`](https://www.npmjs.com/package/@tokenlabai/dsh-provider/v/0.1.3) الإصدار Harness `0.1.5-rc.1`. استخدم خطوات المزوّد الأصلي أعلاه لإعداد نموذج واحد، أو ثبّت الحزمة للحصول على مسارات النماذج والأدوات المعدّة مسبقًا.
+
+تتضمن الحزمة **لقطة ثابتة لـ 124 نموذج دردشة عامًا، جرى التحقق منها في 16 سبتمبر 2026**: Responses 23، وMessages 9، وChat 92. يظهر كل نموذج في مسار واحد فقط. تثبّت الحزمة الإصدار `@tokenlabai/mcp-server@0.6.19` وتضيف الأداة المستقلة `tokenlab_wait_task`. تثبيت هذا الإصدار لا يحدّث كتالوج النماذج. راجع المعرّفات في الكتالوج الحالي وأضف النماذج الأحدث عبر custom provider عند الحاجة.
 
 في تثبيت متوافق موجود، تأكد أولًا من وجود `pnpm` في PATH. استخدم إصدار `dsh` وprofile نفسيهما للتثبيت والتشغيل. إذا كنت تستخدم `npx`، فاستبدل `dsh` أدناه بأمر التشغيل نفسه المحدد الإصدار:
 
 ```bash
 dsh --version
 pnpm --version
-dsh plugin --profile web add --workspace-root @tokenlabai/dsh-provider@0.1.1
+dsh plugin --profile web add --workspace-root @tokenlabai/dsh-provider@0.1.3
 ```
 
 قبل تشغيل profile، اضبط المفتاح في بيئة التشغيل أو ملف `.env` الذي يقرؤه:
@@ -74,9 +76,13 @@ dsh plugin --profile web add --workspace-root @tokenlabai/dsh-provider@0.1.1
 TOKENLAB_API_KEY=sk-your-tokenlab-key
 ```
 
-يقرأ Harness ملف `.env` في مجلد التشغيل وفي `$DSH_HOME`، وهو عادةً `~/.dsh`، مع أولوية متغيرات البيئة الموروثة. اختيار workspace لاحقًا لا يغيّر ملف `.env`. لا تحفظه في git، وأعد تشغيل profile بعد التعديل. مفتاح النموذج المحفوظ في الواجهة لا يصبح تلقائيًا `TOKENLAB_API_KEY` للحزمة. لاستخدام `headless`، ثبّت وشغّل في ذلك profile بدل `web`. إعدادات `llm-pi-ai` الحالية تتقدم على إعدادات الحزمة؛ ادمج المزوّدين المطلوبين في `$DSH_HOME/settings.yaml` دون استبداله بملف Cordis patch كامل.
+يقرأ Harness ملف `.env` في مجلد التشغيل وفي `$DSH_HOME`، وهو عادةً `~/.dsh`، مع أولوية متغيرات البيئة الموروثة. اختيار workspace لاحقًا لا يغيّر ملف `.env`. لا تحفظه في git، وأعد تشغيل profile بعد التعديل. مفتاح النموذج المحفوظ في الواجهة لا يصبح تلقائيًا `TOKENLAB_API_KEY` للحزمة. لاستخدام `headless`، ثبّت وشغّل في ذلك profile بدل `web`.
 
-يمكن تخصيص الحزمة بمتغيرات البيئة التالية؛ `catalog` للاكتشاف فقط و`core` لمجموعة أدوات أصغر:
+يدمج Harness `0.1.5-rc.1` إعدادات `llm-pi-ai.providers` المحفوظة بحسب مفتاح المزوّد. تتعايش المزوّدات ذات المفاتيح المختلفة. أما الإدخالات المحفوظة `tokenlab-responses` أو `tokenlab-messages` أو `tokenlab-chat` فتتقدم على مسار الحزمة ذي المفتاح نفسه؛ راجعها عند ترقية كتالوج قديم. احتفظ بالمزوّدات والنماذج الأخرى في `$DSH_HOME/settings.yaml`، ولا تستبدل مستند الإعدادات كاملًا بملف Cordis patch.
+
+تحدّد تفاصيل النماذج العامة قدرة الاستدلال، لكنها لا تسرد قيم effort المدعومة لكل نموذج. لذلك لا تعرّف الحزمة `reasoningEfforts`. لا يعرض Harness مستويات effort لهذه المسارات المخصّصة، ولا يعني ذلك تعطيل الاستدلال على الخادم. إذا ضبطت `reasoningEfforts` بنفسك، فاستخدم فقط قيمًا جرى التحقق منها بشكل مستقل في إدخال النموذج ضمن قائمة `models` الخاصة بمزوّده، مع الاحتفاظ بالنماذج الأخرى. وجود قدرة الاستدلال وحده لا يثبت دعم `xhigh` أو `max`.
+
+الإعداد الافتراضي هو `TOKENLAB_MCP_TOOL_PROFILE=core` مع 31 أداة MCP، و`TOKENLAB_MCP_SCHEMA_MODE=portable`. اختر `catalog` للاكتشاف فقط (6 أدوات)، أو `full` لجميع الأدوات الثمانين، بما فيها العمليات الإضافية لدورة حياة response وbatch وأصول ومجموعات Seedance وworlds. تبقى أداة الاستطلاع المستقلة `tokenlab_wait_task` متاحة في كل profile، ولا تدخل ضمن أعداد أدوات MCP المذكورة. بقية متغيرات البيئة موضّحة أدناه:
 
 | المتغير | القيمة الافتراضية | الغرض |
 | --- | --- | --- |
@@ -84,7 +90,7 @@ TOKENLAB_API_KEY=sk-your-tokenlab-key
 | `TOKENLAB_API_BASE` | `https://api.tokenlab.sh` | Root لواجهات MCP وtask |
 | `TOKENLAB_OPENAI_BASE_URL` | `https://api.tokenlab.sh/v1` | Base URL لـ Responses وChat |
 | `TOKENLAB_ANTHROPIC_BASE_URL` | `https://api.tokenlab.sh` | Base URL لـ Messages |
-| `TOKENLAB_MCP_TOOL_PROFILE` | `full` | اختر `catalog` أو `core` أو `full` |
+| `TOKENLAB_MCP_TOOL_PROFILE` | `core` | `catalog` (6) / `core` (31) / `full` (80) |
 | `TOKENLAB_MCP_SCHEMA_MODE` | `portable` | اختر `portable` أو `exact` أو `strict` |
 
 إذا كانت `delivery.mode` تساوي `complete`، استخدم النتيجة مباشرةً. عند `async` مرّر `delivery.task_id` إلى `tokenlab_wait_task` واقرأ الحالة النهائية `status` و`response` و`result_urls`. انتهاء مهلة الانتظار لا يعني اكتمال المهمة. احتفظ بالموافقة على الأدوات المدفوعة أو المدمّرة، وراجع [المهام غير المتزامنة](/ar/guides/async-jobs-polling).
@@ -99,7 +105,7 @@ dsh plugin --profile web remove --workspace-root @tokenlabai/dsh-provider
 
 - **حقل الكتابة معطّل:** اختر workspace ونموذجًا.
 - **`MISSING_CREDENTIAL` أو 401:** تحقق من بيانات المزوّد؛ تقرأ أدوات الحزمة `TOKENLAB_API_KEY` من بيئة التشغيل بشكل مستقل.
-- **`UNKNOWN_MODEL` أو معرّف متقاعد:** راجع الكتالوج الحالي واضبط المعرّف الدقيق ثم ابدأ جلسة جديدة. إعادة تثبيت `0.1.1` لا تحدّث اللقطة.
+- **`UNKNOWN_MODEL` أو معرّف متقاعد:** راجع الكتالوج الحالي واضبط المعرّف الدقيق ثم ابدأ جلسة جديدة. إعادة تثبيت `0.1.3` لا تحدّث اللقطة.
 - **فشل التوليد:** طابق البروتوكول وBase URL والصيغ المقبولة. لا تحذف السجل أو الأدوات أو الصور لمجرد الحصول على نجاح.
 - **غياب `dsh` أو `pnpm`:** استخدم أمر `npx` المحدد الإصدار أعلاه، و[ثبّت pnpm](https://pnpm.io/installation) قبل أوامر plugin.
 

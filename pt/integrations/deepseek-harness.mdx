@@ -1,13 +1,13 @@
 ---
 title: "DeepSeek Harness"
-description: "Configure um modelo TokenLab no Harness, verifique uma solicitação e escolha MCP, Skills ou o bundle de provedor publicado"
+description: "Configure um modelo TokenLab no Harness, verifique uma solicitação e escolha MCP, Skills ou o bundle de provedor"
 ---
 
 ## Escolha a conexão de que você precisa
 
 Para usar o TokenLab como modelo principal do agente, adicione um **custom provider** na interface web do Harness. Isso funciona independentemente do bundle opcional do TokenLab. Adicione [ferramentas MCP](/pt/integrations/tokenlab-mcp-server) para mídia e outras APIs, ou um [Skill](/pt/integrations/coding-agent-skill) com instruções de uso das APIs; nenhuma dessas opções altera o modelo principal por conta própria.
 
-O Harness é uma versão de prévia para desenvolvedores. Estas etapas da interface web foram conferidas com a documentação oficial e o pacote publicado `@deepseek-ai/dsh` `0.1.5-rc.1` em 16 de setembro de 2026. Isso não significa que o bundle anterior do TokenLab funcione com todas as versões `0.1.x`.
+O Harness é uma versão de prévia para desenvolvedores. Estas etapas da interface web foram conferidas com a documentação oficial e o pacote publicado `@deepseek-ai/dsh` `0.1.5-rc.1` em 16 de setembro de 2026. As instruções do bundle abaixo também usam essa versão; confira separadamente a compatibilidade com outras versões do Harness.
 
 ## Passe esta tarefa ao seu agente
 
@@ -58,18 +58,18 @@ Reply only with TOKENLAB_CONNECTION_OK. Do not use tools or modify files.
 
 Essa solicitação é cobrada. Confira a resposta e o modelo, o horário e o status correspondentes em [TokenLab Requests](https://tokenlab.sh/dashboard/runs?section=requests). Pare após esse teste de texto; não é necessário testar os três protocolos nem gerar mídia paga para estabelecer a primeira conexão. A listagem de modelos ou a descoberta MCP, por si só, não valida a permissão da chave para gerar conteúdo.
 
-## Opcional: o bundle publicado do TokenLab
+## Opcional: o bundle do TokenLab
 
-[`@tokenlabai/dsh-provider@0.1.1`](https://www.npmjs.com/package/@tokenlabai/dsh-provider/v/0.1.1) está publicado. Ele é destinado ao Harness `0.1.1-rc.2`; a compatibilidade com versões mais recentes do Harness precisa ser conferida separadamente. Para uma nova configuração, prefira as etapas nativas de custom provider descritas acima.
+[`@tokenlabai/dsh-provider@0.1.3`](https://www.npmjs.com/package/@tokenlabai/dsh-provider/v/0.1.3) é destinado ao Harness `0.1.5-rc.1`. Use as etapas nativas acima para configurar um único modelo, ou instale o bundle para usar suas rotas de modelos e ferramentas pré-configuradas.
 
-Esse bundle contém um **snapshot fixo dos modelos de 26 de agosto de 2026**, três rotas de provedor, `@tokenlabai/mcp-server@0.6.17` com as 80 ferramentas do perfil `full` e `tokenlab_wait_task`. Instalar essa versão não atualiza o catálogo de modelos. Confira cada ID no catálogo atual; adicione modelos mais recentes por meio de um custom provider, em vez de presumir que o bundle já os inclui.
+O bundle contém um **snapshot fixo de 124 modelos públicos de chat, conferido em 16 de setembro de 2026**: Responses 23, Messages 9 e Chat 92. Cada modelo aparece em uma única rota. Ele fixa a versão `@tokenlabai/mcp-server@0.6.19` e inclui a ferramenta independente `tokenlab_wait_task`. Instalar essa versão não atualiza o catálogo. Confira os IDs no catálogo atual e adicione modelos mais recentes por meio de um custom provider quando necessário.
 
 Se você já tem uma instalação compatível do Harness, primeiro confirme que `pnpm` está no `PATH`. Use o mesmo executável `dsh`, a mesma versão e o mesmo perfil na instalação e na inicialização. Se você inicia o Harness com `npx`, substitua `dsh` abaixo pelo mesmo comando de inicialização com a versão indicada:
 
 ```bash
 dsh --version
 pnpm --version
-dsh plugin --profile web add --workspace-root @tokenlabai/dsh-provider@0.1.1
+dsh plugin --profile web add --workspace-root @tokenlabai/dsh-provider@0.1.3
 ```
 
 Antes de iniciar esse perfil, defina a chave no ambiente de inicialização ou no arquivo `.env` que ele lê:
@@ -80,9 +80,13 @@ TOKENLAB_API_KEY=sk-your-tokenlab-key
 
 O Harness lê `.env` no diretório em que você o inicia e em `$DSH_HOME` (normalmente `~/.dsh`); uma variável de ambiente herdada tem prioridade. Selecionar um espaço de trabalho depois não seleciona outro `.env`. Mantenha esse arquivo fora do Git e reinicie após alterá-lo. Uma chave salva na interface para um custom provider não fornece automaticamente o `TOKENLAB_API_KEY` necessário para o bundle.
 
-Reinicie o mesmo perfil e confira suas listas de modelos e ferramentas. Para `headless`, instale e inicie usando `headless` em vez de `web`; instalar em um perfil não configura o outro. As configurações existentes de `llm-pi-ai` têm prioridade sobre os padrões do bundle. Preserve-as e mescle as entradas de provedor necessárias em `$DSH_HOME/settings.yaml`, em vez de substituir suas configurações pelo patch Cordis inteiro do bundle.
+Reinicie o mesmo perfil e confira suas listas de modelos e ferramentas. Para `headless`, instale e inicie usando `headless` em vez de `web`; instalar em um perfil não configura o outro.
 
-O bundle usa por padrão `TOKENLAB_MCP_TOOL_PROFILE=full` e `TOKENLAB_MCP_SCHEMA_MODE=portable`. Use `catalog` apenas para descoberta ou `core` para um conjunto menor de ferramentas. `TOKENLAB_API_BASE` e `TOKENLAB_ANTHROPIC_BASE_URL` têm como padrão `https://api.tokenlab.sh`; `TOKENLAB_OPENAI_BASE_URL` tem como padrão `https://api.tokenlab.sh/v1`.
+O Harness `0.1.5-rc.1` mescla os `llm-pi-ai.providers` salvos por chave de provedor. Provedores com chaves diferentes coexistem. As entradas salvas `tokenlab-responses`, `tokenlab-messages` ou `tokenlab-chat` substituem a rota do bundle com a mesma chave; revise essas entradas ao atualizar um catálogo antigo. Preserve os demais provedores e modelos em `$DSH_HOME/settings.yaml`; não substitua todo o documento de configurações pelo patch Cordis.
+
+Os detalhes públicos dos modelos indicam a capacidade de raciocínio, mas não enumeram os valores de esforço aceitos por modelo. Por isso, o bundle não declara `reasoningEfforts`. O Harness não oferece níveis de esforço para essas rotas personalizadas; isso não desativa o raciocínio no servidor. Se configurar `reasoningEfforts` por conta própria, use apenas valores verificados separadamente na entrada do modelo da lista `models` do provedor e preserve os demais modelos. A capacidade de raciocínio, por si só, não comprova suporte a `xhigh` ou `max`.
+
+O bundle usa por padrão `TOKENLAB_MCP_TOOL_PROFILE=core`, com 31 ferramentas MCP, e `TOKENLAB_MCP_SCHEMA_MODE=portable`. Escolha `catalog` apenas para descoberta (6 ferramentas), ou `full` para todas as 80 ferramentas, incluindo operações adicionais de ciclo de vida de respostas, batches, assets e grupos do Seedance, e worlds. A ferramenta independente de consulta `tokenlab_wait_task` continua disponível em todos os perfis e não está incluída nessas contagens MCP. `TOKENLAB_API_BASE` e `TOKENLAB_ANTHROPIC_BASE_URL` usam por padrão `https://api.tokenlab.sh`; `TOKENLAB_OPENAI_BASE_URL` usa `https://api.tokenlab.sh/v1`.
 
 Nas ferramentas de mídia do bundle, confira `delivery.mode`: use diretamente a saída `complete`; para um resultado `async`, passe `delivery.task_id` para `tokenlab_wait_task` e leia o `status` terminal, a `response` e os `result_urls`. O esgotamento do tempo de espera não significa que a tarefa foi concluída. Mantenha as aprovações para ferramentas faturáveis ou destrutivas. Consulte as [tarefas assíncronas](/pt/guides/async-jobs-polling).
 
@@ -96,7 +100,7 @@ dsh plugin --profile web remove --workspace-root @tokenlabai/dsh-provider
 
 - **O campo de mensagem está desativado:** selecione tanto um espaço de trabalho quanto um modelo.
 - **`MISSING_CREDENTIAL` ou 401:** confira a credencial do provedor selecionado. Para as ferramentas do bundle, verifique `TOKENLAB_API_KEY` no ambiente de inicialização; a chave do modelo salva na interface é uma configuração separada.
-- **`UNKNOWN_MODEL` ou um ID retirado:** confira o catálogo atual, configure o ID exato disponível e crie uma nova sessão. Reinstalar o bundle `0.1.1` não atualiza seu snapshot.
+- **`UNKNOWN_MODEL` ou um ID retirado:** confira o catálogo atual, configure o ID exato disponível e crie uma nova sessão. Reinstalar o bundle `0.1.3` não atualiza seu snapshot.
 - **A URL está acessível, mas a geração falha:** compare o protocolo, a Base URL e os formatos aceitos pelo modelo. Não remova o histórico, as ferramentas ou as entradas de imagem apenas para transformar um erro em um teste bem-sucedido.
 - **`dsh` ou `pnpm` não foi encontrado:** use o comando `npx` com versão indicado acima para o Harness; instale o [pnpm](https://pnpm.io/installation) antes de usar os comandos de plugin. Uma falha na instalação do plugin não é uma falha da chave de API.
 

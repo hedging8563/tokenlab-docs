@@ -12490,7 +12490,7 @@ Use the local npm server for paid API calls, local file uploads, or the `core` a
 
 ### DeepSeek Harness
 
-> Configure a TokenLab model in Harness, verify a request, and choose MCP, Skills, or the published provider bundle
+> Configure a TokenLab model in Harness, verify a request, and choose MCP, Skills, or the provider bundle
 
 URL: https://docs.tokenlab.sh/integrations/deepseek-harness
 
@@ -12498,7 +12498,7 @@ URL: https://docs.tokenlab.sh/integrations/deepseek-harness
 
 To use TokenLab as the agent's main model, add a **custom provider** in the Harness Web UI. This works independently of the optional TokenLab provider bundle. Add [MCP tools](/integrations/tokenlab-mcp-server) for media and other APIs, or a [Skill](/integrations/coding-agent-skill) for API instructions; neither changes the main model by itself.
 
-Harness is a developer preview. These Web UI steps were checked against the official documentation and the published `@deepseek-ai/dsh` `0.1.5-rc.1` package on September 16, 2026. They are not a claim that the older TokenLab bundle works with every `0.1.x` release.
+Harness is a developer preview. These Web UI steps were checked against the official documentation and the published `@deepseek-ai/dsh` `0.1.5-rc.1` package on September 16, 2026. The bundle instructions below target this version; check compatibility with other Harness releases separately.
 
 ## Give this task to your agent
 
@@ -12549,18 +12549,18 @@ Reply only with TOKENLAB_CONNECTION_OK. Do not use tools or modify files.
 
 This request is billable. Check the reply and the matching model, time, and status in [TokenLab Requests](https://tokenlab.sh/dashboard/runs?section=requests). Stop after this text check; testing three protocols or generating paid media is not required to establish the first connection. A model listing or MCP discovery alone does not validate the key's generation access.
 
-## Optional: the published TokenLab bundle
+## Optional: the TokenLab bundle
 
-[`@tokenlabai/dsh-provider@0.1.1`](https://www.npmjs.com/package/@tokenlabai/dsh-provider/v/0.1.1) is published. It targets Harness `0.1.1-rc.2`; compatibility with newer Harness releases must be checked separately. Prefer the native custom-provider steps above for a new setup.
+[`@tokenlabai/dsh-provider@0.1.3`](https://www.npmjs.com/package/@tokenlabai/dsh-provider/v/0.1.3) targets Harness `0.1.5-rc.1`. Use the native custom-provider steps above to configure one model, or install the bundle for its preset model routes and tools.
 
-This bundle contains a **fixed model snapshot from August 26, 2026**, three provider routes, `@tokenlabai/mcp-server@0.6.17` with its 80-tool `full` profile, and `tokenlab_wait_task`. Installing that version does not refresh the model catalog. Check each ID against the live catalog; add newer models through a custom provider rather than assuming the bundle already includes them.
+The bundle contains a **fixed snapshot of 124 public chat models checked on September 16, 2026**: Responses 23, Messages 9, and Chat 92. Each model appears on exactly one route. It pins `@tokenlabai/mcp-server@0.6.19` and includes the separate `tokenlab_wait_task` tool. Installing this version does not refresh the model catalog. Check IDs against the live catalog and add newer models through a custom provider when needed.
 
 For an existing compatible Harness installation, first ensure `pnpm` is on `PATH`. Use the same `dsh` executable/version and profile for installation and startup; if you launch through `npx`, replace `dsh` below with that same versioned launcher:
 
 ```bash
 dsh --version
 pnpm --version
-dsh plugin --profile web add --workspace-root @tokenlabai/dsh-provider@0.1.1
+dsh plugin --profile web add --workspace-root @tokenlabai/dsh-provider@0.1.3
 ```
 
 Before starting that profile, set the key in the launch environment or its `.env` file:
@@ -12571,9 +12571,13 @@ TOKENLAB_API_KEY=sk-your-tokenlab-key
 
 Harness reads `.env` in the directory where you launch it and in `$DSH_HOME` (normally `~/.dsh`); an inherited environment variable takes precedence. Selecting a workspace later does not select a different `.env`. Keep that file out of git and restart after changing it. A key saved for a custom provider in the UI does not automatically supply this bundle's `TOKENLAB_API_KEY`.
 
-Restart the same profile, then inspect its model and tool lists. For `headless`, install into and launch `headless` instead of `web`; installing into one profile does not configure the other. Existing `llm-pi-ai` settings override bundle defaults, so preserve and merge the needed provider entries in `$DSH_HOME/settings.yaml` rather than replacing your settings with the bundle's entire Cordis patch.
+Restart the same profile, then inspect its model and tool lists. For `headless`, install into and launch `headless` instead of `web`; installing into one profile does not configure the other.
 
-The bundle defaults to `TOKENLAB_MCP_TOOL_PROFILE=full` and `TOKENLAB_MCP_SCHEMA_MODE=portable`. Use `catalog` for discovery only or `core` for a smaller tool set. `TOKENLAB_API_BASE` and `TOKENLAB_ANTHROPIC_BASE_URL` default to `https://api.tokenlab.sh`; `TOKENLAB_OPENAI_BASE_URL` defaults to `https://api.tokenlab.sh/v1`.
+Harness `0.1.5-rc.1` merges saved `llm-pi-ai.providers` by provider key. Providers with different keys coexist. Saved `tokenlab-responses`, `tokenlab-messages`, or `tokenlab-chat` entries override the corresponding bundled route; review those entries when upgrading an older catalog. Preserve the other providers and models in `$DSH_HOME/settings.yaml`; do not replace the whole settings document with the Cordis patch.
+
+Public model details identify reasoning capability but do not enumerate supported effort values per model. The bundle therefore leaves `reasoningEfforts` undeclared. Harness does not offer effort levels for these custom routes; this does not disable server-side reasoning. If you configure `reasoningEfforts` yourself, use only separately verified values on the model entry in its provider’s `models` list and preserve the other models. Reasoning capability alone does not establish support for `xhigh` or `max`.
+
+The bundle defaults to `TOKENLAB_MCP_TOOL_PROFILE=core` with 31 MCP tools and `TOKENLAB_MCP_SCHEMA_MODE=portable`. Choose `catalog` for discovery only (6 tools), or `full` for all 80 tools, including additional response lifecycle, batch, Seedance asset/group, and worlds operations. The separate `tokenlab_wait_task` poller remains available in every profile and is not included in these MCP counts. `TOKENLAB_API_BASE` and `TOKENLAB_ANTHROPIC_BASE_URL` default to `https://api.tokenlab.sh`; `TOKENLAB_OPENAI_BASE_URL` defaults to `https://api.tokenlab.sh/v1`.
 
 For bundle media tools, inspect `delivery.mode`: consume `complete` output directly; pass an `async` result's `delivery.task_id` to `tokenlab_wait_task` and read its terminal `status`, `response`, and `result_urls`. A wait timeout is not a completed task. Keep approvals for billable or destructive tools. See [async tasks](/guides/async-jobs-polling).
 
@@ -12587,7 +12591,7 @@ dsh plugin --profile web remove --workspace-root @tokenlabai/dsh-provider
 
 - **The composer is disabled:** select both a workspace and a model.
 - **`MISSING_CREDENTIAL` or 401:** check the selected provider's credential. For bundle tools, check `TOKENLAB_API_KEY` in the launch environment; a UI-saved model key is a separate setting.
-- **`UNKNOWN_MODEL` or a retired ID:** check the live catalog, configure the current exact ID, then create a new session. Reinstalling bundle `0.1.1` does not update its snapshot.
+- **`UNKNOWN_MODEL` or a retired ID:** check the live catalog, configure the current exact ID, then create a new session. Reinstalling bundle `0.1.3` does not update its snapshot.
 - **The URL is reachable but generation fails:** compare the protocol, Base URL, and model's accepted formats. Do not remove history, tools, or image input merely to turn an error into a successful check.
 - **`dsh` or `pnpm` is missing:** use the versioned `npx` launcher above for Harness; install [pnpm](https://pnpm.io/installation) before using plugin commands. A plugin installation failure is not an API-key failure.
 

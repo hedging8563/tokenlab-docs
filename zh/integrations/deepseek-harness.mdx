@@ -1,13 +1,13 @@
 ---
 title: "DeepSeek Harness"
-description: "在 Harness 中配置 TokenLab 模型，验证请求，并按需选择 MCP、Skills 或已发布的 provider bundle"
+description: "在 Harness 中配置 TokenLab 模型，验证请求，并按需选择 MCP、Skills 或 provider bundle"
 ---
 
 ## 选择需要的接入方式
 
 要把 TokenLab 用作 Agent 的主模型，在 Harness Web UI 中添加 **custom provider** 即可，不依赖可选的 TokenLab provider bundle。需要媒体等 API 时添加 [MCP 工具](/zh/integrations/tokenlab-mcp-server)，需要 API 使用说明时安装 [Skill](/zh/integrations/coding-agent-skill)；两者都不会自行切换主模型。
 
-Harness 仍是开发者预览版。以下 Web UI 步骤于 2026 年 9 月 16 日对照官方文档及已发布的 `@deepseek-ai/dsh` `0.1.5-rc.1` 包核对，不代表旧 TokenLab bundle 兼容所有 `0.1.x` 版本。
+Harness 仍是开发者预览版。以下 Web UI 步骤于 2026 年 9 月 16 日对照官方文档及已发布的 `@deepseek-ai/dsh` `0.1.5-rc.1` 包核对。下方 bundle 说明也以此版本为目标；其他 Harness 版本的兼容性需另行核对。
 
 ## 把任务交给现有 Agent
 
@@ -58,18 +58,18 @@ npx @deepseek-ai/dsh@0.1.5-rc.1 web
 
 这次请求会计费。检查回复，并在 [TokenLab 请求记录](https://tokenlab.sh/dashboard/runs?section=requests)中核对相同模型、时间和状态。完成首次文本检查即可，不必为了证明接通而测试三种协议或生成付费媒体。模型列表或 MCP 工具发现成功，也不代表 key 已获得生成权限。
 
-## 可选：已发布的 TokenLab bundle
+## 可选：TokenLab bundle
 
-[`@tokenlabai/dsh-provider@0.1.1`](https://www.npmjs.com/package/@tokenlabai/dsh-provider/v/0.1.1) 已发布，面向 Harness `0.1.1-rc.2`；更新 Harness 后需要另行核对兼容性。新接入优先使用上面的原生 custom-provider 步骤。
+[`@tokenlabai/dsh-provider@0.1.3`](https://www.npmjs.com/package/@tokenlabai/dsh-provider/v/0.1.3) 面向 Harness `0.1.5-rc.1`。只需配置一个模型时，可用上面的原生 custom-provider 步骤；需要预设模型路由和工具时，可安装 bundle。
 
-这个版本包含 **2026 年 8 月 26 日的固定模型快照**、三条 provider 路由、`@tokenlabai/mcp-server@0.6.17` 的 80 个 `full` 工具，以及 `tokenlab_wait_task`。安装它不会刷新模型目录。使用前应核对实时目录；新模型可通过 custom provider 添加，不能假设旧 bundle 已经收录。
+bundle 包含 **2026 年 9 月 16 日核对的 124 个公开聊天模型固定快照**：Responses 23 个、Messages 9 个、Chat 92 个，每个模型只出现在一条路由上。它固定使用 `@tokenlabai/mcp-server@0.6.19`，另带独立的 `tokenlab_wait_task` 工具。安装此版本不会刷新模型目录；使用前应核对实时目录，按需通过 custom provider 添加新模型。
 
 已有兼容 Harness 安装时，先确认 `PATH` 中存在 `pnpm`。安装和启动必须使用相同的 `dsh` 入口、版本及 profile；如果通过 `npx` 启动，把下面的 `dsh` 换成同一个带版本号的启动命令：
 
 ```bash
 dsh --version
 pnpm --version
-dsh plugin --profile web add --workspace-root @tokenlabai/dsh-provider@0.1.1
+dsh plugin --profile web add --workspace-root @tokenlabai/dsh-provider@0.1.3
 ```
 
 启动该 profile 前，在启动环境或它读取的 `.env` 中设置：
@@ -80,9 +80,13 @@ TOKENLAB_API_KEY=sk-your-tokenlab-key
 
 Harness 读取启动目录和 `$DSH_HOME`（通常是 `~/.dsh`）里的 `.env`，继承的环境变量优先。进入 Web UI 后选择工作区，不会切换到那个目录的 `.env`。不要把文件提交到 git；修改后需重启。通过 UI 为 custom provider 保存的 key，不会自动成为 bundle 所需的 `TOKENLAB_API_KEY`。
 
-重启同一个 profile，再查看模型和工具列表。使用 `headless` 时，安装和启动都改为 `headless`；安装到 `web` 不会配置另一个 profile。已有 `llm-pi-ai` 设置优先于 bundle 默认值，应保留并合并 `$DSH_HOME/settings.yaml` 中需要的 provider 条目，不要用整份 Cordis patch 替换设置。
+重启同一个 profile，再查看模型和工具列表。使用 `headless` 时，安装和启动都改为 `headless`；安装到 `web` 不会配置另一个 profile。
 
-bundle 默认使用 `TOKENLAB_MCP_TOOL_PROFILE=full` 和 `TOKENLAB_MCP_SCHEMA_MODE=portable`。只做发现可选 `catalog`，需要较小工具集可选 `core`。`TOKENLAB_API_BASE` 与 `TOKENLAB_ANTHROPIC_BASE_URL` 默认均为 `https://api.tokenlab.sh`；`TOKENLAB_OPENAI_BASE_URL` 默认是 `https://api.tokenlab.sh/v1`。
+Harness `0.1.5-rc.1` 按 provider key 合并已保存的 `llm-pi-ai.providers`，异名 provider 可以共存。已保存的 `tokenlab-responses`、`tokenlab-messages` 或 `tokenlab-chat` 条目会覆盖 bundle 中对应的同名路由，升级旧目录时应检查这些条目。保留 `$DSH_HOME/settings.yaml` 中的其他 provider 和模型，不要用整份 Cordis patch 替换设置文档。
+
+公开模型详情只标识 reasoning 能力，没有枚举每个模型支持的 effort 值，因此 bundle 不声明 `reasoningEfforts`。Harness 不会为这些自定义路由提供 effort 等级选项，这不表示服务端推理被关闭。若自行配置 `reasoningEfforts`，应先独立验证取值，再写入对应 provider 的 `models` 列表中的模型条目，并保留其他模型。仅有 reasoning 能力不能证明支持 `xhigh` 或 `max`。
+
+bundle 默认使用 `TOKENLAB_MCP_TOOL_PROFILE=core`，提供 31 个 MCP 工具，schema 默认为 `TOKENLAB_MCP_SCHEMA_MODE=portable`。只做发现可选 `catalog`（6 个工具）；需要全部 80 个工具及额外的 response 生命周期、batch、Seedance 资产/组和 worlds 操作时，选 `full`。独立的 `tokenlab_wait_task` 轮询工具在所有 profile 中均可用，不计入上述 MCP 工具数。`TOKENLAB_API_BASE` 与 `TOKENLAB_ANTHROPIC_BASE_URL` 默认均为 `https://api.tokenlab.sh`；`TOKENLAB_OPENAI_BASE_URL` 默认是 `https://api.tokenlab.sh/v1`。
 
 使用 bundle 的媒体工具时，检查 `delivery.mode`：`complete` 直接取结果；`async` 把 `delivery.task_id` 交给 `tokenlab_wait_task`，读取终态 `status`、`response` 和 `result_urls`。等待超时不代表任务完成。保留计费或破坏性工具的审批，详见[异步任务](/zh/guides/async-jobs-polling)。
 
@@ -96,7 +100,7 @@ dsh plugin --profile web remove --workspace-root @tokenlabai/dsh-provider
 
 - **输入框不可用：**确认已经选中工作区和模型。
 - **`MISSING_CREDENTIAL` 或 401：**核对所选 provider 的凭据。bundle 工具读取启动环境的 `TOKENLAB_API_KEY`，与 UI 保存的模型 key 是两处设置。
-- **`UNKNOWN_MODEL` 或旧 ID 已下线：**核对实时目录，配置当前精确 ID，再新建会话。重装 bundle `0.1.1` 不会更新其快照。
+- **`UNKNOWN_MODEL` 或旧 ID 已下线：**核对实时目录，配置当前精确 ID，再新建会话。重装 bundle `0.1.3` 不会更新其快照。
 - **地址可访问但生成失败：**核对协议、Base URL 和模型接受的格式。不要为了得到一次成功而删掉历史、工具或图像输入。
 - **找不到 `dsh` 或 `pnpm`：**Harness 可使用上面的带版本号 `npx` 命令；运行 plugin 命令前先[安装 pnpm](https://pnpm.io/installation)。插件安装失败与 API key 错误不是一回事。
 

@@ -1,13 +1,13 @@
 ---
 title: "DeepSeek Harness"
-description: "Cấu hình mô hình TokenLab trong Harness, kiểm tra yêu cầu và chọn MCP, Skills hoặc bundle đã phát hành"
+description: "Cấu hình mô hình TokenLab trong Harness, kiểm tra yêu cầu và chọn MCP, Skills hoặc bundle provider"
 ---
 
 ## Chọn cách kết nối
 
 Để dùng TokenLab làm mô hình chính, thêm **custom provider** trong Harness Web UI. Không bắt buộc cài bundle TokenLab. [MCP](/vi/integrations/tokenlab-mcp-server) thêm công cụ, còn [Skill](/vi/integrations/coding-agent-skill) cung cấp hướng dẫn API; cả hai không tự đổi mô hình chính.
 
-Harness là bản xem trước dành cho nhà phát triển. Các bước được đối chiếu với tài liệu chính thức và gói đã phát hành `@deepseek-ai/dsh` `0.1.5-rc.1` ngày 16/09/2026, không có nghĩa bundle cũ tương thích mọi bản `0.1.x`.
+Harness là bản xem trước dành cho nhà phát triển. Các bước được đối chiếu với tài liệu chính thức và gói đã phát hành `@deepseek-ai/dsh` `0.1.5-rc.1` ngày 16/09/2026. Hướng dẫn bundle bên dưới cũng dành cho phiên bản này; hãy kiểm tra riêng khả năng tương thích với các bản Harness khác.
 
 ## Giao nhiệm vụ cho agent hiện có
 
@@ -56,16 +56,18 @@ Chỉ trả lời TOKENLAB_CONNECTION_OK. Không dùng công cụ và không s�
 
 Yêu cầu có tính phí. Đối chiếu phản hồi cùng mô hình, thời gian và trạng thái trong [lịch sử TokenLab](https://tokenlab.sh/dashboard/runs?section=requests). Không cần thử cả ba giao thức hay tạo media có phí cho lần kết nối đầu. Danh sách mô hình hoặc phát hiện MCP thành công chưa xác nhận quyền tạo nội dung.
 
-## Tùy chọn: bundle TokenLab đã phát hành
+## Tùy chọn: bundle TokenLab
 
-[`@tokenlabai/dsh-provider@0.1.1`](https://www.npmjs.com/package/@tokenlabai/dsh-provider/v/0.1.1) đã phát hành và hướng đến Harness `0.1.1-rc.2`; cần kiểm tra riêng khả năng tương thích với bản mới. Thiết lập mới nên dùng custom provider ở trên. Bundle chứa **ảnh chụp danh mục cố định ngày 2026-08-26**, ba tuyến mô hình, 80 công cụ `full` từ `@tokenlabai/mcp-server@0.6.17` và `tokenlab_wait_task`. Danh mục không tự cập nhật. Hãy đối chiếu danh mục trực tiếp và thêm ID mới bằng custom provider.
+[`@tokenlabai/dsh-provider@0.1.3`](https://www.npmjs.com/package/@tokenlabai/dsh-provider/v/0.1.3) dành cho Harness `0.1.5-rc.1`. Dùng các bước custom-provider gốc ở trên để cấu hình một mô hình, hoặc cài bundle nếu cần các tuyến mô hình và công cụ được cấu hình sẵn.
+
+Bundle chứa **ảnh chụp cố định của 124 mô hình chat công khai, được kiểm tra ngày 16/09/2026**: Responses 23, Messages 9 và Chat 92. Mỗi mô hình chỉ xuất hiện trên một tuyến. Bundle cố định phiên bản `@tokenlabai/mcp-server@0.6.19` và có thêm công cụ riêng `tokenlab_wait_task`. Cài phiên bản này không làm mới danh mục. Hãy đối chiếu ID với danh mục hiện tại và thêm mô hình mới qua custom provider khi cần.
 
 Với bản Harness tương thích đã có, kiểm tra `pnpm` nằm trong PATH. Cài đặt và khởi động phải dùng cùng phiên bản `dsh` và profile. Nếu chạy bằng `npx`, thay `dsh` dưới đây bằng đúng lệnh khởi động có phiên bản đó:
 
 ```bash
 dsh --version
 pnpm --version
-dsh plugin --profile web add --workspace-root @tokenlabai/dsh-provider@0.1.1
+dsh plugin --profile web add --workspace-root @tokenlabai/dsh-provider@0.1.3
 ```
 
 Trước khi khởi động profile, đặt khóa trong môi trường khởi chạy hoặc `.env` được đọc:
@@ -74,9 +76,13 @@ Trước khi khởi động profile, đặt khóa trong môi trường khởi ch
 TOKENLAB_API_KEY=sk-your-tokenlab-key
 ```
 
-Harness đọc `.env` ở thư mục khởi chạy và `$DSH_HOME` (thường là `~/.dsh`); biến môi trường kế thừa được ưu tiên. Chọn workspace sau đó không đổi `.env`. Không commit tệp này; khởi động lại cùng profile sau khi sửa. Khóa mô hình lưu qua UI không tự trở thành `TOKENLAB_API_KEY` của bundle. Với `headless`, cả cài đặt và khởi động phải dùng profile đó thay cho `web`. Cài đặt `llm-pi-ai` hiện có ưu tiên hơn bundle; giữ và hợp nhất các provider trong `$DSH_HOME/settings.yaml`, không thay bằng toàn bộ Cordis patch.
+Harness đọc `.env` ở thư mục khởi chạy và `$DSH_HOME` (thường là `~/.dsh`); biến môi trường kế thừa được ưu tiên. Chọn workspace sau đó không đổi `.env`. Không commit tệp này; khởi động lại cùng profile sau khi sửa. Khóa mô hình lưu qua UI không tự trở thành `TOKENLAB_API_KEY` của bundle. Với `headless`, cả cài đặt và khởi động phải dùng profile đó thay cho `web`.
 
-Các biến môi trường của bundle ở dưới; `catalog` chỉ để khám phá, `core` có bộ công cụ nhỏ hơn:
+Harness `0.1.5-rc.1` hợp nhất `llm-pi-ai.providers` đã lưu theo khóa provider. Các provider có khóa khác nhau cùng tồn tại. Các mục đã lưu `tokenlab-responses`, `tokenlab-messages` hoặc `tokenlab-chat` ghi đè tuyến cùng khóa trong bundle; hãy kiểm tra chúng khi nâng cấp danh mục cũ. Giữ nguyên các provider và mô hình khác trong `$DSH_HOME/settings.yaml`, không thay toàn bộ tài liệu cài đặt bằng Cordis patch.
+
+Chi tiết mô hình công khai cho biết khả năng suy luận nhưng không liệt kê các giá trị effort được từng mô hình hỗ trợ. Vì vậy bundle không khai báo `reasoningEfforts`. Harness không cung cấp mức effort cho các tuyến tùy chỉnh này; điều đó không tắt suy luận phía máy chủ. Nếu tự cấu hình `reasoningEfforts`, chỉ dùng các giá trị đã được kiểm chứng riêng trong mục mô hình thuộc danh sách `models` của provider và giữ nguyên các mô hình khác. Khả năng suy luận tự nó không chứng minh rằng mô hình hỗ trợ `xhigh` hoặc `max`.
+
+Bundle mặc định dùng `TOKENLAB_MCP_TOOL_PROFILE=core` với 31 công cụ MCP và `TOKENLAB_MCP_SCHEMA_MODE=portable`. Chọn `catalog` nếu chỉ cần khám phá (6 công cụ), hoặc `full` để dùng cả 80 công cụ, bao gồm thao tác bổ sung cho vòng đời response, batch, tài nguyên/nhóm Seedance và worlds. Công cụ thăm dò riêng `tokenlab_wait_task` luôn có trong mọi profile và không được tính vào số công cụ MCP này. Các biến môi trường còn lại ở dưới:
 
 | Biến | Mặc định | Mục đích |
 | --- | --- | --- |
@@ -84,7 +90,7 @@ Các biến môi trường của bundle ở dưới; `catalog` chỉ để khám
 | `TOKENLAB_API_BASE` | `https://api.tokenlab.sh` | Root API MCP và task |
 | `TOKENLAB_OPENAI_BASE_URL` | `https://api.tokenlab.sh/v1` | Base URL cho Responses và Chat |
 | `TOKENLAB_ANTHROPIC_BASE_URL` | `https://api.tokenlab.sh` | Base URL cho Messages |
-| `TOKENLAB_MCP_TOOL_PROFILE` | `full` | Chọn `catalog`, `core` hoặc `full` |
+| `TOKENLAB_MCP_TOOL_PROFILE` | `core` | `catalog` (6) / `core` (31) / `full` (80) |
 | `TOKENLAB_MCP_SCHEMA_MODE` | `portable` | Chọn `portable`, `exact` hoặc `strict` |
 
 Khi `delivery.mode` là `complete`, dùng kết quả trực tiếp. Nếu là `async`, chuyển `delivery.task_id` cho `tokenlab_wait_task` và đọc `status` cuối cùng, `response`, `result_urls`. Hết thời gian chờ không có nghĩa đã hoàn tất. Giữ phê duyệt cho công cụ có phí hoặc phá hủy; xem [tác vụ bất đồng bộ](/vi/guides/async-jobs-polling).
@@ -99,7 +105,7 @@ dsh plugin --profile web remove --workspace-root @tokenlabai/dsh-provider
 
 - **Không nhập được:** chọn workspace và mô hình.
 - **`MISSING_CREDENTIAL` hoặc 401:** kiểm tra thông tin xác thực của provider; công cụ bundle đọc riêng `TOKENLAB_API_KEY` từ môi trường khởi chạy.
-- **`UNKNOWN_MODEL` hoặc ID đã ngừng:** kiểm tra danh mục trực tiếp, đặt đúng ID và tạo phiên mới. Cài lại `0.1.1` không cập nhật ảnh chụp danh mục.
+- **`UNKNOWN_MODEL` hoặc ID đã ngừng:** kiểm tra danh mục trực tiếp, đặt đúng ID và tạo phiên mới. Cài lại `0.1.3` không cập nhật ảnh chụp danh mục.
 - **Tạo nội dung thất bại:** đối chiếu giao thức, Base URL và định dạng được chấp nhận. Không xóa lịch sử, công cụ hay ảnh chỉ để tạo một lần thành công.
 - **Thiếu `dsh` hoặc `pnpm`:** dùng lệnh `npx` có phiên bản ở trên; [cài pnpm](https://pnpm.io/installation) trước khi dùng plugin.
 
