@@ -29,7 +29,7 @@ xAI Grok Imagine 图像编辑模型（`grok-imagine-image`、`grok-imagine-image
 
 **请求超时：** 同步图片编辑可能需要较长时间，建议把 HTTP 超时设为至少 `120s`。响应包含 `pending`、`task_id` 或 `poll_url` 时，通过 `poll_url` 查询结果。
 
-远程图片必须使用公网 `http` / `https` URL，不能包含用户名密码或 fragment，也不能指向 localhost、内网或保留 IP。图片必须是 PNG、JPEG 或 WebP。单张不超过 `50 MiB`，单次请求中的远程图片合计不超过 `200 MiB`；读取超时为 `10s`，最多跟随 `3` 次重定向。
+远程图片必须使用公网 `http` / `https` URL，不能包含用户名密码或 fragment，也不能指向 localhost、内网或保留 IP。图片必须是 PNG、JPEG 或 WebP。单张不超过 `50 MiB`，单次请求中的远程图片合计不超过 `200 MiB`；读取超时为 `30s`，最多跟随 `3` 次重定向。
 
 JSON 请求必须且只能选择 `image_url`、`image_urls`、`images` 中的一项。每个 `images[]` 对象必须且只能包含 `image_url` 或 `file_id` 中的一项。200 MiB 总量限制包括所有源图片和遮罩。
 

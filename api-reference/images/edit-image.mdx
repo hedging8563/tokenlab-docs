@@ -29,7 +29,7 @@ xAI Grok Imagine image edit models (`grok-imagine-image`, `grok-imagine-image-qu
 
 **Synchronous request timeout:** Some image requests return the final image inline and wait for generation to finish. High-resolution or high-quality requests can take close to a minute or longer, so set your HTTP client timeout to at least `120s`. If the create response includes `status: "pending"`, `task_id`, or `poll_url`, follow the returned `poll_url` instead.
 
-Remote image URLs: when multipart input is needed, TokenLab fetches JSON `image_url`, `image_urls`, or `images[].image_url` and sends the bytes as multipart `image` parts. URLs must be public `http`/`https`, without embedded credentials or fragments, and must not resolve to localhost, private, or reserved IP ranges; each redirect is checked again. The fetched payload must be a real PNG, JPEG, or WebP image. Limits are `50 MiB` per image, `200 MiB` total for URL-fetched images in one request, `10s` fetch timeout, and up to `3` redirects.
+Remote image URLs: when multipart input is needed, TokenLab fetches JSON `image_url`, `image_urls`, or `images[].image_url` and sends the bytes as multipart `image` parts. URLs must be public `http`/`https`, without embedded credentials or fragments, and must not resolve to localhost, private, or reserved IP ranges; each redirect is checked again. The fetched payload must be a real PNG, JPEG, or WebP image. Limits are `50 MiB` per image, `200 MiB` total for URL-fetched images in one request, `30s` fetch timeout, and up to `3` redirects.
 
 For JSON requests, provide exactly one of `image_url`, `image_urls`, or `images`. Each `images[]` object must contain exactly one of `image_url` or `file_id`. The 200 MiB aggregate limit includes all source images and the mask.
 

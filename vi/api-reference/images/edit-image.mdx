@@ -29,7 +29,7 @@ Các model chỉnh sửa ảnh xAI Grok Imagine (`grok-imagine-image`, `grok-ima
 
 **Timeout cho yêu cầu đồng bộ:** một số yêu cầu hình ảnh sẽ trả ảnh cuối cùng inline và chờ quá trình tạo hoàn tất. Yêu cầu độ phân giải cao hoặc chất lượng cao có thể mất gần một phút hoặc lâu hơn, vì vậy hãy đặt timeout của HTTP client ít nhất là `120s`. Nếu phản hồi tạo có `status: "pending"`, `task_id`, hoặc `poll_url`, hãy theo `poll_url` được trả về để polling.
 
-URL ảnh từ xa: khi cần input multipart, TokenLab sẽ tải JSON `image_url`, `image_urls`, hoặc `images[].image_url` rồi gửi byte dưới dạng các phần multipart `image`. URL phải là `http`/`https` công khai, không chứa credentials nhúng hoặc fragment, và không được resolve tới localhost, dải IP private hoặc reserved; mỗi redirect đều được kiểm tra lại. Payload tải về phải là ảnh PNG, JPEG hoặc WebP thật. Giới hạn: `50 MiB` mỗi ảnh, tổng `200 MiB` cho ảnh tải từ URL trong một request, timeout tải `10s`, và tối đa `3` redirect.
+URL ảnh từ xa: khi cần input multipart, TokenLab sẽ tải JSON `image_url`, `image_urls`, hoặc `images[].image_url` rồi gửi byte dưới dạng các phần multipart `image`. URL phải là `http`/`https` công khai, không chứa credentials nhúng hoặc fragment, và không được resolve tới localhost, dải IP private hoặc reserved; mỗi redirect đều được kiểm tra lại. Payload tải về phải là ảnh PNG, JPEG hoặc WebP thật. Giới hạn: `50 MiB` mỗi ảnh, tổng `200 MiB` cho ảnh tải từ URL trong một request, timeout tải `30s`, và tối đa `3` redirect.
 
 Yêu cầu JSON phải có đúng một trong các trường `image_url`, `image_urls` hoặc `images`. Mỗi đối tượng `images[]` phải chứa đúng một trong `image_url` hoặc `file_id`. Giới hạn tổng 200 MiB bao gồm mọi ảnh nguồn và mask.
 

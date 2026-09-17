@@ -29,7 +29,7 @@ xAI Grok Imagine 이미지 편집 모델(`grok-imagine-image`, `grok-imagine-ima
 
 **동기 요청 타임아웃:** 일부 이미지 요청은 생성이 완료될 때까지 기다린 뒤 최종 이미지를 inline 으로 반환합니다. 고해상도 또는 고품질 요청은 1분 안팎이거나 그 이상 걸릴 수 있으므로 HTTP 클라이언트 타임아웃을 최소 `120s` 로 설정하세요. 생성 응답에 `status: "pending"`, `task_id`, 또는 `poll_url` 이 포함되어 있으면 반환된 `poll_url` 을 따라 폴링하세요.
 
-원격 이미지 URL: multipart 입력이 필요하면 TokenLab는 JSON `image_url`, `image_urls`, 또는 `images[].image_url`을 가져와 바이트를 multipart `image` 파트로 보냅니다. URL은 공개 `http`/`https`여야 하며, 내장 자격 증명이나 fragment가 없어야 하고, localhost, private 또는 reserved IP 범위로 해석되면 안 됩니다. 각 redirect 대상도 다시 검사됩니다. 가져온 payload는 실제 PNG, JPEG, WebP 이미지여야 합니다. 제한은 이미지당 `50 MiB`, 한 요청에서 URL로 가져오는 이미지 합계 `200 MiB`, fetch timeout `10s`, 최대 `3`회 redirect입니다.
+원격 이미지 URL: multipart 입력이 필요하면 TokenLab는 JSON `image_url`, `image_urls`, 또는 `images[].image_url`을 가져와 바이트를 multipart `image` 파트로 보냅니다. URL은 공개 `http`/`https`여야 하며, 내장 자격 증명이나 fragment가 없어야 하고, localhost, private 또는 reserved IP 범위로 해석되면 안 됩니다. 각 redirect 대상도 다시 검사됩니다. 가져온 payload는 실제 PNG, JPEG, WebP 이미지여야 합니다. 제한은 이미지당 `50 MiB`, 한 요청에서 URL로 가져오는 이미지 합계 `200 MiB`, fetch timeout `30s`, 최대 `3`회 redirect입니다.
 
 JSON 요청에서는 `image_url`, `image_urls`, `images` 중 정확히 하나를 지정하세요. 각 `images[]` 객체에는 `image_url` 또는 `file_id` 중 하나만 있어야 합니다. 200 MiB 총량 제한에는 모든 원본 이미지와 마스크가 포함됩니다.
 
