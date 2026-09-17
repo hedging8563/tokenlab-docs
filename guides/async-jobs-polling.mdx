@@ -44,6 +44,10 @@ curl "https://api.tokenlab.sh/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" 
 
 Statuses are `pending`, `processing`, `completed`, and `failed`. A cancelled task uses `failed` together with `cancelled: true` and `cancellation_status: "cancelled"`.
 
+A successful status read returns HTTP 200 even when the task has failed. Use the task's `status` to decide whether generation succeeded. The `error` field retains its string or object shape. Failed tasks may also include `error_details` with `status` (the business error status), `type`, `code`, `message`, `param`, and `retryable`. For example, `error_details.status: 400` with `param: "size"` means the request needs correction; it does not mean the status request itself failed. `param` is omitted when no specific field is known.
+
+Errors that reject the create request before a task is accepted use the normal HTTP error status and structured `error` object. Repeating the same idempotent create request preserves that rejection. A failed status read does not change the task's terminal state.
+
 ## Avoid duplicate tasks
 
 Most duplicate generations come from retrying a create request after a timeout.

@@ -44,6 +44,10 @@ curl "https://api.tokenlab.sh/v1/tasks/ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" 
 
 任务状态包括 `pending`、`processing`、`completed` 和 `failed`。取消后的任务使用 `failed`，同时带有 `cancelled: true` 和 `cancellation_status: "cancelled"`。
 
+成功读取状态时，即使任务已经失败，HTTP 状态仍为 200。请使用任务的 `status` 判断生成结果。`error` 字段保持原有字符串或错误对象形式。失败任务还可能包含 `error_details`：其中 `status` 表示业务错误状态，另有 `type`、`code`、`message`、`param` 和 `retryable`。例如 `error_details.status: 400`、`param: "size"` 表示需要修改尺寸参数，并不表示本次状态查询失败。无法确定具体字段时会省略 `param`。
+
+任务被接受前的创建拒绝，使用正常的 HTTP 错误状态与结构化 `error` 对象；使用相同幂等标识重放创建请求时会保留该拒绝。状态查询本身失败不会改变任务的最终状态。
+
 ## 避免重复生成
 
 创建请求超时后直接重发，最容易产生重复任务。
