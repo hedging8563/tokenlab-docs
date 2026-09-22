@@ -27,6 +27,13 @@ Os materiais Seedance são referências reutilizáveis com escopo de organizaç�
 
 Mantenha `group_id` e o `id` do ativo de material separados. O `group_id` serve para organizar uploads; o `id` do ativo de material serve para a geração de vídeo. Se uma solicitação de vídeo retornar `Seedance material asset not found or not accessible`, confirme se você passou um `id` de ativo de material, não um `group_id`, e que o ativo pertence à mesma organização, não foi excluído e possui `status: "ACTIVE"`.
 
+## Retenção de materiais
+
+A biblioteca de materiais aplica uma limpeza por inatividade de 30 dias: um ativo enviado há 30 dias ou mais e que não tenha sido referenciado por nenhuma solicitação de geração nos últimos 30 dias é excluído automaticamente. A exclusão é permanente e não pode ser desfeita.
+
+- Referenciar o ID de um ativo em uma solicitação de geração (`material_asset_id`, `material_asset_ids` ou `asset://<id>`) conta como uso e protege o ativo dessa limpeza.
+- Faça backup dos arquivos de origem importantes com antecedência. Se um ativo for removido, importe-o novamente; o ativo reimportado recebe um novo ID.
+
 ## URLs de imagens e materiais reutilizáveis
 
 Envie URLs HTTP(S) públicas ou data URLs compatíveis nos campos de imagem do modelo escolhido. Elas seguem o processamento normal de mídia e não criam automaticamente IDs de materiais reutilizáveis.
@@ -77,7 +84,7 @@ A ingestão de material é assíncrona. Faça polling em [Obter Material Asset](
 
 Nas solicitações de criação de material, `asset_url` é apenas a origem da importação. A TokenLab retorna um `id` do ativo de material; use esse `id` para gerar vídeos em vez de reutilizar a URL original.
 
-A TokenLab mantém os ativos de material na biblioteca da sua organização até que você exclua o ativo ou seu grupo de materiais.
+A TokenLab mantém os ativos de material na biblioteca da sua organização até que você exclua o ativo ou seu grupo de materiais. Ativos que permanecem inativos também são removidos automaticamente conforme a regra de retenção de materiais acima.
 
 Para grupos de materiais de pessoas reais, um grupo mapeia para uma pessoa real. Os uploads são verificados em relação ao rosto verificado. Ativos com vários rostos ou um rosto que não corresponda à pessoa verificada podem falhar. Para obter melhores resultados, envie uma imagem de referência de corpo inteiro de frente e um close-up frontal onde o rosto esteja claro.
 

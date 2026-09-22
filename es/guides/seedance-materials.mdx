@@ -27,6 +27,13 @@ Los materiales de Seedance son referencias reutilizables con alcance de organiza
 
 Mantenga `group_id` y el `id` del activo de material separados. `group_id` es para organizar las cargas; el `id` del activo de material es para la generación de video. Si una solicitud de video devuelve `Seedance material asset not found or not accessible`, confirme que ha pasado un `id` de activo de material, no un `group_id`, y que el activo pertenece a la misma organización, no ha sido eliminado y tiene `status: "ACTIVE"`.
 
+## Conservación de materiales
+
+La biblioteca de materiales aplica una limpieza por inactividad de 30 días: un recurso que se subió hace 30 días o más y que no ha sido referenciado por ninguna solicitud de generación en los últimos 30 días se elimina automáticamente. La eliminación es permanente y no se puede deshacer.
+
+- Referenciar el ID de un recurso en una solicitud de generación (`material_asset_id`, `material_asset_ids` o `asset://<id>`) cuenta como uso y evita que el recurso se elimine por esta regla.
+- Haga una copia de seguridad de los archivos de origen importantes con antelación. Si un recurso se elimina, debe importarlo de nuevo; el recurso reimportado recibe un nuevo ID.
+
 ## URL de imágenes y recursos reutilizables
 
 Envía URL HTTP(S) públicas o data URL admitidas en los campos de imagen del modelo elegido. Se procesan como entradas multimedia normales y no crean automáticamente ID de recursos reutilizables.
@@ -77,7 +84,7 @@ La ingesta de material es asíncrona. Realice sondeos (polling) a [Obtener activ
 
 En las solicitudes de creación de material, `asset_url` es solo el origen de importación. TokenLab devuelve un `id` de activo de material; use ese `id` para generar videos en lugar de reutilizar la URL original.
 
-TokenLab conserva los activos de material en la biblioteca de su organización hasta que elimine el activo o su grupo de material.
+TokenLab conserva los activos de material en la biblioteca de su organización hasta que elimine el activo o su grupo de material. Los recursos que permanecen inactivos también se eliminan automáticamente según la regla de conservación de materiales descrita arriba.
 
 Para grupos de material de persona real, un grupo se asigna a una persona real. Las cargas se verifican contra el rostro verificado. Los activos con múltiples rostros o un rostro que no coincida con la persona verificada pueden fallar. Para obtener mejores resultados, cargue tanto una imagen de referencia de cuerpo completo como un primer plano frontal donde el rostro sea claro.
 

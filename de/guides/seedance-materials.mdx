@@ -27,6 +27,13 @@ Seedance-Materialien sind wiederverwendbare, organisationsbezogene Referenzen, d
 
 Halten Sie `group_id` und Material-Asset `id` getrennt. `group_id` dient der Organisation von Uploads; die Material-Asset `id` dient der Videogenerierung. Wenn eine Videoanfrage `Seedance material asset not found or not accessible` zurückgibt, stellen Sie sicher, dass Sie eine Material-Asset `id` und keine `group_id` übergeben haben und dass das Asset zur selben Organisation gehört, nicht gelöscht wurde und den `status: "ACTIVE"` aufweist.
 
+## Aufbewahrung von Materialien
+
+Die Materiallibrary wendet eine 30-tägige Inaktivitätsbereinigung an: Ein Asset, das vor mindestens 30 Tagen hochgeladen wurde und in den letzten 30 Tagen in keiner Generierungsanfrage referenziert wurde, wird automatisch gelöscht. Die Löschung ist endgültig und kann nicht rückgängig gemacht werden.
+
+- Das Referenzieren einer Asset-ID in einer Generierungsanfrage (`material_asset_id`, `material_asset_ids` oder `asset://<id>`) gilt als Nutzung und schützt das Asset vor dieser Bereinigung.
+- Sichern Sie wichtige Quelldateien rechtzeitig. Wurde ein Asset bereinigt, muss es erneut importiert werden; das neue Asset erhält eine neue Asset-ID.
+
 ## Bild-URLs und wiederverwendbare Materialien
 
 Übergeben Sie öffentliche HTTP(S)-URLs oder unterstützte data-URLs in den Bildfeldern des gewählten Modells. Sie werden als normale Medieneingaben verarbeitet und erzeugen nicht automatisch wiederverwendbare Material-IDs.
@@ -77,7 +84,7 @@ Die Materialaufnahme erfolgt asynchron. Pollen Sie [Material-Asset abrufen](/de/
 
 In Anfragen zum Erstellen von Materialien ist `asset_url` nur die Importquelle. TokenLab gibt eine Material-Asset-`id` zurück; verwenden Sie diese `id` für die Generierung statt der ursprünglichen URL.
 
-TokenLab behält Material-Assets in Ihrer Organisationsbibliothek, bis Sie das Asset oder seine Materialgruppe löschen.
+TokenLab behält Material-Assets in Ihrer Organisationsbibliothek, bis Sie das Asset oder seine Materialgruppe löschen. Längere Zeit nicht referenzierte Assets werden zusätzlich nach der oben beschriebenen Aufbewahrungsregel automatisch entfernt.
 
 Bei Materialgruppen für echte Personen entspricht eine Gruppe einer echten Person. Uploads werden mit dem verifizierten Gesicht abgeglichen. Assets mit mehreren Gesichtern oder einem Gesicht, das nicht mit der verifizierten Person übereinstimmt, können fehlschlagen. Für beste Ergebnisse laden Sie sowohl ein Ganzkörper-Referenzbild von vorne als auch eine Nahaufnahme von vorne hoch, auf der das Gesicht klar erkennbar ist.
 

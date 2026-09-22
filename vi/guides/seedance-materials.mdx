@@ -27,6 +27,13 @@ Tài nguyên Seedance là các tham chiếu có thể tái sử dụng, thuộc 
 
 Hãy giữ riêng biệt `group_id` và `id` của tài sản tài nguyên. `group_id` dùng để tổ chức các tệp tải lên; `id` của tài sản tài nguyên dùng để tạo video. Nếu một yêu cầu video trả về lỗi `Seedance material asset not found or not accessible`, hãy xác nhận rằng bạn đã truyền `id` của tài sản tài nguyên chứ không phải `group_id`, và tài sản đó thuộc cùng một tổ chức, chưa bị xóa và có `status: "ACTIVE"`.
 
+## Thời hạn lưu giữ tài nguyên
+
+Thư viện tài nguyên áp dụng quy tắc dọn dẹp không hoạt động 30 ngày: tài nguyên đã tải lên từ 30 ngày trở lên và không được tham chiếu bởi bất kỳ yêu cầu tạo nào trong 30 ngày qua sẽ bị xóa tự động. Việc xóa là vĩnh viễn và không thể khôi phục.
+
+- Tham chiếu ID tài nguyên trong yêu cầu tạo (`material_asset_id`, `material_asset_ids` hoặc `asset://<id>`) được tính là sử dụng và giúp tài nguyên không bị dọn dẹp theo quy tắc này.
+- Hãy sao lưu trước các tệp nguồn quan trọng. Nếu tài nguyên bị xóa, bạn cần nhập lại; tài nguyên nhập lại sẽ nhận được ID mới.
+
 ## URL hình ảnh và material tái sử dụng
 
 Gửi URL HTTP(S) công khai hoặc data URL được hỗ trợ trong trường hình ảnh của mô hình đã chọn. Các đầu vào này được xử lý như media thông thường và không tự tạo ID material tái sử dụng.
@@ -77,7 +84,7 @@ Việc tiếp nhận tài nguyên là không đồng bộ. Hãy thăm dò [Lấy
 
 Trong yêu cầu tạo vật liệu, `asset_url` chỉ là nguồn nhập. TokenLab trả về `id` tài nguyên vật liệu; hãy dùng `id` đó để tạo video thay vì dùng lại URL gốc.
 
-TokenLab giữ tài nguyên trong thư viện tài nguyên của tổ chức cho đến khi bạn xóa tài nguyên đó hoặc nhóm tài nguyên chứa nó.
+TokenLab giữ tài nguyên trong thư viện tài nguyên của tổ chức cho đến khi bạn xóa tài nguyên đó hoặc nhóm tài nguyên chứa nó. Tài nguyên lâu không được tham chiếu cũng sẽ bị dọn tự động theo quy tắc thời hạn lưu giữ tài nguyên ở trên.
 
 Đối với các nhóm tài nguyên người thật, một nhóm tương ứng với một người thật. Các tệp tải lên sẽ được kiểm tra đối chiếu với khuôn mặt đã xác minh. Các tài sản có nhiều khuôn mặt hoặc khuôn mặt không khớp với người đã xác minh có thể bị lỗi. Để có kết quả tốt nhất, hãy tải lên cả hình ảnh tham chiếu toàn thân từ phía trước và ảnh cận cảnh khuôn mặt rõ nét từ phía trước.
 

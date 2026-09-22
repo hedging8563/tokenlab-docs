@@ -27,6 +27,13 @@ Seedance materyalleri, video oluşturma sırasında daha sonra seçilebilen, org
 
 `group_id` ve materyal varlığı `id` değerlerini ayrı tutun. `group_id` yüklemeleri düzenlemek içindir; materyal varlığı `id` ise video oluşturma içindir. Bir video isteği `Seedance material asset not found or not accessible` hatası döndürürse, `group_id` değil, bir materyal varlığı `id` değeri gönderdiğinizden; varlığın aynı organizasyona ait olduğundan, silinmediğinden ve `status: "ACTIVE"` durumunda olduğundan emin olun.
 
+## Materyal Saklama
+
+Materyal kitaplığı 30 günlük hareketsizlik temizliği uygular: 30 gün veya daha uzun süre önce yüklenmiş ve son 30 gün içinde hiçbir oluşturma isteği tarafından referans verilmemiş varlıklar otomatik olarak silinir. Silme işlemi kalıcıdır ve geri alınamaz.
+
+- Bir oluşturma isteğinde varlık kimliğine (`material_asset_id`, `material_asset_ids` veya `asset://<id>`) referans vermek kullanım sayılır ve varlığı bu temizlikten korur.
+- Önemli kaynak dosyalarını önceden yedekleyin. Silinen bir varlığı yeniden kullanmak için yeniden içe aktarmanız gerekir; yeniden içe aktarılan varlık yeni bir varlık kimliği alır.
+
 ## Görsel URL’leri ve yeniden kullanılabilir materyaller
 
 Seçilen modelin desteklediği görsel alanlarında herkese açık HTTP(S) URL’leri veya desteklenen data URL’lerini gönderin. Bunlar normal medya girdisi olarak işlenir ve otomatik olarak yeniden kullanılabilir materyal kimliği oluşturmaz.
@@ -77,7 +84,7 @@ Materyal alımı asenkrondur. `status` değeri `ACTIVE` olana kadar [Materyal Va
 
 Materyal oluşturma isteklerinde `asset_url` yalnızca içe aktarma kaynağıdır. TokenLab bir materyal varlığı `id` değeri döndürür; üretim için özgün URL yerine bu `id` değerini kullanın.
 
-TokenLab, materyal varlıklarını siz varlığı veya materyal grubunu silene kadar organizasyonunuzun materyal kitaplığında tutar.
+TokenLab, materyal varlıklarını siz varlığı veya materyal grubunu silene kadar organizasyonunuzun materyal kitaplığında tutar. Uzun süre referans verilmeyen varlıklar ayrıca yukarıdaki materyal saklama kuralıyla otomatik olarak temizlenir.
 
 Gerçek kişi materyal grupları için bir grup, bir gerçek kişiyle eşleşir. Yüklemeler, doğrulanmış yüze göre kontrol edilir. Birden fazla yüz içeren veya doğrulanmış kişiyle eşleşmeyen bir yüze sahip varlıklar başarısız olabilir. En iyi sonuçlar için hem tam vücut önden referans görseli hem de yüzün net olduğu önden yakın çekim bir görsel yükleyin.
 

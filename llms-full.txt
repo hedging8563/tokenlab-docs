@@ -2314,6 +2314,13 @@ Seedance materials let you reuse an image, video, or audio file without importin
 
 Keep group IDs and asset IDs separate. A group organizes uploads; an asset ID is the reference used by video generation. Public IDs look like `group-20260720123456-vrt01` and `asset-20260720123457-def45`.
 
+## Material Retention
+
+The material library applies a 30-day inactivity cleanup: an asset that was uploaded 30 or more days ago and has not been referenced by any generation request in the past 30 days is deleted automatically. Deletion is permanent and cannot be undone.
+
+- Referencing an asset ID in a generation request (`material_asset_id`, `material_asset_ids`, or `asset://<id>`) counts as usage and keeps the asset from being cleaned up.
+- Back up important source files in advance. If an asset is cleaned up, import it again; the reimported asset receives a new asset ID.
+
 ## Image URLs and reusable materials
 
 Send public HTTP(S) URLs or supported data URLs in the image fields accepted by your selected model. These inputs follow the normal media path and do not automatically create reusable material IDs.
@@ -2364,7 +2371,7 @@ These are file-import limits. A successful import request does not guarantee tha
 
 Material ingestion is asynchronous. Poll [Get Material Asset](/api-reference/video/get-material-asset) until `status` becomes `ACTIVE`. HTTP success means the import was accepted, not that the asset is ready. If the asset becomes `FAILED`, inspect `error_message`, correct the source, and create a new asset.
 
-The source URL is only used for import. TokenLab returns its own asset ID and keeps the asset in your organization's material library until you delete the asset or its group.
+The source URL is only used for import. TokenLab returns its own asset ID and keeps the asset in your organization's material library until you delete the asset or its group. Assets that remain inactive are also cleaned up automatically under the material retention rule above.
 
 ## Use An Asset In Video Generation
 

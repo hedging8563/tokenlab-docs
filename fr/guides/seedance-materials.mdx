@@ -27,6 +27,13 @@ Les matériels Seedance sont des références réutilisables, limitées à l'org
 
 Gardez `group_id` et l' `id` de l'actif matériel séparés. `group_id` sert à organiser les téléchargements ; l' `id` de l'actif matériel sert à la génération vidéo. Si une requête vidéo renvoie `Seedance material asset not found or not accessible`, confirmez que vous avez transmis un `id` d'actif matériel et non un `group_id`, et que l'actif appartient à la même organisation, n'est pas supprimé et a le statut `status: "ACTIVE"`.
 
+## Conservation des ressources
+
+La bibliothèque de ressources applique un nettoyage après 30 jours d’inactivité : une ressource téléchargée depuis 30 jours ou plus et qui n’a été référencée par aucune requête de génération au cours des 30 derniers jours est supprimée automatiquement. Cette suppression est définitive et irréversible.
+
+- Référencer l’ID d’une ressource dans une requête de génération (`material_asset_id`, `material_asset_ids` ou `asset://<id>`) compte comme une utilisation et protège la ressource de ce nettoyage.
+- Sauvegardez au préalable les fichiers sources importants. Si une ressource est supprimée, importez-la à nouveau ; la ressource réimportée reçoit un nouvel ID.
+
 ## URL d’images et ressources réutilisables
 
 Envoyez des URL HTTP(S) publiques ou des data URL prises en charge dans les champs image du modèle choisi. Ces entrées suivent le traitement média habituel et ne créent pas automatiquement d’ID de ressource réutilisable.
@@ -77,7 +84,7 @@ L'ingestion de matériel est asynchrone. Interrogez [Obtenir un actif matériel]
 
 Dans les requêtes de création de matériel, `asset_url` est uniquement la source d’import. TokenLab renvoie un `id` de ressource matérielle ; utilisez cet `id` pour générer la vidéo au lieu de réutiliser l’URL d’origine.
 
-TokenLab conserve les ressources matérielles dans la bibliothèque de votre organisation jusqu’à ce que vous supprimiez la ressource ou son groupe de matériel.
+TokenLab conserve les ressources matérielles dans la bibliothèque de votre organisation jusqu’à ce que vous supprimiez la ressource ou son groupe de matériel. Les ressources restées longtemps inactives sont également supprimées automatiquement selon la règle de conservation décrite ci-dessus.
 
 Pour les groupes de matériel de personne réelle, un groupe correspond à une personne réelle. Les téléchargements sont vérifiés par rapport au visage vérifié. Les actifs avec plusieurs visages ou un visage qui ne correspond pas à la personne vérifiée peuvent échouer. Pour de meilleurs résultats, téléchargez à la fois une image de référence du corps entier de face et un gros plan de face où le visage est clair.
 

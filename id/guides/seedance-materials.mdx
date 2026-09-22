@@ -27,6 +27,13 @@ Materi Seedance adalah referensi yang dapat digunakan kembali dan dicakup oleh o
 
 Pisahkan `group_id` dan `id` aset materi. `group_id` digunakan untuk mengatur unggahan; `id` aset materi digunakan untuk pembuatan video. Jika permintaan video mengembalikan `Seedance material asset not found or not accessible`, pastikan Anda memberikan `id` aset materi, bukan `group_id`, dan bahwa aset tersebut milik organisasi yang sama, tidak dihapus, dan memiliki `status: "ACTIVE"`.
 
+## Retensi Materi
+
+Pustaka materi menerapkan aturan pembersihan tidak aktif 30 hari: aset yang diunggah 30 hari atau lebih dan tidak direferensikan oleh permintaan pembuatan apa pun dalam 30 hari terakhir akan dihapus secara otomatis. Penghapusan bersifat permanen dan tidak dapat dibatalkan.
+
+- Mereferensikan ID aset dalam permintaan pembuatan (`material_asset_id`, `material_asset_ids`, atau `asset://<id>`) dihitung sebagai penggunaan dan melindungi aset dari pembersihan ini.
+- Cadangkan file sumber penting terlebih dahulu. Jika aset terhapus, impor ulang aset tersebut; aset hasil impor ulang mendapatkan ID aset baru.
+
 ## URL gambar dan material yang dapat digunakan kembali
 
 Kirim URL HTTP(S) publik atau data URL yang didukung pada field gambar model pilihan. Input ini mengikuti pemrosesan media biasa dan tidak otomatis membuat ID material yang dapat digunakan kembali.
@@ -77,7 +84,7 @@ Penyerapan materi bersifat asinkron. Lakukan polling pada [Mendapatkan Material 
 
 Dalam permintaan pembuatan material, `asset_url` hanya merupakan sumber impor. TokenLab mengembalikan `id` aset material; gunakan `id` tersebut untuk pembuatan video, bukan URL asli.
 
-TokenLab menyimpan aset material di pustaka material organisasi Anda sampai Anda menghapus aset tersebut atau grup materialnya.
+TokenLab menyimpan aset material di pustaka material organisasi Anda sampai Anda menghapus aset tersebut atau grup materialnya. Materi yang lama tidak direferensikan juga dibersihkan secara otomatis sesuai aturan retensi materi di atas.
 
 Untuk grup materi orang asli, satu grup memetakan ke satu orang asli. Unggahan diperiksa terhadap wajah yang terverifikasi. Aset dengan banyak wajah atau wajah yang tidak cocok dengan orang yang terverifikasi dapat gagal. Untuk hasil terbaik, unggah gambar referensi seluruh tubuh dari depan dan foto close-up menghadap ke depan di mana wajah terlihat jelas.
 
