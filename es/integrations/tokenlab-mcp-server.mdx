@@ -52,10 +52,10 @@ Las herramientas de catálogo público y precios no requieren una clave de API d
 La forma más rápida y segura de empezar es activar solo las seis herramientas del catálogo público. No requiere una clave de API de TokenLab y podrás habilitar las herramientas con credenciales más adelante.
 
 <CardGroup cols={2}>
-  <Card title="Instalar en Cursor" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXJAMC42LjIwIl0sImVudiI6eyJUT0tFTkxBQl9NQ1BfVE9PTF9QUk9GSUxFIjoiY2F0YWxvZyJ9fQ%3D%3D">
+  <Card title="Instalar en Cursor" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXJAMC42LjIxIl0sImVudiI6eyJUT0tFTkxBQl9NQ1BfVE9PTF9QUk9GSUxFIjoiY2F0YWxvZyJ9fQ%3D%3D">
     Añade el perfil público `catalog` a Cursor con un clic
   </Card>
-  <Card title="Instalar en VS Code" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%400.6.20%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
+  <Card title="Instalar en VS Code" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%400.6.21%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
     Añade el perfil público `catalog` a la configuración de usuario de VS Code
   </Card>
 </CardGroup>
@@ -92,7 +92,7 @@ La forma más rápida y segura de empezar es activar solo las seis herramientas 
         Añade TokenLab al ámbito de usuario para utilizarlo en todos tus proyectos.
 
         ```bash
-        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab -- npx -y @tokenlabai/mcp-server@0.6.20
+        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab -- npx -y @tokenlabai/mcp-server@0.6.21
         ```
 
         Para activar el perfil `core` predeterminado, añade en su lugar tu clave de API.
@@ -110,7 +110,7 @@ La forma más rápida y segura de empezar es activar solo las seis herramientas 
           "mcpServers": {
             "tokenlab": {
               "command": "npx",
-              "args": ["-y", "@tokenlabai/mcp-server@0.6.20"],
+              "args": ["-y", "@tokenlabai/mcp-server@0.6.21"],
               "env": { "TOKENLAB_MCP_TOOL_PROFILE": "catalog" }
             }
           }
@@ -127,7 +127,7 @@ La forma más rápida y segura de empezar es activar solo las seis herramientas 
             "tokenlab": {
               "type": "stdio",
               "command": "npx",
-              "args": ["-y", "@tokenlabai/mcp-server@0.6.20"],
+              "args": ["-y", "@tokenlabai/mcp-server@0.6.21"],
               "env": { "TOKENLAB_MCP_TOOL_PROFILE": "catalog" }
             }
           }
@@ -140,12 +140,12 @@ La forma más rápida y segura de empezar es activar solo las seis herramientas 
       <Tab title="Codex">
         ```bash
         # Catálogo público
-                codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab -- npx -y @tokenlabai/mcp-server@0.6.20
+                codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab -- npx -y @tokenlabai/mcp-server@0.6.21
         ```
       </Tab>
 
       <Tab title="Claude Desktop">
-        Añade al objeto estándar `mcpServers` de `claude_desktop_config.json` el comando `npx` y los argumentos `-y` y `@tokenlabai/mcp-server@0.6.20`. Si solo necesitas herramientas públicas, configura `TOKENLAB_MCP_TOOL_PROFILE=catalog`.
+        Añade al objeto estándar `mcpServers` de `claude_desktop_config.json` el comando `npx` y los argumentos `-y` y `@tokenlabai/mcp-server@0.6.21`. Si solo necesitas herramientas públicas, configura `TOKENLAB_MCP_TOOL_PROFILE=catalog`.
       </Tab>
 
       <Tab title="Otros clientes">
@@ -171,7 +171,7 @@ La forma más rápida y segura de empezar es activar solo las seis herramientas 
 
 ## Referencia de configuración
 
-En cualquier cliente stdio local usa el nombre `tokenlab`, el comando `npx`, los argumentos separados `-y` y `@tokenlabai/mcp-server@0.6.20`, y deja vacío el directorio de trabajo. Usa `@tokenlabai/mcp-server@0.6.20` para fijar la versión verificada actualmente.
+En cualquier cliente stdio local usa el nombre `tokenlab`, el comando `npx`, los argumentos separados `-y` y `@tokenlabai/mcp-server@0.6.21`, y deja vacío el directorio de trabajo. Usa `@tokenlabai/mcp-server@0.6.21` para fijar la versión verificada actualmente.
 
 Configuración estándar para herramientas autenticadas:
 
@@ -180,7 +180,7 @@ Configuración estándar para herramientas autenticadas:
   "mcpServers": {
     "tokenlab": {
       "command": "npx",
-      "args": ["-y", "@tokenlabai/mcp-server@0.6.20"],
+      "args": ["-y", "@tokenlabai/mcp-server@0.6.21"],
       "env": {
         "TOKENLAB_API_KEY": "<TOKENLAB_API_KEY>",
         "TOKENLAB_MCP_TOOL_PROFILE": "core"
@@ -305,7 +305,7 @@ El servidor MCP es útil en tiempo de ejecución, mientras que el [repositorio d
 
 <AccordionGroup>
   <Accordion title="El cliente no puede iniciar el servidor">
-    Confirma que Node.js sea al menos 18.17 y que el cliente encuentre `npx`. Ejecuta `npx -y @tokenlabai/mcp-server@0.6.20` en una terminal para mostrar errores de npm o de red. Un inicio stdio correcto espera silenciosamente mensajes MCP; termina con **Ctrl+C** después de comprobarlo.
+    Confirma que Node.js sea al menos 18.17 y que el cliente encuentre `npx`. Ejecuta `npx -y @tokenlabai/mcp-server@0.6.21` en una terminal para mostrar errores de npm o de red. Un inicio stdio correcto espera silenciosamente mensajes MCP; termina con **Ctrl+C** después de comprobarlo.
   </Accordion>
 
   <Accordion title="El servidor está configurado pero no aparecen herramientas">
@@ -337,7 +337,7 @@ El servidor MCP es útil en tiempo de ejecución, mientras que el [repositorio d
   </Accordion>
 
   <Accordion title="¿Cómo fijo o actualizo la versión del paquete?">
-    Usa `@tokenlabai/mcp-server@0.6.20` para fijar la versión actualmente verificada. Para cambiarla, actualiza el argumento del paquete, reinicia el servidor y revisa el repositorio público antes de adoptar una versión más reciente.
+    Usa `@tokenlabai/mcp-server@0.6.21` para fijar la versión actualmente verificada. Para cambiarla, actualiza el argumento del paquete, reinicia el servidor y revisa el repositorio público antes de adoptar una versión más reciente.
   </Accordion>
 </AccordionGroup>
 

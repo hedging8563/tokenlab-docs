@@ -52,10 +52,10 @@ Alat katalog publik dan harga tidak memerlukan kunci API TokenLab. Atur `TOKENLA
 Cara paling cepat dan aman untuk memulai adalah mengaktifkan hanya enam alat katalog publik. Anda tidak memerlukan kunci API TokenLab dan dapat mengaktifkan alat berkredensial nanti.
 
 <CardGroup cols={2}>
-  <Card title="Instal di Cursor" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXJAMC42LjIwIl0sImVudiI6eyJUT0tFTkxBQl9NQ1BfVE9PTF9QUk9GSUxFIjoiY2F0YWxvZyJ9fQ%3D%3D">
+  <Card title="Instal di Cursor" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXJAMC42LjIxIl0sImVudiI6eyJUT0tFTkxBQl9NQ1BfVE9PTF9QUk9GSUxFIjoiY2F0YWxvZyJ9fQ%3D%3D">
     Tambahkan profil publik `catalog` ke Cursor dengan sekali klik
   </Card>
-  <Card title="Instal di VS Code" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%400.6.20%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
+  <Card title="Instal di VS Code" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%400.6.21%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
     Tambahkan profil publik `catalog` ke konfigurasi pengguna VS Code
   </Card>
 </CardGroup>
@@ -92,7 +92,7 @@ Cara paling cepat dan aman untuk memulai adalah mengaktifkan hanya enam alat kat
         Tambahkan TokenLab pada cakupan pengguna agar tersedia di semua proyek.
 
         ```bash
-        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab -- npx -y @tokenlabai/mcp-server@0.6.20
+        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab -- npx -y @tokenlabai/mcp-server@0.6.21
         ```
 
         Untuk mengaktifkan profil `core` default, tambahkan kunci API Anda.
@@ -110,7 +110,7 @@ Cara paling cepat dan aman untuk memulai adalah mengaktifkan hanya enam alat kat
           "mcpServers": {
             "tokenlab": {
               "command": "npx",
-              "args": ["-y", "@tokenlabai/mcp-server@0.6.20"],
+              "args": ["-y", "@tokenlabai/mcp-server@0.6.21"],
               "env": { "TOKENLAB_MCP_TOOL_PROFILE": "catalog" }
             }
           }
@@ -127,7 +127,7 @@ Cara paling cepat dan aman untuk memulai adalah mengaktifkan hanya enam alat kat
             "tokenlab": {
               "type": "stdio",
               "command": "npx",
-              "args": ["-y", "@tokenlabai/mcp-server@0.6.20"],
+              "args": ["-y", "@tokenlabai/mcp-server@0.6.21"],
               "env": { "TOKENLAB_MCP_TOOL_PROFILE": "catalog" }
             }
           }
@@ -140,12 +140,12 @@ Cara paling cepat dan aman untuk memulai adalah mengaktifkan hanya enam alat kat
       <Tab title="Codex">
         ```bash
         # Katalog publik
-                codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab -- npx -y @tokenlabai/mcp-server@0.6.20
+                codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab -- npx -y @tokenlabai/mcp-server@0.6.21
         ```
       </Tab>
 
       <Tab title="Claude Desktop">
-        Dalam `claude_desktop_config.json`, tambahkan perintah `npx` serta argumen `-y` dan `@tokenlabai/mcp-server@0.6.20` ke objek standar `mcpServers`. Jika hanya memerlukan alat publik, atur `TOKENLAB_MCP_TOOL_PROFILE=catalog`.
+        Dalam `claude_desktop_config.json`, tambahkan perintah `npx` serta argumen `-y` dan `@tokenlabai/mcp-server@0.6.21` ke objek standar `mcpServers`. Jika hanya memerlukan alat publik, atur `TOKENLAB_MCP_TOOL_PROFILE=catalog`.
       </Tab>
 
       <Tab title="Klien lain">
@@ -171,7 +171,7 @@ Cara paling cepat dan aman untuk memulai adalah mengaktifkan hanya enam alat kat
 
 ## Referensi konfigurasi
 
-Pada klien stdio lokal, gunakan nama `tokenlab`, perintah `npx`, argumen terpisah `-y` dan `@tokenlabai/mcp-server@0.6.20`, serta biarkan direktori kerja kosong. Gunakan `@tokenlabai/mcp-server@0.6.20` untuk mengunci rilis yang saat ini telah diverifikasi.
+Pada klien stdio lokal, gunakan nama `tokenlab`, perintah `npx`, argumen terpisah `-y` dan `@tokenlabai/mcp-server@0.6.21`, serta biarkan direktori kerja kosong. Gunakan `@tokenlabai/mcp-server@0.6.21` untuk mengunci rilis yang saat ini telah diverifikasi.
 
 Konfigurasi standar untuk alat berkredensial:
 
@@ -180,7 +180,7 @@ Konfigurasi standar untuk alat berkredensial:
   "mcpServers": {
     "tokenlab": {
       "command": "npx",
-      "args": ["-y", "@tokenlabai/mcp-server@0.6.20"],
+      "args": ["-y", "@tokenlabai/mcp-server@0.6.21"],
       "env": {
         "TOKENLAB_API_KEY": "<TOKENLAB_API_KEY>",
         "TOKENLAB_MCP_TOOL_PROFILE": "core"
@@ -305,7 +305,7 @@ Gunakan keduanya jika tersedia:
 
 <AccordionGroup>
   <Accordion title="Klien tidak dapat memulai server">
-    Pastikan Node.js minimal versi 18.17 dan klien dapat menemukan `npx`. Jalankan `npx -y @tokenlabai/mcp-server@0.6.20` di terminal untuk menampilkan kesalahan npm atau jaringan. Jika stdio berhasil dimulai, proses akan menunggu pesan MCP tanpa keluaran; tekan **Ctrl+C** setelah memeriksa.
+    Pastikan Node.js minimal versi 18.17 dan klien dapat menemukan `npx`. Jalankan `npx -y @tokenlabai/mcp-server@0.6.21` di terminal untuk menampilkan kesalahan npm atau jaringan. Jika stdio berhasil dimulai, proses akan menunggu pesan MCP tanpa keluaran; tekan **Ctrl+C** setelah memeriksa.
   </Accordion>
 
   <Accordion title="Server sudah dikonfigurasi tetapi alat tidak muncul">
@@ -337,7 +337,7 @@ Gunakan keduanya jika tersedia:
   </Accordion>
 
   <Accordion title="Bagaimana cara mengunci atau memperbarui versi paket?">
-    Gunakan `@tokenlabai/mcp-server@0.6.20` untuk mengunci rilis yang saat ini diverifikasi. Untuk mengganti versi, perbarui argumen paket, mulai ulang server, dan tinjau repositori publik sebelum memakai rilis yang lebih baru.
+    Gunakan `@tokenlabai/mcp-server@0.6.21` untuk mengunci rilis yang saat ini diverifikasi. Untuk mengganti versi, perbarui argumen paket, mulai ulang server, dan tinjau repositori publik sebelum memakai rilis yang lebih baru.
   </Accordion>
 </AccordionGroup>
 

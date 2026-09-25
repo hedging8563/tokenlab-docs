@@ -9330,6 +9330,25 @@
               "official": {
                 "type": "boolean",
                 "description": "Indica se este modelo tem uma opção de entrega Official elegível."
+              },
+              "operations": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "verified": {
+                      "type": "boolean"
+                    },
+                    "official": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "verified",
+                    "official"
+                  ],
+                  "additionalProperties": false
+                }
               }
             },
             "required": [
@@ -12247,6 +12266,25 @@
               "official": {
                 "type": "boolean",
                 "description": "Indica se este modelo tem uma opção de entrega Official elegível."
+              },
+              "operations": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "verified": {
+                      "type": "boolean"
+                    },
+                    "official": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "verified",
+                    "official"
+                  ],
+                  "additionalProperties": false
+                }
               }
             },
             "required": [
@@ -12541,6 +12579,25 @@
               "official": {
                 "type": "boolean",
                 "description": "Indica se este modelo tem uma opção de entrega Official elegível."
+              },
+              "operations": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "verified": {
+                      "type": "boolean"
+                    },
+                    "official": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "verified",
+                    "official"
+                  ],
+                  "additionalProperties": false
+                }
               }
             },
             "required": [

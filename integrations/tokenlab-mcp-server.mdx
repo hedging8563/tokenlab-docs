@@ -67,7 +67,7 @@ Back up the active configuration. Add only the TokenLab entry and preserve exist
       --env TOKENLAB_MCP_TOOL_PROFILE=catalog \
       --scope user \
       tokenlab -- \
-      npx -y @tokenlabai/mcp-server@0.6.20
+      npx -y @tokenlabai/mcp-server@0.6.21
     ```
 
     To use paid tools, replace the profile environment variable with `TOKENLAB_API_KEY` and store the key through your normal secret-management method. Use `--scope local` for one project. Never commit a real key in a shared `.mcp.json`.
@@ -78,7 +78,7 @@ Back up the active configuration. Add only the TokenLab entry and preserve exist
     codex mcp add \
       --env TOKENLAB_MCP_TOOL_PROFILE=catalog \
       tokenlab -- \
-      npx -y @tokenlabai/mcp-server@0.6.20
+      npx -y @tokenlabai/mcp-server@0.6.21
     ```
 
     For paid tools, configure `TOKENLAB_API_KEY` in the server environment.
@@ -92,7 +92,7 @@ Back up the active configuration. Add only the TokenLab entry and preserve exist
       "mcpServers": {
         "tokenlab": {
           "command": "npx",
-          "args": ["-y", "@tokenlabai/mcp-server@0.6.20"],
+          "args": ["-y", "@tokenlabai/mcp-server@0.6.21"],
           "env": {
             "TOKENLAB_MCP_TOOL_PROFILE": "catalog"
           }
@@ -111,7 +111,7 @@ Back up the active configuration. Add only the TokenLab entry and preserve exist
         "tokenlab": {
           "type": "stdio",
           "command": "npx",
-          "args": ["-y", "@tokenlabai/mcp-server@0.6.20"],
+          "args": ["-y", "@tokenlabai/mcp-server@0.6.21"],
           "env": {
             "TOKENLAB_MCP_TOOL_PROFILE": "catalog"
           }
@@ -129,7 +129,7 @@ Back up the active configuration. Add only the TokenLab entry and preserve exist
       "mcpServers": {
         "tokenlab": {
           "command": "npx",
-          "args": ["-y", "@tokenlabai/mcp-server@0.6.20"],
+          "args": ["-y", "@tokenlabai/mcp-server@0.6.21"],
           "env": {
             "TOKENLAB_MCP_TOOL_PROFILE": "catalog"
           }
@@ -145,7 +145,7 @@ Back up the active configuration. Add only the TokenLab entry and preserve exist
     | Field | Value |
     | --- | --- |
     | Command | `npx` |
-    | Arguments | `-y`, `@tokenlabai/mcp-server@0.6.20` |
+    | Arguments | `-y`, `@tokenlabai/mcp-server@0.6.21` |
     | Environment | `TOKENLAB_MCP_TOOL_PROFILE=catalog` |
 
   </Tab>
@@ -217,7 +217,7 @@ Use the defaults unless your client or deployment has a specific requirement.
 
 <AccordionGroup>
   <Accordion title="The client cannot start the server">
-    Run `node --version`, `npx --version`, and `npx -y @tokenlabai/mcp-server@0.6.20` in a terminal. A successful stdio server waits silently for MCP messages; press **Ctrl+C** after confirming it starts.
+    Run `node --version`, `npx --version`, and `npx -y @tokenlabai/mcp-server@0.6.21` in a terminal. A successful stdio server waits silently for MCP messages; press **Ctrl+C** after confirming it starts.
   </Accordion>
 
   <Accordion title="The server is connected but no tools appear">

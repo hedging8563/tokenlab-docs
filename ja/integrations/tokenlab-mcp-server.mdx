@@ -52,10 +52,10 @@ https://docs.tokenlab.sh/ja/integrations/tokenlab-mcp-server
 最も安全で簡単な始め方は、6個の公開カタログツールだけを有効にする方法です。TokenLab APIキーは不要で、認証が必要なツールは後から追加できます。
 
 <CardGroup cols={2}>
-  <Card title="Cursorにインストール" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXJAMC42LjIwIl0sImVudiI6eyJUT0tFTkxBQl9NQ1BfVE9PTF9QUk9GSUxFIjoiY2F0YWxvZyJ9fQ%3D%3D">
+  <Card title="Cursorにインストール" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXJAMC42LjIxIl0sImVudiI6eyJUT0tFTkxBQl9NQ1BfVE9PTF9QUk9GSUxFIjoiY2F0YWxvZyJ9fQ%3D%3D">
     公開 `catalog` プロファイルをワンクリックでCursorに追加
   </Card>
-  <Card title="VS Codeにインストール" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%400.6.20%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
+  <Card title="VS Codeにインストール" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%400.6.21%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
     公開 `catalog` プロファイルをVS Codeのユーザー設定に追加
   </Card>
 </CardGroup>
@@ -92,7 +92,7 @@ https://docs.tokenlab.sh/ja/integrations/tokenlab-mcp-server
         全プロジェクトで使えるユーザー設定として追加します。
 
         ```bash
-        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab -- npx -y @tokenlabai/mcp-server@0.6.20
+        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab -- npx -y @tokenlabai/mcp-server@0.6.21
         ```
 
         既定の `core` を有効にする場合はAPIキーを設定します。
@@ -110,7 +110,7 @@ https://docs.tokenlab.sh/ja/integrations/tokenlab-mcp-server
           "mcpServers": {
             "tokenlab": {
               "command": "npx",
-              "args": ["-y", "@tokenlabai/mcp-server@0.6.20"],
+              "args": ["-y", "@tokenlabai/mcp-server@0.6.21"],
               "env": { "TOKENLAB_MCP_TOOL_PROFILE": "catalog" }
             }
           }
@@ -127,7 +127,7 @@ https://docs.tokenlab.sh/ja/integrations/tokenlab-mcp-server
             "tokenlab": {
               "type": "stdio",
               "command": "npx",
-              "args": ["-y", "@tokenlabai/mcp-server@0.6.20"],
+              "args": ["-y", "@tokenlabai/mcp-server@0.6.21"],
               "env": { "TOKENLAB_MCP_TOOL_PROFILE": "catalog" }
             }
           }
@@ -140,12 +140,12 @@ https://docs.tokenlab.sh/ja/integrations/tokenlab-mcp-server
       <Tab title="Codex">
         ```bash
         # 公開カタログ
-                codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab -- npx -y @tokenlabai/mcp-server@0.6.20
+                codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab -- npx -y @tokenlabai/mcp-server@0.6.21
         ```
       </Tab>
 
       <Tab title="Claude Desktop">
-        `claude_desktop_config.json` の標準 `mcpServers` 設定に、コマンド `npx`、引数 `-y` と `@tokenlabai/mcp-server@0.6.20` を追加します。公開ツールだけなら `TOKENLAB_MCP_TOOL_PROFILE=catalog` を設定してください。
+        `claude_desktop_config.json` の標準 `mcpServers` 設定に、コマンド `npx`、引数 `-y` と `@tokenlabai/mcp-server@0.6.21` を追加します。公開ツールだけなら `TOKENLAB_MCP_TOOL_PROFILE=catalog` を設定してください。
       </Tab>
 
       <Tab title="その他">
@@ -171,7 +171,7 @@ https://docs.tokenlab.sh/ja/integrations/tokenlab-mcp-server
 
 ## 設定リファレンス
 
-ローカルstdioサーバーに対応するクライアントでは、サーバー名 `tokenlab`、コマンド `npx`、引数 `-y` と `@tokenlabai/mcp-server@0.6.20` を使い、作業ディレクトリは空欄にします。検証済みリリースを固定するには `@tokenlabai/mcp-server@0.6.20` を使います。
+ローカルstdioサーバーに対応するクライアントでは、サーバー名 `tokenlab`、コマンド `npx`、引数 `-y` と `@tokenlabai/mcp-server@0.6.21` を使い、作業ディレクトリは空欄にします。検証済みリリースを固定するには `@tokenlabai/mcp-server@0.6.21` を使います。
 
 認証付きツールの標準設定：
 
@@ -180,7 +180,7 @@ https://docs.tokenlab.sh/ja/integrations/tokenlab-mcp-server
   "mcpServers": {
     "tokenlab": {
       "command": "npx",
-      "args": ["-y", "@tokenlabai/mcp-server@0.6.20"],
+      "args": ["-y", "@tokenlabai/mcp-server@0.6.21"],
       "env": {
         "TOKENLAB_API_KEY": "<TOKENLAB_API_KEY>",
         "TOKENLAB_MCP_TOOL_PROFILE": "core"
@@ -305,7 +305,7 @@ MCPサーバーは実行時に役立ちますが、[TokenLab skills repository](
 
 <AccordionGroup>
   <Accordion title="クライアントがサーバーを起動できない">
-    Node.jsが18.17以上で、クライアントから `npx` を見つけられることを確認します。ターミナルで `npx -y @tokenlabai/mcp-server@0.6.20` を実行すると、npmまたはネットワークエラーを確認できます。stdioの起動に成功するとMCPメッセージを待って無表示になるため、確認後は **Ctrl+C** で終了します。
+    Node.jsが18.17以上で、クライアントから `npx` を見つけられることを確認します。ターミナルで `npx -y @tokenlabai/mcp-server@0.6.21` を実行すると、npmまたはネットワークエラーを確認できます。stdioの起動に成功するとMCPメッセージを待って無表示になるため、確認後は **Ctrl+C** で終了します。
   </Accordion>
 
   <Accordion title="設定済みだがツールが表示されない">
@@ -337,7 +337,7 @@ MCPサーバーは実行時に役立ちますが、[TokenLab skills repository](
   </Accordion>
 
   <Accordion title="パッケージのバージョンを固定または更新するには？">
-    現在検証済みの版を固定するには `@tokenlabai/mcp-server@0.6.20` を使います。変更時はクライアント設定のパッケージ引数を更新してサーバーを再起動し、新しい版を採用する前に公開リポジトリを確認してください。
+    現在検証済みの版を固定するには `@tokenlabai/mcp-server@0.6.21` を使います。変更時はクライアント設定のパッケージ引数を更新してサーバーを再起動し、新しい版を採用する前に公開リポジトリを確認してください。
   </Accordion>
 </AccordionGroup>
 

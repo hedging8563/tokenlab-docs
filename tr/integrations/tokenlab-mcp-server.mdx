@@ -52,10 +52,10 @@ Genel katalog ve fiyatlandırma araçları TokenLab API anahtarı gerektirmez. K
 En hızlı ve güvenli başlangıç, yalnızca altı genel katalog aracını etkinleştirmektir. TokenLab API anahtarı gerekmez; kimlik doğrulamalı araçları daha sonra açabilirsiniz.
 
 <CardGroup cols={2}>
-  <Card title="Cursor'a yükle" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXJAMC42LjIwIl0sImVudiI6eyJUT0tFTkxBQl9NQ1BfVE9PTF9QUk9GSUxFIjoiY2F0YWxvZyJ9fQ%3D%3D">
+  <Card title="Cursor'a yükle" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXJAMC42LjIxIl0sImVudiI6eyJUT0tFTkxBQl9NQ1BfVE9PTF9QUk9GSUxFIjoiY2F0YWxvZyJ9fQ%3D%3D">
     Genel `catalog` profilini tek tıkla Cursor'a ekleyin
   </Card>
-  <Card title="VS Code'a yükle" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%400.6.20%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
+  <Card title="VS Code'a yükle" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%400.6.21%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
     Genel `catalog` profilini VS Code kullanıcı yapılandırmasına ekleyin
   </Card>
 </CardGroup>
@@ -92,7 +92,7 @@ En hızlı ve güvenli başlangıç, yalnızca altı genel katalog aracını etk
         TokenLab'i tüm projelerde kullanmak için kullanıcı kapsamına ekleyin.
 
         ```bash
-        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab -- npx -y @tokenlabai/mcp-server@0.6.20
+        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab -- npx -y @tokenlabai/mcp-server@0.6.21
         ```
 
         Varsayılan `core` profilini etkinleştirmek için API anahtarınızı ekleyin.
@@ -110,7 +110,7 @@ En hızlı ve güvenli başlangıç, yalnızca altı genel katalog aracını etk
           "mcpServers": {
             "tokenlab": {
               "command": "npx",
-              "args": ["-y", "@tokenlabai/mcp-server@0.6.20"],
+              "args": ["-y", "@tokenlabai/mcp-server@0.6.21"],
               "env": { "TOKENLAB_MCP_TOOL_PROFILE": "catalog" }
             }
           }
@@ -127,7 +127,7 @@ En hızlı ve güvenli başlangıç, yalnızca altı genel katalog aracını etk
             "tokenlab": {
               "type": "stdio",
               "command": "npx",
-              "args": ["-y", "@tokenlabai/mcp-server@0.6.20"],
+              "args": ["-y", "@tokenlabai/mcp-server@0.6.21"],
               "env": { "TOKENLAB_MCP_TOOL_PROFILE": "catalog" }
             }
           }
@@ -140,12 +140,12 @@ En hızlı ve güvenli başlangıç, yalnızca altı genel katalog aracını etk
       <Tab title="Codex">
         ```bash
         # Genel katalog
-                codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab -- npx -y @tokenlabai/mcp-server@0.6.20
+                codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab -- npx -y @tokenlabai/mcp-server@0.6.21
         ```
       </Tab>
 
       <Tab title="Claude Desktop">
-        `claude_desktop_config.json` içindeki standart `mcpServers` nesnesine `npx` komutunu ve `-y`, `@tokenlabai/mcp-server@0.6.20` argümanlarını ekleyin. Yalnızca genel araçlar için `TOKENLAB_MCP_TOOL_PROFILE=catalog` ayarlayın.
+        `claude_desktop_config.json` içindeki standart `mcpServers` nesnesine `npx` komutunu ve `-y`, `@tokenlabai/mcp-server@0.6.21` argümanlarını ekleyin. Yalnızca genel araçlar için `TOKENLAB_MCP_TOOL_PROFILE=catalog` ayarlayın.
       </Tab>
 
       <Tab title="Diğer istemciler">
@@ -171,7 +171,7 @@ En hızlı ve güvenli başlangıç, yalnızca altı genel katalog aracını etk
 
 ## Yapılandırma başvurusu
 
-Yerel stdio istemcilerinde `tokenlab` sunucu adını, `npx` komutunu, ayrı `-y` ve `@tokenlabai/mcp-server@0.6.20` argümanlarını kullanın; çalışma dizinini boş bırakın. Güncel doğrulanmış sürümü sabitlemek için `@tokenlabai/mcp-server@0.6.20` kullanın.
+Yerel stdio istemcilerinde `tokenlab` sunucu adını, `npx` komutunu, ayrı `-y` ve `@tokenlabai/mcp-server@0.6.21` argümanlarını kullanın; çalışma dizinini boş bırakın. Güncel doğrulanmış sürümü sabitlemek için `@tokenlabai/mcp-server@0.6.21` kullanın.
 
 Kimlik doğrulamalı araçlar için standart yapılandırma:
 
@@ -180,7 +180,7 @@ Kimlik doğrulamalı araçlar için standart yapılandırma:
   "mcpServers": {
     "tokenlab": {
       "command": "npx",
-      "args": ["-y", "@tokenlabai/mcp-server@0.6.20"],
+      "args": ["-y", "@tokenlabai/mcp-server@0.6.21"],
       "env": {
         "TOKENLAB_API_KEY": "<TOKENLAB_API_KEY>",
         "TOKENLAB_MCP_TOOL_PROFILE": "core"
@@ -305,7 +305,7 @@ Mümkün olduğunda her ikisini de kullanın:
 
 <AccordionGroup>
   <Accordion title="İstemci sunucuyu başlatamıyor">
-    Node.js sürümünün en az 18.17 olduğunu ve istemcinin `npx` komutunu bulabildiğini doğrulayın. npm veya ağ hatalarını görmek için terminalde `npx -y @tokenlabai/mcp-server@0.6.20` çalıştırın. Başarılı stdio başlangıcı MCP mesajlarını sessizce bekler; kontrol sonrası **Ctrl+C** ile kapatın.
+    Node.js sürümünün en az 18.17 olduğunu ve istemcinin `npx` komutunu bulabildiğini doğrulayın. npm veya ağ hatalarını görmek için terminalde `npx -y @tokenlabai/mcp-server@0.6.21` çalıştırın. Başarılı stdio başlangıcı MCP mesajlarını sessizce bekler; kontrol sonrası **Ctrl+C** ile kapatın.
   </Accordion>
 
   <Accordion title="Sunucu yapılandırıldı ancak araçlar görünmüyor">
@@ -337,7 +337,7 @@ Mümkün olduğunda her ikisini de kullanın:
   </Accordion>
 
   <Accordion title="Paket sürümünü nasıl sabitler veya güncellerim?">
-    Güncel doğrulanmış sürümü sabitlemek için `@tokenlabai/mcp-server@0.6.20` kullanın. Sürüm değiştirirken paket argümanını güncelleyin, sunucuyu yeniden başlatın ve daha yeni sürümü kullanmadan önce genel depoyu inceleyin.
+    Güncel doğrulanmış sürümü sabitlemek için `@tokenlabai/mcp-server@0.6.21` kullanın. Sürüm değiştirirken paket argümanını güncelleyin, sunucuyu yeniden başlatın ve daha yeni sürümü kullanmadan önce genel depoyu inceleyin.
   </Accordion>
 </AccordionGroup>
 

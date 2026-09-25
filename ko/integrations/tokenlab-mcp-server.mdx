@@ -52,10 +52,10 @@ https://docs.tokenlab.sh/ko/integrations/tokenlab-mcp-server
 가장 빠르고 안전한 시작 방법은 6개의 공개 카탈로그 도구만 활성화하는 것입니다. TokenLab API 키가 필요하지 않으며, 자격 증명이 필요한 도구는 나중에 켤 수 있습니다.
 
 <CardGroup cols={2}>
-  <Card title="Cursor에 설치" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXJAMC42LjIwIl0sImVudiI6eyJUT0tFTkxBQl9NQ1BfVE9PTF9QUk9GSUxFIjoiY2F0YWxvZyJ9fQ%3D%3D">
+  <Card title="Cursor에 설치" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXJAMC42LjIxIl0sImVudiI6eyJUT0tFTkxBQl9NQ1BfVE9PTF9QUk9GSUxFIjoiY2F0YWxvZyJ9fQ%3D%3D">
     공개 `catalog` 프로필을 한 번에 Cursor에 추가
   </Card>
-  <Card title="VS Code에 설치" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%400.6.20%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
+  <Card title="VS Code에 설치" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%400.6.21%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
     공개 `catalog` 프로필을 VS Code 사용자 구성에 추가
   </Card>
 </CardGroup>
@@ -92,7 +92,7 @@ https://docs.tokenlab.sh/ko/integrations/tokenlab-mcp-server
         모든 프로젝트에서 사용할 수 있도록 사용자 범위에 추가합니다.
 
         ```bash
-        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab -- npx -y @tokenlabai/mcp-server@0.6.20
+        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab -- npx -y @tokenlabai/mcp-server@0.6.21
         ```
 
         기본 `core` 프로필을 활성화하려면 API 키와 함께 추가합니다.
@@ -110,7 +110,7 @@ https://docs.tokenlab.sh/ko/integrations/tokenlab-mcp-server
           "mcpServers": {
             "tokenlab": {
               "command": "npx",
-              "args": ["-y", "@tokenlabai/mcp-server@0.6.20"],
+              "args": ["-y", "@tokenlabai/mcp-server@0.6.21"],
               "env": { "TOKENLAB_MCP_TOOL_PROFILE": "catalog" }
             }
           }
@@ -127,7 +127,7 @@ https://docs.tokenlab.sh/ko/integrations/tokenlab-mcp-server
             "tokenlab": {
               "type": "stdio",
               "command": "npx",
-              "args": ["-y", "@tokenlabai/mcp-server@0.6.20"],
+              "args": ["-y", "@tokenlabai/mcp-server@0.6.21"],
               "env": { "TOKENLAB_MCP_TOOL_PROFILE": "catalog" }
             }
           }
@@ -140,12 +140,12 @@ https://docs.tokenlab.sh/ko/integrations/tokenlab-mcp-server
       <Tab title="Codex">
         ```bash
         # 공개 카탈로그
-                codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab -- npx -y @tokenlabai/mcp-server@0.6.20
+                codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab -- npx -y @tokenlabai/mcp-server@0.6.21
         ```
       </Tab>
 
       <Tab title="Claude Desktop">
-        `claude_desktop_config.json`의 표준 `mcpServers` 구성에 명령 `npx`, 인수 `-y`와 `@tokenlabai/mcp-server@0.6.20`를 추가하세요. 공개 도구만 필요하면 `TOKENLAB_MCP_TOOL_PROFILE=catalog`를 설정합니다.
+        `claude_desktop_config.json`의 표준 `mcpServers` 구성에 명령 `npx`, 인수 `-y`와 `@tokenlabai/mcp-server@0.6.21`를 추가하세요. 공개 도구만 필요하면 `TOKENLAB_MCP_TOOL_PROFILE=catalog`를 설정합니다.
       </Tab>
 
       <Tab title="기타 클라이언트">
@@ -171,7 +171,7 @@ https://docs.tokenlab.sh/ko/integrations/tokenlab-mcp-server
 
 ## 구성 참고
 
-로컬 stdio 서버를 지원하는 클라이언트에서는 서버 이름 `tokenlab`, 명령 `npx`, 인수 `-y`와 `@tokenlabai/mcp-server@0.6.20`를 사용하고 작업 디렉터리는 비워 둡니다. 현재 검증된 릴리스를 고정하려면 `@tokenlabai/mcp-server@0.6.20`을 사용하세요.
+로컬 stdio 서버를 지원하는 클라이언트에서는 서버 이름 `tokenlab`, 명령 `npx`, 인수 `-y`와 `@tokenlabai/mcp-server@0.6.21`를 사용하고 작업 디렉터리는 비워 둡니다. 현재 검증된 릴리스를 고정하려면 `@tokenlabai/mcp-server@0.6.21`을 사용하세요.
 
 자격 증명이 필요한 도구의 표준 구성:
 
@@ -180,7 +180,7 @@ https://docs.tokenlab.sh/ko/integrations/tokenlab-mcp-server
   "mcpServers": {
     "tokenlab": {
       "command": "npx",
-      "args": ["-y", "@tokenlabai/mcp-server@0.6.20"],
+      "args": ["-y", "@tokenlabai/mcp-server@0.6.21"],
       "env": {
         "TOKENLAB_API_KEY": "<TOKENLAB_API_KEY>",
         "TOKENLAB_MCP_TOOL_PROFILE": "core"
@@ -305,7 +305,7 @@ MCP 서버는 런타임에 유용하며, [TokenLab 스킬 저장소](https://git
 
 <AccordionGroup>
   <Accordion title="클라이언트가 서버를 시작할 수 없습니다">
-    Node.js가 18.17 이상이고 클라이언트가 `npx`를 찾을 수 있는지 확인하세요. 터미널에서 `npx -y @tokenlabai/mcp-server@0.6.20`를 실행하면 npm 또는 네트워크 오류를 확인할 수 있습니다. stdio가 정상 시작되면 MCP 메시지를 기다리며 조용히 유지되므로 확인 후 **Ctrl+C**로 종료하세요.
+    Node.js가 18.17 이상이고 클라이언트가 `npx`를 찾을 수 있는지 확인하세요. 터미널에서 `npx -y @tokenlabai/mcp-server@0.6.21`를 실행하면 npm 또는 네트워크 오류를 확인할 수 있습니다. stdio가 정상 시작되면 MCP 메시지를 기다리며 조용히 유지되므로 확인 후 **Ctrl+C**로 종료하세요.
   </Accordion>
 
   <Accordion title="구성했지만 도구가 표시되지 않습니다">
@@ -337,7 +337,7 @@ MCP 서버는 런타임에 유용하며, [TokenLab 스킬 저장소](https://git
   </Accordion>
 
   <Accordion title="패키지 버전을 고정하거나 업데이트하려면 어떻게 하나요?">
-    현재 검증된 릴리스를 고정하려면 `@tokenlabai/mcp-server@0.6.20`을 사용하세요. 버전 변경 시 클라이언트 구성의 패키지 인수를 바꾸고 서버를 재시작하며, 새 릴리스 채택 전 공개 저장소를 검토하세요.
+    현재 검증된 릴리스를 고정하려면 `@tokenlabai/mcp-server@0.6.21`을 사용하세요. 버전 변경 시 클라이언트 구성의 패키지 인수를 바꾸고 서버를 재시작하며, 새 릴리스 채택 전 공개 저장소를 검토하세요.
   </Accordion>
 </AccordionGroup>
 

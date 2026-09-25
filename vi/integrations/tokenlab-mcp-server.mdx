@@ -52,10 +52,10 @@ Các công cụ danh mục và giá cả công khai không yêu cầu khóa API 
 Cách bắt đầu nhanh và an toàn nhất là chỉ bật sáu công cụ danh mục công khai. Bạn không cần khóa API TokenLab và có thể bật các công cụ cần xác thực sau.
 
 <CardGroup cols={2}>
-  <Card title="Cài đặt trong Cursor" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXJAMC42LjIwIl0sImVudiI6eyJUT0tFTkxBQl9NQ1BfVE9PTF9QUk9GSUxFIjoiY2F0YWxvZyJ9fQ%3D%3D">
+  <Card title="Cài đặt trong Cursor" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXJAMC42LjIxIl0sImVudiI6eyJUT0tFTkxBQl9NQ1BfVE9PTF9QUk9GSUxFIjoiY2F0YWxvZyJ9fQ%3D%3D">
     Thêm cấu hình `catalog` công khai vào Cursor bằng một lần nhấp
   </Card>
-  <Card title="Cài đặt trong VS Code" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%400.6.20%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
+  <Card title="Cài đặt trong VS Code" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%400.6.21%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
     Thêm cấu hình `catalog` công khai vào cài đặt người dùng VS Code
   </Card>
 </CardGroup>
@@ -92,7 +92,7 @@ Cách bắt đầu nhanh và an toàn nhất là chỉ bật sáu công cụ dan
         Thêm TokenLab ở phạm vi người dùng để sử dụng trong mọi dự án.
 
         ```bash
-        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab -- npx -y @tokenlabai/mcp-server@0.6.20
+        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab -- npx -y @tokenlabai/mcp-server@0.6.21
         ```
 
         Để bật cấu hình `core` mặc định, hãy thêm khóa API thay thế.
@@ -110,7 +110,7 @@ Cách bắt đầu nhanh và an toàn nhất là chỉ bật sáu công cụ dan
           "mcpServers": {
             "tokenlab": {
               "command": "npx",
-              "args": ["-y", "@tokenlabai/mcp-server@0.6.20"],
+              "args": ["-y", "@tokenlabai/mcp-server@0.6.21"],
               "env": { "TOKENLAB_MCP_TOOL_PROFILE": "catalog" }
             }
           }
@@ -127,7 +127,7 @@ Cách bắt đầu nhanh và an toàn nhất là chỉ bật sáu công cụ dan
             "tokenlab": {
               "type": "stdio",
               "command": "npx",
-              "args": ["-y", "@tokenlabai/mcp-server@0.6.20"],
+              "args": ["-y", "@tokenlabai/mcp-server@0.6.21"],
               "env": { "TOKENLAB_MCP_TOOL_PROFILE": "catalog" }
             }
           }
@@ -140,12 +140,12 @@ Cách bắt đầu nhanh và an toàn nhất là chỉ bật sáu công cụ dan
       <Tab title="Codex">
         ```bash
         # Danh mục công khai
-                codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab -- npx -y @tokenlabai/mcp-server@0.6.20
+                codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab -- npx -y @tokenlabai/mcp-server@0.6.21
         ```
       </Tab>
 
       <Tab title="Claude Desktop">
-        Trong `claude_desktop_config.json`, thêm lệnh `npx` và các đối số `-y`, `@tokenlabai/mcp-server@0.6.20` vào đối tượng `mcpServers` chuẩn. Nếu chỉ cần công cụ công khai, đặt `TOKENLAB_MCP_TOOL_PROFILE=catalog`.
+        Trong `claude_desktop_config.json`, thêm lệnh `npx` và các đối số `-y`, `@tokenlabai/mcp-server@0.6.21` vào đối tượng `mcpServers` chuẩn. Nếu chỉ cần công cụ công khai, đặt `TOKENLAB_MCP_TOOL_PROFILE=catalog`.
       </Tab>
 
       <Tab title="Client khác">
@@ -171,7 +171,7 @@ Cách bắt đầu nhanh và an toàn nhất là chỉ bật sáu công cụ dan
 
 ## Tham chiếu cấu hình
 
-Trong mọi client stdio cục bộ, dùng tên `tokenlab`, lệnh `npx`, hai đối số riêng `-y` và `@tokenlabai/mcp-server@0.6.20`, đồng thời để trống thư mục làm việc. Dùng `@tokenlabai/mcp-server@0.6.20` để ghim bản phát hành hiện đã được xác minh.
+Trong mọi client stdio cục bộ, dùng tên `tokenlab`, lệnh `npx`, hai đối số riêng `-y` và `@tokenlabai/mcp-server@0.6.21`, đồng thời để trống thư mục làm việc. Dùng `@tokenlabai/mcp-server@0.6.21` để ghim bản phát hành hiện đã được xác minh.
 
 Cấu hình chuẩn cho công cụ có xác thực:
 
@@ -180,7 +180,7 @@ Cấu hình chuẩn cho công cụ có xác thực:
   "mcpServers": {
     "tokenlab": {
       "command": "npx",
-      "args": ["-y", "@tokenlabai/mcp-server@0.6.20"],
+      "args": ["-y", "@tokenlabai/mcp-server@0.6.21"],
       "env": {
         "TOKENLAB_API_KEY": "<TOKENLAB_API_KEY>",
         "TOKENLAB_MCP_TOOL_PROFILE": "core"
@@ -305,7 +305,7 @@ Sử dụng cả hai khi có sẵn:
 
 <AccordionGroup>
   <Accordion title="Client không thể khởi động server">
-    Xác nhận Node.js từ phiên bản 18.17 trở lên và client tìm thấy `npx`. Chạy `npx -y @tokenlabai/mcp-server@0.6.20` trong terminal để hiển thị lỗi npm hoặc mạng. Khi stdio khởi động thành công, tiến trình sẽ im lặng chờ thông điệp MCP; nhấn **Ctrl+C** sau khi xác minh.
+    Xác nhận Node.js từ phiên bản 18.17 trở lên và client tìm thấy `npx`. Chạy `npx -y @tokenlabai/mcp-server@0.6.21` trong terminal để hiển thị lỗi npm hoặc mạng. Khi stdio khởi động thành công, tiến trình sẽ im lặng chờ thông điệp MCP; nhấn **Ctrl+C** sau khi xác minh.
   </Accordion>
 
   <Accordion title="Server đã cấu hình nhưng không thấy công cụ">
@@ -337,7 +337,7 @@ Sử dụng cả hai khi có sẵn:
   </Accordion>
 
   <Accordion title="Làm thế nào để ghim hoặc cập nhật phiên bản gói?">
-    Dùng `@tokenlabai/mcp-server@0.6.20` để ghim bản phát hành hiện đã xác minh. Khi đổi phiên bản, cập nhật đối số gói, khởi động lại máy chủ và xem kho công khai trước khi dùng bản mới hơn.
+    Dùng `@tokenlabai/mcp-server@0.6.21` để ghim bản phát hành hiện đã xác minh. Khi đổi phiên bản, cập nhật đối số gói, khởi động lại máy chủ và xem kho công khai trước khi dùng bản mới hơn.
   </Accordion>
 </AccordionGroup>
 
