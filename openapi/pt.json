@@ -9319,6 +9319,25 @@
             "type": "string",
             "description": "Identificador do modelo"
           },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "Disponibilidade atual do modelo por nível de entrega; omitida quando a projeção de origem não está disponível.",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "Indica se este modelo tem uma opção de entrega TokenLab Verified elegível."
+              },
+              "official": {
+                "type": "boolean",
+                "description": "Indica se este modelo tem uma opção de entrega Official elegível."
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
+          },
           "provider": {
             "type": "string",
             "description": "Provedor público do modelo"
@@ -12217,6 +12236,25 @@
               "type": "string"
             }
           },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "Disponibilidade atual do modelo por nível de entrega; omitida quando a projeção de origem não está disponível.",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "Indica se este modelo tem uma opção de entrega TokenLab Verified elegível."
+              },
+              "official": {
+                "type": "boolean",
+                "description": "Indica se este modelo tem uma opção de entrega Official elegível."
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
+          },
           "pricing": {
             "type": "object",
             "additionalProperties": true
@@ -12491,6 +12529,25 @@
             "items": {
               "type": "string"
             }
+          },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "Disponibilidade atual do modelo por nível de entrega; omitida quando a projeção de origem não está disponível.",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "Indica se este modelo tem uma opção de entrega TokenLab Verified elegível."
+              },
+              "official": {
+                "type": "boolean",
+                "description": "Indica se este modelo tem uma opção de entrega Official elegível."
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
           },
           "pricing": {
             "type": "object",

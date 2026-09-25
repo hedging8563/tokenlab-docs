@@ -6,6 +6,8 @@ description: "List models currently available on TokenLab"
 
 The model catalog is public and does not require an API key. Each item includes a summary of current capabilities, prices, and API formats. Retrieve one model when you need full details.
 
+When you provide an API key, TokenLab validates it and filters the catalog for its model permissions and effective delivery policy. A key set to `verified` lists models with TokenLab Verified supply; `official` lists models with Official supply. Refresh your model selector when the key or delivery policy changes. The request's supported delivery override takes precedence over the key and workspace defaults.
+
 ## Query Parameters
 
 <ParamField query="category" type="string">
@@ -33,6 +35,7 @@ Common list fields under `tokenlab` include:
 
 - `tokenlab.aliases`
 - `tokenlab.capabilities`
+- `tokenlab.deliveryAvailability`: configured `verified` and `official` support, when provided. A missing field means unknown; support does not guarantee real-time availability.
 - `tokenlab.pricing` and `tokenlab.pricing_unit`
 - `tokenlab.max_input_tokens` and `tokenlab.max_output_tokens`
 - `tokenlab.category`

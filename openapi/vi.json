@@ -9319,6 +9319,25 @@
             "type": "string",
             "description": "Định danh model"
           },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "Tình trạng cung cấp mô hình hiện tại theo cấp phân phối; trường này bị lược bỏ khi không có dữ liệu chiếu nguồn.",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "Cho biết mô hình có nguồn cung TokenLab Verified đủ điều kiện hay không."
+              },
+              "official": {
+                "type": "boolean",
+                "description": "Cho biết mô hình có nguồn cung Official đủ điều kiện hay không."
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
+          },
           "provider": {
             "type": "string",
             "description": "Nhà cung cấp model công khai"
@@ -12217,6 +12236,25 @@
               "type": "string"
             }
           },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "Tình trạng cung cấp mô hình hiện tại theo cấp phân phối; trường này bị lược bỏ khi không có dữ liệu chiếu nguồn.",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "Cho biết mô hình có nguồn cung TokenLab Verified đủ điều kiện hay không."
+              },
+              "official": {
+                "type": "boolean",
+                "description": "Cho biết mô hình có nguồn cung Official đủ điều kiện hay không."
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
+          },
           "pricing": {
             "type": "object",
             "additionalProperties": true
@@ -12491,6 +12529,25 @@
             "items": {
               "type": "string"
             }
+          },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "Tình trạng cung cấp mô hình hiện tại theo cấp phân phối; trường này bị lược bỏ khi không có dữ liệu chiếu nguồn.",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "Cho biết mô hình có nguồn cung TokenLab Verified đủ điều kiện hay không."
+              },
+              "official": {
+                "type": "boolean",
+                "description": "Cho biết mô hình có nguồn cung Official đủ điều kiện hay không."
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
           },
           "pricing": {
             "type": "object",

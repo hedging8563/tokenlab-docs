@@ -9319,6 +9319,25 @@
             "type": "string",
             "description": "モデル識別子"
           },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "配信階層別の現在のモデル提供状況。ソース投影を利用できない場合、このフィールドは省略されます。",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "このモデルに利用可能な TokenLab Verified の適格な配信元があるかを示します。"
+              },
+              "official": {
+                "type": "boolean",
+                "description": "このモデルに利用可能な Official の適格な配信元があるかを示します。"
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
+          },
           "provider": {
             "type": "string",
             "description": "公開モデルプロバイダー"
@@ -12217,6 +12236,25 @@
               "type": "string"
             }
           },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "配信階層別の現在のモデル提供状況。ソース投影を利用できない場合、このフィールドは省略されます。",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "このモデルに利用可能な TokenLab Verified の適格な配信元があるかを示します。"
+              },
+              "official": {
+                "type": "boolean",
+                "description": "このモデルに利用可能な Official の適格な配信元があるかを示します。"
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
+          },
           "pricing": {
             "type": "object",
             "additionalProperties": true
@@ -12491,6 +12529,25 @@
             "items": {
               "type": "string"
             }
+          },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "配信階層別の現在のモデル提供状況。ソース投影を利用できない場合、このフィールドは省略されます。",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "このモデルに利用可能な TokenLab Verified の適格な配信元があるかを示します。"
+              },
+              "official": {
+                "type": "boolean",
+                "description": "このモデルに利用可能な Official の適格な配信元があるかを示します。"
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
           },
           "pricing": {
             "type": "object",

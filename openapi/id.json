@@ -9319,6 +9319,25 @@
             "type": "string",
             "description": "Pengidentifikasi model"
           },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "Ketersediaan model saat ini menurut tingkat penyediaan; field dihilangkan jika proyeksi sumber tidak tersedia.",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "Menunjukkan apakah model ini memiliki pasokan TokenLab Verified yang memenuhi syarat."
+              },
+              "official": {
+                "type": "boolean",
+                "description": "Menunjukkan apakah model ini memiliki pasokan Official yang memenuhi syarat."
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
+          },
           "provider": {
             "type": "string",
             "description": "Penyedia model publik"
@@ -12217,6 +12236,25 @@
               "type": "string"
             }
           },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "Ketersediaan model saat ini menurut tingkat penyediaan; field dihilangkan jika proyeksi sumber tidak tersedia.",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "Menunjukkan apakah model ini memiliki pasokan TokenLab Verified yang memenuhi syarat."
+              },
+              "official": {
+                "type": "boolean",
+                "description": "Menunjukkan apakah model ini memiliki pasokan Official yang memenuhi syarat."
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
+          },
           "pricing": {
             "type": "object",
             "additionalProperties": true
@@ -12491,6 +12529,25 @@
             "items": {
               "type": "string"
             }
+          },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "Ketersediaan model saat ini menurut tingkat penyediaan; field dihilangkan jika proyeksi sumber tidak tersedia.",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "Menunjukkan apakah model ini memiliki pasokan TokenLab Verified yang memenuhi syarat."
+              },
+              "official": {
+                "type": "boolean",
+                "description": "Menunjukkan apakah model ini memiliki pasokan Official yang memenuhi syarat."
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
           },
           "pricing": {
             "type": "object",

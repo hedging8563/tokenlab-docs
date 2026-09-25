@@ -9319,6 +9319,25 @@
             "type": "string",
             "description": "Identifiant du modèle"
           },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "Disponibilité actuelle du modèle par niveau de distribution ; champ omis lorsque la projection source est indisponible.",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "Indique si ce modèle dispose d’une offre de distribution TokenLab Verified éligible."
+              },
+              "official": {
+                "type": "boolean",
+                "description": "Indique si ce modèle dispose d’une offre de distribution Official éligible."
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
+          },
           "provider": {
             "type": "string",
             "description": "Fournisseur de modèle public"
@@ -12217,6 +12236,25 @@
               "type": "string"
             }
           },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "Disponibilité actuelle du modèle par niveau de distribution ; champ omis lorsque la projection source est indisponible.",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "Indique si ce modèle dispose d’une offre de distribution TokenLab Verified éligible."
+              },
+              "official": {
+                "type": "boolean",
+                "description": "Indique si ce modèle dispose d’une offre de distribution Official éligible."
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
+          },
           "pricing": {
             "type": "object",
             "additionalProperties": true
@@ -12491,6 +12529,25 @@
             "items": {
               "type": "string"
             }
+          },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "Disponibilité actuelle du modèle par niveau de distribution ; champ omis lorsque la projection source est indisponible.",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "Indique si ce modèle dispose d’une offre de distribution TokenLab Verified éligible."
+              },
+              "official": {
+                "type": "boolean",
+                "description": "Indique si ce modèle dispose d’une offre de distribution Official éligible."
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
           },
           "pricing": {
             "type": "object",

@@ -9319,6 +9319,25 @@
             "type": "string",
             "description": "Model tanımlayıcısı"
           },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "Teslimat katmanına göre modelin güncel kullanılabilirliği; kaynak projeksiyonu yoksa alan atlanır.",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "Bu model için uygun bir TokenLab Verified teslimat seçeneği olup olmadığını belirtir."
+              },
+              "official": {
+                "type": "boolean",
+                "description": "Bu model için uygun bir Official teslimat seçeneği olup olmadığını belirtir."
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
+          },
           "provider": {
             "type": "string",
             "description": "Genel model sağlayıcısı"
@@ -12217,6 +12236,25 @@
               "type": "string"
             }
           },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "Teslimat katmanına göre modelin güncel kullanılabilirliği; kaynak projeksiyonu yoksa alan atlanır.",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "Bu model için uygun bir TokenLab Verified teslimat seçeneği olup olmadığını belirtir."
+              },
+              "official": {
+                "type": "boolean",
+                "description": "Bu model için uygun bir Official teslimat seçeneği olup olmadığını belirtir."
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
+          },
           "pricing": {
             "type": "object",
             "additionalProperties": true
@@ -12491,6 +12529,25 @@
             "items": {
               "type": "string"
             }
+          },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "Teslimat katmanına göre modelin güncel kullanılabilirliği; kaynak projeksiyonu yoksa alan atlanır.",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "Bu model için uygun bir TokenLab Verified teslimat seçeneği olup olmadığını belirtir."
+              },
+              "official": {
+                "type": "boolean",
+                "description": "Bu model için uygun bir Official teslimat seçeneği olup olmadığını belirtir."
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
           },
           "pricing": {
             "type": "object",

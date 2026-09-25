@@ -9319,6 +9319,25 @@
             "type": "string",
             "description": "模型識別碼"
           },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "模型目前依交付層級劃分的供應情況；來源投影不可用時省略此欄位。",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "此模型是否有符合條件的 TokenLab Verified 交付供應。"
+              },
+              "official": {
+                "type": "boolean",
+                "description": "此模型是否有符合條件的 Official 交付供應。"
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
+          },
           "provider": {
             "type": "string",
             "description": "公開模型提供者"
@@ -12217,6 +12236,25 @@
               "type": "string"
             }
           },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "模型目前依交付層級劃分的供應情況；來源投影不可用時省略此欄位。",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "此模型是否有符合條件的 TokenLab Verified 交付供應。"
+              },
+              "official": {
+                "type": "boolean",
+                "description": "此模型是否有符合條件的 Official 交付供應。"
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
+          },
           "pricing": {
             "type": "object",
             "additionalProperties": true
@@ -12491,6 +12529,25 @@
             "items": {
               "type": "string"
             }
+          },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "模型目前依交付層級劃分的供應情況；來源投影不可用時省略此欄位。",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "此模型是否有符合條件的 TokenLab Verified 交付供應。"
+              },
+              "official": {
+                "type": "boolean",
+                "description": "此模型是否有符合條件的 Official 交付供應。"
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
           },
           "pricing": {
             "type": "object",

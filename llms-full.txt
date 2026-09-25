@@ -1173,6 +1173,8 @@ For paid generation, Console shows the maximum estimate before confirmation. Aft
 
 Model prices can change. Check Console, the Models page, `GET /v1/models/:model/pricing`, or the [Pricing API](/api-reference/pricing/get-pricing) for the current price.
 
+On the Models page, a dash in the TokenLab price or discount column means no TokenLab Verified offer is currently available; it does not mean free. Models with Official supply remain available through Official or Auto. Delivery labels describe supported options, while availability is checked when each request runs. Series prices summarize models with supply in the relevant delivery option and keep different billing units separate.
+
 ### Token-Based Pricing
 
 Most chat, reasoning, embedding, rerank, and some image models are priced by input, output, cache, or image-output tokens.
@@ -2921,6 +2923,8 @@ URL: https://docs.tokenlab.sh/api-reference/models/list-models
 
 The model catalog is public and does not require an API key. Each item includes a summary of current capabilities, prices, and API formats. Retrieve one model when you need full details.
 
+When you provide an API key, TokenLab validates it and filters the catalog for its model permissions and effective delivery policy. A key set to `verified` lists models with TokenLab Verified supply; `official` lists models with Official supply. Refresh your model selector when the key or delivery policy changes. The request's supported delivery override takes precedence over the key and workspace defaults.
+
 ## Query Parameters
 
 #### category
@@ -2953,6 +2957,7 @@ Common list fields under `tokenlab` include:
 
 - `tokenlab.aliases`
 - `tokenlab.capabilities`
+- `tokenlab.deliveryAvailability`: configured `verified` and `official` support, when provided. A missing field means unknown; support does not guarantee real-time availability.
 - `tokenlab.pricing` and `tokenlab.pricing_unit`
 - `tokenlab.max_input_tokens` and `tokenlab.max_output_tokens`
 - `tokenlab.category`

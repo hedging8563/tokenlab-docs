@@ -9319,6 +9319,25 @@
             "type": "string",
             "description": "모델 식별자"
           },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "전달 등급별 현재 모델 제공 상태입니다. 원본 프로젝션을 사용할 수 없으면 이 필드는 생략됩니다.",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "이 모델에 적격한 TokenLab Verified 공급이 있는지 나타냅니다."
+              },
+              "official": {
+                "type": "boolean",
+                "description": "이 모델에 적격한 Official 공급이 있는지 나타냅니다."
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
+          },
           "provider": {
             "type": "string",
             "description": "공용 모델 제공자"
@@ -12217,6 +12236,25 @@
               "type": "string"
             }
           },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "전달 등급별 현재 모델 제공 상태입니다. 원본 프로젝션을 사용할 수 없으면 이 필드는 생략됩니다.",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "이 모델에 적격한 TokenLab Verified 공급이 있는지 나타냅니다."
+              },
+              "official": {
+                "type": "boolean",
+                "description": "이 모델에 적격한 Official 공급이 있는지 나타냅니다."
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
+          },
           "pricing": {
             "type": "object",
             "additionalProperties": true
@@ -12491,6 +12529,25 @@
             "items": {
               "type": "string"
             }
+          },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "전달 등급별 현재 모델 제공 상태입니다. 원본 프로젝션을 사용할 수 없으면 이 필드는 생략됩니다.",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "이 모델에 적격한 TokenLab Verified 공급이 있는지 나타냅니다."
+              },
+              "official": {
+                "type": "boolean",
+                "description": "이 모델에 적격한 Official 공급이 있는지 나타냅니다."
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
           },
           "pricing": {
             "type": "object",

@@ -9319,6 +9319,25 @@
             "type": "string",
             "description": "Modell-Identifikator"
           },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "Aktuelle Modellverfügbarkeit nach Bereitstellungsklasse; wird ausgelassen, wenn die Quellprojektion nicht verfügbar ist.",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "Gibt an, ob für dieses Modell ein geeigneter TokenLab-Verified-Bereitstellungsweg verfügbar ist."
+              },
+              "official": {
+                "type": "boolean",
+                "description": "Gibt an, ob für dieses Modell ein geeigneter Official-Bereitstellungsweg verfügbar ist."
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
+          },
           "provider": {
             "type": "string",
             "description": "Öffentlicher Modell-Anbieter"
@@ -12217,6 +12236,25 @@
               "type": "string"
             }
           },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "Aktuelle Modellverfügbarkeit nach Bereitstellungsklasse; wird ausgelassen, wenn die Quellprojektion nicht verfügbar ist.",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "Gibt an, ob für dieses Modell ein geeigneter TokenLab-Verified-Bereitstellungsweg verfügbar ist."
+              },
+              "official": {
+                "type": "boolean",
+                "description": "Gibt an, ob für dieses Modell ein geeigneter Official-Bereitstellungsweg verfügbar ist."
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
+          },
           "pricing": {
             "type": "object",
             "additionalProperties": true
@@ -12491,6 +12529,25 @@
             "items": {
               "type": "string"
             }
+          },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "Aktuelle Modellverfügbarkeit nach Bereitstellungsklasse; wird ausgelassen, wenn die Quellprojektion nicht verfügbar ist.",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "Gibt an, ob für dieses Modell ein geeigneter TokenLab-Verified-Bereitstellungsweg verfügbar ist."
+              },
+              "official": {
+                "type": "boolean",
+                "description": "Gibt an, ob für dieses Modell ein geeigneter Official-Bereitstellungsweg verfügbar ist."
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
           },
           "pricing": {
             "type": "object",

@@ -19,6 +19,8 @@ description: "费用预估、实际扣费、余额与限额说明"
 
 模型价格可能变化。当前价格以 Console、模型页、`GET /v1/models/:model/pricing` 和 [Pricing API](/api-reference/pricing/get-pricing) 为准。
 
+模型页的 TokenLab 价格或折扣显示“—”时，表示当前没有 TokenLab Verified 报价，不代表免费。有 Official 供应的模型仍可通过 Official 或 Auto 使用。交付方式的“支持”描述可选方式，实时可用性在每次请求时校验。模型系列价格仅汇总对应交付方式有供应的成员，不混合比较不同计费单位。
+
 ### 按 Token 计费
 
 多数聊天、推理、嵌入、rerank 以及部分图像模型按输入、输出、缓存或图像输出 token 计费。

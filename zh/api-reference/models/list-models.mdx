@@ -6,6 +6,8 @@ description: "列出当前可用模型"
 
 模型目录是公开接口，不需要 API 密钥。每个模型都带有当前能力、价格和 API 格式摘要；需要完整信息时，再查询单个模型。
 
+提供 API 密钥时，TokenLab 会校验密钥，并按密钥的模型权限和有效交付策略筛选目录。设为 `verified` 的密钥只列出支持 TokenLab Verified 的模型；设为 `official` 时只列出支持 Official 的模型。切换密钥或交付策略后，应重新加载模型选择列表。请求中受支持的交付策略覆盖优先于密钥和工作区默认值。
+
 ## 查询参数
 
 <ParamField query="category" type="string">
@@ -38,6 +40,7 @@ description: "列出当前可用模型"
 
 - `tokenlab.aliases`：公开别名。
 - `tokenlab.capabilities`：模型能力。
+- `tokenlab.deliveryAvailability`：若提供，分别说明是否支持 `verified` 和 `official`；字段缺失表示未知，支持不代表实时可用保证。
 - `tokenlab.pricing` 与 `tokenlab.pricing_unit`：当前价格和计费单位。
 - `tokenlab.max_input_tokens` 与 `tokenlab.max_output_tokens`：上下文和输出上限。
 - `tokenlab.category`：模型类别。

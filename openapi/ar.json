@@ -9319,6 +9319,25 @@
             "type": "string",
             "description": "معرف النموذج"
           },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "التوفر الحالي للنموذج حسب فئة التسليم؛ يُحذف الحقل عند تعذر إسقاط المصدر.",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "يوضح ما إذا كان لهذا النموذج مصدر تسليم مؤهل ضمن TokenLab Verified."
+              },
+              "official": {
+                "type": "boolean",
+                "description": "يوضح ما إذا كان لهذا النموذج مصدر تسليم مؤهل ضمن Official."
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
+          },
           "provider": {
             "type": "string",
             "description": "مزود النموذج العام"
@@ -12217,6 +12236,25 @@
               "type": "string"
             }
           },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "التوفر الحالي للنموذج حسب فئة التسليم؛ يُحذف الحقل عند تعذر إسقاط المصدر.",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "يوضح ما إذا كان لهذا النموذج مصدر تسليم مؤهل ضمن TokenLab Verified."
+              },
+              "official": {
+                "type": "boolean",
+                "description": "يوضح ما إذا كان لهذا النموذج مصدر تسليم مؤهل ضمن Official."
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
+          },
           "pricing": {
             "type": "object",
             "additionalProperties": true
@@ -12491,6 +12529,25 @@
             "items": {
               "type": "string"
             }
+          },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "التوفر الحالي للنموذج حسب فئة التسليم؛ يُحذف الحقل عند تعذر إسقاط المصدر.",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "يوضح ما إذا كان لهذا النموذج مصدر تسليم مؤهل ضمن TokenLab Verified."
+              },
+              "official": {
+                "type": "boolean",
+                "description": "يوضح ما إذا كان لهذا النموذج مصدر تسليم مؤهل ضمن Official."
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
           },
           "pricing": {
             "type": "object",
