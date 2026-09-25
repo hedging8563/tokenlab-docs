@@ -52,10 +52,10 @@ https://docs.tokenlab.sh/ar/integrations/tokenlab-mcp-server
 أسرع بداية آمنة هي تفعيل أدوات الكتالوج العامة الست فقط. لا تحتاج إلى مفتاح TokenLab API، ويمكنك تفعيل الأدوات التي تتطلب بيانات اعتماد لاحقاً.
 
 <CardGroup cols={2}>
-  <Card title="التثبيت في Cursor" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXJAMC42LjIxIl0sImVudiI6eyJUT0tFTkxBQl9NQ1BfVE9PTF9QUk9GSUxFIjoiY2F0YWxvZyJ9fQ%3D%3D">
+  <Card title="التثبيت في Cursor" icon="arrow-pointer" href="https://cursor.com/en/install-mcp?name=tokenlab&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB0b2tlbmxhYmFpL21jcC1zZXJ2ZXJAMC42LjIyIl0sImVudiI6eyJUT0tFTkxBQl9NQ1BfVE9PTF9QUk9GSUxFIjoiY2F0YWxvZyJ9fQ%3D%3D">
     أضف ملف التعريف العام `catalog` إلى Cursor بنقرة واحدة
   </Card>
-  <Card title="التثبيت في VS Code" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%400.6.21%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
+  <Card title="التثبيت في VS Code" icon="code" href="https://vscode.dev/redirect/mcp/install?name=tokenlab&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40tokenlabai%2Fmcp-server%400.6.22%22%5D%2C%22env%22%3A%7B%22TOKENLAB_MCP_TOOL_PROFILE%22%3A%22catalog%22%7D%7D">
     أضف ملف التعريف العام `catalog` إلى إعدادات مستخدم VS Code
   </Card>
 </CardGroup>
@@ -92,7 +92,7 @@ https://docs.tokenlab.sh/ar/integrations/tokenlab-mcp-server
         أضف TokenLab ضمن نطاق المستخدم ليكون متاحاً في كل المشاريع.
 
         ```bash
-        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab -- npx -y @tokenlabai/mcp-server@0.6.21
+        claude mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog --scope user tokenlab -- npx -y @tokenlabai/mcp-server@0.6.22
         ```
 
         لتفعيل ملف `core` الافتراضي، أضف مفتاح API بدلاً من ذلك.
@@ -110,7 +110,7 @@ https://docs.tokenlab.sh/ar/integrations/tokenlab-mcp-server
           "mcpServers": {
             "tokenlab": {
               "command": "npx",
-              "args": ["-y", "@tokenlabai/mcp-server@0.6.21"],
+              "args": ["-y", "@tokenlabai/mcp-server@0.6.22"],
               "env": { "TOKENLAB_MCP_TOOL_PROFILE": "catalog" }
             }
           }
@@ -127,7 +127,7 @@ https://docs.tokenlab.sh/ar/integrations/tokenlab-mcp-server
             "tokenlab": {
               "type": "stdio",
               "command": "npx",
-              "args": ["-y", "@tokenlabai/mcp-server@0.6.21"],
+              "args": ["-y", "@tokenlabai/mcp-server@0.6.22"],
               "env": { "TOKENLAB_MCP_TOOL_PROFILE": "catalog" }
             }
           }
@@ -140,12 +140,12 @@ https://docs.tokenlab.sh/ar/integrations/tokenlab-mcp-server
       <Tab title="Codex">
         ```bash
         # الكتالوج العام
-                codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab -- npx -y @tokenlabai/mcp-server@0.6.21
+                codex mcp add --env TOKENLAB_MCP_TOOL_PROFILE=catalog tokenlab -- npx -y @tokenlabai/mcp-server@0.6.22
         ```
       </Tab>
 
       <Tab title="Claude Desktop">
-        أضف إلى كائن `mcpServers` القياسي في `claude_desktop_config.json` الأمر `npx` والوسيطتين `-y` و`@tokenlabai/mcp-server@0.6.21`. للأدوات العامة فقط، عيّن `TOKENLAB_MCP_TOOL_PROFILE=catalog`.
+        أضف إلى كائن `mcpServers` القياسي في `claude_desktop_config.json` الأمر `npx` والوسيطتين `-y` و`@tokenlabai/mcp-server@0.6.22`. للأدوات العامة فقط، عيّن `TOKENLAB_MCP_TOOL_PROFILE=catalog`.
       </Tab>
 
       <Tab title="عملاء آخرون">
@@ -171,7 +171,7 @@ https://docs.tokenlab.sh/ar/integrations/tokenlab-mcp-server
 
 ## مرجع الإعداد
 
-في أي عميل stdio محلي، استخدم اسم الخادم `tokenlab` والأمر `npx` والوسيطتين المنفصلتين `-y` و`@tokenlabai/mcp-server@0.6.21`، واترك دليل العمل فارغاً. استخدم `@tokenlabai/mcp-server@0.6.21` لتثبيت الإصدار المتحقق منه حالياً.
+في أي عميل stdio محلي، استخدم اسم الخادم `tokenlab` والأمر `npx` والوسيطتين المنفصلتين `-y` و`@tokenlabai/mcp-server@0.6.22`، واترك دليل العمل فارغاً. استخدم `@tokenlabai/mcp-server@0.6.22` لتثبيت الإصدار المتحقق منه حالياً.
 
 إعداد قياسي للأدوات الموثقة:
 
@@ -180,7 +180,7 @@ https://docs.tokenlab.sh/ar/integrations/tokenlab-mcp-server
   "mcpServers": {
     "tokenlab": {
       "command": "npx",
-      "args": ["-y", "@tokenlabai/mcp-server@0.6.21"],
+      "args": ["-y", "@tokenlabai/mcp-server@0.6.22"],
       "env": {
         "TOKENLAB_API_KEY": "<TOKENLAB_API_KEY>",
         "TOKENLAB_MCP_TOOL_PROFILE": "core"
@@ -305,7 +305,7 @@ https://tokenlab-model-explorer.vercel.app/mcp
 
 <AccordionGroup>
   <Accordion title="لا يمكن للعميل بدء تشغيل الخادم">
-    تأكد من أن Node.js بإصدار 18.17 على الأقل وأن العميل يجد `npx`. شغّل `npx -y @tokenlabai/mcp-server@0.6.21` في الطرفية لإظهار أخطاء npm أو الشبكة. ينتظر تشغيل stdio الناجح رسائل MCP بصمت؛ أنهه باستخدام **Ctrl+C** بعد التحقق.
+    تأكد من أن Node.js بإصدار 18.17 على الأقل وأن العميل يجد `npx`. شغّل `npx -y @tokenlabai/mcp-server@0.6.22` في الطرفية لإظهار أخطاء npm أو الشبكة. ينتظر تشغيل stdio الناجح رسائل MCP بصمت؛ أنهه باستخدام **Ctrl+C** بعد التحقق.
   </Accordion>
 
   <Accordion title="تم إعداد الخادم لكن الأدوات لا تظهر">
@@ -337,7 +337,7 @@ https://tokenlab-model-explorer.vercel.app/mcp
   </Accordion>
 
   <Accordion title="كيف أثبت إصدار الحزمة أو أحدثه؟">
-    استخدم `@tokenlabai/mcp-server@0.6.21` لتثبيت الإصدار المتحقق منه حالياً. لتغييره، حدّث وسيطة الحزمة وأعد تشغيل الخادم وراجع المستودع العام قبل اعتماد إصدار أحدث.
+    استخدم `@tokenlabai/mcp-server@0.6.22` لتثبيت الإصدار المتحقق منه حالياً. لتغييره، حدّث وسيطة الحزمة وأعد تشغيل الخادم وراجع المستودع العام قبل اعتماد إصدار أحدث.
   </Accordion>
 </AccordionGroup>
 

@@ -66,7 +66,7 @@ npm 包会在本地通过 stdio 运行，不需要全局安装，也不需要克
       --env TOKENLAB_MCP_TOOL_PROFILE=catalog \
       --scope user \
       tokenlab -- \
-      npx -y @tokenlabai/mcp-server@0.6.21
+      npx -y @tokenlabai/mcp-server@0.6.22
     ```
 
     需要付费工具时，把 Profile 环境变量换成 `TOKENLAB_API_KEY`，并通过日常使用的密钥管理方式保存。只在当前项目使用时选择 `--scope local`。共享 `.mcp.json` 不能提交真实密钥。
@@ -77,7 +77,7 @@ npm 包会在本地通过 stdio 运行，不需要全局安装，也不需要克
     codex mcp add \
       --env TOKENLAB_MCP_TOOL_PROFILE=catalog \
       tokenlab -- \
-      npx -y @tokenlabai/mcp-server@0.6.21
+      npx -y @tokenlabai/mcp-server@0.6.22
     ```
 
     需要付费工具时，在 Server 环境中配置 `TOKENLAB_API_KEY`。
@@ -91,7 +91,7 @@ npm 包会在本地通过 stdio 运行，不需要全局安装，也不需要克
       "mcpServers": {
         "tokenlab": {
           "command": "npx",
-          "args": ["-y", "@tokenlabai/mcp-server@0.6.21"],
+          "args": ["-y", "@tokenlabai/mcp-server@0.6.22"],
           "env": {
             "TOKENLAB_MCP_TOOL_PROFILE": "catalog"
           }
@@ -110,7 +110,7 @@ npm 包会在本地通过 stdio 运行，不需要全局安装，也不需要克
         "tokenlab": {
           "type": "stdio",
           "command": "npx",
-          "args": ["-y", "@tokenlabai/mcp-server@0.6.21"],
+          "args": ["-y", "@tokenlabai/mcp-server@0.6.22"],
           "env": {
             "TOKENLAB_MCP_TOOL_PROFILE": "catalog"
           }
@@ -128,7 +128,7 @@ npm 包会在本地通过 stdio 运行，不需要全局安装，也不需要克
       "mcpServers": {
         "tokenlab": {
           "command": "npx",
-          "args": ["-y", "@tokenlabai/mcp-server@0.6.21"],
+          "args": ["-y", "@tokenlabai/mcp-server@0.6.22"],
           "env": {
             "TOKENLAB_MCP_TOOL_PROFILE": "catalog"
           }
@@ -144,7 +144,7 @@ npm 包会在本地通过 stdio 运行，不需要全局安装，也不需要克
     | 字段 | 值 |
     | --- | --- |
     | Command | `npx` |
-    | Arguments | `-y`、`@tokenlabai/mcp-server@0.6.21` |
+    | Arguments | `-y`、`@tokenlabai/mcp-server@0.6.22` |
     | Environment | `TOKENLAB_MCP_TOOL_PROFILE=catalog` |
 
   </Tab>
@@ -216,7 +216,7 @@ codex mcp list
 
 <AccordionGroup>
   <Accordion title="客户端无法启动 Server">
-    在终端运行 `node --version`、`npx --version` 和 `npx -y @tokenlabai/mcp-server@0.6.21`。stdio Server 启动成功后会安静等待 MCP 消息；确认能够启动后按 **Ctrl+C** 退出。
+    在终端运行 `node --version`、`npx --version` 和 `npx -y @tokenlabai/mcp-server@0.6.22`。stdio Server 启动成功后会安静等待 MCP 消息；确认能够启动后按 **Ctrl+C** 退出。
   </Accordion>
 
   <Accordion title="已经连接，但没有出现工具">
