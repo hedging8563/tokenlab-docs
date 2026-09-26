@@ -1,0 +1,41 @@
+---
+title: "inception"
+description: "inception models"
+---
+
+## Overview
+
+TokenLab provides access to inception models. Total: **1 model** available.
+
+## Chat Models
+
+| Model ID | Pricing |
+|----------|--------|
+| `mercury-2.5` | Input $0.04 / Output $0.15 per 1M tokens |
+
+
+## Usage
+
+This example uses one model's declared request format. Other models on this page may accept different formats.
+
+```python
+import os
+from anthropic import Anthropic
+
+client = Anthropic(
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh"
+)
+
+response = client.messages.create(
+    model="mercury-2.5",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+```
+
+Check the [model details](/api-reference/models/get-model) for `mercury-2.5` with `GET /v1/models/mercury-2.5` and your API key.
+
+<Note>
+The table shows current public pricing as input/output rates, a unit price, or a price range. See your dashboard for complete option-specific pricing.
+</Note>

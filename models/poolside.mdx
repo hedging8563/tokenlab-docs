@@ -1,0 +1,41 @@
+---
+title: "poolside"
+description: "poolside models"
+---
+
+## Overview
+
+TokenLab provides access to poolside models. Total: **1 model** available.
+
+## Chat Models
+
+| Model ID | Pricing |
+|----------|--------|
+| `laguna-s-2.1` | Input $0.1 / Output $0.2 per 1M tokens |
+
+
+## Usage
+
+This example uses one model's declared request format. Other models on this page may accept different formats.
+
+```python
+import os
+from anthropic import Anthropic
+
+client = Anthropic(
+    api_key=os.environ["TOKENLAB_API_KEY"],
+    base_url="https://api.tokenlab.sh"
+)
+
+response = client.messages.create(
+    model="laguna-s-2.1",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+```
+
+Check the [model details](/api-reference/models/get-model) for `laguna-s-2.1` with `GET /v1/models/laguna-s-2.1` and your API key.
+
+<Note>
+The table shows current public pricing as input/output rates, a unit price, or a price range. See your dashboard for complete option-specific pricing.
+</Note>
